@@ -1,0 +1,311 @@
+#ifndef enums_h
+#define enums_h
+
+// If ClassType changes, be sure to modify
+// the "classes" table associated with the "setClassification"
+// function in the hlautils.c module.
+
+enum ClassType 
+			{ 
+				cConstant,		//0
+				cValue, 		//1
+				cType, 			//2
+				cVar,			//3
+				cParm,			//4
+				cStatic,		//5
+				cLabel,			//6
+				cProc,			//7
+				cIterator,		//8
+				cClassProc,		//9
+				cClassIter,		//10
+				cMethod,		//11
+				cMacro,			//12
+				cKeyword,		//13
+				cTerminator,	//14
+				cRegex,			//15
+				cProgram, 		//16
+				cNamespace,		//17
+				cSegment,		//18
+				cRegister,		//19
+				cNone			//20
+			};
+
+#define IsConstant(c) ((c) == cConstant || (c) == cValue)
+#define IsType(t) ((t) == cType)
+#define IsVar(v) ((v) == cVar || (v) == cStatic || (v) == cParm)
+#define IsStaticClass(v) ( (v) >= cStatic && (v) <= cMethod )
+#define NotStaticClass(v) (!IsStaticClass(v))
+#define StaticProc(v) ((v) == cProc || (v) == cClassProc)
+#define CanBePtrConst(v) (((v) >= cStatic) && ((v) <= cClassProc ))
+
+#define sizeofSymNode sizeof( struct SymNode )
+#define sizeofYYSTYPE sizeof( union YYSTYPE )
+
+#define EndOfTypeList(typ) ((typ)->Type == NULL )
+#define SetEndOfTypeList(typ) (typ)->Next = NULL
+
+/*********************************************************************/
+/*                                                                   */
+/* Warning!                                                          */
+/*                                                                   */
+/* The following enumerated values appear in a very specific         */
+/* order.  If you change the order of these declarations, you        */
+/* must take special care.                                           */
+/*                                                                   */
+/* The byte, word, and dword entries must immediately follow         */
+/* the Unsigned entries and immediately precede the Int entries      */
+/* because the program checks for the ranges tUns8..tDword and       */
+/* tByte..tInt32 when doing type checking.                           */
+/*                                                                   */
+/* Likewise, ordinal values must vall in the range tBoolean..tChar.  */
+/* The scalar reals must also be adjacent (tReal32..tReal80).        */
+/*                                                                   */
+/*********************************************************************/
+
+// This list must be kept in phase with several other files.
+// Especially the hla.hhf header file and the assembly code
+// for the compiler.
+
+enum PrimType 
+			{ 
+				tBoolean,	//0 
+				tEnum,		//1
+				
+				tUns8,		//2
+				tUns16,		//3
+				tUns32,		//4
+				tUns64,		//5
+				tUns128,	//6
+				
+				tByte,		//7
+				tWord,		//8
+				tDWord,		//9
+				tQWord,		//10
+				tTByte,		//11
+				tLWord,		//12
+
+				tInt8,		//13
+				tInt16,		//14
+				tInt32,		//15
+				tInt64,		//16
+				tInt128,	//17
+
+				tChar, 		//18
+				tWChar,		//19
+
+				tReal32,	//20
+				tReal64, 	//21
+				tReal80,	//22
+				tReal128,	//23
+				 
+				tString,	//24
+				tZString,	//25
+				tWString,	//26
+				tCset,		//27
+
+				tArray,		//28
+				tRecord,	//29
+				tUnion,		//30
+				tRegex,		//31
+				tClass,		//32
+				tProcptr,	//33
+				tThunk,		//34
+				tPointer,	//35
+
+				tLabel,		//36
+				tProc,		//37
+				tMethod,	//38
+				tClassProc,	//39
+				tClassIter, //40
+				tIterator,	//41
+				tProgram,	//42
+				tMacro,		//43
+				tText,		//44
+				tRegexMac,	//45
+							
+				tNamespace,	//46
+				tSegment,   //47
+				tAnonRec,	//48
+				tAnonUnion,	//49
+				tVariant,	//50
+				tError		//51	Used to denote a cascading error.
+			};
+
+#define CanBeConst(ptype) ((ptype) <= tRegex) 
+#define CanBeVal(ptype) ((ptype) <=  tRegex) 
+#define CanBeType(ptype) ((ptype) <= tCset || (ptype) == tPointer) 
+#define CanBeVar(ptype) ((ptype) <= tPointer && (ptype) != tRegex) 
+#define CanBePtr(ptype) ((ptype) <= tPointer && (ptype) != tRegex) 
+#define CanBeArray(ptype) ((ptype) <= tPointer && (ptype) != tRegex) 
+#define CanBeParm(ptype) ((ptype) <= tPointer && (ptype) != tRegex) 
+#define IsPrimitive(pType) ((pType) <= tCset || (pType == tText))
+
+#define IsNotPrimType(pType) (!IsPrimitive(pType))
+#define CantBePtr(pType) (!CanBePtr(pType))
+#define CantBeVar(pType) (!CanBeVar(pType))
+#define CantBeParm(pType) (!CanBeParm(pType))
+#define IsNotArrayType(pType) (!CanBeArray(pType))
+
+#define IsOrdinal(x) ((x) >= tBoolean && (x) <= tWChar )
+#define IsNumber(x)  ((x) >= tUns8    && (x) <= tInt128 )
+
+#define IsInt(x)  ((x) >= tInt8    && (x) <= tInt128 )
+#define IsUns(x)  ((x) >= tUns8    && (x) <= tUns128 )
+#define IsBytes(x)  ((x) >= tByte  && (x) <= tLWord )
+#define IsReal(x)  ((x) >= tReal32  && (x) <= tReal80 )
+#define IsNumeric(x) (IsNumber(x) || IsReal(x))
+#define IsScalar(x) ((x) <= tReal80)
+#define IsSZWStr(x) ((x) >= tString && (x) <= tWString)
+#define IsStr(x) ((x) == tString || (x) == tZString)
+
+#define IsSmallInt(x) ((x) >= tInt8    && (x) <= tInt32 )
+#define IsSmallUns(x) ((x) >= tUns8    && (x) <= tUns32 )
+#define IsSmallBytes(x) ((x) >= tByte    && (x) <= tDWord )
+#define IsSmallNumber(x) (IsSmallInt(x) || IsSmallUns(x) || IsSmallBytes(x))
+
+#define IsProc(x) ((x) == tProc || (x) == tMethod || (x) == tClassProc || \
+					(x) == tIterator || (x) == tProcptr )
+
+
+
+enum ParmClass
+	 {
+		valp_pc,		//0
+		refp_pc,		//1
+		vrp_pc,			//2
+		result_pc,		//3
+		name_pc,		//4
+		lazy_pc,		//5
+	 	none_pc 		//6
+	};
+
+
+#define ByAddress(x) ((x) >= refp_pc && (x) <= result_pc )
+#define ByThunk(x) ((x) >= name_pc && (x) <= lazy_pc )
+
+
+enum CallSeq
+	{
+		pascal_cs,		//0
+		stdcall_cs,		//1
+		cdecl_cs		//2
+	};
+
+enum AsmChoice
+	{
+		masm,
+		fasm,
+		tasm,
+		gas,
+		nasm,
+		hla,
+		numAssemblers
+	};
+	
+enum gasChoice
+	{
+		stdGas,
+		macGas
+	};
+	
+enum ObjFormat
+	{
+		coff,
+		omf,
+		elf,
+		macho
+	};
+	
+enum LinkerChoice
+	{
+		mslink,
+		polink,
+		ld
+	};
+	
+enum OSChoice
+	{
+		windows_os,
+		linux_os,
+		freeBSD_os,
+		macOS_os,
+		
+		numOSChoices
+	};
+
+
+/*--------------------------------------------------------------**
+**                                                              **
+** tknType values-                                              **
+** specifies the type of objects that may appear in an abstract **
+** syntax tree.                                                 **
+**                                                              **
+**--------------------------------------------------------------*/
+
+
+enum operatorEnum
+{
+	c_flag,
+	nc_flag,
+	s_flag,
+	ns_flag,
+	o_flag,
+	no_flag,
+	z_flag,
+	nz_flag,
+	a_flag,
+	na_flag,
+	ae_flag,
+	nae_flag,
+	b_flag,
+	nb_flag,
+	be_flag,
+	nbe_flag,
+	l_flag,
+	nl_flag,
+	le_flag,
+	nle_flag,
+	g_flag,
+	ng_flag,
+	ge_flag,
+	nge_flag,
+	e_flag,
+	ne_flag,
+	pe_flag,
+	po_flag,
+	p_flag,
+	np_flag,
+	eq_astop,
+	ne_astop,
+	b_astop,
+	be_astop,
+	a_astop,
+	ae_astop,
+	l_astop,
+	le_astop,
+	g_astop,
+	ge_astop,
+	eq0_astop,
+	ne0_astop,
+	in_astop,
+	notin_astop,
+	and_astop,
+	or_astop,
+	not_astop
+};
+
+#define CnvrtToSigned(x) _ifx( (x)>=b_astop && (x) <= ae_astop, (x)+4, x )
+#define InvertFlag(x) _ifx( (x) <= np_flag, (x) ^ 1, x )
+
+enum opType
+{
+	reg_optype,
+	mem_optype,
+	const_optype,
+	flag_optype
+};
+
+
+
+
+#endif
