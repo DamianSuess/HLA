@@ -1,0 +1,11 @@
+hlaparse.obj
+lex.yy.obj
+symbol.obj 
+hlautils.obj 
+output.obj
+oututils.obj
+coerce.obj 
+funcs.obj 
+hlaasm.obj
+cfasm.obj
+hfasm.obj
