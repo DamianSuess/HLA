@@ -91,35 +91,35 @@ static void OutPaddedValue
 
 char *gpregmap[ numGPregs ][ numAssemblers ] =
 	{
-		//	masm	fasm	tasm	gas	    nasm	hla 
-		{	"al", 	"al",	"al",	"%al",  "al",	"al" },
-		{	"cl", 	"cl",	"cl",	"%cl",  "cl",	"cl" },
-		{	"dl", 	"dl",	"dl",	"%dl",  "dl",	"dl" },
-		{	"bl", 	"bl",	"bl",	"%bl",  "bl",	"bl" },
+		//	masm	fasm	tasm	gas	    nasm	hla,	hlabe 
+		{	"al", 	"al",	"al",	"%al",  "al",	"al", 	"al"	},
+		{	"cl", 	"cl",	"cl",	"%cl",  "cl",	"cl", 	"cl"	},
+		{	"dl", 	"dl",	"dl",	"%dl",  "dl",	"dl", 	"dl"	},
+		{	"bl", 	"bl",	"bl",	"%bl",  "bl",	"bl", 	"bl"	},
+														 			
+		{	"ah", 	"ah",	"ah",	"%ah",  "ah",	"ah", 	"ah"	},
+		{	"ch", 	"ch",	"ch",	"%ch",  "ch",	"ch", 	"ch"	},
+		{	"dh", 	"dh",	"dh",	"%dh",  "dh",	"dh", 	"dh"	},
+		{	"bh", 	"bh",	"bh",	"%bh",  "bh",	"bh", 	"bh"	},
+														 			
+		{	"ax", 	"ax",	"ax",	"%ax",  "ax",	"ax", 	"ax"	},
+		{	"cx", 	"cx",	"cx",	"%cx",  "cx",	"cx", 	"cx"	},
+		{	"dx", 	"dx",	"dx",	"%dx",  "dx",	"dx", 	"dx"	},
+		{	"bx", 	"bx",	"bx",	"%bx",  "bx",	"bx", 	"bx"	},
+														 			
+		{	"sp", 	"sp",	"sp",	"%sp",  "sp",	"sp", 	"sp"	},
+		{	"bp", 	"bp",	"bp",	"%bp",  "bp",	"bp", 	"bp"	},
+		{	"si", 	"si",	"si",	"%si",  "si",	"si", 	"si"	},
+		{	"di", 	"di",	"di",	"%di",  "di",	"di", 	"di"	},
 
-		{	"ah", 	"ah",	"ah",	"%ah",  "ah",	"ah" },
-		{	"ch", 	"ch",	"ch",	"%ch",  "ch",	"ch" },
-		{	"dh", 	"dh",	"dh",	"%dh",  "dh",	"dh" },
-		{	"bh", 	"bh",	"bh",	"%bh",  "bh",	"bh" },
-
-		{	"ax", 	"ax",	"ax",	"%ax",  "ax",	"ax" },
-		{	"cx", 	"cx",	"cx",	"%cx",  "cx",	"cx" },
-		{	"dx", 	"dx",	"dx",	"%dx",  "dx",	"dx" },
-		{	"bx", 	"bx",	"bx",	"%bx",  "bx",	"bx" },
-
-		{	"sp", 	"sp",	"sp",	"%sp",  "sp",	"sp" },
-		{	"bp", 	"bp",	"bp",	"%bp",  "bp",	"bp" },
-		{	"si", 	"si",	"si",	"%si",  "si",	"si" },
-		{	"di", 	"di",	"di",	"%di",  "di",	"di" },
-
-		{	"eax", 	"eax",	"eax",	"%eax", "eax",	"eax" },
-		{	"ecx", 	"ecx",	"ecx",	"%ecx", "ecx",	"ecx" },
-		{	"edx", 	"edx",	"edx",	"%edx", "edx",	"edx" },
-		{	"ebx", 	"ebx",	"ebx",	"%ebx", "ebx",	"ebx" },
-		{	"esp", 	"esp",	"esp",	"%esp", "esp",	"esp" },
-		{	"ebp", 	"ebp",	"ebp",	"%ebp", "ebp",	"ebp" },
-		{	"esi", 	"esi",	"esi",	"%esi", "esi",	"esi" },
-		{	"edi", 	"edi",	"edi",	"%edi", "edi",	"edi" }
+		{	"eax", 	"eax",	"eax",	"%eax", "eax",	"eax", 	"eax"	},
+		{	"ecx", 	"ecx",	"ecx",	"%ecx", "ecx",	"ecx", 	"ecx"	},
+		{	"edx", 	"edx",	"edx",	"%edx", "edx",	"edx", 	"edx"	},
+		{	"ebx", 	"ebx",	"ebx",	"%ebx", "ebx",	"ebx", 	"ebx"	},
+		{	"esp", 	"esp",	"esp",	"%esp", "esp",	"esp", 	"esp"	},
+		{	"ebp", 	"ebp",	"ebp",	"%ebp", "ebp",	"ebp", 	"ebp"	},
+		{	"esi", 	"esi",	"esi",	"%esi", "esi",	"esi", 	"esi"	},
+		{	"edi", 	"edi",	"edi",	"%edi", "edi",	"edi", 	"edi"	}
 		
 	}; 
 	
@@ -146,15 +146,15 @@ int mapReg32[ numGPregs ] =
 
 char *fpregmap[ numFPregs ][ numAssemblers ] =
 	{
-		//	masm		fasm	tasm		gas			nasm	hla 
-		{	"st(0)",	"ST0",	"st(0)",	"%st(0)",	"ST0",	"ST0" },
-		{	"st(1)",	"ST1",	"st(1)",	"%st(1)",	"ST1",	"ST1" },
-		{	"st(2)",	"ST2",	"st(2)",	"%st(2)",	"ST2",	"ST2" },
-		{	"st(3)",	"ST3",	"st(3)",	"%st(3)",	"ST3",	"ST3" },
-		{	"st(4)",	"ST4",	"st(4)",	"%st(4)",	"ST4",	"ST4" },
-		{	"st(5)",	"ST5",	"st(5)",	"%st(5)",	"ST5",	"ST5" },
-		{	"st(6)",	"ST6",	"st(6)",	"%st(6)",	"ST6",	"ST6" },
-		{	"st(7)",	"ST7",	"st(7)",	"%st(7)",	"ST7",	"ST7" }
+		//	masm		fasm	tasm		gas			nasm	hla		hlabe 
+		{	"st(0)",	"ST0",	"st(0)",	"%st(0)",	"ST0",	"ST0",	"ST0", },
+		{	"st(1)",	"ST1",	"st(1)",	"%st(1)",	"ST1",	"ST1",	"ST1", },
+		{	"st(2)",	"ST2",	"st(2)",	"%st(2)",	"ST2",	"ST2",	"ST2", },
+		{	"st(3)",	"ST3",	"st(3)",	"%st(3)",	"ST3",	"ST3",	"ST3", },
+		{	"st(4)",	"ST4",	"st(4)",	"%st(4)",	"ST4",	"ST4",	"ST4", },
+		{	"st(5)",	"ST5",	"st(5)",	"%st(5)",	"ST5",	"ST5",	"ST5", },
+		{	"st(6)",	"ST6",	"st(6)",	"%st(6)",	"ST6",	"ST6",	"ST6", },
+		{	"st(7)",	"ST7",	"st(7)",	"%st(7)",	"ST7",	"ST7",	"ST7", }
 		
 	}; 
 
@@ -164,73 +164,73 @@ char *fpregmap[ numFPregs ][ numAssemblers ] =
 
 char *mmxregmap[ numMMXregs ][ numAssemblers ] =
 	{
-		//	masm	fasm	tasm	gas		nasm	hla 
-		{	"MM0",	"mm0",	"mm0",	"%mm0",	"mm0",	"mm0" },
-		{	"MM1",	"mm1",	"mm1",	"%mm1",	"mm1",	"mm1" },
-		{	"MM2",	"mm2",	"mm2",	"%mm2",	"mm2",	"mm2" },
-		{	"MM3",	"mm3",	"mm3",	"%mm3",	"mm3",	"mm3" },
-		{	"MM4",	"mm4",	"mm4",	"%mm4",	"mm4",	"mm4" },
-		{	"MM5",	"mm5",	"mm5",	"%mm5",	"mm5",	"mm5" },
-		{	"MM6",	"mm6",	"mm6",	"%mm6",	"mm6",	"mm6" },
-		{	"MM7",	"mm7",	"mm7",	"%mm7",	"mm7",	"mm7" }
+		//	masm	fasm	tasm	gas		nasm	hla		hlbe 
+		{	"MM0",	"mm0",	"mm0",	"%mm0",	"mm0",	"mm0",	"mm0" },
+		{	"MM1",	"mm1",	"mm1",	"%mm1",	"mm1",	"mm1",	"mm1" },
+		{	"MM2",	"mm2",	"mm2",	"%mm2",	"mm2",	"mm2",	"mm2" },
+		{	"MM3",	"mm3",	"mm3",	"%mm3",	"mm3",	"mm3",	"mm3" },
+		{	"MM4",	"mm4",	"mm4",	"%mm4",	"mm4",	"mm4",	"mm4" },
+		{	"MM5",	"mm5",	"mm5",	"%mm5",	"mm5",	"mm5",	"mm5" },
+		{	"MM6",	"mm6",	"mm6",	"%mm6",	"mm6",	"mm6",	"mm6" },
+		{	"MM7",	"mm7",	"mm7",	"%mm7",	"mm7",	"mm7",	"mm7" }
 		
 	}; 
 
 
 char *xmmregmap[ numXMMregs ][ numAssemblers ] =
 	{
-		//	masm	fasm	tasm	gas		  nasm	    hla 
-		{	"XMM0",	"xmm0",	"xmm0",	"%xmm0",  "xmm0",	"xmm0" },
-		{	"XMM1",	"xmm1",	"xmm1",	"%xmm1",  "xmm1",	"xmm1" },
-		{	"XMM2",	"xmm2",	"xmm2",	"%xmm2",  "xmm2",	"xmm2" },
-		{	"XMM3",	"xmm3",	"xmm3",	"%xmm3",  "xmm3",	"xmm3" },
-		{	"XMM4",	"xmm4",	"xmm4",	"%xmm4",  "xmm4",	"xmm4" },
-		{	"XMM5",	"xmm5",	"xmm5",	"%xmm5",  "xmm5",	"xmm5" },
-		{	"XMM6",	"xmm6",	"xmm6",	"%xmm6",  "xmm6",	"xmm6" },
-		{	"XMM7",	"xmm7",	"xmm7",	"%xmm7",  "xmm7",	"xmm7" }
+		//	masm	fasm	tasm	gas		  nasm	    hla		hlabe 
+		{	"XMM0",	"xmm0",	"xmm0",	"%xmm0",  "xmm0",	"xmm0",	"xmm0" },
+		{	"XMM1",	"xmm1",	"xmm1",	"%xmm1",  "xmm1",	"xmm1",	"xmm1" },
+		{	"XMM2",	"xmm2",	"xmm2",	"%xmm2",  "xmm2",	"xmm2",	"xmm2" },
+		{	"XMM3",	"xmm3",	"xmm3",	"%xmm3",  "xmm3",	"xmm3",	"xmm3" },
+		{	"XMM4",	"xmm4",	"xmm4",	"%xmm4",  "xmm4",	"xmm4",	"xmm4" },
+		{	"XMM5",	"xmm5",	"xmm5",	"%xmm5",  "xmm5",	"xmm5",	"xmm5" },
+		{	"XMM6",	"xmm6",	"xmm6",	"%xmm6",  "xmm6",	"xmm6",	"xmm6" },
+		{	"XMM7",	"xmm7",	"xmm7",	"%xmm7",  "xmm7",	"xmm7",	"xmm7" }
 		
 	}; 
 
 
 char *ctrlregmap[ numCTRLregs ][ numAssemblers ] =
 	{
-		//	masm	fasm	tasm	gas		nasm	hla 
-		{	"CR0",	"cr0",	"cr0",	"%cr0",	"cr0",	"cr0" },
-		{	"CR1",	"cr1",	"cr1",	"%cr1",	"cr1",	"cr1" },
-		{	"CR2",	"cr2",	"cr2",	"%cr2",	"cr2",	"cr2" },
-		{	"CR3",	"cr3",	"cr3",	"%cr3",	"cr3",	"cr3" },
-		{	"CR4",	"cr4",	"cr4",	"%cr4",	"cr4",	"cr4" },
-		{	"CR5",	"cr5",	"cr5",	"%cr5",	"cr5",	"cr5" },
-		{	"CR6",	"cr6",	"cr6",	"%cr6",	"cr6",	"cr6" },
-		{	"CR7",	"cr7",	"cr7",	"%cr7",	"cr7",	"cr7" }
+		//	masm	fasm	tasm	gas		nasm	hla		hlabe 
+		{	"CR0",	"cr0",	"cr0",	"%cr0",	"cr0",	"cr0",	"cr0" },
+		{	"CR1",	"cr1",	"cr1",	"%cr1",	"cr1",	"cr1",	"cr1" },
+		{	"CR2",	"cr2",	"cr2",	"%cr2",	"cr2",	"cr2",	"cr2" },
+		{	"CR3",	"cr3",	"cr3",	"%cr3",	"cr3",	"cr3",	"cr3" },
+		{	"CR4",	"cr4",	"cr4",	"%cr4",	"cr4",	"cr4",	"cr4" },
+		{	"CR5",	"cr5",	"cr5",	"%cr5",	"cr5",	"cr5",	"cr5" },
+		{	"CR6",	"cr6",	"cr6",	"%cr6",	"cr6",	"cr6",	"cr6" },
+		{	"CR7",	"cr7",	"cr7",	"%cr7",	"cr7",	"cr7",	"cr7" }
 		
 	}; 
 
 
 char *dbgregmap[ numDBGregs ][ numAssemblers ] =
 	{
-		//	masm	fasm	tasm	gas		nasm	hla 
-		{	"DR0",	"dr0",	"dr0",	"%dr0",	"dr0",	"dr0" },
-		{	"DR1",	"dr1",	"dr1",	"%dr1",	"dr1",	"dr1" },
-		{	"DR2",	"dr2",	"dr2",	"%dr2",	"dr2",	"dr2" },
-		{	"DR3",	"dr3",	"dr3",	"%dr3",	"dr3",	"dr3" },
-		{	"DR4",	"dr4",	"dr4",	"%dr4",	"dr4",	"dr4" },
-		{	"DR5",	"dr5",	"dr5",	"%dr5",	"dr5",	"dr5" },
-		{	"DR6",	"dr6",	"dr6",	"%dr6",	"dr6",	"dr6" },
-		{	"DR7",	"dr7",	"dr7",	"%dr7",	"dr7",	"dr7" }
+		//	masm	fasm	tasm	gas		nasm	hla		hlabe 
+		{	"DR0",	"dr0",	"dr0",	"%dr0",	"dr0",	"dr0",	"dr0" },
+		{	"DR1",	"dr1",	"dr1",	"%dr1",	"dr1",	"dr1",	"dr1" },
+		{	"DR2",	"dr2",	"dr2",	"%dr2",	"dr2",	"dr2",	"dr2" },
+		{	"DR3",	"dr3",	"dr3",	"%dr3",	"dr3",	"dr3",	"dr3" },
+		{	"DR4",	"dr4",	"dr4",	"%dr4",	"dr4",	"dr4",	"dr4" },
+		{	"DR5",	"dr5",	"dr5",	"%dr5",	"dr5",	"dr5",	"dr5" },
+		{	"DR6",	"dr6",	"dr6",	"%dr6",	"dr6",	"dr6",	"dr6" },
+		{	"DR7",	"dr7",	"dr7",	"%dr7",	"dr7",	"dr7",	"dr7" }
 		
 	}; 
 
 
 char *segregmap[ numSEGregs ][ numAssemblers ] =
 	{
-		//	masm	fasm	tasm	gas		nasm	hla 
-		{	"ES",	"es",	"es",	"%es",	"es",	"eseg" },
-		{	"CS",	"cs",	"cs",	"%cs",	"cs",	"cseg" },
-		{	"SS",	"ss",	"ss",	"%ss",	"ss",	"sseg" },
-		{	"DS",	"ds",	"ds",	"%ds",	"ds",	"dseg" },
-		{	"FS",	"fs",	"fs",	"%fs",	"fs",	"fseg" },
-		{	"GS",	"gs",	"gs",	"%gs",	"gs",	"gseg" }
+		//	masm	fasm	tasm	gas		nasm	hla		hlabe 
+		{	"ES",	"es",	"es",	"%es",	"es",	"eseg",	"eseg" },
+		{	"CS",	"cs",	"cs",	"%cs",	"cs",	"cseg",	"cseg" },
+		{	"SS",	"ss",	"ss",	"%ss",	"ss",	"sseg",	"sseg" },
+		{	"DS",	"ds",	"ds",	"%ds",	"ds",	"dseg",	"dseg" },
+		{	"FS",	"fs",	"fs",	"%fs",	"fs",	"fseg",	"fseg" },
+		{	"GS",	"gs",	"gs",	"%gs",	"gs",	"gseg",	"gseg" }
 	}; 
 
 
@@ -238,16 +238,16 @@ char *segregmap[ numSEGregs ][ numAssemblers ] =
 // Data Declaration Directives:
 
 char *byteDrctv[ numAssemblers ] =
-		//	masm	fasm	tasm	gas		 nasm	hla 
-		{	"db",	"db",	"db",	".byte", "db",	"byte" };
+		//	masm	fasm	tasm	gas		 nasm	hla		hlabe 
+		{	"db",	"db",	"db",	".byte", "db",	"byte",	hlabe_byte };
 
 char *wordDrctv[ numAssemblers ] =
-		//	masm	fasm	tasm	gas		 nasm	hla 
-		{	"dw",	"dw",	"dw",	".word", "dw",	"word" };
+		//	masm	fasm	tasm	gas		 nasm	hla		hlabe 
+		{	"dw",	"dw",	"dw",	".word", "dw",	"word",	hlabe_word };
 
 char *dwordDrctv[ numAssemblers ] =
-		//	masm	fasm	tasm	gas		 nasm	hla 
-		{	"dd",	"dd",	"dd",	".long", "dd",	"dword" };
+		//	masm	fasm	tasm	gas		 nasm	hla		 hlabe 
+		{	"dd",	"dd",	"dd",	".long", "dd",	"dword", hlabe_dword };
 
 #define s2i(s) _ifx( s <= 16, _s2i[s], 0 )
 int _s2i[17] =
@@ -273,14 +273,14 @@ int _s2i[17] =
 
 char *ptrPrefixes[ 7 ][ numAssemblers ] =
 {
-	//	masm			fasm		tasm			gas		nasm		hla 
+	//	masm			fasm		tasm			gas		nasm		hla				hlabe 
 	{	"",				"",			"",				"",		"",			"" 				},
-	{	"byte ptr ", 	"byte ",	"byte ptr ",	"",		"byte ",	"(type byte " 	},
-	{	"word ptr ", 	"word ",	"word ptr ",	"",		"word ",	"(type word " 	},
-	{	"dword ptr ", 	"dword ",	"dword ptr ",	"",  	"dword ",	"(type dword " 	},
-	{	"qword ptr ", 	"qword ",	"qword ptr ",	"",  	"qword ",	"(type qword " 	},
-	{	"tbyte ptr ", 	"tword ",	"tbyte ptr ",	"",  	"tword ",	"(type tbyte " 	},
-	{	"",				"dqword ",	"",				"",		"",			"(type lword " 	},
+	{	"byte ptr ", 	"byte ",	"byte ptr ",	"",		"byte ",	"(type byte ",	""	},
+	{	"word ptr ", 	"word ",	"word ptr ",	"",		"word ",	"(type word " ,	""	},
+	{	"dword ptr ", 	"dword ",	"dword ptr ",	"",  	"dword ",	"(type dword ",	"" 	},
+	{	"qword ptr ", 	"qword ",	"qword ptr ",	"",  	"qword ",	"(type qword ",	"" 	},
+	{	"tbyte ptr ", 	"tword ",	"tbyte ptr ",	"",  	"tword ",	"(type tbyte ",	"" 	},
+	{	"",				"dqword ",	"",				"",		"",			"(type lword ",	"" 	},
 };
 
 char *ptrSuffixes[ numAssemblers ] =
@@ -292,10 +292,10 @@ char *ptrSuffixes[ numAssemblers ] =
 
 char *realPrefixes[ 3 ][ numAssemblers ] =
 {
-	//	masm			fasm		tasm			gas		nasm		?? 
-	{	"real4 ptr ", 	"dword ",	"real4 ptr ",	"",		"dword ",	"(type real32 " },
-	{	"real8 ptr ", 	"qword ",	"real8 ptr ",	"",		"qword ",	"(type real64 " },
-	{	"real10 ptr ", 	"tword ",	"real10 ptr ",	"",  	"tword ", 	"(type real80 " },
+	//	masm			fasm		tasm			gas		nasm		hla					hlabe 
+	{	"real4 ptr ", 	"dword ",	"real4 ptr ",	"",		"dword ",	"(type real32 ",	"" },
+	{	"real8 ptr ", 	"qword ",	"real8 ptr ",	"",		"qword ",	"(type real64 ",	"" },
+	{	"real10 ptr ", 	"tword ",	"real10 ptr ",	"",  	"tword ", 	"(type real80 ",	"" },
 };
 	
 	
@@ -307,6 +307,7 @@ char *openBracket[ numAssemblers ] =
 	"(",	// gas
 	"[",	// nasm
 	"[",	// hla
+	"[",	// hlabe
 };	
 	
 	
@@ -318,28 +319,31 @@ static char *closeBracket[ numAssemblers ] =
 	")",	// gas
 	"]",	// nasm
 	"]",	// hla
+	"]",	// hlabe
 };	
 
 
 static char *dwordDirective[ numAssemblers ] =
 {
-	"dword",	// masm
-	"dd",		// fasm
-	"dd",		// tasm
-	".long",	// gas
-	"dd",		// nasm
-	"dword",	// hla
+	"dword",		// masm
+	"dd",			// fasm
+	"dd",			// tasm
+	".long",		// gas
+	"dd",			// nasm
+	"dword",		// hla
+	hlabe_dword,	// hlabe
 };
 
 
 static char *tbyteStrs[ numAssemblers ] =
 {
-	"tbyte",	// masm
-	"tword",	// fasm
-	"tbyte",	// tasm
-	".byte",	// gas
-	"tword",	// nasm
-	"tbyte",	// hla
+	"tbyte",		// masm
+	"tword",		// fasm
+	"tbyte",		// tasm
+	".byte",		// gas
+	"tword",		// nasm
+	"tbyte",		// hla
+	hlabe_tbyte,	// hlabe
 };
 
 
@@ -397,6 +401,7 @@ char *openCmnt[numAssemblers]=
 	" /* ",		// gas
 	" ; ",		// nasm
 	" // ",		// hla
+	" ; ",		// hlabe
 };
 
 char *closeCmnt[numAssemblers]=
@@ -407,6 +412,7 @@ char *closeCmnt[numAssemblers]=
 	" */",		// gas
 	"",			// nasm
 	"",			// hla
+	"",			// hlabe
 };
 
 /*
@@ -557,6 +563,45 @@ int	codeFirst = 0;		// Controls emission of code vs. data.
 
 
 
+
+// file_line_list-
+//
+//	Prints a sequence of FileName:LineNumber strings to the output
+// file by unravelling the macro/include stack. Used for conditional
+// jumps and such to emit filename/line number info for the HLA backend
+// assembler.
+
+
+static void
+file_line_list
+( 
+	char *FileName, 
+	int LineCnt, 
+	int	 MacroStkPtr
+)
+_begin( file_line_list )
+
+	asmPrintf
+	(
+		" ;%s,%d",
+		FileName,
+		LineCnt
+	);
+	_if( MacroStkPtr >= 0 )
+	
+		file_line_list
+		(
+			BufferStack[ MacroStack[ MacroStkPtr ].SourceBufIndex ].FileName,
+			BufferStack[ MacroStack[ MacroStkPtr ].SourceBufIndex ].LineCnt,
+			MacroStkPtr - 1
+		);
+		
+	_endif
+		
+_end( file_line_list )
+
+
+
 //////////////////////////////////////////////////////////////////////////////////
 //
 // Functions that translate type strings from the native HLA/MASM form to
@@ -700,6 +745,10 @@ _begin( hla2asmType )
 
 		_endcase
 		
+		_case( hlabe )
+		
+			_return "";	// Return value never used by HLABE code
+			
 		_default
 			assert( !"Bad assembler value" );
 
@@ -885,6 +934,46 @@ _begin( hla2asmDrctv )
 					
 				_case( tReal80 )
 					_return "real10";
+					
+			_endswitch
+			_return NULL;
+			
+		_endcase
+		
+		_case( hlabe )
+
+
+			_switch( pType )
+			
+				_case( tByte )
+					_return hlabe_byte;
+			
+				_case( tWord )
+					_return hlabe_word;
+				
+				_case( tDWord )
+				   _return hlabe_dword;
+				
+				_case( tQWord )
+					_return hlabe_qword;
+				
+				_case( tTByte )
+					_return hlabe_tbyte;
+					
+				_case( tLWord )
+					_return hlabe_lword;
+				
+				_case( tLabel )
+					_return "";
+					
+				_case( tReal32 )
+					_return hlabe_dword;
+					
+				_case( tReal64 )
+					_return hlabe_qword;
+					
+				_case( tReal80 )
+					_return hlabe_tbyte;
 					
 			_endswitch
 			_return NULL;
@@ -1134,11 +1223,17 @@ _begin( EmitDotText )
 		
 			_if( readonlySection )
 			
-				asmPrintf( "\n\nreadonly\n" );
+				asmPuts( "\n\nreadonly\n" );
 				
 			_endif
 			
 		_endcase
+		
+		_case( hlabe )
+		
+			asmPuts( hlabe_code "\n" );
+			
+		_endcase			
 		
 		
 		_case( nasm )
@@ -1155,7 +1250,7 @@ _begin( EmitDotText )
 		
 		_case( gas )
 		
-			asmPrintf
+			asmPuts
 			( 
 				"\n\n"
 				"  .text\n\n"
@@ -1167,7 +1262,7 @@ _begin( EmitDotText )
 		
 			_if( targetOS == windows_os )
 				
-				asmPrintf
+				asmPuts
 				( 
 					"\n\n"
 					"  section '.text' code readable executable align 16\n\n"
@@ -1175,7 +1270,7 @@ _begin( EmitDotText )
 				
 			_else
 			
-				asmPrintf
+				asmPuts
 				( 
 					"\n\n"
 					"  section '.text' executable align 16\n\n"
@@ -1188,7 +1283,7 @@ _begin( EmitDotText )
 		_case( masm )
 		_case( tasm )
 		
-			asmPrintf
+			asmPuts
 			( 
 				"\n\n"
 				"  .code\n\n" 
@@ -1219,9 +1314,15 @@ _begin( EmitDotData )
 						
 		_endcase
 		
+		_case( hlabe )
+		
+			asmPuts( hlabe_static "\n" );
+			
+		_endcase
+		
 		_case( gas )
 		
-			asmPrintf
+			asmPuts
 			( 
 				"\n\n"
 				"  .data\n\n"
@@ -1244,7 +1345,7 @@ _begin( EmitDotData )
 		
 			_if( targetOS == windows_os )
 			
-				asmPrintf
+				asmPuts
 				(
 					"\n\n" 
 					"  section '.data' data readable writeable align 16\n\n"
@@ -1252,7 +1353,7 @@ _begin( EmitDotData )
 				
 			_else
 			
-				asmPrintf
+				asmPuts
 				( 
 					"\n\n" 
 					"  section '.data' writeable align 16\n\n"
@@ -1264,7 +1365,7 @@ _begin( EmitDotData )
 		
 		_case( tasm )
 		
-			asmPrintf
+			asmPuts
 			(
 				"\n\ndata    segment public 'data' para use32 readwrite\n"
 			);
@@ -1273,7 +1374,7 @@ _begin( EmitDotData )
 		
 		_case( masm )
 		
-			asmPrintf
+			asmPuts
 			( 
 				"\n\n"
 				"  .data\n\n"
@@ -1298,11 +1399,17 @@ _begin( EmitDotBSS )
 	
 		_case( hla )
 		
-			asmPrintf
+			asmPuts
 			(
 				"\n\n" 
 				"storage\n\n"
 			);
+			
+		_endcase
+		
+		_case( hlabe )
+		
+			asmPuts( hlabe_bss "\n" );
 			
 		_endcase
 	
@@ -1310,7 +1417,7 @@ _begin( EmitDotBSS )
 		
 			_if( gasSyntax == stdGas )
 			
-				asmPrintf
+				asmPuts
 				(
 					"\n\n" 
 					"  .bss\n\n"
@@ -1318,7 +1425,7 @@ _begin( EmitDotBSS )
 				
 			_else	// Mac OSX's Gas has no .bss
 			
-				asmPrintf
+				asmPuts
 				(
 					"\n\n" 
 					"  .data\n\n"
@@ -1330,7 +1437,7 @@ _begin( EmitDotBSS )
 		
 		_case( nasm )
 		
-			asmPrintf
+			asmPuts
 			(
 				"\n\n" 
 				"section  .bss bss align=16\n\n"
@@ -1346,7 +1453,7 @@ _begin( EmitDotBSS )
 				
 					// If using internal FASM, create a "BSS" typed section.
 					
-					asmPrintf
+					asmPuts
 					( 
 						"\n\n"
 						"  section '.bss' bss readable writeable align 16\n\n"
@@ -1354,7 +1461,7 @@ _begin( EmitDotBSS )
 					
 				_else
 				
-					asmPrintf
+					asmPuts
 					( 
 						"\n\n"
 						"  section '.bss'  readable writeable align 16\n\n"
@@ -1365,7 +1472,7 @@ _begin( EmitDotBSS )
 				
 			_else
 
-				asmPrintf
+				asmPuts
 				( 
 					"\n\n"
 					"  section '.bss' writeable align 16\n\n"
@@ -1378,7 +1485,7 @@ _begin( EmitDotBSS )
 		
 		_case( tasm )
 		
-			asmPrintf
+			asmPuts
 			(
 				"\n\nbss    segment public 'bss' para use32 readwrite\n"
 			);
@@ -1386,7 +1493,7 @@ _begin( EmitDotBSS )
 		_endcase
 		_case( masm )
 		
-			asmPrintf
+			asmPuts
 			( 
 				"\n\n"
 				"  .data?\n\n"
@@ -1463,6 +1570,7 @@ _begin( needsOffsetStr )
 								
 			_case( fasm )
 			_case( nasm )
+			_case( hlabe )
 				
 				_return( "" );
 			
@@ -1564,6 +1672,10 @@ _begin( MakeAdrsStr )
 	assert( adrs != NULL );
 	assert( assembler < numAssemblers );
 	
+	// Should never call this guy for object code output:
+	
+	assert( assembler != hlabe );
+	
 	/*
 	** Grand Kludge!
 	**
@@ -1648,6 +1760,7 @@ _begin( MakeAdrsStr )
 				
 			_endcase
 			
+			
 			_case( tasm )
 			
 			
@@ -1674,7 +1787,6 @@ _begin( MakeAdrsStr )
 			_endcase
 						
 			_case( gas )
-			
 			
 				//sprintf( dispAdrs, "%d(,)", adrs->Disp );
 				sprintf( dispAdrs, "%d", adrs->Disp );
@@ -1925,12 +2037,13 @@ _begin( EmitAlign )
 	
 	static char *align[ numAssemblers ] =
 	{
-		"align",	// masm
-		"align",	// fasm
-		"align",	// tasm
-		".balign",	// gas
-		"align",	// nasm
-		"align",	// hla
+		"align",		// masm
+		"align",		// fasm
+		"align",		// tasm
+		".balign",		// gas
+		"align",		// nasm
+		"align",		// hla
+		hlabe_align,	// hlabe
 	};
 	
 	assert( assembler < numAssemblers );
@@ -1957,6 +2070,10 @@ _begin( EmitAlign )
 		
 			asmPrintf( "        .align (%d)\n", pow2 );
 
+		_elseif( assembler == hlabe )
+		
+			asmPrintf( hlabe_align "$%x\n", alignment );
+			
 		_else
 		
 			asmPrintf( "        %-10s (%d)\n", align[assembler], alignment );
@@ -1979,13 +2096,21 @@ _begin( EmitPointer )
 
 	assert( v->v.u.strval != NULL );
 	assert( assembler < numAssemblers );
-	asmPrintf
-	( 
-		"        %-10s %s(%s)\n",
-		dwordDirective[assembler],
-		needsOffsetStr( assembler == masm || assembler == tasm),
-		v->v.u.strval
-	);
+	_if( assembler == hlabe )
+	
+		asmPrintf( hlabe_dword "%s\n", v->v.u.strval );
+	
+	_else
+	
+		asmPrintf
+		( 
+			"        %-10s %s(%s)\n",
+			dwordDirective[assembler],
+			needsOffsetStr( assembler == masm || assembler == tasm),
+			v->v.u.strval
+		);
+		
+	_endif
 
 _end( EmitPointer )
 
@@ -2001,15 +2126,29 @@ _begin( EmitDispOnly )
 	assert( assembler < numAssemblers );
 	assert( assembler != hla );	// This function is for object code only!
 	
-	asmPrintf
-	( 
-		"        %-10s %s(%s%s%d)\n",
-		dwordDirective[assembler],
-		needsOffsetStr( assembler == masm || assembler == tasm ),
-		adrs->StaticName,
-		_ifx( adrs->Disp < 0, "", "+" ),
-		adrs->Disp
-	);
+	_if( assembler == hlabe )
+	
+		asmPrintf
+		( 
+			hlabe_dword "%s%s%d\n", 
+			adrs->StaticName,
+			_ifx( adrs->Disp < 0, "", "+" ),
+			adrs->Disp
+		);
+	
+	_else
+	
+		asmPrintf
+		( 
+			"        %-10s %s(%s%s%d)\n",
+			dwordDirective[assembler],
+			needsOffsetStr( assembler == masm || assembler == tasm ),
+			adrs->StaticName,
+			_ifx( adrs->Disp < 0, "", "+" ),
+			adrs->Disp
+		);
+		
+	_endif
 
 _end( EmitDispOnly )
 
@@ -2023,14 +2162,29 @@ _begin( EmitOffset )
 
 	assert( offset != NULL );
 	assert( assembler != hla );	// This function is for object-code only!
-	asmPrintf
-	( 
-		"        %-10s %s(%s%+d)\n",
-		dwordDirective[assembler],
-		needsOffsetStr( assembler == masm || assembler == tasm ),
-		offset,
-		disp
-	);
+	_if( assembler == hlabe )
+	
+		asmPrintf
+		( 
+			hlabe_dword "%s%s%d\n",
+			offset,
+			_ifx( disp < 0, "", "+" ),
+			disp
+		);
+
+	_else
+	
+		asmPrintf
+		( 
+			"        %-10s %s(%s%s%d)\n",
+			dwordDirective[assembler],
+			needsOffsetStr( assembler == masm || assembler == tasm ),
+			offset,
+			_ifx( disp < 0, "", "+" ),
+			disp
+		);
+		
+	_endif
 
 _end( EmitOffset )
 
@@ -2075,6 +2229,22 @@ _begin( SkeletalOutput )
 
 			);
 			
+		_endcase
+		
+		_case( hlabe )
+		
+			asmPrintf
+			( 
+				"; Assembly code emitted by HLA compiler\n"
+				"; %s\n"
+				"; HLA compiler written by Randall Hyde\n"
+				"; HLA backend compatible output\n"
+				"\n"
+				"\n",
+				VersionInformation
+
+			);
+		
 		_endcase
 	
 		_case( masm )
@@ -2160,7 +2330,7 @@ _begin( SkeletalOutput )
 				);
 			
 			_endif
-			asmPrintf
+			asmPuts
 			(
 				"\n"
 				"\n"
@@ -2266,7 +2436,7 @@ _begin( SkeletalOutput )
 			EmitImmExtern( "shortDfltExcept" sympost, tLabel ); 
 		
 		_endif	
-		asmPrintf( "\n\n\n" );
+		asmPuts( "\n\n\n" );
 		
 	_endif
 	
@@ -2341,6 +2511,16 @@ _begin( EmitExternDirective )
 
 				CurSym->Name,
 				hla2asmType( CurSym->pType )
+			);
+			
+		_endcase
+		
+		_case( hlabe )
+		
+			asmPrintf
+			(
+				hlabe_external "%s\n",
+				CurSym->Name
 			);
 			
 		_endcase
@@ -2472,7 +2652,7 @@ _begin( extPubIterator )
 	// Emit the public symbols (must go in the text segment):
 
 	EmitDotText( 0 );
-	asmPrintf( "\n" );
+	asmPuts( "\n" );
 	_for( index=0, index < 2048, ++index )
 	
 		CurSym = extHashTable[ index ];
@@ -2523,6 +2703,16 @@ _begin( extPubIterator )
 
 					_endcase
 					
+					_case( hlabe )
+					
+						asmPrintf
+						(
+							hlabe_public "%s\n",
+							CurSym->Name
+						);
+
+					_endcase
+					
 					_case( gas )
 					
 						asmPrintf
@@ -2549,7 +2739,7 @@ _begin( extPubIterator )
 	// Emit all the external code symbols here:
 	
 	EmitExternCodeSymbols();	
-	asmPrintf( "\n\n" );
+	asmPuts( "\n\n" );
 	
 	
 	// Output all the forward EQU definitions:
@@ -2568,7 +2758,7 @@ _begin( extPubIterator )
 		free2( vss freeBP );
 									
 	_endwhile
-	asmPrintf( "\n\n" );
+	asmPuts( "\n\n" );
 	asmBuf = save;
 	
 _here;
@@ -2682,6 +2872,19 @@ _begin( StartProc )
 			
 		_endcase
 
+		_case( hlabe )
+	
+		
+			asmPrintf
+			(
+				"\n; procedure %s\n\n"
+				":%s\n",
+				ProcName,
+				ProcName
+			);
+			
+		_endcase
+
 		_case( masm )
 		_case( tasm )
 	
@@ -2743,6 +2946,7 @@ _begin( EndProc )
 		
 		_case( nasm )
 		_case( fasm )
+		_case( hlabe )
 		
 			asmPrintf
 			(
@@ -2787,6 +2991,7 @@ _begin( asmPush )
 	
 	_if( !isComment || testMode )
 	
+		assert( assembler != hlabe );
 		_switch( assembler )
 		
 			_case( hla )
@@ -2871,6 +3076,7 @@ _begin( asmPop )
 	
 	_if( !isComment || testMode )
 	
+		assert( assembler != hlabe );
 		_switch( assembler )
 		
 			_case( hla )
@@ -2965,6 +3171,12 @@ _begin( cnstToImmStr )
 			
 		_endcase
 		
+		_case( hlabe )
+		
+			sprintf( str, "$%x", cnst );
+			
+		_endcase
+		
 		_case( gas )
 		
 			sprintf( str, "$%d", cnst );
@@ -3004,6 +3216,7 @@ _begin( asmOneOperand )
 	assert( size >= -16 && size <=10 );
 	_if( !comment || testMode  )
 	
+		assert( assembler != hlabe );
 		_switch( assembler )
 		
 			_case( gas )
@@ -3173,6 +3386,7 @@ _begin( asmTwoOperand )
 	assert( size >= -16 && size <=10 );
 	_if( !comment || testMode  )
 	
+		assert( assembler != hlabe );
 		_switch( assembler )
 		
 			_case( gas )
@@ -3569,6 +3783,7 @@ _begin( asmThreeOperand )
 	assert( size >= -16 && size <=10 );
 	_if( !comment || testMode  )
 
+		assert( assembler != hlabe );
 		_switch( assembler )
 		
 			_case( gas )
@@ -3947,6 +4162,7 @@ int implied_map[ numAssemblers ] =
 	2,  // gas
 	3,	// nasm
 	0,	// hla
+	0,	// hlabe
 };
 
 char *implied_strs[4][ num_implied_instrs ] =
@@ -4347,6 +4563,7 @@ _begin( implied_instr )
 		&&	!(assembler == tasm && instr == rsm_instr )
 	)
 		
+		assert( assembler != hlabe );
 		asmPrintf
 		( 
 			"        %s%s\n",
@@ -4689,6 +4906,7 @@ _begin( str_instr )
 	assert( instr < num_str_instrs );
 	_if( sourceOutput )
 	
+		assert( assembler != hlabe );
 		asmPrintf( "        %s\n", str_strs[assembler==gas][instr] );
 		
 	_else
@@ -12760,7 +12978,7 @@ _begin( EmitMonitor )
 	assert( instr < num_fence_instrs );
 	_if( assembler == hla )
 	
-		asmPrintf( "        monitor;\n" );
+		asmPuts( "        monitor;\n" );
 	
 	_else
 	
@@ -14152,6 +14370,23 @@ _begin( EmitCondJump )
 	
 		asmPrintf( "        %s %s;\n", jcc_strs[ instr ], target );
 		
+	_elseif( assembler == hlabe )
+	
+		asmPrintf
+		( 
+			"%s %s", 
+			jcc_strs[ instr ], 
+			target
+		);
+		file_line_list
+		(
+			FileName, 
+			LineCnt,
+			MacroSP
+		);
+		asmPuts( "\n" );
+			 
+		
 	_else
 	
 		asmPrintf( "        %-10s %s\n", jcc_strs[ instr ], target );
@@ -15303,7 +15538,22 @@ _begin( call_proc )
 	_if( assembler == hla )
 	
 		asmPrintf( "        call %s;\n", proc->StaticName );
-		
+	
+	_elseif( assembler == hlabe )
+	
+		asmPrintf
+		( 
+			"call %s",
+			proc->StaticName
+		);
+		file_line_list
+		(
+			FileName, 
+			LineCnt,
+			MacroSP
+		);
+		asmPuts( "\n" );
+				
 	_else
 	
 		asmPrintf
@@ -15340,6 +15590,21 @@ _begin( EmitCallLabel )
 	_if( assembler == hla )
 	
 		asmPrintf( "        call %s;\n", label );
+		
+	_elseif( assembler == hlabe )
+	
+		asmPrintf
+		( 
+			"call %s",
+			label
+		);
+		file_line_list
+		(
+			FileName, 
+			LineCnt,
+			MacroSP
+		);
+		asmPuts( "\n" );
 		
 	_else
 	
@@ -15614,17 +15879,14 @@ _begin( EmitInt_c )
 		
 			EmitByteConst(  0xcc , "" );
 			
-//		_elseif
-//		( 
-//				intnum == 4 
-//			&&	assembler != masm 
-//			&&	assembler != fasm 
-//			&&	assembler != tasm 
-//			&&	assembler != nasm 
-//		)
-//		
-//			EmitByteConst(  0xce , "" );
-//			
+		_elseif
+		( 
+				intnum == 4 
+			&&	assembler == hlabe 
+		)
+		
+			EmitByteConst(  0xce , "" );
+			
 		_else
 		
 			EmitWordConst( 0xcd | ((intnum & 0xff) << 8 ));
@@ -15695,6 +15957,22 @@ _begin( EmitJmpLabel )
 	_if( assembler == hla )
 	
 		asmPrintf( "        jmp %s;\n", label );
+		
+	_elseif( assembler == hlabe )
+	
+		asmPrintf
+		( 
+			"jmp %s",
+			label
+		);
+		file_line_list
+		(
+			FileName, 
+			LineCnt,
+			MacroSP
+		);
+		asmPuts( "\n" );
+		
 		
 	_else
 	
@@ -16037,6 +16315,12 @@ _begin( EmitLabel )
 			
 		_endcase
 
+		_case( hlabe )
+
+			asmPrintf( ":%s\n", theLabel );
+			
+		_endcase
+
 		_case( hla )
 	
 			asmPrintf
@@ -16128,14 +16412,15 @@ _begin( EmitTypedLabel )
 		_endcase;
 		
 		_case( gas )
+		_case( nasm )
 
 			asmPrintf( "%s:\n", theLabel );
 			
 		_endcase
 		
-		_case( nasm )
+		_case( hlabe )
 
-			asmPrintf( "%s:\n", theLabel );
+			asmPrintf( ":%s\n", theLabel );
 			
 		_endcase
 		
@@ -16311,37 +16596,58 @@ _begin( EmitLabelledAdrs )
 		
 	_endif
 
-	_if( assembler == hla )
+	_switch( assembler )
+	
+	
+		_case( hla )
 
-		_if( *name == '\0' )
-		
-			asmPrintf( "        dword %s%s;\n", h32, theLabel );
+			_if( *name == '\0' )
 			
-		_else
-		
-			asmPrintf( "    %s :dword := %s%s;\n", name, h32, theLabel );
+				asmPrintf( "        dword %s%s;\n", h32, theLabel );
+				
+			_else
 			
-		_endif
+				asmPrintf( "    %s :dword := %s%s;\n", name, h32, theLabel );
+				
+			_endif
+			
+		_endcase
 		
-	_elseif( assembler == gas )
-
-		asmPrintf
-		( 
-			"%-7s %s.long      %s\n", 
-			name, 
-			_ifx( *name != '\0', ":", "" ),
-			theLabel 
-		);
+		_case( hlabe )
 		
-	_elseif( assembler == fasm || assembler == nasm )
+			_if( *name != '\0' )
+			
+				asmPrintf( ":%s\n", name );
+				
+			_endif
+			asmPrintf( hlabe_dword "%s\n", theLabel );
+			
+		_endcase
+			
+		_case( gas )
 
-		asmPrintf( "%-7s dd         %s\n", name, theLabel );
+			asmPrintf
+			( 
+				"%-7s %s.long      %s\n", 
+				name, 
+				_ifx( *name != '\0', ":", "" ),
+				theLabel 
+			);
+			
+		_endcase
+		
+		_case( fasm )
+		_case( nasm )
 
-	_else
+			asmPrintf( "%-7s dd         %s\n", name, theLabel );
+			
+		_endcase
+
+		_default
 
 		asmPrintf( "%-7s dd         %s%s\n", name, o32, theLabel );
 
-	_endif
+	_endswitch
 
 _end( EmitLabelledAdrs )
 
@@ -16376,11 +16682,19 @@ void
 EmitStmtLbl( char *label )
 _begin( EmitStmtLbl )
 
-	asmPrintf
-	(
-		"%s:\n",
-		label
-	);
+	_if( assembler == hlabe )
+	
+		asmPrintf( ":%s\n", label );
+	
+	_else
+	
+		asmPrintf
+		(
+			"%s:\n",
+			label
+		);
+		
+	_endif
 
 
 _end( EmitStmtLbl )
@@ -16392,7 +16706,8 @@ _begin( EmitGlobalStmtLbl )
 
 	asmPrintf
 	(
-		"%s:%s\n",
+		"%s%s:%s\n",
+		_ifx( assembler == hlabe, ":", "" ),
 		label,
 		_ifx( (assembler==masm || assembler==tasm), ":", "" )
 	);
@@ -16404,16 +16719,26 @@ void
 EmitStmtLblNum( char *label, int num )
 _begin( EmitStmtLblNum )
 
+	_if( assembler == hlabe )
+	
+		asmPuts( ":" );
+		
+	_endif
 	asmPrintf
 	(
 		label,
 		num
 	);
 
-	asmPrintf
-	(
-		":\n"
-	);
+	_if( assembler != hlabe )
+	
+		asmPuts
+		(
+			":"
+		);
+		
+	_endif
+	asmPuts( "\n" );
 
 _end( EmitStmtLblNum )
 
@@ -16458,6 +16783,17 @@ _begin( EmitLabelledDwordConst )
 				
 			_endif
 
+		_endcase
+		
+		_case( hlabe )
+		
+			_if( *label != '\0' )
+			
+				asmPrintf( ":%s\n", label );
+				
+			_endif
+			asmPrintf( hlabe_dword "$%x\n", theConst );
+			
 		_endcase
 	
 		_case( gas )
@@ -16517,7 +16853,7 @@ _begin( EmitLabelledLwordConst )
 		
 			_if( *label == '\0' )
 			
-				asmPrintf( "        lword $" );
+				asmPuts( "        lword $" );
 				
 			_else
 			
@@ -16533,7 +16869,28 @@ _begin( EmitLabelledLwordConst )
 				);
 				
 			_endfor
-			asmPrintf( ";\n" );
+			asmPuts( ";\n" );
+			
+		_endcase
+		
+		_case( hlabe )
+		
+			_if( *label != '\0' )
+			
+				asmPrintf( ":%s\n", label );
+				
+			_endif
+			asmPuts( hlabe_lword "$" );
+			_for( int i=15, i>=0, --i )
+			
+				asmPrintf
+				( 
+					"%02x",
+					*((unsigned char*) theConst+i)
+				);
+				
+			_endfor
+			asmPuts( "\n" );
 			
 		_endcase
 
@@ -16555,7 +16912,7 @@ _begin( EmitLabelledLwordConst )
 				);
 				
 			_endfor
-			asmPrintf( "\n" );
+			asmPuts( "\n" );
 			
 		_endcase
 	
@@ -16575,7 +16932,7 @@ _begin( EmitLabelledLwordConst )
 				);
 				
 			_endfor
-			asmPrintf( "\n" );
+			asmPuts( "\n" );
 			
 		_endcase
 		
@@ -16610,7 +16967,7 @@ _begin( EmitLabelledTbyteConst )
 			
 			_else
 			
-				asmPrintf( "        tbyte $" );
+				asmPuts( "        tbyte $" );
 				
 			_endif
 			_for( int i=9, i>=0, --i )
@@ -16622,7 +16979,27 @@ _begin( EmitLabelledTbyteConst )
 				);
 				
 			_endfor
-			asmPrintf( ";\n" );
+			asmPuts( ";\n" );
+			
+		_endcase
+		
+		_case( hlabe )
+		
+			_if( *label != '\0' )
+			
+				asmPrintf( ":%s\n", label );
+				
+			_endif
+			_for( int i=9, i>=0, --i )
+			
+				asmPrintf
+				( 
+					"%02x",
+					*((unsigned char*) theConst+i)
+				);
+				
+			_endfor
+			asmPuts( "\n" );
 			
 		_endcase
 	
@@ -16644,7 +17021,7 @@ _begin( EmitLabelledTbyteConst )
 				);
 				
 			_endfor
-			asmPrintf( "\n" );
+			asmPuts( "\n" );
 			
 		_endcase
 	
@@ -16661,14 +17038,14 @@ _begin( EmitLabelledTbyteConst )
 				);
 				
 			_endfor
-			asmPrintf( "\n" );
+			asmPuts( "\n" );
 			
 		_endcase
 			
 		_case( fasm )
 		
 			EmitTypedLabel( label, tTByte );
-			asmPrintf( "        db         " );
+			asmPuts( "        db         " );
 			_for( int i=0, i <= 9, ++i )
 			
 				asmPrintf
@@ -16679,7 +17056,7 @@ _begin( EmitLabelledTbyteConst )
 				);
 				
 			_endfor
-			asmPrintf( "\n" );
+			asmPuts( "\n" );
 			
 		_endcase
 		
@@ -16696,7 +17073,7 @@ _begin( EmitLabelledTbyteConst )
 				);
 				
 			_endfor
-			asmPrintf( "h\n" );
+			asmPuts( "h\n" );
 			
 		_endcase
 		
@@ -16749,6 +17126,22 @@ _begin( EmitLabelledQWordConst )
 
 		_endcase
 		
+		_case( hlabe )
+		
+			_if( *label != '\0' )
+			
+				asmPrintf( ":%s\n", label );
+				
+			_endif
+			asmPrintf
+			( 
+				hlabe_qword "$%08x%08x\n",
+				*((unsigned*) theConst+1),
+				*((unsigned*) theConst) 
+			);
+			
+		_endcase
+	
 		_case( gas )
 		
 			asmPrintf
@@ -16816,6 +17209,21 @@ _begin( EmitLabelledWordConst )
 			
 		_endcase
 		
+		_case( hlabe )
+		
+			_if( *label != '\0' )
+			
+				asmPrintf( ":%s\n", label );
+				
+			_endif
+			asmPrintf
+			( 
+				hlabe_word "$%x\n",
+				theConst & 0xffff 
+			);
+			
+		_endcase
+	
 		_case( gas )
 		
 			asmPrintf
@@ -16888,6 +17296,21 @@ _begin( EmitLabelledByteConst )
 				
 			_endcase
 			
+			_case( hlabe )
+			
+				_if( *label != '\0' )
+				
+					asmPrintf( ":%s\n", label );
+					
+				_endif
+				asmPrintf
+				( 
+					hlabe_byte "$%x\n",
+					theConst & 0xff 
+				);
+				
+			_endcase
+	
 			_case( gas )
 			
 				asmPrintf
@@ -16948,6 +17371,21 @@ _begin( EmitLabelledByteConst )
 				
 			_endcase
 			
+			_case( hlabe )
+			
+				_if( *label != '\0' )
+				
+					asmPrintf( ":%s\n", label );
+					
+				_endif
+				asmPrintf
+				( 
+					hlabe_byte "$%x\n",
+					theConst & 0xff 
+				);
+				
+			_endcase
+
 			_case( gas )
 			
 				asmPrintf
@@ -17011,6 +17449,22 @@ _begin( EmitLabelledReal4Const )
 				
 			_endif
 			
+		_endcase
+		
+		_case( hlabe )
+		
+			_if( *label != '\0' )
+			
+				asmPrintf( ":%s\n", label );
+				
+			_endif
+			asmPrintf
+			(
+				hlabe_dword "$%x\n",
+				*((unsigned*) &theConst)
+			);
+				
+
 		_endcase
 
 		_case( gas )
@@ -17087,6 +17541,22 @@ _begin( EmitLabelledReal8Const )
 			
 			_endif
 			
+		_endcase
+		
+		_case( hlabe )
+		
+			_if( *label != '\0' )
+			
+				asmPrintf( ":%s\n", label );
+				
+			_endif
+			asmPrintf
+			( 
+				hlabe_qword "$%08x%08x\n",
+				*((unsigned*) &theConst+1),
+				*((unsigned*) &theConst) 
+			);
+		
 		_endcase
 		
 		_case( gas )
@@ -17173,6 +17643,30 @@ _begin( EmitLabelledReal10Const )
 			
 		_endcase
 		
+		_case( hlabe )
+		
+			_if( *label != '\0' )
+			
+				asmPrintf( ":%s\n", label );
+				
+			_endif
+			asmPrintf
+			(
+				hlabe_lword "$%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n",
+				(unsigned char) theConst.f.x[0],
+				(unsigned char) theConst.f.x[1],
+				(unsigned char) theConst.f.x[2],
+				(unsigned char) theConst.f.x[3],
+				(unsigned char) theConst.f.x[4],
+				(unsigned char) theConst.f.x[5],
+				(unsigned char) theConst.f.x[6],
+				(unsigned char) theConst.f.x[7],
+				(unsigned char) theConst.f.x[8],
+			    (unsigned char) theConst.f.x[9]
+			);
+		
+		_endcase
+		
 		_case( gas )
 		
 			// Some versions of GAS do not support large real80 constants.
@@ -17251,27 +17745,33 @@ _begin( EmitLword )
 	
 		_case( gas )
 
-			asmPrintf( "        .space     16\n" );
+			asmPuts( "        .space     16\n" );
 			
 		_endcase
 		
 		_case( fasm )
 		_case( nasm )
 
-			asmPrintf( "        dq         0, 0\n" );
+			asmPuts( "        dq         0, 0\n" );
 			
 		_endcase
 		
 		_case( masm )
 		_case( tasm )
 
-			asmPrintf( "        dq         2 dup (?)\n" );
+			asmPuts( "        dq         2 dup (?)\n" );
+			
+		_endcase
+		
+		_case( hlabe )
+		
+			asmPuts( hlabe_lword "$0\n" );
 			
 		_endcase
 		
 		_case( hla )
 		
-			asmPrintf( "        lword 0;\n" );
+			asmPuts( "        lword 0;\n" );
 			
 		_endcase
 		
@@ -17292,13 +17792,13 @@ _begin( EmitQword )
 	
 		_case( gas )
 
-			asmPrintf( "        .space     8\n" );
+			asmPuts( "        .space     8\n" );
 			
 		_endcase
 		
 		_case( fasm )
 
-			asmPrintf( "        dq         0\n" );
+			asmPuts( "        dq         0\n" );
 			
 		_endcase
 		
@@ -17306,11 +17806,11 @@ _begin( EmitQword )
 		
 			_if( inStorage )
 			
-				asmPrintf( "        resq       1\n" );
+				asmPuts( "        resq       1\n" );
 				
 			_else
 			
-				asmPrintf( "        dq         0\n" );
+				asmPuts( "        dq         0\n" );
 				
 			_endif
 			
@@ -17319,13 +17819,19 @@ _begin( EmitQword )
 		_case( masm )
 		_case( tasm )
 
-			asmPrintf( "        dq         ?\n" );
+			asmPuts( "        dq         ?\n" );
+			
+		_endcase
+		
+		_case( hlabe )
+		
+			asmPuts( hlabe_qword "$0\n" );
 			
 		_endcase
 		
 		_case( hla )
 		
-			asmPrintf( "        qword 0;\n" );
+			asmPuts( "        qword 0;\n" );
 			
 		_endcase
 		
@@ -17346,13 +17852,13 @@ _begin( EmitTbyte )
 	
 		_case( gas )
 
-			asmPrintf( "        .space     10\n" );
+			asmPuts( "        .space     10\n" );
 			
 		_endcase
 		
 		_case( fasm )
 
-			asmPrintf( "        dt         0\n" );
+			asmPuts( "        dt         0\n" );
 			
 		_endcase
 		
@@ -17360,11 +17866,11 @@ _begin( EmitTbyte )
 		
 			_if( inStorage )
 			
-				asmPrintf( "        rest       1\n" );
+				asmPuts( "        rest       1\n" );
 				
 			_else
 			
-				asmPrintf( "        dt         0\n" );
+				asmPuts( "        dt         0\n" );
 				
 			_endif
 			
@@ -17373,13 +17879,20 @@ _begin( EmitTbyte )
 		_case( masm )
 		_case( tasm )
 
-			asmPrintf( "        dt         ?\n" );
+			asmPuts( "        dt         ?\n" );
+			
+		_endcase
+		
+		
+		_case( hlabe )
+		
+			asmPuts( hlabe_tbyte "$0\n" );
 			
 		_endcase
 		
 		_case( hla )
 		
-			asmPrintf( "        tbyte 0;\n" );
+			asmPuts( "        tbyte 0;\n" );
 			
 		_endcase
 		
@@ -17399,7 +17912,7 @@ _begin( EmitDword )
 	
 		_case( gas )
 
-			asmPrintf( "        .space     4\n" );
+			asmPuts( "        .space     4\n" );
 			
 		_endcase
 		
@@ -17407,11 +17920,11 @@ _begin( EmitDword )
 
 			_if( inStorage )
 			
-				asmPrintf( "        rd         1\n" );
+				asmPuts( "        rd         1\n" );
 				
 			_else
 			
-				asmPrintf( "        dd         0\n" );
+				asmPuts( "        dd         0\n" );
 				
 			_endif
 			
@@ -17421,11 +17934,11 @@ _begin( EmitDword )
 		
 			_if( inStorage )
 			
-				asmPrintf( "        resd       1\n" );
+				asmPuts( "        resd       1\n" );
 				
 			_else
 			
-				asmPrintf( "        dd         0\n" );
+				asmPuts( "        dd         0\n" );
 				
 			_endif
 			
@@ -17434,13 +17947,20 @@ _begin( EmitDword )
 		_case( masm )
 		_case( tasm )
 
-			asmPrintf( "        dd         ?\n" );
+			asmPuts( "        dd         ?\n" );
+			
+		_endcase
+		
+		
+		_case( hlabe )
+		
+			asmPuts( hlabe_dword "$0\n" );
 			
 		_endcase
 		
 		_case( hla )
 		
-			asmPrintf( "        dword 0;\n" );
+			asmPuts( "        dword 0;\n" );
 			
 		_endcase
 		
@@ -17459,7 +17979,7 @@ _begin( EmitWord )
 	
 		_case( gas )
 
-			asmPrintf( "        .space     2\n" );
+			asmPuts( "        .space     2\n" );
 			
 		_endcase
 		
@@ -17467,11 +17987,11 @@ _begin( EmitWord )
 
 			_if( inStorage )
 			
-				asmPrintf( "        rw         1\n" );
+				asmPuts( "        rw         1\n" );
 				
 			_else
 			
-				asmPrintf( "        dw         0\n" );
+				asmPuts( "        dw         0\n" );
 				
 			_endif
 			
@@ -17481,11 +18001,11 @@ _begin( EmitWord )
 		
 			_if( inStorage )
 			
-				asmPrintf( "        resw       1\n" );
+				asmPuts( "        resw       1\n" );
 				
 			_else
 			
-				asmPrintf( "        dw         0\n" );
+				asmPuts( "        dw         0\n" );
 				
 			_endif
 			
@@ -17494,13 +18014,20 @@ _begin( EmitWord )
 		_case( masm )
 		_case( tasm )
 
-			asmPrintf( "        dw         ?\n" );
+			asmPuts( "        dw         ?\n" );
+			
+		_endcase
+		
+		
+		_case( hlabe )
+		
+			asmPuts( hlabe_word "$0\n" );
 			
 		_endcase
 		
 		_case( hla )
 		
-			asmPrintf( "        word 0;\n" );
+			asmPuts( "        word 0;\n" );
 			
 		_endcase
 		
@@ -17519,7 +18046,7 @@ _begin( EmitByte )
 	
 		_case( gas )
 
-			asmPrintf( "        .space     1\n" );
+			asmPuts( "        .space     1\n" );
 			
 		_endcase
 		
@@ -17527,11 +18054,11 @@ _begin( EmitByte )
 		
 			_if( inStorage )
 			
-				asmPrintf( "        resb       1\n" );
+				asmPuts( "        resb       1\n" );
 				
 			_else
 			
-				asmPrintf( "        db         0\n" );
+				asmPuts( "        db         0\n" );
 				
 			_endif
 			
@@ -17542,11 +18069,11 @@ _begin( EmitByte )
 		
 			_if( inStorage )
 			
-				asmPrintf( "        rb         1\n" );
+				asmPuts( "        rb         1\n" );
 				
 			_else
 			
-				asmPrintf( "        db         0\n" );
+				asmPuts( "        db         0\n" );
 				
 			_endif
 			
@@ -17555,13 +18082,20 @@ _begin( EmitByte )
 		_case( masm )
 		_case( tasm )
 
-			asmPrintf( "        db         ?\n" );
+			asmPuts( "        db         ?\n" );
+			
+		_endcase
+		
+		
+		_case( hlabe )
+		
+			asmPuts( hlabe_byte "$0\n" );
 			
 		_endcase
 		
 		_case( hla )
 		
-			asmPrintf( "        byte 0;\n" );
+			asmPuts( "        byte 0;\n" );
 			
 		_endcase
 		
@@ -17766,6 +18300,22 @@ _begin( EmitArray )
 			
 		_endcase //nasm
 
+		_case( hlabe )
+
+
+			_if( size == 0 )
+
+				size = 1;
+				
+			_endif
+			asmPrintf
+			( 
+				hlabe_reserve "$%x\n",
+				size * elements
+			);
+			
+		_endcase // hlabe
+	
 		_case( hla )
 
 			tStr = hla2asmType( pType );
@@ -17836,7 +18386,7 @@ _begin( EmitArrayConst )
 
 				asmPrintf( "    .rept %d\n", elements );
 				asmPrintf( "      %s %d\n", type, value );
-				asmPrintf( "    .endr\n" );
+				asmPuts( "    .endr\n" );
 
 			_endif
 			
@@ -17846,7 +18396,7 @@ _begin( EmitArrayConst )
 	
 			asmPrintf( " repeat %d\n", elements );
 			asmPrintf( "   %s %d\n", type, value );
-			asmPrintf( " end repeat\n" );		
+			asmPuts( " end repeat\n" );		
 
 		_endcase
 		
@@ -17866,6 +18416,12 @@ _begin( EmitArrayConst )
 				elements,
 				value
 			);
+			
+		_endcase
+		
+		_case( hlabe )
+		
+			asmPrintf( hlabe_dup "$%x,$%x\n", elements, value );
 			
 		_endcase
 		
@@ -17957,6 +18513,12 @@ _begin( ReserveStorage )
 			
 		_endcase
 		
+		_case( hlabe )
+		
+			asmPrintf( hlabe_reserve "$%x\n", size );
+			
+		_endcase
+		
 		_case( hla )
 	
 			asmPrintf( "        byte %d dup (0);\n", size );
@@ -18040,6 +18602,19 @@ _begin( ReserveTypedStorage )
 			_endif
 			
 		_endcase
+		
+		_case( hlabe )
+		
+			asmPrintf
+			(
+				":%s\n"
+				hlabe_reserve "$%x\n",
+				theVar,
+				theType->ObjectSize * elements 
+			);
+			
+		_endcase
+				
 		
 		_case( gas )
 	
@@ -18147,6 +18722,19 @@ _begin( ReserveUntypedStorage )
 			
 		_endcase
 		
+		
+		_case( hlabe )
+		
+			asmPrintf
+			(
+				":%s\n"
+				hlabe_reserve "$%x\n",
+				theVar,
+				bytes 
+			);
+			
+		_endcase
+				
 		_case( gas )
 	
 			asmPrintf
@@ -18394,7 +18982,7 @@ _begin( EmitString )
 		// user has chosen not to optimize string constants.  Emit
 		// a constant record for this string.
 
-		asmPrintf( "\n" );
+		asmPuts( "\n" );
 		EmitAlign( 4 );
 		sprintf( lbl, "len" sympost "%d", labelID );
 		EmitLabelledDwordConst( lbl,length, "" );
@@ -18409,12 +18997,13 @@ _begin( EmitString )
 		*/
 
 		++length;
-		asmPrintf( "\n" );
+		asmPuts( "\n" );
 		_while( (length & 3) != 0 )
 
 			asmPrintf
 			( 
-				" %s 0%s\n", 
+				"%s%s 0%s\n",
+				_ifx( assembler != hlabe, " ", "" ), 
 				byteDrctv[ assembler ],
 				_ifx( assembler == hla, ";", "" )
 			);
@@ -18462,7 +19051,7 @@ _begin( EmitWString )
 	// No optimization for Unicode strings yet.
 	// Need to add this someday!
 
-	asmPrintf( "\n" );
+	asmPuts( "\n" );
 	EmitAlign( 4 );
 	sprintf( lbl, "len" sympost "%d", theLabel );
 	EmitLabelledDwordConst( lbl, length, "" );
@@ -18551,13 +19140,14 @@ _begin( EmitLabelledString )
 	*/
 
 	++length;
-	asmPrintf( "\n" );
+	asmPuts( "\n" );
 	_while( (length & 3) != 0 )
 
 		asmPrintf
 		( 
-			" %s 0\n", 
-			ifgas( ".byte", "db" )
+			"%s%s 0\n",
+			_ifx( assembler == hlabe, " ", "" ), 
+			byteDrctv[ assembler ]
 		);
 		++length;
 
@@ -18640,6 +19230,12 @@ _begin( EmitBackPatchss )
 			
 		_endcase
 		
+		_case( hlabe )
+		
+			sprintf( bp, hlabe_equate "%s,%s", sym, equals );
+			
+		_endcase
+		
 		_case( nasm )
 		
 			sprintf( bp, " %%define %s %s", sym, equals );
@@ -18716,6 +19312,12 @@ _begin( EmitBackPatchds )
 		_case( hla )
 		
 			sprintf( bp, " ?%s :text := \"%s\";", sn, equals );
+			
+		_endcase
+		
+		_case( hlabe )
+		
+			sprintf( bp, hlabe_equate "%s,%s", sym, equals );
 			
 		_endcase
 		
@@ -18813,6 +19415,12 @@ _begin( EmitBackPatchddc )
 				_ifx( *comment == '\0', "", " // "),
 				comment
 			);
+			
+		_endcase
+		
+		_case( hlabe )
+		
+			sprintf( bp, hlabe_equate "%s,%s", sn, eq );
 			
 		_endcase
 		
@@ -18940,231 +19548,231 @@ _end( RtnOperand )
 /*                                                    */
 /******************************************************/
 
-char *
-EmitConstValue
-( 
-	char *comment, 
-	struct SymNode *v
-)
-_begin( EmitConstValue )
-
-	_switch( v->pType )
-
-		_case( tBoolean )
-		
-			_if( v->u.unsval )
-			
-				strcpy( comment, "true" );
-				
-			_else
-			
-				strcpy( comment, "false" );
-				
-			_endif
-			
-		_endcase
-		
-		_case( tEnum )
-		_case( tUns8 )
-		_case( tUns16 )
-		_case( tUns32 )
-
-
-			sprintf( comment, "%u", v->u.unsval );
-
-		_endcase
-		
-		_case( tUns64 )
-		_case( tUns128 )
-			
-			UnsToStr( comment, &v->u.lwordval[0] );
-			
-		_endcase
-			
-		
-
-		_case( tByte )
-		_case( tWord )
-		_case( tDWord )
-
-			sprintf( comment, "$%x", v->u.unsval );
-
-		_endcase
-		
-
-		_case( tQWord )
-		_case( tLWord )
-		
-			_if( v->u.lwordval[3] == 0 )
-
-			
-		
-				_if( v->u.lwordval[2] == 0 )
-				
-					_if( v->u.lwordval[1] == 0 )
-					
-						sprintf( comment, "$%x", v->u.unsval );
-						
-					_else
-					
-						sprintf
-						( 
-							comment, 
-							"$%x_%08x", 
-							v->u.lwordval[1],
-							v->u.lwordval[0] 
-						);
-						
-					_endif
-					
-				_else
-					
-					sprintf
-					( 
-						comment, 
-						"$%x_%08x_%08x", 
-						v->u.lwordval[2],
-						v->u.lwordval[1],
-						v->u.lwordval[0] 
-					);
-						
-				_endif
-									
-			_else
-			
-				sprintf
-				( 
-					comment, 
-					"$%x_%08x_%08x_%08x", 
-					v->u.lwordval[3],
-					v->u.lwordval[2],
-					v->u.lwordval[1],
-					v->u.lwordval[0] 
-				);
-					
-			_endif
-
-		_case( tInt8 )
-		_case( tInt16 )
-		_case( tInt32 )
-
-			sprintf( comment, "%d", v->u.intval );
-
-		_endcase
-		
-		_case( tInt64 )
-		_case( tInt128 )
-		
-			IntToStr( comment, &v->u.lwordval[0] );
-			
-		_endcase
-
-		_case( tChar )
-		_case( tWChar )
-
-			_if( v->u.charval < ' ' || v->u.charval >= 0x7f )
-
-				sprintf( comment, "#$%x", v->u.charval );
-
-			_else
-
-				sprintf( comment, "'%c'", v->u.charval );
-
-			_endif
-
-		_endcase
-
-
-		_case( tCset )
-
-			strcpy( comment, "cset" );
-
-		_endcase
-
-		_case( tPointer )
-
-			strcpy( comment, "pointer constant" );
-
-		_endcase
-
-		_case( tProcptr )
-
-			strcpy( comment, "procptr constant" );
-
-		_endcase
-
-	 		
-
-		_case( tReal32 )
-		_case( tReal64 )
-		_case( tReal80 )
-
-			yyerror( "Illegal ordinal type: real (Internal HLA Error)" );
-
-		_endcase
-	
- 
-		_case( tString )
-
-			yyerror( "Illegal ordinal type: string (Internal HLA Error)" );
-
-		_endcase
-		
-			
-		_case( tZString )
-
-			yyerror( "Illegal ordinal type: zstring (Internal HLA Error)" );
-
-		_endcase
-		
-			
-		_case( tTByte )
-
-			yyerror
-			( 
-				"Illegal ordinal type: tbyte (Internal HLA Error)" 
-			);
-
-		_endcase
-				
-
-		_case( tArray )
-		_case( tRecord )
-		_case( tUnion )
-		_case( tClass )
-		_case( tThunk )
-		_case( tLabel )
-		_case( tProc )
-		_case( tMethod )
-		_case( tClassProc )
-		_case( tClassIter )
-		_case( tIterator )
-		_case( tProgram )
-		_case( tMacro )
-		_case( tText )
-		_case( tNamespace )
-		_case( tSegment )
-		_case( tVariant )
-		_case( tError )
-
-			yyerror
-			( 
-				"Illegal structured type (Internal HLA Error)" 
-			);
-
-		_endcase
-
-		_default
-
-			yyerror
-			(
-				"Unknown primitive data type in HLA (internal error)"
-			);
-
-	_endswitch
-	return comment;
-
-_end( EmitConstValue )
+//char *
+//EmitConstValue
+//( 
+//	char *comment, 
+//	struct SymNode *v
+//)
+//_begin( EmitConstValue )
+//
+//	_switch( v->pType )
+//
+//		_case( tBoolean )
+//		
+//			_if( v->u.unsval )
+//			
+//				strcpy( comment, "true" );
+//				
+//			_else
+//			
+//				strcpy( comment, "false" );
+//				
+//			_endif
+//			
+//		_endcase
+//		
+//		_case( tEnum )
+//		_case( tUns8 )
+//		_case( tUns16 )
+//		_case( tUns32 )
+//
+//
+//			sprintf( comment, "%u", v->u.unsval );
+//
+//		_endcase
+//		
+//		_case( tUns64 )
+//		_case( tUns128 )
+//			
+//			UnsToStr( comment, &v->u.lwordval[0] );
+//			
+//		_endcase
+//			
+//		
+//
+//		_case( tByte )
+//		_case( tWord )
+//		_case( tDWord )
+//
+//			sprintf( comment, "$%x", v->u.unsval );
+//
+//		_endcase
+//		
+//
+//		_case( tQWord )
+//		_case( tLWord )
+//		
+//			_if( v->u.lwordval[3] == 0 )
+//
+//			
+//		
+//				_if( v->u.lwordval[2] == 0 )
+//				
+//					_if( v->u.lwordval[1] == 0 )
+//					
+//						sprintf( comment, "$%x", v->u.unsval );
+//						
+//					_else
+//					
+//						sprintf
+//						( 
+//							comment, 
+//							"$%x_%08x", 
+//							v->u.lwordval[1],
+//							v->u.lwordval[0] 
+//						);
+//						
+//					_endif
+//					
+//				_else
+//					
+//					sprintf
+//					( 
+//						comment, 
+//						"$%x_%08x_%08x", 
+//						v->u.lwordval[2],
+//						v->u.lwordval[1],
+//						v->u.lwordval[0] 
+//					);
+//						
+//				_endif
+//									
+//			_else
+//			
+//				sprintf
+//				( 
+//					comment, 
+//					"$%x_%08x_%08x_%08x", 
+//					v->u.lwordval[3],
+//					v->u.lwordval[2],
+//					v->u.lwordval[1],
+//					v->u.lwordval[0] 
+//				);
+//					
+//			_endif
+//
+//		_case( tInt8 )
+//		_case( tInt16 )
+//		_case( tInt32 )
+//
+//			sprintf( comment, "%d", v->u.intval );
+//
+//		_endcase
+//		
+//		_case( tInt64 )
+//		_case( tInt128 )
+//		
+//			IntToStr( comment, &v->u.lwordval[0] );
+//			
+//		_endcase
+//
+//		_case( tChar )
+//		_case( tWChar )
+//
+//			_if( v->u.charval < ' ' || v->u.charval >= 0x7f )
+//
+//				sprintf( comment, "#$%x", v->u.charval );
+//
+//			_else
+//
+//				sprintf( comment, "'%c'", v->u.charval );
+//
+//			_endif
+//
+//		_endcase
+//
+//
+//		_case( tCset )
+//
+//			strcpy( comment, "cset" );
+//
+//		_endcase
+//
+//		_case( tPointer )
+//
+//			strcpy( comment, "pointer constant" );
+//
+//		_endcase
+//
+//		_case( tProcptr )
+//
+//			strcpy( comment, "procptr constant" );
+//
+//		_endcase
+//
+//	 		
+//
+//		_case( tReal32 )
+//		_case( tReal64 )
+//		_case( tReal80 )
+//
+//			yyerror( "Illegal ordinal type: real (Internal HLA Error)" );
+//
+//		_endcase
+//	
+// 
+//		_case( tString )
+//
+//			yyerror( "Illegal ordinal type: string (Internal HLA Error)" );
+//
+//		_endcase
+//		
+//			
+//		_case( tZString )
+//
+//			yyerror( "Illegal ordinal type: zstring (Internal HLA Error)" );
+//
+//		_endcase
+//		
+//			
+//		_case( tTByte )
+//
+//			yyerror
+//			( 
+//				"Illegal ordinal type: tbyte (Internal HLA Error)" 
+//			);
+//
+//		_endcase
+//				
+//
+//		_case( tArray )
+//		_case( tRecord )
+//		_case( tUnion )
+//		_case( tClass )
+//		_case( tThunk )
+//		_case( tLabel )
+//		_case( tProc )
+//		_case( tMethod )
+//		_case( tClassProc )
+//		_case( tClassIter )
+//		_case( tIterator )
+//		_case( tProgram )
+//		_case( tMacro )
+//		_case( tText )
+//		_case( tNamespace )
+//		_case( tSegment )
+//		_case( tVariant )
+//		_case( tError )
+//
+//			yyerror
+//			( 
+//				"Illegal structured type (Internal HLA Error)" 
+//			);
+//
+//		_endcase
+//
+//		_default
+//
+//			yyerror
+//			(
+//				"Unknown primitive data type in HLA (internal error)"
+//			);
+//
+//	_endswitch
+//	return comment;
+//
+//_end( EmitConstValue )
 
 
 
@@ -19471,11 +20079,23 @@ _begin( EmitBooleanExpr )
 					target, 
 					1
 				);
-				asmPrintf
-				(
-					"%s:\n",
-					newLblc
-				);
+				_if( assembler != hlabe )
+					
+					asmPrintf
+					(
+						"%s:\n",
+						newLblc
+					);
+					
+				_else
+					
+					asmPrintf
+					(
+						":%s\n",
+						newLblc
+					);
+				
+				_endif
 
 			_else  // Fall through on true condition.
 
@@ -19542,12 +20162,23 @@ _begin( EmitBooleanExpr )
 					target, 
 					0			// Branch on false to target.
 				);
-
-				asmPrintf
-				(
-					"%s:\n",
-					newLblc
-				);
+				_if( assembler != hlabe )
+				
+					asmPrintf
+					(
+						"%s:\n",
+						newLblc
+					);
+					
+				_else
+					
+					asmPrintf
+					(
+						"%s:\n",
+						newLblc
+					);
+				
+				_endif
 
 			_endif
 
@@ -19967,7 +20598,7 @@ _begin( EmitBooleanExpr )
 					endStrSeg();
 					asmPrintf
 					(
-						";leftoptext:\n%s;after left op text\n",
+						"%s\n",
 						leftOpText
 					);
 					push_r( reg_eax );
@@ -20586,13 +21217,14 @@ _begin( BeginMain )
 	_if
 	(
 			targetOS == linux_os 
-		||	targetOS == freeBSD_os 
+		||	targetOS == freeBSD_os
+		||	(targetOS == macOS_os && assembler == hlabe ) 
 	)
 	
 		_if( assembler == gas )
 		 
 		 	startDseg();
-			asmPrintf
+			asmPuts
 			(
 				"\n"
 				"\n"
@@ -20609,7 +21241,7 @@ _begin( BeginMain )
 		_elseif( assembler == fasm && targetOS == linux_os )
 		
 		 	startDseg();
-			asmPrintf
+			asmPuts
 			(
 				"\n" 
 				" section '.data' writeable align 16\n"
@@ -20623,6 +21255,26 @@ _begin( BeginMain )
 			);
 			endDseg();
 			
+		_elseif( assembler == hlabe )
+		
+			startDseg();
+			asmPuts
+			(
+				"\n" 
+				hlabe_static "\n"
+				hlabe_public "_envp" sympost "\n"
+				hlabe_public "_argc" sympost "\n"
+				hlabe_public "_argv" sympost "\n"
+				":_argc" sympost "\n"
+				hlabe_dword "$0\n"
+				":_argv" sympost "\n"
+				hlabe_dword "$0\n"
+				":_envp" sympost "\n"
+				hlabe_dword "$0\n"
+				"\n"
+			);
+			endDseg();
+			
 		_else
 		
 			yyerror( "Unexpected assembler used for this target OS" );
@@ -20632,7 +21284,7 @@ _begin( BeginMain )
 	_elseif ( assembler == gas && gasSyntax == macGas )
 		 
 		startDseg();
-		asmPrintf
+		asmPuts
 		(
 			"\n"
 			"\n"
@@ -20645,7 +21297,8 @@ _begin( BeginMain )
 			"_envp" sympost ": .long 0\n"
 		);
 		endDseg();
-			
+		
+		
 	_endif
 	EmitPublic( "_HLAMain" );
 	NewLn();
@@ -20658,15 +21311,23 @@ _begin( BeginMain )
 	
 			_if( assembler == gas )
 			
-				asmPrintf( " .global _start\n" );
-				asmPrintf( "_start:\n" );
+				asmPuts( " .global _start\n" );
+				asmPuts( "_start:\n" );
 			
 			_elseif( assembler == fasm )
 			
-				asmPrintf
+				asmPuts
 				(
 					" public _start\n" 
 					"_start:\n"
+				);
+				
+			_elseif( assembler == hlabe )
+			
+				asmPuts
+				(
+					hlabe_public "_start\n"
+					":_start\n"
 				);
 					
 			_else
@@ -20676,21 +21337,25 @@ _begin( BeginMain )
 			_endif
 			
 			EmitMov_r_r( reg_esp, reg_eax );
-			asmPrintf( "_findEnvp_$$_:\n" );
+			_if( assembler == hlabe )
+			
+				asmPuts( ":_findEnvp_$$_\n" );
+			
+			_else
+				
+				asmPuts( "_findEnvp_$$_:\n" );
+				
+			_endif
 			EmitGeneric_c_r( add_instr, 4, reg_eax );
 			initAdrs1( &adrs, reg_eax, 0 );
 			adrs.Size = 4;
 			EmitGeneric_c_m( cmp_instr, 0, &adrs );
-//				asmPrintf( " cmp dword ptr [eax], 0\n" );
 			EmitCondJump( jne_instr, "_findEnvp_$$_" );
-//				asmPrintf( " jne _findEnvp_\n" );
 			EmitGeneric_c_r( add_instr, 4, reg_eax );
-//				asmPrintf( " add eax,4\n" );
 			
 			initAdrs2( &adrs, "_envp" sympost, -1, -1, 0, 0 );
 			EmitMov_r_m( reg_eax, &adrs, 4 );
 			
-//				asmPrintf( " lea eax, [esp+4]\n" );
 			initLea_m_r( reg_esp, 4, reg_eax );
 			
 			initAdrs2( &adrs, "_argv" sympost, -1, -1, 0, 0 );
@@ -20705,40 +21370,33 @@ _begin( BeginMain )
 		
 		_case( freeBSD_os )
 	 		
-			asmPrintf( " .global _start\n" );
-			asmPrintf( "_start:\n" );
-			EmitMov_r_r( reg_esp, reg_eax );
+			_if( assembler == hlabe )
 			
-			asmPrintf( "_findEnvp_$$_:\n" );
-//			asmPrintf( " add eax,4\n" );
-//			asmPrintf( " cmp dword ptr [eax], 0\n" );
-//			asmPrintf( " jne _findEnvp_\n" );
-//			asmPrintf( " add eax,4\n" );
-//			initAdrs2( &adrs, "_envp" sympost, -1, -1, 0, 0 );
-//			EmitMov_r_m( reg_eax, &adrs, 4 );
-////			asmPrintf( " lea eax, [esp+4]\n" );
-//			initLea_m_r( reg_esp, 4, reg_eax );
-//			initAdrs2( &adrs, "_argv" sympost, -1, -1, 0, 0 );
-//			EmitMov_r_m( reg_eax, &adrs, 4 );
-//			initMov_m_r( reg_esp, 0, reg_eax, 4 );
-//			initAdrs2( &adrs, "_argc" sympost, -1, -1, 0, 0 );
-//			EmitMov_m_r( &adrs, reg_eax, 4 );
+				asmPuts( hlabe_public "_start\n" );
+				asmPuts( ":_start\n" );
+				EmitMov_r_r( reg_esp, reg_eax );
+				asmPuts( ":_findEnvp_$$_\n" );
+				
+			_else
+			
+				asmPuts( " .global _start\n" );
+				asmPuts( "_start:\n" );
+				EmitMov_r_r( reg_esp, reg_eax );
+				asmPuts( "_findEnvp_$$_:\n" );
+				
+			_endif
 
 			EmitGeneric_c_r( add_instr, 4, reg_eax );
 			initAdrs1( &adrs, reg_eax, 0 );
 			adrs.forcedSize = 4;
 			adrs.Size = 4;
 			EmitGeneric_c_m( cmp_instr, 0, &adrs );
-//				asmPrintf( " cmp dword ptr [eax], 0\n" );
 			EmitCondJump( jne_instr, "_findEnvp_$$_" );
-//				asmPrintf( " jne _findEnvp_\n" );
 			EmitGeneric_c_r( add_instr, 4, reg_eax );
-//				asmPrintf( " add eax,4\n" );
 			
 			initAdrs2( &adrs, "_envp" sympost, -1, -1, 0, 0 );
 			EmitMov_r_m( reg_eax, &adrs, 4 );
 			
-//				asmPrintf( " lea eax, [esp+4]\n" );
 			initLea_m_r( reg_esp, 4, reg_eax );
 			
 			initAdrs2( &adrs, "_argv" sympost, -1, -1, 0, 0 );
@@ -20755,11 +21413,21 @@ _begin( BeginMain )
 		_case( macOS_os )
 		
 	 		
-			asmPrintf( " .globl start\n" );
-			asmPrintf( "start:\n" );
-			EmitMov_r_r( reg_esp, reg_eax );
+			_if( assembler == hlabe )
 			
-			asmPrintf( "_findEnvp_$$_:\n" );
+				asmPuts( hlabe_public "_start\n" );
+				asmPuts( ":_start\n" );
+				EmitMov_r_r( reg_esp, reg_eax );
+				asmPuts( ":_findEnvp_$$_\n" );
+				
+			_else
+			
+				asmPuts( " .globl start\n" );
+				asmPuts( "start:\n" );
+				EmitMov_r_r( reg_esp, reg_eax );
+				asmPuts( "_findEnvp_$$_:\n" );
+				
+			_endif
 
 			EmitGeneric_c_r( add_instr, 4, reg_eax );
 			initAdrs1( &adrs, reg_eax, 0 );
@@ -20841,7 +21509,7 @@ _begin( EmitExceptionCode )
 			EmitPublic( "HWexcept" sympost ); 
 			
 
-			asmPrintf
+			asmPuts
 			(
 				"\n"
 				"\n"
@@ -20890,7 +21558,7 @@ _begin( EmitExceptionCode )
 		_if( targetOS == windows_os )
 		
 			EmitPublic( "HWexcept" sympost );
-			asmPrintf
+			asmPuts
 			(
 				"\n"
 				"\n"
@@ -20968,7 +21636,6 @@ _begin( EmitExit )
 
 			EmitMov_c_r( 1, reg_eax );
 			EmitGeneric_r_r( xor_instr, reg_ebx, reg_ebx );
-//			Emit1C( "int", "0x80" );
 			EmitInt_c( 0x80 );
 	
 		_endcase
@@ -20979,7 +21646,6 @@ _begin( EmitExit )
 			EmitMov_c_r( 1, reg_eax );
 			Pushd( 0 ); 
 			Pushd( 0 ); 
-//			Emit1C( "int", "0x80" );
 			EmitInt_c( 0x80 );
 			
 		_endcase
@@ -20999,15 +21665,24 @@ _begin( EndMain )
 
 	_if( assembler == gas || assembler == fasm || assembler == nasm )
 
-		asmPrintf( "QuitMain" sympost ":\n");
+		asmPuts( "QuitMain" sympost ":\n");
+	
+	_elseif( assembler == hlabe )
+
+		asmPuts( ":QuitMain" sympost "\n");
 	
 	_else
 	
-		asmPrintf( "QuitMain" sympost "::\n");
+		asmPuts( "QuitMain" sympost "::\n");
 		
 	_endif
 	EmitExit();
 	EndProc( "_HLAMain" );
+	_if( assembler == hlabe )
+	
+		asmPuts( "\n" hlabe_end "\n" );
+		
+	_endif
 
 _end( EndMain )
 
@@ -21048,6 +21723,19 @@ _begin( EmitData )
 		_case( hla )
 		
 			asmPrintf( "    %s:%s := %s;\n", label, directive, Operand );
+			
+		_endcase
+		
+		_case( hlabe )
+		
+			asmPrintf
+			( 
+				":%s\n"
+				"%s%s\n", 
+				label, 
+				directive, 
+				Operand 
+			);
 			
 		_endcase
 		
@@ -21301,6 +21989,29 @@ _begin( OutStaticConst )
 				);
 			
 			_endif
+			
+		_endcase
+		
+		
+		
+		_case( hlabe )
+		
+			_if( *StaticName != '\0' )
+			
+				asmPrintf
+				( 
+					":%s\n", 
+					StaticName 
+				);
+				
+			_endif
+			
+			asmPrintf
+			( 
+				"%s%s\n", 
+				BaseType, 
+				staticConst 
+			);
 			
 		_endcase
 		
@@ -22584,13 +23295,19 @@ _begin( PrintString )
 			
 				_case( gas )
 				
-					asmPrintf( "\n .ascii \"" );
+					asmPuts( "\n .ascii \"" );
 					
 				_endcase
 				
 				_case( hla )
 				
-					asmPrintf( "\n byte \"" );
+					asmPuts( "\n byte \"" );
+					
+				_endcase
+				
+				_case( hlabe )
+				
+					asmPuts( "\n" hlabe_byte "\"" );
 					
 				_endcase
 				
@@ -22599,7 +23316,7 @@ _begin( PrintString )
 				_case( fasm )
 				_case( nasm )
 				
-					asmPrintf( " db \"" );
+					asmPuts( " db \"" );
 					
 				_endcase
 				
@@ -22613,7 +23330,7 @@ _begin( PrintString )
 				
 				_if( *s == '\\' && assembler == gas )
 				
-					asmPrintf( "\\" );
+					asmPuts( "\\" );
 					
 				_endif
 				asmPrintf( "%c", *s );
@@ -22625,13 +23342,19 @@ _begin( PrintString )
 					
 						_case( gas )
 						
-							asmPrintf( "\"\n .ascii \"" );
+							asmPuts( "\"\n .ascii \"" );
 							
 						_endcase
 							
 						_case( hla )
 						
-							asmPrintf( "\";\n byte \"" );
+							asmPuts( "\";\n byte \"" );
+							
+						_endcase
+						
+						_case( hlabe )
+						
+							asmPuts( "\"\n" hlabe_byte "\"" );
 							
 						_endcase
 						
@@ -22640,7 +23363,7 @@ _begin( PrintString )
 						_case( fasm )
 						_case( nasm )
 						
-							asmPrintf( "\"\n db \"" );
+							asmPuts( "\"\n db \"" );
 							
 						_endcase
 						
@@ -22671,6 +23394,13 @@ _begin( PrintString )
 					_case( hla )
 					
 						asmPrintf( " byte $%x;\n", *s );
+						
+					_endcase
+					
+					
+					_case( hlabe )
+					
+						asmPrintf( hlabe_byte "$%x\n", *s );
 						
 					_endcase
 					
@@ -22705,12 +23435,18 @@ _begin( PrintString )
 		
 			_case( gas )
 			
-				asmPrintf( " .byte 0\n" );
+				asmPuts( " .byte 0\n" );
 				
 			_endcase
 			_case( hla )
 			
-				asmPrintf( " byte 0;\n" );
+				asmPuts( " byte 0;\n" );
+				
+			_endcase
+			
+			_case( hlabe )
+			
+				asmPuts( hlabe_byte "$0\n" );
 				
 			_endcase
 			
@@ -22719,7 +23455,7 @@ _begin( PrintString )
 			_case( fasm )
 			_case( nasm )
 			
-				asmPrintf( " db 0\n" );
+				asmPuts( " db 0\n" );
 				
 			_endcase
 			
@@ -22783,13 +23519,13 @@ _begin( EmitDataSegments )
 	
 	_if( assembler == hla )
 	
-		asmPrintf( "static\n" );
+		asmPuts( "static\n" );
 		
 	_endif
 	asmCpy( dataBuf.base, dataBuf.offset );
 	_if( assembler == tasm )
 	
-		asmPrintf( "data  ends\n\n" );
+		asmPuts( "data  ends\n\n" );
 		
 	_endif
 	
@@ -22816,13 +23552,13 @@ _begin( EmitDataSegments )
 		asmCpy( bssBuf.base, bssBuf.offset );
 		_if( assembler == tasm )
 		
-			asmPrintf( "bss  ends\n\n" );
+			asmPuts( "bss  ends\n\n" );
 			
 		_endif
 
 	_endif
 	
-	asmPrintf( "\n\n" );	
+	asmPuts( "\n\n" );	
 	asmBuf = save;	
 
 _end( EmitDataSegments )
@@ -22844,7 +23580,7 @@ _begin( EmitSegments )
 		asmCpy( codeBuf.base, codeBuf.offset );
 		asmCpy( constBuf.base, constBuf.offset );
 		asmCpy( roBuf.base, roBuf.offset );
-		asmPrintf( "\n\n" );	
+		asmPuts( "\n\n" );	
 		EmitDataSegments( dest );
 		
 	_else
@@ -22856,7 +23592,7 @@ _begin( EmitSegments )
 		asmCpy( codeBuf.base, codeBuf.offset );
 	
 	_endif		
-	asmPrintf( "\n\n" );	
+	asmPuts( "\n\n" );	
 	asmBuf = save;	
 
 _end( EmitSegments )
@@ -22892,7 +23628,7 @@ _begin( ConstructDisplay )
 		
 		_if( testMode )
 		
-			asmPrintf
+			asmPuts
 			( 
 				";/*Dynamic link*/\n" 
 			);
@@ -22902,6 +23638,7 @@ _begin( ConstructDisplay )
 		_for( int i=1, i <= CurLexLevel, ++i )
 
 			_if( testMode )
+			
 				asmPrintf
 				(
 					";/* push dword ptr [ebp-%d]"
@@ -22915,11 +23652,11 @@ _begin( ConstructDisplay )
 
 		_endfor
 
-		asmPrintf( ";/*Get frame ptr*/\n" ); 
+		asmPuts( ";/*Get frame ptr*/\n" ); 
 		initLea_m_r( reg_esp, CurLexLevel * 4, reg_ebp );
 		_if( testMode )
 		
-			asmPrintf
+			asmPuts
 			(
 				";/* Ptr to this proc's A.R.*/\n"
 			);
@@ -22943,7 +23680,7 @@ _begin( cseg_prefix )
 
 	_if( testMode )
 	
-		asmPrintf( ";/* cs: */\n" );
+		asmPuts( ";/* cs: */\n" );
 		
 	_endif
 	EmitByteConst(  0x2e , "" );
@@ -22956,7 +23693,7 @@ _begin( dseg_prefix )
 
 	_if( testMode )
 	
-		asmPrintf( ";/* ds: */\n" );
+		asmPuts( ";/* ds: */\n" );
 		
 	_endif
 	EmitByteConst(  0x3e , "" );
@@ -22969,7 +23706,7 @@ _begin( eseg_prefix )
 
 	_if( testMode )
 	
-		asmPrintf( ";/* es: */\n" );
+		asmPuts( ";/* es: */\n" );
 		
 	_endif
 	EmitByteConst(  0x26 , "" );
@@ -22982,7 +23719,7 @@ _begin( fseg_prefix )
 
 	_if( testMode )
 	
-		asmPrintf( ";/* fs: */\n" );
+		asmPuts( ";/* fs: */\n" );
 		
 	_endif
 	EmitByteConst(  0x64 , "" );
@@ -22996,7 +23733,7 @@ _begin( gseg_prefix )
 
 	_if( testMode )
 	
-		asmPrintf( ";/* gs: */\n" );
+		asmPuts( ";/* gs: */\n" );
 		
 	_endif
 	EmitByteConst(  0x65 , "" );
@@ -23010,7 +23747,7 @@ _begin( sseg_prefix )
 
 	_if( testMode )
 	
-		asmPrintf( ";/* ss: */\n" );
+		asmPuts( ";/* ss: */\n" );
 		
 	_endif
 	EmitByteConst(  0x36 , "" );
@@ -23973,7 +24710,7 @@ _begin( IteratorExit )
 
 	EmitMov_r_r( reg_ebp, reg_esp );
 	pop_r( reg_ebp );
-	asmPrintf
+	asmPuts
 	( 
 		";/* add esp, 4 ;Remove succeed address*/\n" 
 	);
