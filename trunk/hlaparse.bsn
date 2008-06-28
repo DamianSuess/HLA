@@ -91,6 +91,7 @@ char *ASMChoiceStrs[numAssemblers] =
 		"GAS",
 		"NASM",
 		"HLA",
+		"HLABE",
 	};
 	
 
@@ -47473,9 +47474,10 @@ StaticExpr:
 				sprintf
 				( 
 					StaticName, 
-					"(%s+%lu)", 
-					flist->StaticName, 
-					$<v.u.unsval>4 
+					"(%s%s%ld)", 
+					flist->StaticName,
+					_ifx( $<v.u.intval>4 < 0, "", "+" ), 
+					$<v.u.intval>4 
 				);
 				$<idStr>$ = hlastrdup2( StaticName );
 
@@ -47509,10 +47511,11 @@ StaticExpr:
 					sprintf
 					( 
 						StaticName, 
-						"(%s" sympost "%d+%lu)", 
+						"(%s" sympost "%d%s%ld)", 
 						$<idStr>2, 
 						LblCntr++, 
-						$<v.u.unsval>4 
+						_ifx( $<v.u.intval>4 < 0, "", "+" ), 
+						$<v.u.intval>4 
 					);
 					$<idStr>$ = hlastrdup2( StaticName );
 					
@@ -47547,20 +47550,27 @@ StaticExpr:
 StaticExpr:
 		'&'					/* $1 */
 		StaticLabelIDs		/* $2 */
-		'['					/* $4 */
-		ConstExpr			/* $5 */
-		Rbrack				/* $6 */
+		'['					/* $3 */
+		ConstExpr			/* $4 */
+		Rbrack				/* $5 */
 		
 		{
 			char	StaticName[256];
 			
 			_here;
-			_if( !IsOrdinal( $<v.pType>5 ) || numBits32( YYS &$<v>5 ) > 32 )
+			_if( !IsOrdinal( $<v.pType>4 ) || numBits32( YYS &$<v>4 ) > 32 )
 
 				yyerror( "Expected 32-bit ordinal type in index expression" );
 			
 			_endif
-			sprintf( StaticName, "(%s+%lu)", $<s>2->StaticName, $<v.u.unsval>5 );
+			sprintf
+			( 
+				StaticName, 
+				"(%s%s%ld)", 
+				$<s>2->StaticName, 
+				_ifx( $<v.u.intval>4 < 0, "", "+" ), 
+				$<v.u.intval>4 
+			);
 			$<idStr>$ = hlastrdup2( StaticName );
 			_here;
 		}
@@ -47614,8 +47624,9 @@ StaticExpr:
 					sprintf
 					(
 						adrs,
-						"(%s+%ld)",
+						"(%s%s%ld)",
 						$<dotName.StaticName>4,
+						_ifx( $<dotName.Disp>4 < 0, "", "+" ), 
 						$<dotName.Disp>4
 
 					);
@@ -47627,8 +47638,9 @@ StaticExpr:
 					sprintf
 					(
 						adrs,
-						"(%s+%ld)",
+						"(%s%s%ld)",
 						$<s>2->StaticName,
+						_ifx( $<dotName.Disp>4 < 0, "", "+" ), 
 						$<dotName.Disp>4
 					);
 
@@ -47699,8 +47711,9 @@ StaticExpr:
 					sprintf
 					(
 						adrs,
-						"(%s+%ld)",
+						"(%s%s%ld)",
 						$<dotName.StaticName>4,
+						_ifx( $<dotName.Disp>4 < 0, "", "+" ), 
 						$<dotName.Disp>4 + $<v.u.unsval>6
 					);
 					$<idStr>$ = hlastrdup2( adrs );
@@ -47711,8 +47724,9 @@ StaticExpr:
 					sprintf
 					(
 						adrs,
-						"(%s+%ld)",
+						"(%s%s%ld)",
 						$<s>2->StaticName,
+						_ifx( $<dotName.Disp>4 < 0, "", "+" ), 
 						$<dotName.Disp>4 + $<v.u.unsval>6
 					);
 					$<idStr>$ = hlastrdup2( adrs );
@@ -91730,6 +91744,15 @@ _begin( main )
 					objFmt = 0;
 					
 				_endif
+				
+				
+			_elseif( _streq( option, "-HLABE" ))
+			
+				assembler = hlabe;
+				useCFASM = 0;
+				objFmt = 0;
+				testMode = 0;
+				sourceOutput = 0;
 
 
 			
@@ -91872,6 +91895,15 @@ _begin( main )
 		++CurArg;
 
 	_endwhile
+	_if( assembler == hlabe )
+	
+		// Force source output and testMode to false if
+		// using the HLA back-end.
+		
+		sourceOutput = 0;
+		testMode = 0;
+		
+	_endif
 	
 	
 	/*

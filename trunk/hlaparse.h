@@ -2212,7 +2212,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 913 "hlaparse.bsn"
+#line 914 "hlaparse.bsn"
 {
 	unsigned				u;
 	char					*idStr;

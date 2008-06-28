@@ -199,6 +199,7 @@ enum AsmChoice
 		gas,
 		nasm,
 		hla,
+		hlabe,
 		numAssemblers
 	};
 	
@@ -233,6 +234,43 @@ enum OSChoice
 		numOSChoices
 	};
 
+
+// HLA back-end (hlabe) statements:
+//
+//
+// .a	align
+// .b	byte
+// .c	code
+// .d	dword
+// .e	equate
+// .l	lword
+// .p	public
+// .q	qword
+// .r	reserve storage
+// .s	static (data section)
+// .t	tbyte
+// .u	dup value in storage
+// .v	variables (bss section)
+// .w	word
+// .x	external
+// .z	end of source
+
+#define hlabe_align 	".a "
+#define hlabe_byte  	".b "
+#define hlabe_code		".c "
+#define hlabe_dword		".d "
+#define hlabe_equate	".e "
+#define hlabe_lword		".l "
+#define hlabe_public	".p "
+#define hlabe_qword		".q "
+#define hlabe_reserve	".r "
+#define	hlabe_static	".s "
+#define hlabe_tbyte		".t "
+#define hlabe_dup		".u "
+#define	hlabe_bss		".v "
+#define hlabe_word		".w "
+#define hlabe_external	".x "
+#define hlabe_end		".z "	
 
 /*--------------------------------------------------------------**
 **                                                              **
