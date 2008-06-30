@@ -79414,7 +79414,7 @@ SingleStmt:
 				EmitStmtLbl( lbl );
 			}
 			$<adrs.Disp>3 += 4;
-			EmitMov_o_m( thunkname, 4, &$<adrs>3 );
+			EmitMov_o_m( thunkname, 0, &$<adrs>3 );
 			$<adrs.Disp>3 -= 4;
 			EmitMov_r_m( reg_ebp, &$<adrs>3, 4 );
 
