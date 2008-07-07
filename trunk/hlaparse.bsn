@@ -79478,6 +79478,72 @@ PreSetThunk:
  **
  */
 
+	/*
+	** StartTry-
+	**
+	**	Sets up the code needed at the beginning of the try stmt.
+	**	Also sets aside two label values: one for the endtry
+	**	and one for the first exception.
+	*/
+
+StartTry:
+		{
+			struct adrsYYS adrs;
+			char symbol[ 256 ];
+			char label[ 256 ];
+			char mem[256];
+
+			$<v.u.intval>$ = EndTryLabel;	/* Save current endtry lbl	*/
+			EndTryLabel = LblCntr++;	/* Label for the endtry		*/
+			++LblCntr;					/* Label for the 1st excptn	*/
+
+			sprintf( symbol, "exception" sympost "%d", EndTryLabel+1 );
+			PushStaticAdrs( symbol );
+			push_r( reg_ebp );
+
+			_if( targetOS == windows_os )
+			
+				initAdrs( &adrs, -1, -1, 0, 0 );
+				fseg_prefix();
+			
+			_else
+			
+				initLbl( &adrs, ExceptionPtr, 0 );
+				
+			_endif
+			EmitMov_m_r( &adrs, reg_ebp, 4 );
+			
+			initAdrs( &adrs, reg_ebp, -1, 0, 8 );
+			push_mem( &adrs, 4 );
+			initAdrs( &adrs, reg_esp, -1, 0, 4 );
+			EmitMov_m_r( &adrs, reg_ebp, 4 ); 			
+			_if( targetOS == windows_os )
+						
+				PushStaticAdrs( "HWexcept" sympost );
+				fseg_prefix();
+				initAdrs( &adrs, -1, -1, 0, 0 );
+				push_mem( &adrs, 4 );
+				fseg_prefix();
+				EmitMov_r_m( reg_esp, &adrs, 4 );
+				
+			_else
+			
+				// Linux/BSD/MacOS don't have SEH frames (like Windows),
+				// so we'll use the entry at ESP+4 as a
+				// signature value.
+				
+				Pushd( 0xe8ce972 );
+				initLbl( &adrs, ExceptionPtr, 0 );
+				push_mem( &adrs, 4 );
+				EmitMov_r_m( reg_esp, &adrs, 4 ); 			
+
+			_endif
+		}
+	;
+
+
+
+													
 PopExcepts:
 		{
 			struct adrsYYS adrs;
@@ -79882,72 +79948,6 @@ OneException:
 	;
 
 
-	/*
-	** StartTry-
-	**
-	**	Sets up the code needed at the beginning of the try stmt.
-	**	Also sets aside two label values: one for the endtry
-	**	and one for the first exception.
-	*/
-
-StartTry:
-		{
-			struct adrsYYS adrs;
-			char symbol[ 256 ];
-			char label[ 256 ];
-			char mem[256];
-
-			$<v.u.intval>$ = EndTryLabel;	/* Save current endtry lbl	*/
-			EndTryLabel = LblCntr++;	/* Label for the endtry		*/
-			++LblCntr;					/* Label for the 1st excptn	*/
-
-			sprintf( symbol, "exception" sympost "%d", EndTryLabel+1 );
-			PushStaticAdrs( symbol );
-			push_r( reg_ebp );
-
-			_if( targetOS == windows_os )
-			
-				initAdrs( &adrs, -1, -1, 0, 0 );
-				fseg_prefix();
-			
-			_else
-			
-				initLbl( &adrs, ExceptionPtr, 0 );
-				
-			_endif
-			EmitMov_m_r( &adrs, reg_ebp, 4 );
-			
-			initAdrs( &adrs, reg_ebp, -1, 0, 8 );
-			push_mem( &adrs, 4 );
-			initAdrs( &adrs, reg_esp, -1, 0, 4 );
-			EmitMov_m_r( &adrs, reg_ebp, 4 ); 			
-			_if( targetOS == windows_os )
-						
-				PushStaticAdrs( "HWexcept" sympost );
-				fseg_prefix();
-				initAdrs( &adrs, -1, -1, 0, 0 );
-				push_mem( &adrs, 4 );
-				fseg_prefix();
-				EmitMov_r_m( reg_esp, &adrs, 4 );
-				
-			_else
-			
-				// Linux/BSD/MacOS don't have SEH frames (like Windows),
-				// so we'll use the entry at ESP+4 as a
-				// signature value.
-				
-				Pushd( 0xe8ce972 );
-				initLbl( &adrs, ExceptionPtr, 0 );
-				push_mem( &adrs, 4 );
-				EmitMov_r_m( reg_esp, &adrs, 4 ); 			
-
-			_endif
-		}
-	;
-
-
-
-													
  /*
  ** Handle the RAISE HLL statement here.
  */
@@ -92414,6 +92414,7 @@ _begin( main )
 					"kernel32.lib\n"
 					"user32.lib\n"
 					"gdi32.lib\n"
+					"wsock32.lib\n"
 				);
 
 				fclose( linkOut );
