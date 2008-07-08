@@ -17958,6 +17958,7 @@ procs:
 							d->u.proc.Forward = s->u.proc.Forward;
 							d->u.proc.BaseClass = s->u.proc.BaseClass;
 							d->u.proc.ParmSize = s->u.proc.ParmSize;
+							d->u.proc.cs = s->u.proc.cs;
 
 							InsertSym
 							(
@@ -17983,6 +17984,7 @@ procs:
 							SymbolTable->u.proc.Forward = s->u.proc.Forward;
 							SymbolTable->u.proc.BaseClass = s->u.proc.BaseClass;
 							SymbolTable->u.proc.ParmSize = s->u.proc.ParmSize;
+							SymbolTable->u.proc.cs = s->u.proc.cs;
 							d->Type = SymbolTable;
 							SymbolTable = d;
 
@@ -18543,6 +18545,11 @@ procs:
 			$<en.s>6->u.proc.use = $<options.use>9;
 			CurOffset = StartLclOffs;
 
+			// Iterators always use the pascal calling sequence:
+			
+			$<en.s>6->u.proc.parms->u.proc.use = pascal_cs;
+			$<en.s>6->u.proc.use = pascal_cs;
+
 			/*
 			** Create a symbol table entry for the "yield" thunk.
 			*/
@@ -18662,40 +18669,6 @@ procs:
 			_endif
 
 
-
-			// If the calling sequence reverses the parameters,
-			// go in and swap all the offsets on the parameters:
-
-			$<en.s>6->u.proc.cs = $<options.CallingSequence>9;
-			_if
-			(
-					$<options.CallingSequence>9 == stdcall_cs
-				||	$<options.CallingSequence>9 == cdecl_cs
-			)
-
-				struct	SymNode	*fixParms;
-				int			  	offset;
-
-				fixParms = $<en.s>6->u.proc.parms;
-
-				offset = 12;
-				_while( fixParms != NULL && fixParms != $<en.s>6 )
-
-					_if( fixParms->SymClass == cParm )
-
-						fixParms->Offset = offset;
-							
-						// Round up to the next multiple of four:
-						
-						offset += ((( fixParms->ObjectSize + 3) >> 2) << 2);
-
-					_endif
-					fixParms = fixParms->Next;
-
-				_endwhile
-
-
-			_endif
 			_here;
 		}
 
@@ -18777,6 +18750,7 @@ procs:
 						d->u.proc.Forward = s->u.proc.Forward;
 						d->u.proc.BaseClass = s->u.proc.BaseClass;
 						d->u.proc.ParmSize = s->u.proc.ParmSize;
+						d->u.proc.cs = s->u.proc.cs;
 
 						// Insert a dummy type for the parameter list.
 						
@@ -18804,6 +18778,7 @@ procs:
 						SymbolTable->u.proc.Forward = s->u.proc.Forward;
 						SymbolTable->u.proc.BaseClass = s->u.proc.BaseClass;
 						SymbolTable->u.proc.ParmSize = s->u.proc.ParmSize;
+						SymbolTable->u.proc.cs = s->u.proc.cs;
 						d->Type = SymbolTable;
 						SymbolTable = d;
 
@@ -19401,9 +19376,9 @@ procs:		procedureTkn		/* $1 */
 			Options				/* $11 */
 			{					/* $12 */
 
-				char 			msg[ 256 ];
-				int	 			*dimension;
-				struct	SymNode	*s;
+				char 					msg[ 256 ];
+				int	 					*dimension;
+				struct	SymNode			*s;
 				struct contextListType	*p;
 				char					exitname[ 256 ];
 
@@ -19558,6 +19533,7 @@ procs:		procedureTkn		/* $1 */
 							d->u.proc.Forward = s->u.proc.Forward;
 							d->u.proc.BaseClass = s->u.proc.BaseClass;
 							d->u.proc.ParmSize = s->u.proc.ParmSize;
+							d->u.proc.cs = s->u.proc.cs;
 
 
 							InsertSym
@@ -19584,6 +19560,7 @@ procs:		procedureTkn		/* $1 */
 							SymbolTable->u.proc.Forward = s->u.proc.Forward;
 							SymbolTable->u.proc.BaseClass = s->u.proc.BaseClass;
 							SymbolTable->u.proc.ParmSize = s->u.proc.ParmSize;
+							SymbolTable->u.proc.cs = s->u.proc.cs;
 							d->Type = SymbolTable;
 							SymbolTable = d;
 
@@ -20364,6 +20341,7 @@ procs:		methodTkn			/* $1 */
 							d->u.proc.Forward = s->u.proc.Forward;
 							d->u.proc.BaseClass = s->u.proc.BaseClass;
 							d->u.proc.ParmSize = s->u.proc.ParmSize;
+							d->u.proc.cs = s->u.proc.cs;
 
 							InsertSym
 							(
@@ -20389,6 +20367,7 @@ procs:		methodTkn			/* $1 */
 							SymbolTable->u.proc.Forward = s->u.proc.Forward;
 							SymbolTable->u.proc.BaseClass = s->u.proc.BaseClass;
 							SymbolTable->u.proc.ParmSize = s->u.proc.ParmSize;
+							SymbolTable->u.proc.cs = s->u.proc.cs;
 							d->Type = SymbolTable;
 							SymbolTable = d;
 
@@ -21187,6 +21166,7 @@ procs:
 						d->u.proc.Forward = s->u.proc.Forward;
 						d->u.proc.BaseClass = s->u.proc.BaseClass;
 						d->u.proc.ParmSize = s->u.proc.ParmSize;
+						d->u.proc.cs = s->u.proc.cs;
 
 
 						InsertSym
@@ -21213,6 +21193,7 @@ procs:
 						SymbolTable->u.proc.Forward = s->u.proc.Forward;
 						SymbolTable->u.proc.BaseClass = s->u.proc.BaseClass;
 						SymbolTable->u.proc.ParmSize = s->u.proc.ParmSize;
+						SymbolTable->u.proc.cs = s->u.proc.cs;
 						d->Type = SymbolTable;
 						SymbolTable = d;
 
@@ -21990,6 +21971,11 @@ procs:		iteratorTkn 		/* $1  */
 				$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>9;
 				$<en.s>6->u.proc.parms->u.proc.use = $<options.use>9;
 
+				// Iterators always use the pascal calling sequence:
+				
+				$<en.s>6->u.proc.cs = pascal_cs;
+				$<en.s>6->u.proc.parms->u.proc.cs = pascal_cs;
+				
 
 
 
@@ -22068,39 +22054,6 @@ procs:		iteratorTkn 		/* $1  */
 				CurrentContext = $<s>5;
 
 
-				// If the calling sequence reverses the parameters,
-				// go in and swap all the offsets on the parameters:
-
-				$<en.s>6->u.proc.cs = $<options.CallingSequence>9;
-				_if
-				(
-						$<options.CallingSequence>9 == stdcall_cs
-					||	$<options.CallingSequence>9 == cdecl_cs
-				)
-
-					struct	SymNode	*fixParms;
-					int			  	offset;
-
-					fixParms = $<en.s>6->u.proc.parms;
-
-					offset = 12;
-					_while( fixParms != NULL && fixParms != $<en.s>6 )
-
-						_if( fixParms->SymClass == cParm )
-
-							fixParms->Offset = offset;
-							
-							// Round up to the next multiple of four:
-							
-							offset += ((( fixParms->ObjectSize + 3) >> 2) << 2);
-
-						_endif
-						fixParms = fixParms->Next;
-
-					_endwhile
-
-				_endif
-				
 				/*
 				** Restore currentNS.
 				*/
@@ -22322,7 +22275,11 @@ procs:		iteratorTkn			/* $1 */
 					$<options.SpecifiedOptions>9,
 					specified_use
 				);
-				$<en.s>6->u.proc.cs = $<options.CallingSequence>9;
+				
+				// Iterators always use the pascal calling sequence:
+				
+				$<en.s>6->u.proc.cs = pascal_cs;
+				$<en.s>6->u.proc.parms->u.proc.cs = pascal_cs;
 
 
 				/*
@@ -22343,6 +22300,7 @@ procs:		iteratorTkn			/* $1 */
 				$<en.s>6->u.proc.parms->u.proc.parms = SymbolTable;
 				$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>9;
 				$<en.s>6->u.proc.parms->u.proc.use = $<options.use>9;
+
 
 
 				/*
@@ -22424,37 +22382,6 @@ procs:		iteratorTkn			/* $1 */
 
 				_here;
 
-				// If the calling sequence reverses the parameters,
-				// go in and swap all the offsets on the parameters:
-
-				_if
-				(
-						$<en.s>6->u.proc.cs == stdcall_cs
-					||	$<en.s>6->u.proc.cs == cdecl_cs
-				)
-
-					struct	SymNode	*fixParms;
-					int			  	offset;
-
-					fixParms = $<en.s>6->u.proc.parms;
-
-					offset = 12;
-					_while( fixParms != NULL && fixParms != $<en.s>6 )
-
-						_if( fixParms->SymClass == cParm )
-
-							fixParms->Offset = offset;
-							
-							// Round up to the next multiple of four:
-							
-							offset += ((( fixParms->ObjectSize + 3) >> 2) << 2);
-
-						_endif
-						fixParms = fixParms->Next;
-
-					_endwhile
-
-				_endif
 				
 				/*
 				** Restore currentNS:
@@ -22798,6 +22725,7 @@ procs:		procedureTkn		/* $1  */
 							d->u.proc.Forward = s->u.proc.Forward;
 							d->u.proc.BaseClass = s->u.proc.BaseClass;
 							d->u.proc.ParmSize = s->u.proc.ParmSize;
+							d->u.proc.cs = s->u.proc.cs;
 
 
 							InsertSym
@@ -22824,6 +22752,7 @@ procs:		procedureTkn		/* $1  */
 							SymbolTable->u.proc.Forward = s->u.proc.Forward;
 							SymbolTable->u.proc.BaseClass = s->u.proc.BaseClass;
 							SymbolTable->u.proc.ParmSize = s->u.proc.ParmSize;
+							SymbolTable->u.proc.cs = s->u.proc.cs;
 							d->Type = SymbolTable;
 							SymbolTable = d;
 
@@ -23646,6 +23575,7 @@ procs:		iteratorTkn			/* $1  */
 							d->u.proc.Forward = s->u.proc.Forward;
 							d->u.proc.BaseClass = s->u.proc.BaseClass;
 							d->u.proc.ParmSize = s->u.proc.ParmSize;
+							d->u.proc.cs = s->u.proc.cs;
 
 
 							InsertSym
@@ -23672,6 +23602,7 @@ procs:		iteratorTkn			/* $1  */
 							SymbolTable->u.proc.Forward = s->u.proc.Forward;
 							SymbolTable->u.proc.BaseClass = s->u.proc.BaseClass;
 							SymbolTable->u.proc.ParmSize = s->u.proc.ParmSize;
+							SymbolTable->u.proc.cs = s->u.proc.cs;
 							d->Type = SymbolTable;
 							SymbolTable = d;
 
@@ -24361,6 +24292,10 @@ FwdMethod:
 			$<en.s>7->SymClass = cMethod;
 			$<en.s>7->pType = tMethod;
 
+			// Methods always use the pascal calling sequence
+			
+			$<en.s>7->u.proc.parms->u.proc.cs = pascal_cs;
+			$<en.s>7->u.proc.cs = pascal_cs;
 
 			/*
 			** Enter the "returns" value into the symbol table.
@@ -24372,8 +24307,7 @@ FwdMethod:
 			CheckLegalOptions
 			( 
 				$<options.SpecifiedOptions>10,
-				specified_returns | specified_pascal |
-				specified_stdcall | specified_cdecl |
+				specified_returns |
 				specified_use
 			);
 
@@ -24575,11 +24509,15 @@ FwdMethod:
 			$<en.s>7->u.proc.returns = $<options.returns>10;
 			$<en.s>7->u.proc.use = $<options.use>10;
 
+			// Iterators always use the pascal calling sequence
+			
+			$<en.s>7->u.proc.parms->u.proc.cs = pascal_cs;
+			$<en.s>7->u.proc.cs = pascal_cs;
+
 			CheckLegalOptions
 			( 
 				$<options.SpecifiedOptions>10,
-				specified_returns | specified_pascal |
-				specified_stdcall | specified_cdecl	 |
+				specified_returns |
 				specified_use
 			);
 
@@ -25042,12 +24980,15 @@ FwdMethod:
 			$<en.s>7->u.proc.returns = $<options.returns>10;
 			$<en.s>7->u.proc.use = $<options.use>10;
 
+			// Methods always use the pascal calling sequence
+			
+			$<en.s>7->u.proc.parms->u.proc.cs = pascal_cs;
+			$<en.s>7->u.proc.cs = pascal_cs;
 
 			CheckLegalOptions
 			( 
 				$<options.SpecifiedOptions>10,
-				specified_returns | specified_pascal |
-				specified_stdcall | specified_cdecl	|
+				specified_returns |
 				specified_use
 			);
 
@@ -25291,6 +25232,11 @@ FwdMethod:
 			$<en.s>7->u.proc.returns = hlastrdup2( "" );
 			$<en.s>7->u.proc.use = NULL;
 
+			// Iterators always use the pascal calling sequence
+			
+			$<en.s>7->u.proc.parms->u.proc.cs = pascal_cs;
+			$<en.s>7->u.proc.cs = pascal_cs;
+
 
 			/*
 			** Set the BaseClass field to point at the base
@@ -25512,6 +25458,11 @@ FwdMethod:
 			$<en.s>7->u.proc.returns = hlastrdup2( "" );
 			$<en.s>7->u.proc.use = NULL;
 
+			// Iterators always use pascal calling sequence:
+			
+			$<en.s>7->u.proc.parms->u.proc.cs = pascal_cs;
+			$<en.s>7->u.proc.cs = pascal_cs;
+
 
 			/*
 			** Set the BaseClass field to point at the base
@@ -25638,6 +25589,7 @@ FwdMethod:
 			s->u.proc.parms = $<en.s>7->u.proc.parms;
 			s->u.proc.returns = $<en.s>7->u.proc.returns;
 			s->u.proc.use = $<en.s>7->u.proc.use;
+			s->u.proc.cs = $<en.s>7->u.proc.cs;
 			$<en.s>7->Type = s;
 			SymbolTable = $<en.s>7;
 			
@@ -25712,7 +25664,7 @@ ClassProc:
 		OptionalParms 		/* $8  */
 		Semicolon			/* $9  */
 		Options				/* $10 */
-		{					/* $13 */
+		{					/* $11 */
 
 			struct SymNode			*ParmList;
 			struct SymNode			*s;
@@ -25727,6 +25679,7 @@ ClassProc:
 			/*
 			** Enter the optional "returns" value into the symbol table.
 			*/
+			
 
 			$<en.s>7->u.proc.returns = $<options.returns>10;
 			$<en.s>7->u.proc.use = $<options.use>10;
@@ -25767,6 +25720,9 @@ ClassProc:
 			$<en.s>7->u.proc.parms->u.proc.parms = SymbolTable;
 			$<en.s>7->u.proc.parms->u.proc.returns = $<options.returns>10;
 			$<en.s>7->u.proc.parms->u.proc.use = $<options.use>10;
+			
+			$<en.s>7->u.proc.parms->u.proc.cs = pascal_cs;
+			$<en.s>7->u.proc.cs = pascal_cs;
 
 			/*
 			** Mark the end of the parameter list.
@@ -25856,6 +25812,7 @@ ClassProc:
 			s->u.proc.parms = $<en.s>7->u.proc.parms;
 			s->u.proc.returns = $<en.s>7->u.proc.returns;
 			s->u.proc.use = $<en.s>7->u.proc.use;
+			s->u.proc.cs = $<en.s>7->u.proc.cs;
 			$<en.s>7->Type = s;
 			SymbolTable = $<en.s>7;
 			
@@ -25942,6 +25899,12 @@ ClassProc:
 
 			$<en.s>7->u.proc.returns = $<options.returns>10;
 			$<en.s>7->u.proc.use = $<options.use>10;
+			
+			
+			// Always use pascal calling sequence for class stuff:
+			
+			$<en.s>7->u.proc.use = pascal_cs;
+			$<en.s>7->u.proc.parms->u.proc.cs = pascal_cs;
 
 			CheckLegalOptions
 			( 
@@ -25979,6 +25942,7 @@ ClassProc:
 			$<en.s>7->u.proc.parms->u.proc.parms = SymbolTable;
 			$<en.s>7->u.proc.parms->u.proc.returns = $<options.returns>10;
 			$<en.s>7->u.proc.parms->u.proc.use = $<options.use>10;
+			
 
 			/*
 			** Mark the end of the parameter list.
@@ -26086,6 +26050,7 @@ ClassProc:
 			s->u.proc.parms = $<en.s>7->u.proc.parms;
 			s->u.proc.returns = $<en.s>7->u.proc.returns;
 			s->u.proc.use = $<en.s>7->u.proc.use;
+			s->u.proc.cs = $<en.s>7->u.proc.cs;
 			$<en.s>7->Type = s;
 			SymbolTable = $<en.s>7;
 			
@@ -65334,7 +65299,7 @@ SingleStmt:
 
 			_here;
 			returns[ 0 ] = '\0';
-			
+
 			// Handle classes specially because we get to use the
 			// ESI and EDI registers for class invocations.
 			//
