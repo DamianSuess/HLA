@@ -81,6 +81,7 @@ FILE *MsgOut;
 	enum	ObjFormat		ObjFmt 		= elf;
 	enum	LinkerChoice	linker 		= ld;
 			int				Internal 	= 0;
+			char			*OSName		= "Linux";
 
 #elif defined( freeBSD_c )
 
@@ -93,6 +94,7 @@ FILE *MsgOut;
 	enum	ObjFormat		ObjFmt 		= elf;
 	enum	LinkerChoice	linker 		= ld;
 			int				Internal 	= 0;
+			char			*OSName		= "FreeBSD";
 
 #elif defined( macOS_c )
 
@@ -105,6 +107,7 @@ FILE *MsgOut;
 	enum	ObjFormat		ObjFmt 		= macho;
 	enum	LinkerChoice	linker 		= ld;
 			int				Internal 	= 0;
+			char			*OSName		= "Mac OSX";
 
 #else
 
@@ -120,6 +123,7 @@ FILE *MsgOut;
 	enum	ObjFormat		ObjFmt 		= coff;
 	enum	LinkerChoice	linker 		= polink;
 			int				Internal 	= 1;
+			char			*OSName		= "Windows";
 
 	
 #endif
@@ -3324,7 +3328,7 @@ _begin( main )
 						sprintf
 						(
 							CmdLine, 
-							"as -o %s %s %s \"%s\"",
+							"as --32 -o %s %s %s \"%s\"",
 							ObjName,
 							AsmOpts,
 							backEndAsmOptions,
@@ -3594,12 +3598,12 @@ _begin( main )
 			fprintf
 			( 
 				MsgOut, 
-				"Attempted to specify linker %s under Linux, must use ld\n",
-				linkStrs[ linker ]
+				"Attempted to specify linker %s under %s, must use ld\n",
+				linkStrs[ linker ],
+				OSName
 			);
 			
 		_endif
-	
 		sprintf
 		( 
 			CmdLine, 
@@ -3609,6 +3613,7 @@ _begin( main )
 			LinkOpts,
 			ExeName
 		);
+			
 		
 		
 		// Okay, append all the ".o" and ".a" names to the end

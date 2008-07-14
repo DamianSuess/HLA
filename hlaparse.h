@@ -2215,6 +2215,7 @@ typedef union YYSTYPE
 #line 914 "hlaparse.bsn"
 {
 	unsigned				u;
+	int						i;
 	char					*idStr;
 	char					*returns;
 	struct	SymNode			*s;
@@ -2259,6 +2260,9 @@ typedef union YYSTYPE
 		unsigned		unss[4];
 		struct	SymNode	*syms[4];
 	}save;
+	
+		
+		
 	
 	// Attributes for record and unions where we can save important data.
 	
@@ -2389,7 +2393,7 @@ typedef union YYSTYPE
 	
 }
 /* Line 1489 of yacc.c.  */
-#line 2393 "hlaparse.h"
+#line 2397 "hlaparse.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
