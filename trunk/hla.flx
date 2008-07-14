@@ -11443,7 +11443,6 @@ _begin( doID )
     _endif
     fastLookup = 0;
     yylval->s = symbol;
-
     Token = 
         ProcessID
         ( 
@@ -11567,6 +11566,7 @@ _begin( ProcessID )
         _return UndefID;
 
     _endif
+
 
     // Check for case neutrality here (but only if checkCN is true;
     // it gets set false for recursive calls involving class objects).

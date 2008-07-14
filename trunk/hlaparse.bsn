@@ -913,6 +913,7 @@ extern int yylex( union YYSTYPE *yylval );
 %union
 {
 	unsigned				u;
+	int						i;
 	char					*idStr;
 	char					*returns;
 	struct	SymNode			*s;
@@ -957,6 +958,9 @@ extern int yylex( union YYSTYPE *yylval );
 		unsigned		unss[4];
 		struct	SymNode	*syms[4];
 	}save;
+	
+		
+		
 	
 	// Attributes for record and unions where we can save important data.
 	
@@ -11919,9 +11923,7 @@ RecDef:
 		toTkn			/* $4 */
 		procedureTkn 	/* $5 */
 		DefinedID		/* $6 */
-		Semicolon		/* $7 */
-		VarOptions		/* $8 */
-		{				/* $9 */
+		{				/* $7 */
 			
 			_here;
 			assert( $<idStr>1 != NULL );
@@ -11937,7 +11939,11 @@ RecDef:
 			CreatePtrToProc( $<idStr>1, $<s>6, NULL, cVar );
 			
 				
-			_if( !$<options.NoStorage>8 )
+		}
+		Semicolon		/* $8 */
+		VarOptions		/* $9 */
+		{
+			_if( !$<options.NoStorage>9 )
 			
 				CurOffset += 4 * CurOffsetDir;
 				
@@ -11964,9 +11970,7 @@ RecDef:
 			pointerTkn			/* $3 */
 			toTkn				/* $4 */
 			AnyID				/* $5 */
-			Semicolon			/* $6 */
-			VarOptions			/* $7 */
-			{					/* $8 */
+			{					/* $6 */
 
 				struct	SymNode			*BaseType;
 
@@ -12017,11 +12021,15 @@ RecDef:
 
 				_endif
 
+			}
+			Semicolon			/* $7 */
+			VarOptions			/* $8 */
+			{
 				/*
 				** If processing records, unions, parameters, etc.
 				*/
 
-				_if( !$<options.NoStorage>7 )
+				_if( !$<options.NoStorage>8 )
 				
 					CurOffset += 4 * CurOffsetDir;
 					
@@ -12045,9 +12053,7 @@ RecDef:
 			pointerTkn			/* $3 */
 			toTkn				/* $4 */
 			ReservedTypeIDs		/* $5 */
-			Semicolon			/* $6 */
-			VarOptions			/* $7 */
-			{					/* $8 */
+			{					/* $6 */
 
 			
 				assert( $<idStr>1 != NULL );
@@ -12076,7 +12082,11 @@ RecDef:
 					0					/* FieldCnt		*/
 				);
 
-				_if( !$<options.NoStorage>7 )
+			}
+			Semicolon			/* $7 */
+			VarOptions			/* $8 */
+			{
+				_if( !$<options.NoStorage>8 )
 
 					CurOffset += 4 * CurOffsetDir;
 
@@ -12103,9 +12113,8 @@ RecDef:
 			RecID				/* $1 */ 
 			Colon				/* $2 */ 
 			TypeID				/* $3 */ 
-			Semicolon			/* $4 */
-			VarOptions			/* $5 */
-			{
+			{					/* $4 */
+			
 				assert( $<idStr>1 != NULL );
 				assert( $<s>3 != NULL );
 				
@@ -12189,20 +12198,25 @@ RecDef:
 						SymbolTable->Type = $<s>3;	/* so we can patch later */
 
 					_endif
-					_if( !$<options.NoStorage>5 )
-						
-						CurOffset += $<s>3->ObjectSize * CurOffsetDir;
-						
-					_endif
 
 				_endif
 
+
+			}
+			Semicolon			/* $5 */
+			VarOptions			/* $6 */
+			{
+				_if( !$<options.NoStorage>6 )
+					
+					CurOffset += $<s>3->ObjectSize * CurOffsetDir;
+					
+				_endif
+				
 				/*
 				** "Prime" fastLookup for the next identifier we encounter:
 				*/
 				
 				fastLookup = 1;
-
 			}
 	;
 
@@ -12222,11 +12236,9 @@ RecDef:
 			'['					/* $4 */ 
 			DimList				/* $5 */ 
 			Rbrack				/* $6 */  
-			Semicolon			/* $7 */
-			VarOptions			/* $8 */
-			{
+			{					/* $7 */
+			
 				int	*DimensionArray;
-				int	ArraySize;
 
 				assert( $<idStr>1 != NULL );
 				assert( $<s>3 != NULL );
@@ -12256,7 +12268,7 @@ RecDef:
 						** a single dimension array here.
 						*/
 
-						ArraySize = $<s>3->ObjectSize * $<v.NumElements>5;
+						$<i>$ = $<s>3->ObjectSize * $<v.NumElements>5;
 
 						AlignTo
 						( 
@@ -12278,7 +12290,7 @@ RecDef:
 							$<v.Dimensions>5,
 							$<v.NumElements>5, 
 							NULL,
-							ArraySize,
+							$<i>$,
 							CurOffset,
 							NULL,
 							$<s>3->Base,
@@ -12345,12 +12357,6 @@ RecDef:
 						_endif
 
 
-						_if( !$<options.NoStorage>8 )
-							
-							CurOffset += ArraySize * CurOffsetDir;
-							
-						_endif
-
 
 					/*
 					** Okay, down here TypeID *is* an array type,
@@ -12386,7 +12392,7 @@ RecDef:
 							$<v.Dimensions>5,
 							$<v.Arity>5 * sizeof( int )
 						);
-						ArraySize = $<s>3->ObjectSize * $<v.NumElements>5;
+						$<i>$ = $<s>3->ObjectSize * $<v.NumElements>5;
 
 						AlignTo
 						( 
@@ -12408,7 +12414,7 @@ RecDef:
 							DimensionArray,
 							$<s>3->NumElements * $<v.NumElements>5, 
 							NULL,
-							ArraySize,
+							$<i>$,
 							CurOffset,
 							NULL,
 							$<s>3->Base,
@@ -12442,17 +12448,21 @@ RecDef:
 						_endif
 
 
-						_if( !$<options.NoStorage>8 )
-						
-							CurOffset += ArraySize * CurOffsetDir;
-							
-						_endif
 						free2( vss $<v.Dimensions>5 );
 
 					_endif
 
 				_endif
-
+			}
+			Semicolon			/* $8 */
+			VarOptions			/* $9 */
+			{
+				_if( !$<options.NoStorage>9 )
+				
+					CurOffset += $<i>7 * CurOffsetDir;
+					
+				_endif
+				
 				/*
 				** "Prime" fastLookup for the next identifier we encounter:
 				*/
@@ -39175,15 +39185,13 @@ VariableDef:
 		toTkn			/* $4 */
 		procedureTkn 	/* $5 */
 		DefinedID		/* $6 */
-		Semicolon		/* $7 */
-		VarOptions		/* $8 */
-		{				/* $9 */
+		{				/* $7 */
 			
-			int coSave = CurOffset;
 			
 			_here;
 			assert( $<idStr>1 != NULL );
 
+			$<i>$ = CurOffset;
 			_if( AddOffset1st && !HoldOffset )
 			
 				CurOffset += 4 * CurOffsetDir;
@@ -39197,9 +39205,14 @@ VariableDef:
 				CurOffset += 4 * CurOffsetDir;
 
 			_endif
-			_if( $<options.NoStorage>8 )
+			_here;
+		}
+		Semicolon		/* $8 */
+		VarOptions		/* $9 */
+		{
+			_if( $<options.NoStorage>9 )
 			
-				CurOffset = coSave;
+				CurOffset = $<i>7;
 				
 			_endif
 			_here;
@@ -39318,17 +39331,15 @@ VariableDef:
 			pointerTkn			/* $3 */
 			toTkn				/* $4 */
 			AnyID				/* $5 */
-			Semicolon			/* $6 */
-			VarOptions			/* $7 */
-			{					/* $8 */
+			{					/* $6 */
 
-				int 				coSave = CurOffset;
 				struct	SymNode		*BaseType;
 
 			
 				assert( $<idStr>1 != NULL );
 				assert( $<idStr>5 != NULL );
 
+				$<i>$ = CurOffset;
 				
 				// If processing local vars...
 				
@@ -39383,12 +39394,16 @@ VariableDef:
 					CurOffset += 4 * CurOffsetDir;
 
 				_endif
-				_if( $<options.NoStorage>7 )
+
+			}
+			Semicolon			/* $7 */
+			VarOptions			/* $8 */
+			{
+				_if( $<options.NoStorage>8 )
 				
-					CurOffset = coSave;
+					CurOffset = $<i>6;
 					
 				_endif
-
 			}
 	;
 
@@ -39401,14 +39416,12 @@ VariableDef:
 			pointerTkn			/* $3 */
 			toTkn				/* $4 */
 			ReservedTypeIDs		/* $5 */
-			Semicolon			/* $6 */
-			VarOptions			/* $7 */
-			{					/* $8 */
+			{					/* $6 */
 
-				int coSave = CurOffset;
-			
 				assert( $<idStr>1 != NULL );
 
+				$<i>$ = CurOffset;
+				
 				/*
 				** If processing local vars...
 				*/
@@ -39446,9 +39459,13 @@ VariableDef:
 					CurOffset += 4 * CurOffsetDir;
 
 				_endif
-				_if( $<options.NoStorage>7 )
+			}
+			Semicolon			/* $7 */
+			VarOptions			/* $8 */
+			{
+				_if( $<options.NoStorage>8 )
 				
-					CurOffset = coSave;
+					CurOffset = $<i>6;
 					
 				_endif
 			}
@@ -39463,13 +39480,12 @@ VariableDef:
 			UndefinedID			/* $1 */ 
 			Colon				/* $2 */ 
 			TypeID				/* $3 */ 
-			Semicolon			/* $4 */
-			VarOptions			/* $5 */
-			{
-				int coSave = CurOffset;
+			{					/* $4 */
 
 				assert( $<idStr>1 != NULL );
 				assert( $<s>3 != NULL );
+				
+				$<i>$ = CurOffset;
 
 				_if( CantBeVar($<s>3->pType ))
 
@@ -39582,12 +39598,16 @@ VariableDef:
 					_endif
 
 				_endif
-				_if( $<options.NoStorage>5 )
+
+			}
+			Semicolon			/* $5 */
+			VarOptions			/* $6 */
+			{
+				_if( $<options.NoStorage>6 )
 				
-					CurOffset = coSave;
+					CurOffset = $<i>4;
 					
 				_endif
-
 			}
 	;
 
@@ -39605,10 +39625,8 @@ VariableDef:
 		'['					/* $4 */ 
 		DimList				/* $5 */ 
 		Rbrack				/* $6 */  
-		Semicolon			/* $7 */
-		VarOptions			/* $8 */
-		{
-			int	coSave = CurOffset;
+		{					/* $7 */
+
 			int	*DimensionArray;
 			int	ArraySize;
 
@@ -39617,6 +39635,8 @@ VariableDef:
 			assert( $<v.NumElements>5 > 0 );
 			assert( $<v.Dimensions>5 != NULL );
 
+			$<i>$ = CurOffset;
+			
 			/*
 			** Make sure this is a legal variable type
 			** (e.g., no text variables).
@@ -39848,9 +39868,13 @@ VariableDef:
 				_endif
 
 			_endif
-			_if( $<options.NoStorage>8 )
+		}
+		Semicolon			/* $8 */
+		VarOptions			/* $9 */
+		{
+			_if( $<options.NoStorage>9 )
 			
-				CurOffset = coSave;
+				CurOffset = $<i>7;
 				
 			_endif
 		}
@@ -40590,11 +40614,7 @@ StaticPtrToProcUninit:
 		toTkn				/* $4  */
 		procedureTkn 		/* $5  */
 		DefinedID			/* $6  */
-		Semicolon			/* $7  */
-		VarOptions			/* $8  */
-		ProtoOptions		/* $9  */
-		OptionalExternal	/* $10 */
-		{					/* $11 */
+		{					/* $7  */
 			
 			char StaticName[ 256 ];
 			char *sn;
@@ -40606,11 +40626,18 @@ StaticPtrToProcUninit:
 			sn = hlastrdup2( StaticName );
 
 			CreatePtrToProc( $<idStr>1, $<s>6, sn, cStatic );
+			_here;
+		}
+		Semicolon			/* $8  */
+		VarOptions			/* $9  */
+		ProtoOptions		/* $10 */
+		OptionalExternal	/* $11 */
+		{
 
-			_if( $<returns>10 == NULL )
+			_if( $<returns>11 == NULL )
 
 				EmitTypedLabel( SymbolTable->StaticName, tDWord );
-				_if( !$<options.NoStorage>8 )
+				_if( !$<options.NoStorage>9 )
 
 					EmitDword();
 
@@ -40619,15 +40646,15 @@ StaticPtrToProcUninit:
 			_else
 			 
 				SymbolTable->IsExternal = 1;
-				_if( *$<returns>10 == '\0' )
+				_if( *$<returns>11 == '\0' )
 
 				 	free2( vss SymbolTable->StaticName );
 					SymbolTable->StaticName = hlastrdup2( SymbolTable->TrueName );
-					free2( vss $<returns>10 );
+					free2( vss $<returns>11 );
 
 				_else
 
-					SymbolTable->StaticName = $<returns>10;
+					SymbolTable->StaticName = $<returns>11;
 
 				_endif
 				EmitTypedExtern
@@ -41149,9 +41176,7 @@ StaticPtrToProcInit:
 		DefinedID			/* $6  */
 		assignTkn			/* $7  */
 		ConstOnlyExpr		/* $8  */
-		Semicolon			/* $9 */
-		VarOptions			/* $10 */
-		{					
+		{					/* $9  */					
 			
 			char StaticName[ 256 ];
 			char *sn;
@@ -41164,7 +41189,12 @@ StaticPtrToProcInit:
 
 			CreatePtrToProc( $<idStr>1, $<s>6, sn, cStatic );
 
-			_if( $<options.NoStorage>10 )
+			_here;
+		}
+		Semicolon			/* $10 */
+		VarOptions			/* $11 */
+		{
+			_if( $<options.NoStorage>11 )
 
 				yyerror( "'nostorage' option is illegal here" );
 
@@ -41181,7 +41211,6 @@ StaticPtrToProcInit:
 				EmitAdrs( $<v.u.strval>8 ); 
 
 			_endif
-			_here;
 		}
 	;
 
@@ -41357,7 +41386,8 @@ StaticEnum:
 		Rbrace			/* $8  */
 		Semicolon		/* $9  */
 		VarOptions		/* $10 */
-		{
+		{				/* $11 */
+		
 			// Fix up the generated enum type to include a pointer to
 			// the enum symbols and the count of enum symbols:
 			
@@ -41478,8 +41508,6 @@ StaticPtrToUser:
 		AnyID				/* $5  */
 		assignTkn			/* $6  */
 		ConstExpr			/* $7  */
-		Semicolon			/* $8  */
-		VarOptions			/* $9  */
 		{					/* $10 */
 
 			struct	SymNode			*BaseType;
@@ -41488,12 +41516,6 @@ StaticPtrToUser:
 
 			assert( $<idStr>1 != NULL );
 			assert( $<idStr>5 != NULL );
-
-			_if( $<options.NoStorage>9 )
-
-				yyerror( "'nostorage' option is illegal here" );
-
-			_endif
 
 			BaseType = lookup( $<idStr>5, 1 );
 			_if( BaseType != NULL )
@@ -41554,6 +41576,16 @@ StaticPtrToUser:
 			_endif
 			FreeValue( YYS &$<v>7 );
 		}
+		Semicolon			/* $9  */
+		VarOptions			/* $10 */
+		{
+			_if( $<options.NoStorage>10 )
+
+				yyerror( "'nostorage' option is illegal here" );
+
+			_endif
+
+		}
 	;
 
 
@@ -41571,9 +41603,7 @@ StaticPtrToExtUser:
 		AnyID				/* $5  */
 		assignTkn			/* $6  */
 		ConstExpr			/* $7  */
-		Semicolon			/* $8  */
-		VarOptions			/* $9  */
-		{
+		{					/* $8  */
 
 
 			struct	SymNode			*BaseType;
@@ -41582,12 +41612,6 @@ StaticPtrToExtUser:
 
 			assert( $<idStr>1 != NULL );
 			assert( $<idStr>5 != NULL );
-
-			_if( $<options.NoStorage>9 )
-
-				yyerror( "'nostorage' option is illegal here" );
-
-			_endif
 
 			BaseType = lookup( $<idStr>5, 1 );
 			_if( BaseType != NULL )
@@ -41659,6 +41683,16 @@ StaticPtrToExtUser:
 			_endif
 			FreeValue( YYS &$<v>7 );
 		}
+		Semicolon			/* $9  */
+		VarOptions			/* $10 */
+		{
+			_if( $<options.NoStorage>10 )
+
+				yyerror( "'nostorage' option is illegal here" );
+
+			_endif
+
+		}
 	;
 		
 		
@@ -41675,9 +41709,7 @@ StaticPtrToBuiltIn:
 		ReservedTypeIDs		/* $5  */
 		assignTkn			/* $6  */
 		ConstExpr			/* $7  */
-		Semicolon			/* $8  */
-		VarOptions			/* $9  */
-		{					/* $10 */
+		{					/* $8  */
 
 			struct	SymNode	*BaseType;
 			char			*sn;
@@ -41685,11 +41717,6 @@ StaticPtrToBuiltIn:
 
 			assert( $<idStr>1 != NULL );
 
-			_if( $<options.NoStorage>9 )
-
-				yyerror( "'nostorage' option is illegal here" );
-
-			_endif
 
 			BaseType = $<s>5;
 			_if( CantBeVar( BaseType->pType ))
@@ -41740,6 +41767,15 @@ StaticPtrToBuiltIn:
 			EmitAdrs( $<v.u.strval>7 );
 			FreeValue( YYS &$<v>7 );
 		}
+		Semicolon			/* $9  */
+		VarOptions			/* $10 */
+		{
+			_if( $<options.NoStorage>10 )
+
+				yyerror( "'nostorage' option is illegal here" );
+
+			_endif
+		}
 	;
 
 
@@ -41757,16 +41793,9 @@ StaticPtrToBuiltInExt:
 		ReservedTypeIDs		/* $5 */
 		assignTkn			/* $6 */
 		ConstExpr			/* $7 */
-		Semicolon			/* $8 */
-		VarOptions			/* $9 */
-		{					
+		{					/* $8 */					
 			
 			_here;
-			_if( $<options.NoStorage>9 )
-
-				yyerror( "'nostorage' option is illegal here" );
-
-			_endif
 
 
 			_if( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
@@ -41803,6 +41832,15 @@ StaticPtrToBuiltInExt:
 			_endif
 			FreeValue( YYS &$<v>7 );
 
+		}
+		Semicolon			/* $9  */
+		VarOptions			/* $10 */
+		{
+			_if( $<options.NoStorage>10 )
+
+				yyerror( "'nostorage' option is illegal here" );
+
+			_endif
 		}
 	;
 
@@ -41875,9 +41913,7 @@ StaticSingleTypeInit:
 		TypeID 				/* $3 */
 		assignTkn 			/* $4 */
 		ConstOnlyExpr 		/* $5 */
-		Semicolon			/* $6 */
-		VarOptions			/* $7 */
-		{					/* $8 */
+		{					/* $6 */
 
 			char StaticName[ 256 ];
 			char *sn;
@@ -41886,11 +41922,6 @@ StaticSingleTypeInit:
 			assert( $<s>3 != NULL );
 
 			_here;
-			_if( $<options.NoStorage>7 )
-
-				yyerror( "'nostorage' option is illegal here" );
-
-			_endif
 
 			_if( CantBeVar($<s>3->pType ))
 
@@ -42069,6 +42100,15 @@ StaticSingleTypeInit:
 			_endif
 			FreeValue( YYS &$<v>5 );
 		}
+		Semicolon			/* $7 */
+		VarOptions			/* $8 */
+		{
+			_if( $<options.NoStorage>8 )
+
+				yyerror( "'nostorage' option is illegal here" );
+
+			_endif
+		}
 	;
 	
 
@@ -42086,9 +42126,7 @@ StaticSingleTypeWasExt:
 		TypeID 				/* $3 */
 		assignTkn 			/* $4 */
 		ConstOnlyExpr 		/* $5 */
-		Semicolon			/* $6 */
-		VarOptions			/* $7 */
-		{					/* $8 */
+		{					/* $6 */
 
 			char StaticName[ 256 ];
 			char *sn;
@@ -42097,11 +42135,6 @@ StaticSingleTypeWasExt:
 			assert( $<s>3 != NULL );
 
 			_here;
-			_if( $<options.NoStorage>7 )
-
-				yyerror( "'nostorage' option is illegal here" );
-
-			_endif
 
 			_if( CantBeVar($<s>3->pType ))
 
@@ -42287,6 +42320,15 @@ StaticSingleTypeWasExt:
 			_endif
 			FreeValue( YYS &$<v>5 );
 		}
+		Semicolon			/* $7 */
+		VarOptions			/* $8 */
+		{
+			_if( $<options.NoStorage>8 )
+
+				yyerror( "'nostorage' option is illegal here" );
+
+			_endif
+		}
 	;
 
 
@@ -42307,9 +42349,8 @@ StaticArrayInit:
 		Rbrack  		/* $6  */
 		assignTkn 		/* $7  */
 		ConstOnlyExpr 	/* $8  */
-		Semicolon		/* $9  */
-		VarOptions		/* $10 */
-		{
+		{				/* $9 */
+		
 			int		*DimensionArray;
 			int		ArraySize;
 			char	StaticName[ 256 ];
@@ -42321,11 +42362,6 @@ StaticArrayInit:
 			assert( $<v.Dimensions>5 != NULL );
 
 			_here;
-			_if( $<options.NoStorage>10 )
-
-				yyerror( "'nostorage' option is illegal here" );
-
-			_endif
 
 			sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
 			sn = hlastrdup2( StaticName );
@@ -42472,6 +42508,15 @@ StaticArrayInit:
 
 			_endif
 		}
+		Semicolon		/* $10 */
+		VarOptions		/* $11 */
+		{
+			_if( $<options.NoStorage>11 )
+
+				yyerror( "'nostorage' option is illegal here" );
+
+			_endif
+		}
 	;
 
 
@@ -42495,9 +42540,8 @@ StaticArrayInit:
 		Rbrack  		/* $5 */
 		assignTkn 		/* $6 */
 		ConstOnlyExpr 	/* $7 */
-		Semicolon		/* $8 */
-		VarOptions		/* $9 */
-		{
+		{				/* $8 */
+		
 			int		*DimensionArray;
 			int		ArraySize;
 			char	StaticName[ 256 ];
@@ -42508,11 +42552,6 @@ StaticArrayInit:
 
 
 			_here;
-			_if( $<options.NoStorage>9 )
-
-				yyerror( "'nostorage' option is illegal here" );
-
-			_endif
 
 			sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
 			sn = hlastrdup2( StaticName );
@@ -42667,6 +42706,17 @@ StaticArrayInit:
 
 			_endif
 		}
+		Semicolon		/* $9  */
+		VarOptions		/* $10 */
+		{
+			
+			_if( $<options.NoStorage>9 )
+
+				yyerror( "'nostorage' option is illegal here" );
+
+			_endif
+			_here;
+		}
 	;
 
 
@@ -42687,9 +42737,7 @@ StaticArrayInitExt:
 			Rbrack  		/* $6  */
 			assignTkn 		/* $7  */
 			ConstOnlyExpr 	/* $8  */
-			Semicolon		/* $9  */
-			VarOptions		/* $10 */
-			{				/* $11 */
+			{				/* $9  */
 
 				int		*DimensionArray;
 				int		ArraySize;
@@ -42702,11 +42750,6 @@ StaticArrayInitExt:
 				assert( $<v.Dimensions>5 != NULL );
 
 				_here;
-				_if( $<options.NoStorage>10 )
-
-					yyerror( "'nostorage' option is illegal here" );
-
-				_endif
 				
 				/*
 				** Set DimensionArray so that it contains all the
@@ -42829,6 +42872,16 @@ StaticArrayInitExt:
 
 				_endif
 			}
+			Semicolon		/* $10 */
+			VarOptions		/* $11 */
+			{
+				_if( $<options.NoStorage>11 )
+
+					yyerror( "'nostorage' option is illegal here" );
+
+				_endif
+				_here;
+			}
 	;
 
 
@@ -42843,10 +42896,7 @@ StaticPtrToUserNoInit:
 		pointerTkn			/* $3 */
 		toTkn				/* $4 */
 		AnyID				/* $5 */
-		Semicolon			/* $6 */
-		VarOptions			/* $7 */
-		OptionalExternal	/* $8 */
-		{					/* $9 */
+		{					/* $6 */
 
 			struct	SymNode			*BaseType;
 			char	*sn;
@@ -42856,14 +42906,6 @@ StaticPtrToUserNoInit:
 			assert( $<idStr>5 != NULL );
 
 			_here;
-			_if( $<returns>8 != NULL && $<options.NoStorage>7 )
-
-				yyerror
-				(
-					"Can't specify both 'NOSTORAGE' and 'EXTERNAL' options"
-				);
-
-			_endif
 			BaseType = lookup( $<idStr>5, 1 );
 			_if( BaseType != NULL )
 
@@ -42896,12 +42938,26 @@ StaticPtrToUserNoInit:
 				NULL,				/* Fields		*/
 				0					/* FieldCnt		*/
 			);
+			$<s>$ = SymbolTable;
+			_here;
+		}
+		Semicolon			/* $7 */
+		VarOptions			/* $8 */
+		OptionalExternal	/* $9 */
+		{
 
+			_if( $<returns>9 != NULL && $<options.NoStorage>8 )
 
-			_if( $<returns>8 == NULL )
+				yyerror
+				(
+					"Can't specify both 'NOSTORAGE' and 'EXTERNAL' options"
+				);
+
+			_endif
+			_if( $<returns>9 == NULL )
 			 
-				EmitTypedLabel( sn, tDWord );
-				_if( !$<options.NoStorage>7 )
+				EmitTypedLabel( $<s>6->StaticName, tDWord );
+				_if( !$<options.NoStorage>8 )
 
 					EmitDword( );
 
@@ -42910,7 +42966,7 @@ StaticPtrToUserNoInit:
 			_else
 
 				SymbolTable->IsExternal = 1;
-				_if( *$<returns>8 == '\0' )
+				_if( *$<returns>9 == '\0' )
 
 					free2( vss SymbolTable->StaticName );
 					SymbolTable->StaticName = hlastrdup2( $<idStr>1 );
@@ -42918,7 +42974,7 @@ StaticPtrToUserNoInit:
 				_else
 
 					free2( vss SymbolTable->StaticName );
-					SymbolTable->StaticName = hlastrdup2( $<returns>8 );
+					SymbolTable->StaticName = hlastrdup2( $<returns>9 );
 
 				_endif
 				EmitTypedExtern
@@ -42929,14 +42985,15 @@ StaticPtrToUserNoInit:
 				);
 
 			_endif
-			free2( vss $<returns>8 );
+			free2( vss $<returns>9 );
 
 
-			_if( BaseType == NULL )
+			_if( SymbolTable->Base == NULL )
 
 				Add2PtrList( SymbolTable, $<idStr>5 );
 
 			_endif
+			_here;
 		}
 	;
 
@@ -43031,10 +43088,7 @@ StaticPtrBuiltInNoInit:
 		pointerTkn			/* $3 */
 		toTkn				/* $4 */
 		ReservedTypeIDs		/* $5 */
-		Semicolon			/* $6 */
-		VarOptions			/* $7 */
-		OptionalExternal	/* $8 */
-		{					/* $9 */
+		{					/* $6 */
 
 			struct	SymNode	*BaseType;
 			char			*sn;
@@ -43043,14 +43097,6 @@ StaticPtrBuiltInNoInit:
 			assert( $<idStr>1 != NULL );
 
 			_here;
-			_if( $<returns>8 != NULL && $<options.NoStorage>7 )
-
-				yyerror
-				(
-					"Can't specify both 'NOSTORAGE' and 'EXTERNAL' options"
-				);
-
-			_endif
 			BaseType = $<s>5;
 			_if( CantBeVar( BaseType->pType ))
 
@@ -43078,11 +43124,26 @@ StaticPtrBuiltInNoInit:
 				NULL,				/* Fields		*/
 				0					/* FieldCnt		*/
 			);
+			$<s>$ = SymbolTable;
 
-			_if( $<returns>8 == NULL )
+
+		}
+		Semicolon			/* $7 */
+		VarOptions			/* $8 */
+		OptionalExternal	/* $9 */
+		{
+			_if( $<returns>9 != NULL && $<options.NoStorage>8 )
+
+				yyerror
+				(
+					"Can't specify both 'NOSTORAGE' and 'EXTERNAL' options"
+				);
+
+			_endif
+			_if( $<returns>9 == NULL )
 			 
-				EmitTypedLabel( sn, tDWord );
-				_if( !$<options.NoStorage>7 )
+				EmitTypedLabel( $<s>6->StaticName, tDWord );
+				_if( !$<options.NoStorage>8 )
 
 					EmitDword( );
 
@@ -43091,7 +43152,7 @@ StaticPtrBuiltInNoInit:
 			_else
 
 				SymbolTable->IsExternal = 1;
-				_if( *$<returns>8 == '\0' )
+				_if( *$<returns>9 == '\0' )
 
 					free2( vss SymbolTable->StaticName );
 					SymbolTable->StaticName = hlastrdup2( $<idStr>1 );
@@ -43099,7 +43160,7 @@ StaticPtrBuiltInNoInit:
 				_else
 
 					free2( vss SymbolTable->StaticName );
-					SymbolTable->StaticName = hlastrdup2( $<returns>8 );
+					SymbolTable->StaticName = hlastrdup2( $<returns>9 );
 
 				_endif
 				EmitTypedExtern
@@ -43110,8 +43171,7 @@ StaticPtrBuiltInNoInit:
 				);
 
 			_endif
-			free2( vss $<returns>8 );
-
+			free2( vss $<returns>9 );
 
 		}
 	;
@@ -43132,14 +43192,10 @@ StaticSingleType:
  		UndefinedID			/* $1 */ 
 		Colon 				/* $2 */
 		TypeID 				/* $3 */
-		Semicolon			/* $4 */
-		VarOptions			/* $5 */
-		OptionalExternal	/* $6 */
-		{					/* $7 */
+		{					/* $4 */
 
-			char			StaticName[ 256 ];
+			char			StaticName[ 1024 ];
 			char 			*sn;
-			int				size;
 			/* struct	SymNode	*bt;*/
 
 
@@ -43147,17 +43203,8 @@ StaticSingleType:
 			assert( $<s>3 != NULL );
 
 			_here;
-			_if( $<returns>6 != NULL && $<options.NoStorage>5 )
-
-				yyerror
-				(
-					"Can't specify both 'NOSTORAGE' and 'EXTERNAL' options"
-				);
-
-			_endif
 
 			/*bt = GetBaseType( $<s>3 );*/
-			size = $<s>3->ObjectSize;
 
 			_if( CantBeVar( $<s>3->pType ))
 
@@ -43177,13 +43224,31 @@ StaticSingleType:
 					$<s>3->Dimensions,
 					$<s>3->NumElements, 
 					NULL,
-					size,
+					$<s>3->ObjectSize,
 					0,
 					sn,
 					$<s>3->Base,
 					$<s>3->Fields,
 					$<s>3->FieldCnt
 				);
+				$<idStr>$ = sn;
+				
+			_endif
+		}
+		Semicolon			/* $5 */
+		VarOptions			/* $6 */
+		OptionalExternal	/* $7 */
+		{
+			_if( $<returns>7 != NULL && $<options.NoStorage>6 )
+
+				yyerror
+				(
+					"Can't specify both 'NOSTORAGE' and 'EXTERNAL' options"
+				);
+
+			_endif
+			_if( !CantBeVar( $<s>3->pType ))
+			
 				_if( $<s>3->pType == tProcptr )
 				
 					// Copy parameter info if a proc ptr.
@@ -43196,10 +43261,10 @@ StaticSingleType:
 				// If this is an external declaration,
 				// output an externdef statement to the ASM file.
 
-				_if( $<returns>6 != NULL )
+				_if( $<returns>7 != NULL )
 				 
 					SymbolTable->IsExternal = 1;
-					_if( *$<returns>6 == '\0' )
+					_if( *$<returns>7 == '\0' )
 
 						free2( vss SymbolTable->StaticName );
 						SymbolTable->StaticName = hlastrdup2( $<idStr>1 );
@@ -43207,10 +43272,10 @@ StaticSingleType:
 					_else
 
 						free2( vss SymbolTable->StaticName );
-						SymbolTable->StaticName = hlastrdup2( $<returns>6 );
+						SymbolTable->StaticName = hlastrdup2( $<returns>7 );
 
 					_endif
-					EmitExtern( SymbolTable, size );
+					EmitExtern( SymbolTable, $<s>3->ObjectSize );
 
 
 				_else
@@ -43228,7 +43293,7 @@ StaticSingleType:
 							CopySymbols
 							( 
 								$<s>3->Fields,
-								StaticName
+								$<idStr>4
 							);
 						NullTerminate( SymbolTable->Fields, SymbolTable );
 
@@ -43243,11 +43308,11 @@ StaticSingleType:
 					_endif
 
 
-					_if( !$<options.NoStorage>5 )
+					_if( !$<options.NoStorage>6 )
 
 						_if( IsPrimitive( $<s>3->pType ) )
 						
-							ReserveTypedStorage( sn, $<s>3, 1 );
+							ReserveTypedStorage( $<idStr>4, $<s>3, 1 );
 
 						_elseif
 						( 
@@ -43255,11 +43320,11 @@ StaticSingleType:
 							||	$<s>3->pType == tProcptr
 						)
 						
-							ReserveTypedStorage( sn, &dword_ste, 1 );
+							ReserveTypedStorage( $<idStr>4, &dword_ste, 1 );
 						
 						_else
   
-							ReserveUntypedStorage( sn, size );
+							ReserveUntypedStorage( $<idStr>4, $<s>3->ObjectSize );
 
 						_endif
 
@@ -43271,12 +43336,12 @@ StaticSingleType:
 							||	$<s>3->pType == tProcptr
 						)
 						
-							EmitTypedLabel( sn, tDWord );
+							EmitTypedLabel( $<idStr>4, tDWord );
 							
 						
 						_elseif( IsPrimitive( $<s>3->pType ))
 
-							EmitTypedLabel( sn, $<s>3->pType );
+							EmitTypedLabel( $<idStr>4, $<s>3->pType );
 
 						_elseif
 						( 
@@ -43284,11 +43349,11 @@ StaticSingleType:
 							||	$<s>3->pType == tProcptr
 						)
 						
-							EmitTypedLabel( sn, tDWord );
+							EmitTypedLabel( $<idStr>4, tDWord );
 							
 						_else
 
-							EmitTypedLabel( sn, tByte );
+							EmitTypedLabel( $<idStr>4, tByte );
 
 						_endif
 
@@ -43297,7 +43362,7 @@ StaticSingleType:
 				_endif
 
 			_endif
-			free2( vss $<returns>6 );
+			free2( vss $<returns>7 );
 		}
 	;
 	
@@ -43398,16 +43463,12 @@ StaticArray:
 		'[' 				/* $4 */
 		DimList 			/* $5 */
 		Rbrack  			/* $6 */
-		Semicolon			/* $7 */
-		VarOptions			/* $8 */
-		OptionalExternal	/* $9 */
-		{					
+		{					/* $7 */					
 
 			int		*DimensionArray;
 			int		ArraySize;
-			char	StaticName[ 256 ];
 			char	*sn;
-			struct	SymNode *bt;
+			char	StaticName[ 1024 ];
 
 
 			assert( $<idStr>1 != NULL );
@@ -43416,16 +43477,7 @@ StaticArray:
 			assert( $<v.Dimensions>5 != NULL );
 
 			_here;
-			_if( $<returns>9 != NULL && $<options.NoStorage>8 )
 
-				yyerror
-				(
-					"Can't specify both 'NOSTORAGE' and 'EXTERNAL' options"
-				);
-
-			_endif
-
-			bt = GetBaseType( $<s>3 );
 			sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
 
 			/*
@@ -43433,6 +43485,8 @@ StaticArray:
 			** (e.g., no text variables).
 			*/
 
+			$<s>$ = NULL;
+			
 			_if( CantBeVar( $<s>3->pType ))
 			
 				yyerror( "Illegal static/storage variable type" );
@@ -43476,182 +43530,6 @@ StaticArray:
 						$<s>3->FieldCnt
 					);
 
-					/*
-					** If this is a class object, we need to duplicate
-					** all the fields to all private constants, etc.
-					*/
-
-					_if( $<s>3->pType == tClass )
-
-						SymbolTable->Fields = 
-							CopySymbols
-							( 
-								$<s>3->Fields,
-								$<s>3->StaticName
-							);
-						NullTerminate( SymbolTable->Fields, SymbolTable );
-
-						/*
-						** Check to see if this class object is external.
-						*/
-
-						_if( $<returns>9 != NULL )
-						 
-							SymbolTable->IsExternal = 1;
-							_if( *$<returns>9 == '\0' )
-
-								free2( vss SymbolTable->StaticName );
-								SymbolTable->StaticName = 
-									hlastrdup2( $<idStr>1 );
-
-							_else
-
-								free2( vss SymbolTable->StaticName );
-								SymbolTable->StaticName = 
-									hlastrdup2( $<returns>9 );
-
-							_endif
-							EmitExtern
-							( 
-								SymbolTable,
-								bt->ObjectSize 
-							);  
-
-
-						_else /* No External Clause */
-						
-							_if( $<options.NoStorage>8 )
-							
-								EmitTypedLabel
-								( 
-									StaticName, 
-									_ifx
-									(
-										IsPrimitive( $<s>3->pType ),
-										$<s>3->pType,
-										tByte
-									) 
-								);
-								
-							_else
-
-								_if( IsPrimitive( $<s>3->pType ) )
-								
-									ReserveTypedStorage
-									(
-										StaticName,
-										$<s>3,
-										$<v.NumElements>5
-									);
-										
-								_else
-								
-									ReserveUntypedStorage
-									(
-										StaticName, 
-										$<s>3->ObjectSize*$<v.NumElements>5 
-									);
-
-								_endif
-
-							_endif
-							
-						_endif
-							
-					_else
-					
-						_if(  $<s>3->pType == tThunk )
-
-							/*
-							** Need some dummy local vars for a thunk.
-							*/
-
-							SymbolTable->u.proc.parms = &true_ste;
-
-						_endif
-
-						/*
-						** Check to see if this array object
-						** is external.
-						*/
-
-						_if( $<returns>9 != NULL )
-						 
-							SymbolTable->IsExternal = 1;
-							_if( *$<returns>9 != '\0' )
-
-								free2( vss SymbolTable->StaticName );
-								SymbolTable->StaticName = 
-									hlastrdup2( $<returns>9 );
-
-							_else
-
-								free2( vss SymbolTable->StaticName );
-								SymbolTable->StaticName =
-									hlastrdup2( SymbolTable->TrueName );
-
-							_endif
-							EmitExtern
-							( 
-								SymbolTable,
-								bt->ObjectSize 
-							);  
-
-
-						_else /* No External Clause */
-
-							_if( $<options.NoStorage>8 )
-									
-								EmitTypedLabel
-								( 
-									StaticName, 
-									_ifx
-									( 
-										IsPrimitive( $<s>3->pType ), 
-										$<s>3->pType, 
-										tByte
-									) 
-								);
-								
-							_else
-
-								_if( IsPrimitive( $<s>3->pType ) )
-								
-									ReserveTypedStorage
-									(
-										StaticName,
-										$<s>3, 
-										$<v.NumElements>5 
-									);
-								
-								_elseif
-								( 
-										$<s>3->pType == tPointer 	
-									||	$<s>3->pType == tProcptr
-								) 	
-								
-									ReserveTypedStorage
-									(
-										StaticName,
-										&dword_ste, 
-										$<v.NumElements>5 
-									);
-								
-								_else
-								
-									ReserveUntypedStorage
-									(
-										StaticName,
-										$<v.NumElements>5 * $<s>3->ObjectSize
-									);
-									
-								_endif
-
-							_endif
-							
-						_endif  
-
-					_endif
 
 
 
@@ -43697,7 +43575,6 @@ StaticArray:
 					*/
 
 					sn = hlastrdup2( StaticName );
-					BaseType = GetBaseType( $<s>3 );
 					InsertSym
 					( 
 						$<idStr>1, 
@@ -43716,6 +43593,227 @@ StaticArray:
 						$<s>3->FieldCnt
 					);
 
+				_endif
+				$<s>$ = SymbolTable;
+
+			_endif
+		}
+		Semicolon			/* $8  */
+		VarOptions			/* $9  */
+		OptionalExternal	/* $10 */
+		{
+		
+			struct	SymNode *bt;
+
+			_if( $<returns>10 != NULL && $<options.NoStorage>9 )
+
+				yyerror
+				(
+					"Can't specify both 'NOSTORAGE' and 'EXTERNAL' options"
+				);
+
+			_endif
+			_if( !CantBeVar( $<s>3->pType ))
+			
+				bt = GetBaseType( $<s>3 );
+			
+				/*
+				** Check to see if TypeID is an array type
+				** (i.e., we're creating a multi-dimensional array).
+				*/
+
+				_if( $<s>3->pType != tArray )
+
+					/*
+					** If this is a class object, we need to duplicate
+					** all the fields to all private constants, etc.
+					*/
+
+					_if( $<s>3->pType == tClass )
+
+						SymbolTable->Fields = 
+							CopySymbols
+							( 
+								$<s>3->Fields,
+								$<s>3->StaticName
+							);
+						NullTerminate( SymbolTable->Fields, SymbolTable );
+
+						/*
+						** Check to see if this class object is external.
+						*/
+
+						_if( $<returns>10 != NULL )
+						 
+							SymbolTable->IsExternal = 1;
+							_if( *$<returns>10 == '\0' )
+
+								free2( vss SymbolTable->StaticName );
+								SymbolTable->StaticName = 
+									hlastrdup2( $<idStr>1 );
+
+							_else
+
+								free2( vss SymbolTable->StaticName );
+								SymbolTable->StaticName = 
+									hlastrdup2( $<returns>10 );
+
+							_endif
+							EmitExtern
+							( 
+								SymbolTable,
+								bt->ObjectSize 
+							);  
+
+
+						_else /* No External Clause */
+						
+							_if( $<options.NoStorage>9 )
+							
+								EmitTypedLabel
+								( 
+									$<s>7->StaticName, 
+									_ifx
+									(
+										IsPrimitive( $<s>3->pType ),
+										$<s>3->pType,
+										tByte
+									) 
+								);
+								
+							_else
+
+								_if( IsPrimitive( $<s>3->pType ) )
+								
+									ReserveTypedStorage
+									(
+										$<s>7->StaticName,
+										$<s>3,
+										$<v.NumElements>5
+									);
+										
+								_else
+								
+									ReserveUntypedStorage
+									(
+										$<s>7->StaticName, 
+										$<s>3->ObjectSize*$<v.NumElements>5 
+									);
+
+								_endif
+
+							_endif
+							
+						_endif
+							
+					_else
+					
+						_if(  $<s>3->pType == tThunk )
+
+							/*
+							** Need some dummy local vars for a thunk.
+							*/
+
+							SymbolTable->u.proc.parms = &true_ste;
+
+						_endif
+
+						/*
+						** Check to see if this array object
+						** is external.
+						*/
+
+						_if( $<returns>10 != NULL )
+						 
+							SymbolTable->IsExternal = 1;
+							_if( *$<returns>10 != '\0' )
+
+								free2( vss SymbolTable->StaticName );
+								SymbolTable->StaticName = 
+									hlastrdup2( $<returns>10 );
+
+							_else
+
+								free2( vss SymbolTable->StaticName );
+								SymbolTable->StaticName =
+									hlastrdup2( SymbolTable->TrueName );
+
+							_endif
+							EmitExtern
+							( 
+								SymbolTable,
+								bt->ObjectSize 
+							);  
+
+
+						_else /* No External Clause */
+
+							_if( $<options.NoStorage>9 )
+									
+								EmitTypedLabel
+								( 
+									$<s>7->StaticName, 
+									_ifx
+									( 
+										IsPrimitive( $<s>3->pType ), 
+										$<s>3->pType, 
+										tByte
+									) 
+								);
+								
+							_else
+
+								_if( IsPrimitive( $<s>3->pType ) )
+								
+									ReserveTypedStorage
+									(
+										$<s>7->StaticName,
+										$<s>3, 
+										$<v.NumElements>5 
+									);
+								
+								_elseif
+								( 
+										$<s>3->pType == tPointer 	
+									||	$<s>3->pType == tProcptr
+								) 	
+								
+									ReserveTypedStorage
+									(
+										$<s>7->StaticName,
+										&dword_ste, 
+										$<v.NumElements>5 
+									);
+								
+								_else
+								
+									ReserveUntypedStorage
+									(
+										$<s>7->StaticName,
+										$<v.NumElements>5 * $<s>3->ObjectSize
+									);
+									
+								_endif
+
+							_endif
+							
+						_endif  
+
+					_endif
+
+
+
+				/*
+				** Okay, down here TypeID *is* an array type,
+				** so we're creating a multi-dimensional array.
+				*/
+
+				_else
+
+
+					assert( $<s>3->Dimensions != NULL );
+
+
 					/*
 					** If this is a class object, we need to duplicate
 					** all the fields to all private constants, etc.
@@ -43729,8 +43827,8 @@ StaticArray:
 						SymbolTable->Fields = 
 							CopySymbols
 							( 
-								BaseType->Fields,
-								BaseType->StaticName
+								bt->Fields,
+								bt->StaticName
 							);
 						NullTerminate( SymbolTable->Fields, SymbolTable );
 
@@ -43739,10 +43837,10 @@ StaticArray:
 						** declaration.
 						*/
 
-						_if( $<returns>9 != NULL )
+						_if( $<returns>10 != NULL )
 						 
 							SymbolTable->IsExternal = 1;
-							_if( *$<returns>9 == '\0' )
+							_if( *$<returns>10 == '\0' )
 
 								free2( vss SymbolTable->StaticName );
 								SymbolTable->StaticName = 
@@ -43752,7 +43850,7 @@ StaticArray:
 
 								free2( vss SymbolTable->StaticName );
 								SymbolTable->StaticName = 
-									hlastrdup2( $<returns>9 );
+									hlastrdup2( $<returns>10 );
 
 							_endif
 
@@ -43769,7 +43867,7 @@ StaticArray:
 							ThisObjSize = $<s>3->ObjectSize;
 							EmitTypedLabel
 							( 
-								StaticName, 
+								$<s>7->StaticName, 
 								_ifx
 								( 
 									IsPrimitive( $<s>3->pType ), 
@@ -43777,7 +43875,7 @@ StaticArray:
 									tByte
 								) 
 							);
-							_if( !$<options.NoStorage>8 )
+							_if( !$<options.NoStorage>9 )
 
 								ReserveStorage
 								( 
@@ -43806,10 +43904,10 @@ StaticArray:
 						** First, see if this is an external declaration.
 						*/
 
-						_if( $<returns>9 != NULL )
+						_if( $<returns>10 != NULL )
 						 
 							SymbolTable->IsExternal = 1;
-							_if( *$<returns>9 == '\0' )
+							_if( *$<returns>10 == '\0' )
 
 								free2( vss SymbolTable->StaticName );
 								SymbolTable->StaticName = 
@@ -43819,7 +43917,7 @@ StaticArray:
 
 								free2( vss SymbolTable->StaticName );
 								SymbolTable->StaticName = 
-									hlastrdup2( $<returns>9 );
+									hlastrdup2( $<returns>10 );
 
 							_endif
 							EmitExtern( SymbolTable, bt->ObjectSize );
@@ -43829,7 +43927,7 @@ StaticArray:
 
 							EmitTypedLabel
 							( 
-								StaticName, 
+								$<s>7->StaticName, 
 								_ifx
 								( 
 									IsPrimitive( $<s>3->pType ), 
@@ -43837,11 +43935,11 @@ StaticArray:
 									tByte
 								) 
 							);
-							_if( !$<options.NoStorage>8 )
+							_if( !$<options.NoStorage>9 )
 
 								ReserveStorage
 								( 
-									ArraySize 
+									$<s>7->ObjectSize 
 								);
 
 							_endif
@@ -43854,7 +43952,7 @@ StaticArray:
 				_endif
 
 			_endif
-			free2( vss $<returns>9 );
+			free2( vss $<returns>10 );
 		}
 	;
 
@@ -45261,6 +45359,25 @@ ReadOnlyDef:
 	;
 
 
+EnterReadOnlyDef:
+		{
+			
+			char StaticName[ 256 ];
+			char *sn;
+
+			_here;
+			assert( $<idStr>-6 != NULL );
+
+			sprintf( StaticName, "%s" sympost "%d", $<idStr>-6, LblCntr++ );
+			sn = hlastrdup2( StaticName );
+
+			CreatePtrToProc( $<idStr>-6, $<s>-1, sn, cStatic );
+			 
+			_here;
+		}
+	;
+	
+
 ReadOnlyDef:
 		UndefinedID			/* $1  */ 
 		Colon 				/* $2  */
@@ -45269,39 +45386,28 @@ ReadOnlyDef:
 		procedureTkn 		/* $5  */
 		DefinedID			/* $6  */
 		Semicolon			/* $7  */
-		VarOptions			/* $8  */
-		ProtoOptions		/* $9  */
-		RequiredExternal	/* $10 */
-		{					/* $11 */
-			
-			char StaticName[ 256 ];
-			char *sn;
-
-			_here;
-			assert( $<idStr>1 != NULL );
-			assert( $<returns>10 != NULL );
-
-			_if( $<options.NoStorage>8 )
+		EnterReadOnlyDef	/* $8  */
+		VarOptions			/* $9  */
+		ProtoOptions		/* $10 */
+		RequiredExternal	/* $11 */
+		{
+			assert( $<returns>11 != NULL );
+			_if( $<options.NoStorage>9 )
 
 				yyerror( "'@nostorage' option is illegal here" );
 
 			_endif
 
-			sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
-			sn = hlastrdup2( StaticName );
-
-			CreatePtrToProc( $<idStr>1, $<s>6, sn, cStatic );
-			 
 			SymbolTable->IsExternal = 1;
-			_if( *$<returns>10 == '\0' )
+			_if( *$<returns>11 == '\0' )
 
 			 	free2( vss SymbolTable->StaticName );
 				SymbolTable->StaticName = hlastrdup2( SymbolTable->TrueName );
-				free2( vss $<returns>10 );
+				free2( vss $<returns>11 );
 
 			_else
 
-				SymbolTable->StaticName = $<returns>10;
+				SymbolTable->StaticName = $<returns>11;
 
 			_endif
 			EmitTypedExtern( SymbolTable, SymbolTable->StaticName, tDWord );
@@ -45320,21 +45426,10 @@ ReadOnlyDef:
 		procedureTkn 		/* $5  */
 		DefinedID			/* $6  */
 		Semicolon			/* $7  */
-		VarOptions			/* $8  */
+		EnterReadOnlyDef	/* $8  */
+		VarOptions			/* $9  */
 		{
-			
-			char StaticName[ 256 ];
-			char *sn;
-
-			_here;
-			assert( $<idStr>1 != NULL );
-
-			sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
-			sn = hlastrdup2( StaticName );
-
-			CreatePtrToProc( $<idStr>1, $<s>6, sn, cStatic );
-			 
-			_if( $<options.NoStorage>8 )
+			_if( $<options.NoStorage>9 )
 
 				EmitTypedLabel( SymbolTable->StaticName, tDWord );
 
@@ -45501,36 +45596,18 @@ ReadOnlyDef: StaticPtrToUser;
  ** Handle a pointer declaration with the NOSTORAGE option
  */
 
-
-ReadOnlyDef:
-		UndefinedID			/* $1 */
-		Colon				/* $2 */
-		pointerTkn			/* $3 */
-		toTkn				/* $4 */
-		AnyID				/* $5 */
-		Semicolon			/* $6 */
-		VarOptions			/* $7 */
-		{					/* $8 */
+EnterROPDef:
+		{
 
 			struct	SymNode			*BaseType;
 			char	*sn;
 			char	StaticName[ 256 ];
 
-			assert( $<idStr>1 != NULL );
-			assert( $<idStr>5 != NULL );
+			assert( $<idStr>-4 != NULL );
+			assert( $<idStr>0 != NULL );
 
 			_here;
-			_if( !$<options.NoStorage>7 )
-
-				yyerror
-				( 
-					"Readonly object requires an initializer\n"
-					"or the 'NOSTORAGE' option."
-				);
-
-			_endif
-
-			BaseType = lookup( $<idStr>5, 1 );
+			BaseType = lookup( $<idStr>0, 1 );
 			_if( BaseType != NULL )
 
 				BaseType = GetBaseType( BaseType );
@@ -45543,11 +45620,11 @@ ReadOnlyDef:
 
 			_endif
 
-			sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
+			sprintf( StaticName, "%s" sympost "%d", $<idStr>-4, LblCntr++ );
 			sn = hlastrdup2( StaticName );
 			InsertSym
 			( 
-				$<idStr>1,			/* Name			*/
+				$<idStr>-4,			/* Name			*/
 				&pointer_ste,		/* Type			*/
 				tPointer, 			/* pType		*/
 				cStatic,			/* SymClass		*/ 
@@ -45562,16 +45639,41 @@ ReadOnlyDef:
 				NULL,				/* Fields		*/
 				0					/* FieldCnt		*/
 			);
+			$<s>$ = SymbolTable;
 
+		}
+	;
+	
 
-			EmitTypedLabel( sn, tDWord );
+ReadOnlyDef:
+		UndefinedID			/* $1 */
+		Colon				/* $2 */
+		pointerTkn			/* $3 */
+		toTkn				/* $4 */
+		AnyID				/* $5 */
+		EnterROPDef			/* $6 */
+		Semicolon			/* $7 */
+		VarOptions			/* $8 */
+		{
+			_here;
+			_if( !$<options.NoStorage>8 )
 
-
-			_if( BaseType == NULL )
-
-				Add2PtrList( SymbolTable, $<idStr>5 );
+				yyerror
+				( 
+					"Readonly object requires an initializer\n"
+					"or the 'NOSTORAGE' option."
+				);
 
 			_endif
+			EmitTypedLabel( $<s>6->StaticName, tDWord );
+
+
+			_if( $<s>6->Base == NULL )
+
+				Add2PtrList( $<s>6, $<idStr>5 );
+
+			_endif
+			_here;
 		}
 	;
 
@@ -45587,20 +45689,12 @@ ReadOnlyDef:
 		pointerTkn			/* $3  */
 		toTkn				/* $4  */
 		AnyID				/* $5  */
-		Semicolon			/* $6  */
-		VarOptions			/* $7  */
-		RequiredExternal	/* $8  */
-		{					/* $9  */
-
-			struct	SymNode			*BaseType;
-			char	*sn;
-			char	StaticName[ 256 ];
-
-			assert( $<idStr>1 != NULL );
-			assert( $<idStr>5 != NULL );
-
-			_here;
-			_if( $<options.NoStorage>7 )
+		EnterROPDef			/* $6  */
+		Semicolon			/* $7  */
+		VarOptions			/* $8  */
+		RequiredExternal	/* $9  */
+		{
+			_if( $<options.NoStorage>8 )
 
 				yyerror
 				( 
@@ -45608,72 +45702,37 @@ ReadOnlyDef:
 				);
 
 			_endif
-
-			BaseType = lookup( $<idStr>5, 1 );
-			_if( BaseType != NULL )
-
-				BaseType = GetBaseType( BaseType );
-				_if( CantBeVar( BaseType->pType ))
-
-					yyerror( "Readonly variables cannot be this type" );
-					BaseType = &uns32_ste;
-
-				_endif
-
-			_endif
-
-			sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
-			sn = hlastrdup2( StaticName );
-			InsertSym
-			( 
-				$<idStr>1,			/* Name			*/
-				&pointer_ste,		/* Type			*/
-				tPointer, 			/* pType		*/
-				cStatic,			/* SymClass		*/ 
-				0,					/* Arity		*/
-				NULL,				/* Dimensions	*/
-				0, 					/* NumElements	*/
-				NULL,				/* Value		*/
-				4,					/* ObjectSize	*/
-				0,					/* CurOffset	*/
-				sn,					/* StaticName	*/
-				BaseType,			/* BaseType		*/
-				NULL,				/* Fields		*/
-				0					/* FieldCnt		*/
-			);
-
-
-			_if( $<returns>8 == NULL )
+			_if( $<returns>9 == NULL )
 			 
-				EmitTypedLabel( sn, tDWord );
+				EmitTypedLabel( $<s>6->StaticName, tDWord );
 				EmitDwordConst( 0, "" );
 
 			_else
 
-				SymbolTable->IsExternal = 1;
-				_if( *$<returns>8 == '\0' )
+				$<s>6->IsExternal = 1;
+				_if( *$<returns>9 == '\0' )
 
-					free2( vss SymbolTable->StaticName );
-					SymbolTable->StaticName = hlastrdup2( $<idStr>1 );
+					free2( vss $<s>6->StaticName );
+					$<s>6->StaticName = hlastrdup2( $<idStr>1 );
 
 				_else
 
-					free2( vss SymbolTable->StaticName );
-					SymbolTable->StaticName = hlastrdup2( $<returns>8 );
+					free2( vss $<s>6->StaticName );
+					$<s>6->StaticName = hlastrdup2( $<returns>9 );
 
 				_endif
 				EmitTypedExtern
 				( 
-					SymbolTable, 
+					$<s>6, 
 					SymbolTable->StaticName, 
 					tDWord 
 				);
 
 			_endif
-			free2( vss $<returns>8 );
+			free2( vss $<returns>9 );
 
 
-			_if( BaseType == NULL )
+			_if( $<s>6 == NULL )
 			
 				Add2PtrList( SymbolTable, $<idStr>5 );
 
@@ -45790,35 +45849,17 @@ ReadOnlyDef: StaticPtrToBuiltIn;
  ** Handle a pointer to a built-in types with the NOSTORAGE option.
  */
 
+EnterRODef2:
+		{
 
-ReadOnlyDef:
-		UndefinedID			/* $1 */
-		Colon				/* $2 */
-		pointerTkn			/* $3 */
-		toTkn				/* $4 */
-		ReservedTypeIDs		/* $5 */
-		Semicolon			/* $6 */
-		VarOptions			/* $7 */
-		{					/* $8 */
-
-			struct	SymNode	*BaseType;
+			struct	SymNode *BaseType;
 			char			*sn;
 			char			StaticName[ 256 ];
 
-			assert( $<idStr>1 != NULL );
+			assert( $<idStr>-4 != NULL );
 
 			_here;
-			_if( !$<options.NoStorage>7 )
-
-				yyerror
-				( 
-					"Readonly object requires an initializer\n"
-					"or the 'NOSTORAGE' option."
-				);
-
-			_endif
-
-			BaseType = $<s>5;
+			BaseType = $<s>0;
 			_if( CantBeVar( BaseType->pType ))
 
 				yyerror( "Readonly variables cannot be this type" );
@@ -45826,11 +45867,11 @@ ReadOnlyDef:
 
 			_endif
 
-			sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
+			sprintf( StaticName, "%s" sympost "%d", $<idStr>-4, LblCntr++ );
 			sn = hlastrdup2( StaticName );
 			InsertSym
 			( 
-				$<idStr>1,			/* Name			*/
+				$<idStr>-4,			/* Name			*/
 				&pointer_ste,		/* Type			*/
 				tPointer, 			/* pType		*/
 				cStatic,			/* SymClass		*/ 
@@ -45841,7 +45882,7 @@ ReadOnlyDef:
 				4,					/* ObjectSize	*/
 				0,					/* CurOffset	*/
 				sn,					/* StaticName	*/
-				BaseType,			/* BaseType		*/
+				BaseType,				/* BaseType		*/
 				NULL,				/* Fields		*/
 				0					/* FieldCnt		*/
 			);
@@ -45849,6 +45890,30 @@ ReadOnlyDef:
 			 
 			EmitTypedLabel( sn, tDWord );
 
+		}
+	;
+
+
+ReadOnlyDef:
+		UndefinedID			/* $1 */
+		Colon				/* $2 */
+		pointerTkn			/* $3 */
+		toTkn				/* $4 */
+		ReservedTypeIDs		/* $5 */
+		EnterRODef2			/* $6 */
+		Semicolon			/* $7 */
+		VarOptions			/* $8 */
+		{
+			_here;
+			_if( !$<options.NoStorage>8 )
+
+				yyerror
+				( 
+					"Readonly object requires an initializer\n"
+					"or the 'NOSTORAGE' option."
+				);
+
+			_endif
 		}
 	;
 
@@ -45867,61 +45932,27 @@ ReadOnlyDef:
 		pointerTkn			/* $3 */
 		toTkn				/* $4 */
 		ReservedTypeIDs		/* $5 */
-		Semicolon			/* $6 */
-		VarOptions			/* $7 */
-		RequiredExternal	/* $8 */
-		{					/* $9 */
-
-			struct	SymNode	*BaseType;
-			char			*sn;
-			char			StaticName[ 256 ];
-
-			assert( $<idStr>1 != NULL );
-
+		EnterRODef2			/* $6 */
+		Semicolon			/* $7 */
+		VarOptions			/* $8 */
+		RequiredExternal	/* $9 */
+		{
 			_here;
-			_if( $<options.NoStorage>7 )
+			_if( $<options.NoStorage>8 )
 
 				yyerror( "'nostorage' option is illegal here" );
 
 			_endif
 
-			BaseType = $<s>5;
-			_if( CantBeVar( BaseType->pType ))
-
-				yyerror( "Readonly variables cannot be this type" );
-				BaseType = &uns32_ste;
-
-			_endif
-
-			sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
-			sn = hlastrdup2( StaticName );
-			InsertSym
-			( 
-				$<idStr>1,			/* Name			*/
-				&pointer_ste,		/* Type			*/
-				tPointer, 			/* pType		*/
-				cStatic,			/* SymClass		*/ 
-				0,					/* Arity		*/
-				NULL,				/* Dimensions	*/
-				0, 					/* NumElements	*/
-				NULL,				/* Value		*/
-				4,					/* ObjectSize	*/
-				0,					/* CurOffset	*/
-				sn,					/* StaticName	*/
-				BaseType,			/* BaseType		*/
-				NULL,				/* Fields		*/
-				0					/* FieldCnt		*/
-			);
-
-			_if( $<returns>8 == NULL )
+			_if( $<returns>9 == NULL )
 			 
-				EmitTypedLabel( sn, tDWord );
+				EmitTypedLabel( SymbolTable->StaticName, tDWord );
 				EmitDwordConst( 0, "" );
 
 			_else
 
 				SymbolTable->IsExternal = 1;
-				_if( *$<returns>8 == '\0' )
+				_if( *$<returns>9 == '\0' )
 
 					free2( vss SymbolTable->StaticName );
 					SymbolTable->StaticName = hlastrdup2( $<idStr>1 );
@@ -45929,7 +45960,7 @@ ReadOnlyDef:
 				_else
 
 					free2( vss SymbolTable->StaticName );
-					SymbolTable->StaticName = hlastrdup2( $<returns>8 );
+					SymbolTable->StaticName = hlastrdup2( $<returns>9 );
 
 				_endif
 				EmitTypedExtern
@@ -45940,9 +45971,8 @@ ReadOnlyDef:
 				);
 
 			_endif
-			free2( vss $<returns>8 );
-
-
+			free2( vss $<returns>9 );
+			_here;
 		}
 	;
 
@@ -45978,72 +46008,54 @@ ReadOnlyDef: StaticSingleTypeInit;
  ** Single type id declarations with nostorage option.
  */
 
-
-ReadOnlyDef:
-		UndefinedID			/* $1 */ 
-		Colon 				/* $2 */
-		TypeID 				/* $3 */
-		Semicolon			/* $4 */
-		VarOptions			/* $5 */
-		{					/* $6 */
+EnterRODef3:
+		{
 
 			char			StaticName[ 256 ];
 			char 			*sn;
 			int				size;
-			/* struct	SymNode	*bt;*/
 
 
-			assert( $<idStr>1 != NULL );
-			assert( $<s>3 != NULL );
+			assert( $<idStr>-2 != NULL );
+			assert( $<s>0 != NULL );
 
 			_here;
-			_if( !$<options.NoStorage>5 )
 
-				yyerror
-				( 
-					"Readonly object requires an initializer\n"
-					"or the 'NOSTORAGE' option."
-				);
+			size = $<s>0->ObjectSize;
 
-			_endif
-
-
-			/*bt = GetBaseType( $<s>3 );*/
-			size = $<s>3->ObjectSize;
-
-			_if( CantBeVar( $<s>3->pType ))
+			_if( CantBeVar( $<s>0->pType ))
 
 				yyerror( "Readonly variables cannot be this type" );
 
 			_else
 			
-				sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
+				sprintf( StaticName, "%s" sympost "%d", $<idStr>-2, LblCntr++ );
 				sn = hlastrdup2( StaticName );
 				InsertSym
 				( 
-					$<idStr>1, 
-					$<s>3, 			/*GetBaseType( $<s>3 ),*/
-					$<s>3->pType, 
+					$<idStr>-2, 
+					$<s>0, 			/*GetBaseType( $<s>3 ),*/
+					$<s>0->pType, 
 					cStatic, 
-					$<s>3->Arity,
-					$<s>3->Dimensions,
-					$<s>3->NumElements, 
+					$<s>0->Arity,
+					$<s>0->Dimensions,
+					$<s>0->NumElements, 
 					NULL,
 					size,
 					0,
 					sn,
-					$<s>3->Base,
-					$<s>3->Fields,
-					$<s>3->FieldCnt
+					$<s>0->Base,
+					$<s>0->Fields,
+					$<s>0->FieldCnt
 				);
-				_if( $<s>3->pType == tProcptr )
+				_if( $<s>0->pType == tProcptr )
 				
 					// Copy parameter info if a proc ptr.
 					
 					memcpy
 					( 
 						&SymbolTable->u, 
-						&$<s>3->u, 
+						&$<s>0->u, 
 						sizeof( union ValuesSize )
 					);
 					
@@ -46057,17 +46069,17 @@ ReadOnlyDef:
 				*/
 
 				
-				_if( $<s>3->pType == tClass )
+				_if( $<s>0->pType == tClass )
 
 					SymbolTable->Fields = 
 						CopySymbols
 						( 
-							$<s>3->Fields,
+							$<s>0->Fields,
 							StaticName
 						);
 					NullTerminate( SymbolTable->Fields, SymbolTable );
 
-				_elseif(  $<s>3->pType == tThunk )
+				_elseif(  $<s>0->pType == tThunk )
 
 					/*
 					** Need some dummy local vars for a thunk.
@@ -46077,6 +46089,30 @@ ReadOnlyDef:
 
 				_endif
 
+			_endif
+		}
+	;
+	
+	
+ReadOnlyDef:
+		UndefinedID			/* $1 */ 
+		Colon 				/* $2 */
+		TypeID 				/* $3 */
+		EnterRODef3			/* $4 */
+		Semicolon			/* $5 */
+		VarOptions			/* $6 */
+		{
+			_here;
+			_if( !$<options.NoStorage>6 )
+
+				yyerror
+				( 
+					"Readonly object requires an initializer\n"
+					"or the 'NOSTORAGE' option."
+				);
+
+			_endif
+			_if( !CantBeVar( $<s>3->pType ))
 
 				_if
 				( 
@@ -46084,15 +46120,14 @@ ReadOnlyDef:
 					||	$<s>3->pType == tProcptr
 				)
 				
-					EmitTypedLabel( sn, tDWord );
+					EmitTypedLabel( SymbolTable->StaticName, tDWord );
 					
 				
 				_else
 
-					EmitTypedLabel( sn, tByte );
+					EmitTypedLabel( SymbolTable->StaticName, tByte );
 
 				_endif
-
 
 			_endif
 		}
@@ -46107,114 +46142,42 @@ ReadOnlyDef:
 		UndefinedID			/* $1  */ 
 		Colon 				/* $2  */
 		TypeID		 		/* $3  */
-		Semicolon			/* $4  */
-		VarOptions			/* $5  */
-		RequiredExternal	/* $6  */
-		{					/* $7  */
-
-			char			StaticName[ 256 ];
-			char 			*sn;
-			int				size;
-			struct SymNode	*bt;
-
-
-			assert( $<idStr>1 != NULL );
-			assert( $<s>3 != NULL );
-
-			_here;
-			_if( $<options.NoStorage>5 )
+		EnterRODef3			/* $4  */
+		Semicolon			/* $5  */
+		VarOptions			/* $6  */
+		RequiredExternal	/* $7  */
+		{
+			struct	SymNode	*bt;
+			
+			_if( $<options.NoStorage>6 )
 
 				yyerror( "'nostorage' option is illegal here" );
 
 			_endif
-
-			size = $<s>3->ObjectSize;
-			bt = GetBaseType( $<s>3 );
-
+			
 			_if( CantBeVar( $<s>3->pType ))
 
-				yyerror( "Readonly variables cannot be this type" );
-				free2( vss $<returns>6 );
-
+				free2( vss $<returns>7 );
+				
 			_else
 			
-				sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
-				sn = hlastrdup2( StaticName );
-				InsertSym
-				( 
-					$<idStr>1, 
-					$<s>3, 			/*GetBaseType( $<s>3 ),*/
-					$<s>3->pType, 
-					cStatic, 
-					$<s>3->Arity,
-					$<s>3->Dimensions,
-					$<s>3->NumElements, 
-					NULL,
-					size,
-					0,
-					sn,
-					$<s>3->Base,
-					$<s>3->Fields,
-					$<s>3->FieldCnt
-				);
-				_if( $<s>3->pType == tProcptr )
-				
-					// Copy parameter info if a proc ptr.
-					
-					memcpy
-					( 
-						&SymbolTable->u, 
-						&$<s>3->u, 
-						sizeof( union ValuesSize )
-					);
-					
-				_endif
-
-
-
-				/*
-				** If this is a class object, we need to duplicate
-				** all the fields to all private constants, etc.
-				*/
-
-				
-				_if( $<s>3->pType == tClass )
-
-
-					SymbolTable->Fields = 
-						CopySymbols
-						( 
-							$<s>3->Fields,
-							StaticName
-						);
-					NullTerminate( SymbolTable->Fields, SymbolTable );
-
-				_elseif(  $<s>3->pType == tThunk )
-
-					/*
-					** Need some dummy local vars for a thunk.
-					*/
-
-					SymbolTable->u.proc.parms = &true_ste;
-
-				_endif
-
-				 
 				SymbolTable->IsExternal = 1;
-				_if( *$<returns>6 == '\0' )
+				_if( *$<returns>7 == '\0' )
 
 				 	free2( vss SymbolTable->StaticName );
 					SymbolTable->StaticName = hlastrdup2( SymbolTable->TrueName );
-					free2( vss $<returns>6 );
+					free2( vss $<returns>7 );
 
 				_else
 
-					SymbolTable->StaticName = $<returns>6;
+					SymbolTable->StaticName = $<returns>7;
 
 				_endif
+				bt = GetBaseType( $<s>3 );
 				EmitExtern( SymbolTable, bt->ObjectSize );
-
+				
 			_endif
+
 		}
 	;
 
@@ -46330,51 +46293,31 @@ ReadOnlyDef: StaticArrayInit;
  /*
  ** Handle array declarations with the nostorage option:
  */
- 
 
-ReadOnlyDef:
-		UndefinedID			/* $1 */
-		Colon		   		/* $2 */
-		TypeID 				/* $3 */
-		'[' 				/* $4 */
-		DimList 			/* $5 */
-		Rbrack  			/* $6 */
-		Semicolon			/* $7 */
-		VarOptions			/* $8 */
-		{					/* $9 */
+EnterRODef4:
+		{
 
 			int		*DimensionArray;
 			int		ArraySize;
 			char	StaticName[ 256 ];
 			char	*sn;
-			//struct	SymNode *bt;
 
 
-			assert( $<idStr>1 != NULL );
-			assert( $<s>3 != NULL );
-			assert( $<v.NumElements>5 > 0 );
-			assert( $<v.Dimensions>5 != NULL );
+			assert( $<idStr>-5 != NULL );
+			assert( $<s>-3 != NULL );
+			assert( $<v.NumElements>-1 > 0 );
+			assert( $<v.Dimensions>-1 != NULL );
 
 			_here;
-			_if( !$<options.NoStorage>8 )
 
-				yyerror
-				( 
-					"Readonly object requires an initializer\n"
-					"or the 'NOSTORAGE' option."
-				);
-
-			_endif
-
-			//bt = GetBaseType( $<s>3 );
-			sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
+			sprintf( StaticName, "%s" sympost "%d", $<idStr>-5, LblCntr++ );
 
 			/*
 			** Make sure this is a legal variable type
 			** (e.g., no text variables).
 			*/
 
-			_if( CantBeVar( $<s>3->pType ))
+			_if( CantBeVar( $<s>-3->pType ))
 			
 				yyerror( "Illegal Readonly variable type" );
 				
@@ -46385,34 +46328,31 @@ ReadOnlyDef:
 				** (i.e., we're creating a multi-dimensional array).
 				*/
 
-				_if( $<s>3->pType != tArray )
+				_if( $<s>-3->pType != tArray )
 
 					/*
 					** TypeID is *not* an array type, so create
 					** a single dimension array here.
 					*/
 
-					ArraySize = $<s>3->ObjectSize * $<v.NumElements>5;
+					ArraySize = $<s>-3->ObjectSize * $<v.NumElements>-1;
 					sn = hlastrdup2( StaticName );
 					InsertSym
 					( 
-						$<idStr>1, 
-										/* 3/7/00
-										GetBaseType( $<s>3 ),
-										*/
-						$<s>3,
+						$<idStr>-5, 
+						$<s>-3,
 						tArray, 
 						cStatic, 
-						$<v.Arity>5,
-						$<v.Dimensions>5,
-						$<v.NumElements>5, 
+						$<v.Arity>-1,
+						$<v.Dimensions>-1,
+						$<v.NumElements>-1, 
 						NULL,
 						ArraySize,
 						0,
 						sn,
-						$<s>3->Base,
-						$<s>3->Fields,
-						$<s>3->FieldCnt
+						$<s>-3->Base,
+						$<s>-3->Fields,
+						$<s>-3->FieldCnt
 					);
 
 					/*
@@ -46420,19 +46360,19 @@ ReadOnlyDef:
 					** all the fields to all private constants, etc.
 					*/
 
-					_if( $<s>3->pType == tClass )
+					_if( $<s>-3->pType == tClass )
 
 						SymbolTable->Fields = 
 							CopySymbols
 							( 
-								$<s>3->Fields,
-								$<s>3->StaticName
+								$<s>-3->Fields,
+								$<s>-3->StaticName
 							);
 						NullTerminate( SymbolTable->Fields, SymbolTable );
 
 					_else
 					
-						_if(  $<s>3->pType == tThunk )
+						_if(  $<s>-3->pType == tThunk )
 
 							/*
 							** Need some dummy local vars for a thunk.
@@ -46443,8 +46383,6 @@ ReadOnlyDef:
 						_endif
 
 					_endif
-					EmitTypedLabel( StaticName, tByte );  
-
 
 
 				/*
@@ -46456,7 +46394,7 @@ ReadOnlyDef:
 
 					struct SymNode *BaseType;
 
-					assert( $<s>3->Dimensions != NULL );
+					assert( $<s>-3->Dimensions != NULL );
 
 					/*
 					** Create the new dimension array by concatenating
@@ -46466,48 +46404,46 @@ ReadOnlyDef:
 					DimensionArray = 
 						malloc2
 						( 
-							( $<s>3->Arity + $<v.NumElements>5 ) * 
+							( $<s>-3->Arity + $<v.NumElements>-1 ) * 
 								sizeof( int )
 						);
 
 					memcpy
 					( 
 						DimensionArray, 
-						$<s>3->Dimensions, 
-						$<s>3->Arity * sizeof( int )
+						$<s>-3->Dimensions, 
+						$<s>-3->Arity * sizeof( int )
 					);
 					memcpy
 					(
-						&DimensionArray[ $<s>3->Arity ],
-						$<v.Dimensions>5,
-						$<v.Arity>5 * sizeof( int )
+						&DimensionArray[ $<s>-3->Arity ],
+						$<v.Dimensions>-1,
+						$<v.Arity>-1 * sizeof( int )
 					);
-					ArraySize = $<s>3->ObjectSize * $<v.NumElements>5;
+					ArraySize = $<s>-3->ObjectSize * $<v.NumElements>-1;
 
 					/*
 					** Add the new array to the symbol table.
 					*/
 
 					sn = hlastrdup2( StaticName );
-					BaseType = GetBaseType( $<s>3 );
+					BaseType = GetBaseType( $<s>-3 );
 					InsertSym
 					( 
-						$<idStr>1, 
-						$<s>3,			/* 3/7/00
-										BaseType,
-										*/
+						$<idStr>-5, 
+						$<s>-3,
 						tArray, 
 						cStatic, 
-						$<s>3->Arity + $<v.Arity>5,
+						$<s>-3->Arity + $<v.Arity>-1,
 						DimensionArray,
-						$<s>3->NumElements * $<v.NumElements>5, 
+						$<s>-3->NumElements * $<v.NumElements>-1, 
 						NULL,
 						ArraySize,
 						0,
 						sn,
-						$<s>3->Base,
-						$<s>3->Fields,
-						$<s>3->FieldCnt
+						$<s>-3->Base,
+						$<s>-3->Fields,
+						$<s>-3->FieldCnt
 					);
 
 					/*
@@ -46541,12 +46477,40 @@ ReadOnlyDef:
 						_endif
 
 					_endif
-					EmitTypedLabel( StaticName, tByte );  
-					free2( vss $<v.Dimensions>5 );
+					free2( vss $<v.Dimensions>-1 );
 
 				_endif
 
 			_endif
+		}
+	; 
+
+ReadOnlyDef:
+		UndefinedID			/* $1 */
+		Colon		   		/* $2 */
+		TypeID 				/* $3 */
+		'[' 				/* $4 */
+		DimList 			/* $5 */
+		Rbrack  			/* $6 */
+		EnterRODef4			/* $7 */
+		Semicolon			/* $8 */
+		VarOptions			/* $9 */
+		{
+			_if( !$<options.NoStorage>9 )
+
+				yyerror
+				( 
+					"Readonly object requires an initializer\n"
+					"or the 'NOSTORAGE' option."
+				);
+
+			_endif
+			_if( !CantBeVar( $<s>3->pType ))
+			
+				EmitTypedLabel( SymbolTable->StaticName, tByte );
+					
+			_endif  
+			
 		}
 	;
 
@@ -46564,153 +46528,32 @@ ReadOnlyDef:
 		'[' 				/* $4  */
 		DimList 			/* $5  */
 		Rbrack  			/* $6  */
-		Semicolon			/* $7  */
-		VarOptions			/* $8  */
-		RequiredExternal	/* $9  */
-		{					/* $10 */
-
-			int		*DimensionArray;
-			int		ArraySize;
-			char	StaticName[ 256 ];
-			char	*sn;
-			struct	SymNode *bt;
-
-
-			assert( $<idStr>1 != NULL );
-			assert( $<s>3 != NULL );
-			assert( $<v.NumElements>5 > 0 );
-			assert( $<v.Dimensions>5 != NULL );
-
-			_here;
-			_if( $<options.NoStorage>8 )
+		EnterRODef4			/* $7  */
+		Semicolon			/* $8  */
+		VarOptions			/* $9  */
+		RequiredExternal	/* $10 */
+		{
+			_if( $<options.NoStorage>9 )
 
 				yyerror( "'nostorage' option is illegal here" );
 
 			_endif
-
-			bt = GetBaseType( $<s>3 );
-			sprintf( StaticName, "%s" sympost "%d", $<idStr>1, LblCntr++ );
-
-			/*
-			** Make sure this is a legal variable type
-			** (e.g., no text variables).
-			*/
-
-			_if( CantBeVar( $<s>3->pType ))
+			_if( !CantBeVar( $<s>3->pType ))
 			
-				yyerror( "Bad readonly variable type" );
-				
-			_else 
-
-				/*
-				** Check to see if TypeID is an array type
-				** (i.e., we're creating a multi-dimensional array).
-				*/
-
-				_if( $<s>3->pType != tArray )
-
-					/*
-					** TypeID is *not* an array type, so create
-					** a single dimension array here.
-					*/
-
-					ArraySize = $<s>3->ObjectSize * $<v.NumElements>5;
-					sn = hlastrdup2( StaticName );
-					InsertSym
-					( 
-						$<idStr>1, 
-						$<s>3,
-						tArray, 
-						cStatic, 
-						$<v.Arity>5,
-						$<v.Dimensions>5,
-						$<v.NumElements>5, 
-						NULL,
-						ArraySize,
-						0,
-						sn,
-						$<s>3->Base,
-						$<s>3->Fields,
-						$<s>3->FieldCnt
-					);
-
-
-				/*
-				** Okay, down here TypeID *is* an array type,
-				** so we're creating a multi-dimensional array.
-				*/
-
-				_else
-
-					assert( $<s>3->Dimensions != NULL );
-
-					/*
-					** Create the new dimension array by concatenating
-					** the two existing dimension arrays.
-					*/
-
-					DimensionArray = 
-						malloc2
-						( 
-							( $<s>3->Arity + $<v.NumElements>5 ) * 
-								sizeof( int )
-						);
-
-					memcpy
-					( 
-						DimensionArray, 
-						$<s>3->Dimensions, 
-						$<s>3->Arity * sizeof( int )
-					);
-					memcpy
-					(
-						&DimensionArray[ $<s>3->Arity ],
-						$<v.Dimensions>5,
-						$<v.Arity>5 * sizeof( int )
-					);
-					ArraySize = $<s>3->ObjectSize * $<v.NumElements>5;
-
-					/*
-					** Add the new array to the symbol table.
-					*/
-
-					sn = hlastrdup2( StaticName );
-					InsertSym
-					( 
-						$<idStr>1, 
-						$<s>3,
-						tArray, 
-						cStatic, 
-						$<s>3->Arity + $<v.Arity>5,
-						DimensionArray,
-						$<s>3->NumElements * $<v.NumElements>5, 
-						NULL,
-						ArraySize,
-						0,
-						sn,
-						$<s>3->Base,
-						$<s>3->Fields,
-						$<s>3->FieldCnt
-					);
-					free2( vss $<v.Dimensions>5 );
-
-				_endif
-
-
 				SymbolTable->IsExternal = 1;
-				_if( *$<returns>9 == '\0' )
+				_if( *$<returns>10 == '\0' )
 
 				 	free2( vss SymbolTable->StaticName );
 					SymbolTable->StaticName = hlastrdup2( SymbolTable->TrueName );
-					free2( vss $<returns>9 );
+					free2( vss $<returns>10 );
 
 				_else
 
-					SymbolTable->StaticName = $<returns>9;
+					SymbolTable->StaticName = $<returns>10;
 
 				_endif
-				EmitExtern( SymbolTable, bt->ObjectSize );
-
+				EmitExtern( SymbolTable, GetBaseType( $<s>3 )->ObjectSize );
+				
 			_endif
 		}
 	;
