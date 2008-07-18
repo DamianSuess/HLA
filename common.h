@@ -194,6 +194,13 @@ extern int	TempRecAlign;
 
 extern char *NullPointer;
 
+
+/*
+** mainName is the name of the HLA main program:
+*/
+
+extern char *mainName;
+
 /*
 ** Variables that determine which section we're currently processing:
 */

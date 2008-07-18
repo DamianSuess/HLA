@@ -143,6 +143,7 @@ char	CmdLine[1024];		// We'll buffer the command line we build here.
 int		TotalErrors = 0;	// Used to abort compilation if there are errors
 int		IgnoreErrors = 0;	// Used for testing HLA output.
 int		codeFirst = 0;		// Determines if code is emitted before ReadOnly data.
+char	*mainName = NULL;	// HLA Main Program name.
 							
 
 // Variables used to process the command line.
@@ -412,6 +413,7 @@ _begin( Help )
 		"  -sg         Compile to GAS source files only.\n"
 		"  -sx         Compile to GAS source files for Mac OSX only.\n"
 		"  -code1st    Emit machine instructions before data in code segment.\n"
+		"  -main:xxxx  Use 'xxxx' as the name of the HLA main program.\n"
 		"\n"
 	);
 	PressReturnToContinue();	
@@ -1969,6 +1971,20 @@ _begin( doCmdLine)
 
 					
 
+					
+
+			// Check for the "-main:<name>" command line parameter
+			// to specify the HLA main program name.
+						
+			_elseif( strncmp( ucArg, "MAIN:", 5 ) == 0 )
+			
+				int  lastPosn;
+				char *newPath;
+			
+				mainName = &argv[ CurArg ][6];				
+
+					
+
 			_elseif( ThisArg == 'L' )
 
 				// Collect the "-Lxx" command line to pass on to
@@ -3008,7 +3024,7 @@ _begin( main )
 			sprintf
 			(
 				hlaCmdLn,
-				"hlaparse -%s %s %s %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s\"%s\"",
+				"hlaparse -%s %s %s %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s\"%s\"",
 				_ifx( targetOS == windows_os, "WIN32",
 					_ifx( targetOS == linux_os, "LINUX",
 						_ifx( targetOS == freeBSD_os, "FREEBSD",
@@ -3062,6 +3078,9 @@ _begin( main )
 					)
 				),
 				_ifx( codeFirst, "-code1st ", "" ),
+				_ifx( mainName != NULL, "-main:", "" ),
+				_ifx( mainName != NULL, mainName, "" ),
+				_ifx( mainName != NULL, " ", "" ),
 				_ifx( Internal, "-c", "" ),
 				_ifx( Internal, objStrs[ ObjFmt ], "" ),
 				_ifx( Internal, " ", "" ),
