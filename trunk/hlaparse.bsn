@@ -434,6 +434,12 @@ struct  SymNode	*SymbolTable 	= &true_ste;
 struct	SymNode	*CurrentContext = NULL;
 
 
+/*
+** Name of the main program in the assembly language output file:
+*/
+
+char	*mainName = "start";
+
 
 /*
 ** Assembly Language Output File variables.
@@ -90905,7 +90911,8 @@ _begin( Usage )
 		"  -level=high     Full HLA language (default)\n"
 		"  -level=medium   Disables HLL control constructs\n"
 		"  -level=low      Disables HL-like procedure calls\n"
-		"  -level=machine  Disable exception handling constructs\n",
+		"  -level=machine  Disable exception handling constructs\n"
+		"  -main:xxxx      Names the main program 'xxxx' (default='start')",
 		VersionInformation
 	);
 
@@ -91300,6 +91307,7 @@ _begin( main )
 	**	-level=medium	Medium-level assembly (no HLL control constructs)
 	**	-level=low		Low-level assembly (no HL procedure calls/code gen)
 	**	-level=machine	Machine instrs only (no exception HLL constructs)
+	**  -main:<name>	Name of main program in HLA code.
 	**	-code1st        Emit code segment before data in output file.
 	**  -license        Display license information
 	**	-test			Send output to stdout rather than stderr.
@@ -91564,6 +91572,12 @@ _begin( main )
 
 
 			
+			// check for "-main:<name>" here:
+			
+			_elseif( strncmp( option, "-MAIN:", 6) == 0 )
+
+				mainName = hlastrdup2( &argv[ CurArg ][6] );
+
 			// check for "-obj:<path>" here:
 			
 			_elseif( strncmp( option, "-OBJ:", 5) == 0 )

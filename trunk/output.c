@@ -21311,23 +21311,32 @@ _begin( BeginMain )
 	
 			_if( assembler == gas )
 			
-				asmPuts( " .global _start\n" );
-				asmPuts( "_start:\n" );
+				asmPrintf
+				( 
+					" .global _%s\n"
+					"_%s:\n", 
+					mainName,
+					mainName
+				);
 			
 			_elseif( assembler == fasm )
 			
-				asmPuts
+				asmPrintf
 				(
-					" public _start\n" 
-					"_start:\n"
+					" public _%s\n" 
+					"_%s:\n",
+					mainName,
+					mainName
 				);
 				
 			_elseif( assembler == hlabe )
 			
-				asmPuts
+				asmPrintf
 				(
-					hlabe_public "_start\n"
-					":_start\n"
+					hlabe_public "_%s\n"
+					":_%s\n",
+					mainName,
+					mainName
 				);
 					
 			_else
@@ -21372,15 +21381,25 @@ _begin( BeginMain )
 	 		
 			_if( assembler == hlabe )
 			
-				asmPuts( hlabe_public "_start\n" );
-				asmPuts( ":_start\n" );
+				asmPrintf
+				( 
+					hlabe_public "_%s\n"
+					":_%s\n",
+					mainName,
+					mainName 
+				);
 				EmitMov_r_r( reg_esp, reg_eax );
 				asmPuts( ":_findEnvp_$$_\n" );
 				
 			_else
 			
-				asmPuts( " .global _start\n" );
-				asmPuts( "_start:\n" );
+				asmPrintf
+				( 
+					" .global _%s\n"
+					"_%s:\n",
+					mainName,
+					mainName
+				);
 				EmitMov_r_r( reg_esp, reg_eax );
 				asmPuts( "_findEnvp_$$_:\n" );
 				
@@ -21415,15 +21434,25 @@ _begin( BeginMain )
 	 		
 			_if( assembler == hlabe )
 			
-				asmPuts( hlabe_public "_start\n" );
-				asmPuts( ":_start\n" );
+				asmPrintf
+				( 
+					hlabe_public "%s\n"
+					":%s\n",
+					mainName,
+					mainName
+				);
 				EmitMov_r_r( reg_esp, reg_eax );
 				asmPuts( ":_findEnvp_$$_\n" );
 				
 			_else
 			
-				asmPuts( " .globl start\n" );
-				asmPuts( "start:\n" );
+				asmPrintf
+				( 
+					" .globl %s\n"
+					"%s:\n",
+					mainName,
+					mainName
+				);
 				EmitMov_r_r( reg_esp, reg_eax );
 				asmPuts( "_findEnvp_$$_:\n" );
 				
@@ -21456,7 +21485,10 @@ _begin( BeginMain )
 		
 		_case( windows_os )
 		
-			// Nothing to do...
+			EmitPublic( mainName );
+			NewLn();
+			StartProc( mainName );
+			EndProc( mainName );
 			
 		_endcase
 		
