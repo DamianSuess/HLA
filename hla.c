@@ -144,6 +144,7 @@ int		TotalErrors = 0;	// Used to abort compilation if there are errors
 int		IgnoreErrors = 0;	// Used for testing HLA output.
 int		codeFirst = 0;		// Determines if code is emitted before ReadOnly data.
 char	*mainName = NULL;	// HLA Main Program name.
+int		noLibC = 0;			// Do not link in LIBC in UNIX OSes.
 							
 
 // Variables used to process the command line.
@@ -475,6 +476,9 @@ _begin( Help )
 			"  -w        Compile as windows app (default is console app).\n"
 			"  -polink   Force use of Pelles C linker/resource compiler.\n"
 			"  -mslink   Force use of Microsoft linker/resource compiler.\n"
+		#endif
+		#ifdef UnixOS
+		    "  -nolibc   Do not automatically provide linkage to C stdlib.\n"
 		#endif
 			
 	);
@@ -1430,6 +1434,11 @@ _begin( doCmdLine)
 				
 				_endif
 				
+			_elseif( _streq( ucArg, "NOLIBC" ))
+			
+				noLibC = 1;
+				
+
 			_elseif( _streq( ucArg, "CODE1ST" ))
 			
 				codeFirst = 1;
@@ -3626,7 +3635,20 @@ _begin( main )
 		sprintf
 		( 
 			CmdLine, 
-			"ld %s %s %s  -o \"%s\" \0",
+			"ld %s %s %s %s  -o \"%s\" \0",
+			_ifx
+			( 
+				noLibC, "",
+				_ifx
+				( 
+					hostOS == linux_os, "-I /lib/ld-linux.so.2 -lc",
+					_ifx
+					( 
+						hostOS == freeBSD_os, "",
+						"" // MacOSX
+					)
+				) 
+			),
 			_ifx( gasSyntax == macGas, "-arch i386", "" ),
 			linkerOptions,
 			LinkOpts,

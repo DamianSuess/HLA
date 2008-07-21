@@ -20846,7 +20846,6 @@ procs:		methodTkn			/* $1 */
 				_here;
 			}
 	;
-		 
 
 
 
@@ -24445,6 +24444,7 @@ FwdMethod:
 			s->u.proc.parms = $<en.s>7->u.proc.parms;
 			s->u.proc.returns = $<en.s>7->u.proc.returns;
 			s->u.proc.use = $<en.s>7->u.proc.use;
+			s->u.proc.cs = $<en.s>7->u.proc.cs;
 			$<en.s>7->Type = s;
 			SymbolTable = $<en.s>7;
 			
@@ -24668,6 +24668,7 @@ FwdMethod:
 			s->u.proc.parms = $<en.s>7->u.proc.parms;
 			s->u.proc.returns = $<en.s>7->u.proc.returns;
 			s->u.proc.use = $<en.s>7->u.proc.use;
+			s->u.proc.cs = $<en.s>7->u.proc.cs;
 			$<en.s>7->Type = s;
 			SymbolTable = $<en.s>7;
 			
@@ -25132,6 +25133,7 @@ FwdMethod:
 			s->u.proc.parms = $<en.s>7->u.proc.parms;
 			s->u.proc.returns = $<en.s>7->u.proc.returns;
 			s->u.proc.use = $<en.s>7->u.proc.use;
+			s->u.proc.cs = $<en.s>7->u.proc.cs;
 			$<en.s>7->Type = s;
 			SymbolTable = $<en.s>7;
 			
@@ -25362,6 +25364,7 @@ FwdMethod:
 			s->u.proc.parms = $<en.s>7->u.proc.parms;
 			s->u.proc.returns = $<en.s>7->u.proc.returns;
 			s->u.proc.use = $<en.s>7->u.proc.use;
+			s->u.proc.cs = $<en.s>7->u.proc.cs;
 			$<en.s>7->Type = s;
 			SymbolTable = $<en.s>7;
 			
@@ -66408,7 +66411,6 @@ CopyProc:
 		{
 			_here;
 			$<s>$ = $<s>0;
-			
 		}
 	;
 
