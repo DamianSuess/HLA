@@ -21224,18 +21224,41 @@ _begin( BeginMain )
 		_if( assembler == gas )
 		 
 		 	startDseg();
-			asmPuts
-			(
-				"\n"
-				"\n"
-				" .data\n"
-				" .global _envp" sympost "\n"
-				" .global _argc" sympost "\n"
-				" .global _argv" sympost "\n"
-				"_argc" sympost ": .long 0\n"
-				"_argv" sympost ": .long 0\n"
-				"_envp" sympost ": .long 0\n"
-			);
+			_if( targetOS == freeBSD_os )
+			
+				asmPuts
+				(
+					"\n"
+					"\n"
+					" .data\n"
+					" .global __progname\n"
+					" .global environ\n"
+					" .global _envp" sympost "\n"
+					" .global _argc" sympost "\n"
+					" .global _argv" sympost "\n"
+					"_argc" sympost ": .long 0\n"
+					"_argv" sympost ": .long 0\n"
+					"environ:\n"
+					"_envp" sympost ": .long 0\n"
+					"__progname: .long 0\n"
+				);
+				
+			_else
+			
+				asmPuts
+				(
+					"\n"
+					"\n"
+					" .data\n"
+					" .global _envp" sympost "\n"
+					" .global _argc" sympost "\n"
+					" .global _argv" sympost "\n"
+					"_argc" sympost ": .long 0\n"
+					"_argv" sympost ": .long 0\n"
+					"_envp" sympost ": .long 0\n"
+				);
+				
+			_endif
 			endDseg();
 			
 		_elseif( assembler == fasm && targetOS == linux_os )

@@ -3644,7 +3644,7 @@ _begin( main )
 					hostOS == linux_os, "-I /lib/ld-linux.so.2 -lc",
 					_ifx
 					( 
-						hostOS == freeBSD_os, "",
+						hostOS == freeBSD_os, "-lc",
 						"" // MacOSX
 					)
 				) 

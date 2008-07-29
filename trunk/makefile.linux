@@ -18,8 +18,8 @@ hlaparse: hlaparse.o lex.yy.o symbol.o hlautils.o output.o oututils.o coerce.o f
 hlaparse.o: hlaparse.c symbol.h ratc.h common.h enums.h debug.h output.h
 	 gcc -static -static-libgcc -Dlinux_c -c -O2 -o hlaparse.o hlaparse.c
 
-hlaparse.c: hlaparse.bsn
-	bison -d -o hlaparse.c hlaparse.bsn
+#hlaparse.c: hlaparse.bsn
+#	bison -d -o hlaparse.c hlaparse.bsn
 
 lex.yy.o: hla.flx hlaparse.c debug.h
 	flex -8 -i hla.flx
