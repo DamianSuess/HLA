@@ -3645,7 +3645,7 @@ _begin( main )
 					_ifx
 					( 
 						hostOS == freeBSD_os, "-lc",
-						"" // MacOSX
+						"-dynamic -lc -read_only_relocs suppress" // MacOSX
 					)
 				) 
 			),
