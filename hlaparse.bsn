@@ -45080,7 +45080,9 @@ ReadOnlyDef:
 	;
 	
 	
-	
+
+// readonly undefID : vmt( type ); {@external}
+
 ReadOnlyDef:
 		UndefinedID			/* $1 */ 
 		Colon 				/* $2 */
@@ -45196,9 +45198,10 @@ ReadOnlyDef: StaticPtrToProcInit;
 ReadOnlyDef: StaticProcInit;
 
 
- /*
- ** Handle a procedure pointer declaration
- */
+
+// Handle a procedure pointer declaration
+//
+// undefID:procedure{ (parms) }; {options}
 
 
 ReadOnlyDef:
@@ -45386,6 +45389,7 @@ EnterReadOnlyDef:
 	;
 	
 
+// undefID:pointer to procedure ID; {options} @external;
 ReadOnlyDef:
 		UndefinedID			/* $1  */ 
 		Colon 				/* $2  */
@@ -45425,6 +45429,7 @@ ReadOnlyDef:
 
 
 
+// undefID:pointer to procedure ID; {options}
 
 ReadOnlyDef:
 		UndefinedID			/* $1  */ 
@@ -45469,6 +45474,8 @@ ReadOnlyDef: StaticPtrToProcRedefInit;
 ReadOnlyDef: StaticRedefInit;
 
 
+// localID:procedure {(parms)}; {options}
+
 ReadOnlyDef:
 		AnyLocalID				/* $1 */ 
 		Colon 					/* $2 */
@@ -45493,6 +45500,8 @@ ReadOnlyDef:
 		}
 	;
 
+
+// localID:pointer to procedure ID; {options}
 
 ReadOnlyDef:
 		AnyLocalID			/* $1  */ 
@@ -45553,6 +45562,7 @@ ReadOnlyDef:
 ReadOnlyDef: StaticEnumInit;
 
 
+// undefID:enum{ idlist }; {options}
 
 ReadOnlyDef:
 		UndefinedID		/* $1  */  
@@ -45653,6 +45663,8 @@ EnterROPDef:
 	;
 	
 
+// undefID:pointer to typeID; {options}
+
 ReadOnlyDef:
 		UndefinedID			/* $1 */
 		Colon				/* $2 */
@@ -45690,6 +45702,8 @@ ReadOnlyDef:
  ** Handle a readonly declaration of an external pointer to a user
  ** defined object.
  */
+ 
+ // undefID:pointer to type; {options} @external;
  
 ReadOnlyDef:
 		UndefinedID			/* $1  */ 
@@ -45764,6 +45778,8 @@ ReadOnlyDef: StaticPtrToExtUser;
  */
  
 
+// localID:pointer to type; {options}
+ 
 ReadOnlyDef:
 		AnyLocalID			/* $1 */
 		Colon				/* $2 */
@@ -45902,6 +45918,8 @@ EnterRODef2:
 	;
 
 
+// undefID:pointer to type; {options}
+
 ReadOnlyDef:
 		UndefinedID			/* $1 */
 		Colon				/* $2 */
@@ -45934,6 +45952,8 @@ ReadOnlyDef:
  ** Handle an external definition of a pointer to a built-in type.
  */
  
+// undefID:pointer to type; {options} @external;
+
 ReadOnlyDef:
 		UndefinedID			/* $1 */
 		Colon				/* $2 */
@@ -46101,6 +46121,8 @@ EnterRODef3:
 		}
 	;
 	
+
+// undefID:type; {options}
 	
 ReadOnlyDef:
 		UndefinedID			/* $1 */ 
@@ -46145,6 +46167,8 @@ ReadOnlyDef:
  /*
  ** Handle an external declaration with a simple type ID:
  */
+ 
+// undefID:type; {options} @external;
 
 ReadOnlyDef:
 		UndefinedID			/* $1  */ 
