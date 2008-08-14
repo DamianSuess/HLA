@@ -5649,7 +5649,7 @@ case__hla_690::
 case__hla_691::
         fld        real4 ptr [esi]
         fld        real4 ptr [edi]
-        faddp      st(1), st(0) 
+        fsubrp     st(1), st(0) 
         fstp       real4 ptr [edi]
         xor        eax, eax 
         mov        [edi+4], eax 
@@ -5659,7 +5659,7 @@ case__hla_691::
 case__hla_692::
         fld        real8 ptr [esi]
         fld        real8 ptr [edi]
-        faddp      st(1), st(0) 
+        fsubrp     st(1), st(0) 
         fstp       real8 ptr [edi]
         xor        eax, eax 
         mov        [edi+8], eax 
@@ -5668,7 +5668,7 @@ case__hla_692::
 case__hla_693::
         fld        real10 ptr [esi]
         fld        real10 ptr [edi]
-        faddp      st(1), st(0) 
+        fsubrp     st(1), st(0) 
         fstp       real10 ptr [edi]
         xor        eax, eax 
         mov        [edi+10], ax 

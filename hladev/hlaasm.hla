@@ -7089,7 +7089,7 @@ begin subval;
 		
 			fld( (type real32 [esi]) );
 			fld( (type real32 [edi]) );
-			faddp();
+			fsubrp();
 			fstp( (type real32 [edi]) );
 			xor( eax, eax );
 			mov( eax, [edi+4] );
@@ -7100,7 +7100,7 @@ begin subval;
 		
 			fld( (type real64 [esi]) );
 			fld( (type real64 [edi]) );
-			faddp();
+			fsubrp();
 			fstp( (type real64 [edi]) );
 			xor( eax, eax );
 			mov( eax, [edi+8] );
@@ -7110,7 +7110,7 @@ begin subval;
 		
 			fld( (type real80 [esi]) );
 			fld( (type real80 [edi]) );
-			faddp();
+			fsubrp();
 			fstp( (type real80 [edi]) );
 			xor( eax, eax );
 			mov( ax, [edi+10] );

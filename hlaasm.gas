@@ -5662,7 +5662,7 @@ case__hla_708:
 case__hla_709:
         flds       (%esi) 
         flds       (%edi) 
-        faddp      %st(0), %st(1) 
+        fsubp      %st(0), %st(1) 
         fstps      (%edi) 
         xorl       %eax, %eax 
         mov        %eax, 4(%edi) 
@@ -5672,7 +5672,7 @@ case__hla_709:
 case__hla_710:
         fldl       (%esi) 
         fldl       (%edi) 
-        faddp      %st(0), %st(1) 
+        fsubp      %st(0), %st(1) 
         fstpl      (%edi) 
         xorl       %eax, %eax 
         mov        %eax, 8(%edi) 
@@ -5681,7 +5681,7 @@ case__hla_710:
 case__hla_711:
         fldt       (%esi) 
         fldt       (%edi) 
-        faddp      %st(0), %st(1) 
+        fsubp      %st(0), %st(1) 
         fstpt      (%edi) 
         xorl       %eax, %eax 
         mov        %ax, 10(%edi) 
