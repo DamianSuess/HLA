@@ -260,6 +260,7 @@ int inNamespace = 0;	/*		28										*/
 int inRegex		= 0;	/*		29										*/
 		 
 
+int wasProgram = 0;		// Used to generate a .link file.
  /*
  ** Variable to denote that we're in an @string parameter list:
  */
@@ -476,6 +477,12 @@ FILE *MsgOut;
 FILE *writeHandle = NULL;
 FILE *readHandle = NULL;
 FILE *PrintOut = NULL;
+
+
+// The following is used by the #includelib statement:
+
+includeLibList_t *includeLibList = NULL; 
+
 
 /*
 ** Various prototypes this code uses.
@@ -5434,6 +5441,7 @@ pgm:
 		*/
 
 		inProgram = 1;
+		wasProgram = 1;
 		
 		/*
 		** Emit the start of the program file (done here so that
@@ -92201,27 +92209,28 @@ _begin( main )
 	** Create a linker response file here:
 	*/
 
-	_if( targetOS == windows_os )
 	
-		_if( ResponseFile )
-		
-			_if( ResponseFile == 2 || !fexists( LinkName ))
+	_if( ResponseFile && wasProgram )
+	
+		_if( ResponseFile == 2 || !fexists( LinkName ))
 
-				linkOut = fopen( LinkName, "w" );
-				_if( linkOut == NULL )
+			linkOut = fopen( LinkName, "w" );
+			_if( linkOut == NULL )
+			
+				char msg[256];
 				
-					char msg[256];
-					
-					sprintf( msg, "Could not create file '%s'", LinkName );
-					yyerror( msg );
-					exit( 1 );
-					
-				_endif
-				SetSeg( CsegName, csname, ".text" );
-				SetSeg( DsegName, dataname, ".data" );
-				SetSeg( BssSegName, bssname, ".bss" );
-				SetSeg( ROsegName, roname, ".text" );
-				SetSeg( StrSegName, constname, ".text" );
+				sprintf( msg, "Could not create file '%s'", LinkName );
+				yyerror( msg );
+				exit( 1 );
+				
+			_endif
+			SetSeg( CsegName, csname, ".text" );
+			SetSeg( DsegName, dataname, ".data" );
+			SetSeg( BssSegName, bssname, ".bss" );
+			SetSeg( ROsegName, roname, ".text" );
+			SetSeg( StrSegName, constname, ".text" );
+			_if( targetOS == windows_os )
+			
 				fprintf
 				(
 					linkOut,
@@ -92236,41 +92245,59 @@ _begin( main )
 					dataname,
 					bssname
 				);
-					
+			
+				
 
 				// We don't support segments anymore, so the 
 				// following is a waste of time:
 				
 				s = SegmentList;
 				assert( s == NULL );
-//				_while( s != NULL )
-//
-//					SetSeg( s->name, dataname, dataname );
-//					fprintf
-//					(
-//						linkOut,
-//						"-section:%s,RW\n",
-//						dataname
-//					);
-//					s = s->next;
-//
-//				_endwhile
+	//				_while( s != NULL )
+	//
+	//					SetSeg( s->name, dataname, dataname );
+	//					fprintf
+	//					(
+	//						linkOut,
+	//						"-section:%s,RW\n",
+	//						dataname
+	//					);
+	//					s = s->next;
+	//
+	//				_endwhile
 				fprintf
 				(
 					linkOut,
 					"kernel32.lib\n"
 					"user32.lib\n"
 					"gdi32.lib\n"
-					"wsock32.lib\n"
 				);
-
-				fclose( linkOut );
 				
 			_endif
+			
+			// The following is done for all OSes. Note that
+			// for Linux, FreeBSD, and MacOS, the HLA program
+			// simply copies the following text to the linker's
+			// command line.
+			
+			_while( includeLibList != NULL )
+			
+				fprintf
+				(
+					linkOut,
+					"%s\n",
+					includeLibList->lib
+				);
+				includeLibList = includeLibList->next;
+				
+			_endwhile
 
+			fclose( linkOut );
+			
 		_endif
-		
+
 	_endif
+		
 
 	_here;
 	
