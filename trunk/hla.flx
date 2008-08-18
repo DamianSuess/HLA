@@ -478,6 +478,7 @@ p_id            	#id
 p_if            	#if
 p_include       	#include
 p_includeonce   	#includeonce
+p_includelib		#includelib
 p_keyword       	#keyword
 p_macro         	#macro
 p_match				#match
@@ -4983,6 +4984,51 @@ _zstring		zstring
 
                         _endif
     
+                    _endif
+                    FreeValue( &d1ceReturnVal );
+                    _here;
+                }
+
+
+
+ /* #includelib( "string" ) adds the string argument to a list of strings */
+ /* that the main compiler emits to the linker response file.			  */
+
+{p_includelib} {
+                    includeLibList_t *temp;
+
+                    /*
+                    ** Get the string expression that follows #includelib
+                    ** (the expression must be surrounded by parens).
+                    */
+
+                    _here;
+                    PushBackStr( "\xFA" );
+                    yyparse();
+
+                    _if( !IsStr( d1ceReturnVal.v.pType ))
+
+                        yyerror
+                        ( 
+                            "#includelib requires a string expression" 
+                        );
+
+                    _else
+					
+						temp = malloc( sizeof( includeLibList_t ));
+						_if( includeLibList == NULL )
+
+							includeLibList = temp;
+							includeLibList->next = NULL;
+
+						_else
+						
+							temp->next = includeLibList;
+							includeLibList = temp;
+
+						_endif
+						includeLibList->lib = strdup( d1ceReturnVal.v.u.strval );
+							 
                     _endif
                     FreeValue( &d1ceReturnVal );
                     _here;

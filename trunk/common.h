@@ -271,7 +271,7 @@ extern int	inRegex     ;
    
    
 /*
-** Linux/BSD Support
+** Linux/BSD/MAC Support
 */
 
 #if defined(linux_c) || defined(freeBSD_c) || defined( macOS_c )
@@ -296,6 +296,22 @@ extern int	inRegex     ;
 	#define min(x,y) (_ifx( x <= y, x, y ))
 	
 #endif
+
+
+// Support for the #includelib stmt:
+
+typedef struct includelib_tag
+{
+	struct includelib_tag	*next;
+	char					*lib;
+} includeLibList_t;
+
+extern includeLibList_t *includeLibList; 
+
+
+
+//////////////
+
 
 struct SymNode;
 typedef struct adrsYYS *padrsYYS;
