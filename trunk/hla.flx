@@ -4995,7 +4995,8 @@ _zstring		zstring
  /* that the main compiler emits to the linker response file.			  */
 
 {p_includelib} {
-                    includeLibList_t *temp;
+                    includeLibList_t 	*temp;
+					int					exists;
 
                     /*
                     ** Get the string expression that follows #includelib
@@ -5015,17 +5016,40 @@ _zstring		zstring
 
                     _else
 					
-						temp = malloc( sizeof( includeLibList_t ));
-						_if( includeLibList == NULL )
-
-							includeLibList = temp;
-							includeLibList->next = NULL;
-
-						_else
+						// First, see if we already have this linker
+						// option in the includeLibList:
 						
-							temp->next = includeLibList;
-							includeLibList = temp;
+						exists = 0;
+						temp = includeLibList;
+						_while( temp != NULL )
+						
+							exists = 
+								strcmp
+								( 
+									temp->lib, 
+									d1ceReturnVal.v.u.strval 
+								) == 0;
+								
+							_breakif( exists );
+							temp = temp->next;
+							
+						_endwhile
+						
+						_if( !exists )
+					
+							temp = malloc( sizeof( includeLibList_t ));
+							_if( includeLibList == NULL )
 
+								includeLibList = temp;
+								includeLibList->next = NULL;
+
+							_else
+							
+								temp->next = includeLibList;
+								includeLibList = temp;
+
+							_endif
+							
 						_endif
 						includeLibList->lib = strdup( d1ceReturnVal.v.u.strval );
 							 
