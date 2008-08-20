@@ -92210,7 +92210,11 @@ _begin( main )
 	*/
 
 	
-	_if( ResponseFile && wasProgram )
+	_if
+	( 
+			ResponseFile 
+		&&	wasProgram 
+		&& 	(targetOS == windows_os || includeLibList != NULL ))
 	
 		_if( ResponseFile == 2 || !fexists( LinkName ))
 

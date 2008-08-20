@@ -139,7 +139,7 @@ int	sourceOutput = 0;	// Default to hexadecimal opcode output.
 
 int		MLResult;			// Return result from the assembler (ML.EXE)
 int		CurMLResult;
-char	CmdLine[1024];		// We'll buffer the command line we build here.
+char	CmdLine[8192];		// We'll buffer the command line we build here.
 int		TotalErrors = 0;	// Used to abort compilation if there are errors
 int		IgnoreErrors = 0;	// Used for testing HLA output.
 int		codeFirst = 0;		// Determines if code is emitted before ReadOnly data.
@@ -212,6 +212,8 @@ int		 HlaFile;
 
 #ifdef unixOS
 
+	char	includeLib[4096];	// #includelib statements.
+	char	ilInput[1024];
 	char	*sfxStrs[ 10 ] = 
 			{ 
 				".hla", 
@@ -2820,7 +2822,12 @@ _begin( main )
 					(
 						ObjFmt == elf,
 						"ELF output\n",
-						"Illegal object code format!\n"
+						_ifx
+						(
+							ObjFmt == macho,
+							"Mach-O output\n",						
+							"Illegal object code format!\n"
+						)
 					 )
 				)
 			),
@@ -3135,29 +3142,25 @@ _begin( main )
 			// its name for later use, but only for the first filename
 			// on the command line:
 			
-
-			_if( targetOS == windows_os )
+			_if( LinkName[0] == '\0' )
 			
-				_if( LinkName[0] == '\0' )
+				_if( tempPath != NULL && *tempPath != '\0' )
 				
-					_if( tempPath != NULL && *tempPath != '\0' )
-					
-						baseName = getBaseName( FileList[ HlaFile ]  );
-						strcpy( LinkName, tempPath );
-						strcat( LinkName, DIR_SEP_STR );
-						strcat( LinkName, baseName );
-						free( baseName );
+					baseName = getBaseName( FileList[ HlaFile ]  );
+					strcpy( LinkName, tempPath );
+					strcat( LinkName, DIR_SEP_STR );
+					strcat( LinkName, baseName );
+					free( baseName );
 
-					_else
-					
-						strcpy( LinkName, FileList[ HlaFile ] );			
-					
-					_endif
-					strcat( LinkName, ".link" );
-
+				_else
+				
+					strcpy( LinkName, FileList[ HlaFile ] );			
+				
 				_endif
+				strcat( LinkName, ".link" );
 
 			_endif
+
 			
 			
 			// Finally, since we just converted the current
@@ -3621,6 +3624,43 @@ _begin( main )
 	
 	#ifdef unixOS
 	
+		includeLib[0] = '\0';
+		
+		// See if the link file exists:
+		
+		_if( LinkName[0] != '\0' )
+		
+			FILE *linkFile;
+			
+			// Read each line and create a command-line
+			// string from them.
+			
+			linkFile = fopen( LinkName, "r" );
+			_if( linkFile != NULL )
+			
+				int len;
+				int lfLen;
+			
+				lfLen = 0; 
+				_while( !feof( linkFile ))
+				
+					fgets( ilInput, 1024, linkFile );
+					len = strlen( ilInput );
+					_if( lfLen + len < 4090 )
+					
+						strcat( includeLib, "\"" );
+						strcat( includeLib, ilInput );
+						strcat( includeLib, "\" " );
+						lfLen += len + 3;
+						
+					_endif
+				
+				_endwhile
+			
+			_endif
+			
+		_endif
+	
 		_if( linker != ld )
 		
 			fprintf
@@ -3635,7 +3675,7 @@ _begin( main )
 		sprintf
 		( 
 			CmdLine, 
-			"ld %s %s %s %s  -o \"%s\" \0",
+			"ld %s %s %s %s  -o \"%s\" %s \0",
 			_ifx
 			( 
 				noLibC, "",
@@ -3652,7 +3692,8 @@ _begin( main )
 			_ifx( gasSyntax == macGas, "-arch i386", "" ),
 			linkerOptions,
 			LinkOpts,
-			ExeName
+			ExeName,
+			includeLib
 		);
 			
 		
