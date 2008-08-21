@@ -165,6 +165,7 @@ int	 CompileInto	= 1;
 int	 AlwaysAlignStk	= 1;
 int  TraceFlag		= 0;	/* True if we should emit code to trace instrs	*/
 int	 FullExceptions = 0;	/* True if we link in the full exception code.  */
+int	 threadSafe		= 0;	/* True if we're generating thread-safe code.	*/
 
 char *CurBaseReg	= "ebp";	/* Base register used for auto vars.		*/
 
@@ -284,9 +285,11 @@ int EnterDefault = 1;	// "1" means "no enter, use manual"
  ** Access to the environment variables "hlainc" and "hlatmp"
  */
 	
-char	*hlainc  = NULL;	/* Path to HLA include directory.				*/
-char 	*outPath = NULL;	/* hlatmp:Path prefix used for output files.	*/
-char	*objPath = NULL;	/* -obj:obj output path for object files.		*/
+char	*hlainc  	= NULL;	/* Path to HLA include directory.				*/
+char 	*outPath 	= NULL;	/* hlatmp:Path prefix used for output files.	*/
+char	*objPath 	= NULL;	/* -obj:obj output path for object files.		*/
+
+char	*hlaThreadSafe	= NULL;	/* '1' = thread-safe compilation.			*/
 
 
  /*
@@ -1387,7 +1390,7 @@ union	YYSTYPE	forReturnVal;
 %token	maxTkn minTkn oddTkn randomTkn
 %token	randomizeTkn readTkn 
 %token  sinTkn sortTkn sqrtTkn systemTkn
-%token	tanTkn timeTkn
+%token	tanTkn threadTkn timeTkn
 
 
  /*
@@ -53811,6 +53814,32 @@ ConstFunc:
 
 
 
+ConstFunc:	
+		threadTkn
+		{
+			union YYSTYPE v;
+
+			_here;
+			ClrConst
+			( 
+				YYS &v, 
+				tBoolean, 
+				&boolean_ste
+			);
+			v.v.u.unsval = threadSafe;
+			SetConst
+			( 
+				YYS &$<v>$, 
+				tBoolean, 
+				&boolean_ste,
+				YYS &v
+			);
+			_here;
+		}
+	;
+
+
+
 
 
 
@@ -91268,7 +91297,6 @@ _begin( main )
 
 	assert( sizeofSymNode == sizeof( YYSTYPE ));
 
-
 	/*
 	** Initialize the reserved array so that HLA treats all the
 	** reserved words as though they *were* reserved words.
@@ -91318,6 +91346,7 @@ _begin( main )
 	**	-@				Don't create a linker response file.
 	**	-@@				Force creation of new linker response file.
 	**	-source			Source code (instructions) output rather than hex values.
+	**	-thread			Create thread-safe code and set @thread to true.
 	**	-sh				Source output in pseudo-HLA format.
 	**	-sm				Source output in MASM format (default).
 	**	-st				Source output in TASM format.
@@ -91505,6 +91534,12 @@ _begin( main )
 			_elseif( _streq( option, "-SOURCE" ) )
 			
 				sourceOutput = 1;
+
+			// Check for thread-safe compilation:
+			
+			_elseif( _streq( option, "-THREAD" ) )
+			
+				threadSafe = 1;
 
 			_elseif( _streq( option, "-S" ) )
 
