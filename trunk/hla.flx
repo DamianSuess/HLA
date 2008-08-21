@@ -712,6 +712,7 @@ a_tab				@tab
 a_tan        	    @tan        
 a_tbyte			    @tbyte
 a_text              @text
+a_thread       	    @thread       
 a_time       	    @time       
 a_tokenize 			@tokenize 
 a_tostring			@tostring
@@ -8095,6 +8096,7 @@ _zstring		zstring
 {a_sqrt}           { _return sqrtTkn;              }
 {a_system}         { _return systemTkn;            }
 {a_tan}            { _return tanTkn;               }
+{a_thread}         { _return threadTkn;            }
 {a_time}           { _return timeTkn;              }
 
 

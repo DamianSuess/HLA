@@ -133,6 +133,11 @@ FILE *MsgOut;
 // file (1) or just a bunch of hexadecimal values encoding the instructions (0).
  
 int	sourceOutput = 0;	// Default to hexadecimal opcode output.
+
+// threadSafe-
+//	Passes "-thread" command-line parameter on to HLAPARSE
+
+int threadSafe = 0;
 			
 
 // Variables used by the main program and command line processing function:
@@ -387,6 +392,7 @@ _begin( Help )
 		"  -dxx=str  Defile VAL symbol xx to have type STRING and value str.\n"
 		"  -sym      Dump symbol table after compile.\n"
 		"  -test     Send diagnostic info to stdout rather than stderr.\n"
+		"  -thread   Set @thread to true (for thread-safe code generation).\n"
 		"  -v        Verbose compile (also sends output to stdout).\n"
 		"  -?        Display this help message.\n"
 		"\n"
@@ -1280,6 +1286,9 @@ _begin( doCmdLine)
 				License();
 				_return 1;
 				
+			_elseif( _streq( ucArg, "THREAD" ))
+			
+				threadSafe = 1;
 			
 			// -level=h, -level=m, -level=l, and -level=v sets
 			// the language mode.
@@ -2263,6 +2272,7 @@ _begin( main )
 	char	*testHLAlib;
 	char	*testHLAinc;
 	char	*envResult;
+	char	*hlaThreadSafe;
 	char 	fullPath[4096];
 	char	hlaPath[4096];
 	char	hlalibPath[4096];
@@ -2305,6 +2315,13 @@ _begin( main )
 		_return rtnVal;
 		
 	_endif
+	
+	// See if the "hlathreadsafe" environment variable is set to one.
+	
+	hlaThreadSafe = getenv( "hlathreadsafe" );
+	threadSafe = 
+			threadSafe 
+		||	((hlaThreadSafe != NULL) && _streq( hlaThreadSafe, "1" ));
 	
 	// If the hlaasm or hlalink environment variables exist, grab their values
 	// for use by the back-end assembler and linker.
@@ -2797,6 +2814,7 @@ _begin( main )
 			"%s"
 			"%s"
 			"%s"
+			"%s"
 			"%s%s%s"
 			"%s%s%s"
 			"\n",
@@ -2833,7 +2851,7 @@ _begin( main )
 			),
 
 			_ifx( MapFile, "-M (mapfile) active\n", "" ),
-
+			_ifx( threadSafe, "-thread active\n", "" ),
 			_ifx( SourceOnly, "-sXX active\n", "" ),
 			_ifx
 			(
@@ -3040,7 +3058,7 @@ _begin( main )
 			sprintf
 			(
 				hlaCmdLn,
-				"hlaparse -%s %s %s %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s\"%s\"",
+				"hlaparse -%s %s %s %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s\"%s\"",
 				_ifx( targetOS == windows_os, "WIN32",
 					_ifx( targetOS == linux_os, "LINUX",
 						_ifx( targetOS == freeBSD_os, "FREEBSD",
@@ -3054,6 +3072,7 @@ _begin( main )
 				_ifx( tempPath != NULL && *tempPath != '\0', tempPath, ""),
 				_ifx( tempPath != NULL && *tempPath != '\0', "\" ", ""),
 				_ifx( Verbose, "-v ", "" ),
+				_ifx( threadSafe, "-thread ", "" ),
 				_ifx( DumpSymbols, "-sym ", "" ),
 				_ifx
 				( 
