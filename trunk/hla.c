@@ -163,6 +163,7 @@ int		MapFile = 0;		/* -m option (create map file).			*/
 int		Verbose = 0;		/* -v option (verbose compile).			*/
 char	*baseName;			/* base name of the file names			*/
 char	*ExeName = NULL;	/* -e:executable file name.				*/
+char	*BinName = NULL;	/* -b:object binary object file name.	*/
 char	*tempPath;			/* -p:path temporary filename path.		*/
 char	*objPath = "";		/* -obj:path filename path.				*/
 int		FileCnt = 0;		/* # of filenames on the cmd line.		*/
@@ -477,6 +478,7 @@ _begin( Help )
 							"(appends \".exe\" under Windows).\n"
 		"  -x:name   "
 			"Executable output filename (does not append \".exe\").\n"
+		"  -b:name   Binary object file output filename.\n"
 		"\n"
 		#ifdef windows_c
 			"  -m        Create a map file during link\n"
@@ -1762,6 +1764,61 @@ _begin( doCmdLine)
 					ExeName = NewExeName;
 
 				_endif
+
+
+			// The 'B' option lets the user select the binary object filename:
+
+			_elseif( strncmp( ucArg, "B:", 2 ) == 0 )
+
+				BinName = &argv[ CurArg ][3];
+
+				
+				// If the user did not tack ".OBJ" onto the end of the
+				// executable filename, do that here. (only under Windows)
+			
+				_if
+				(		targetOS == windows_os 
+					&&
+						(
+								strlen( BinName ) < 4 
+							||	stricmp
+								(
+									BinName + strlen( BinName ) - 4,
+									".OBJ"
+								) != 0
+						)
+				)
+
+					char *NewBinName;
+
+					NewBinName = malloc( strlen( BinName ) + 5 );
+					assert( NewBinName != NULL );
+					strcpy( NewBinName, BinName );
+					strcat( NewBinName, ".obj" );
+					BinName = NewBinName;
+
+				// Under *nix, see if the user didn't put ".o" on the
+				// end of the filename:
+				
+				_elseif
+				(
+						strlen( BinName ) < 4 
+					||	stricmp
+						(
+							BinName + strlen( BinName ) - 4,
+							".O"
+						) != 0
+				)
+
+					char *NewBinName;
+
+					NewBinName = malloc( strlen( BinName ) + 5 );
+					assert( NewBinName != NULL );
+					strcpy( NewBinName, BinName );
+					strcat( NewBinName, ".o" );
+					BinName = NewBinName;
+
+				_endif
 			
 
 			// The 'X' option is really only for Windows, it lets the user 
@@ -2341,7 +2398,7 @@ _begin( main )
 	
 		char *tmpPath;
 		
-		tmpPath = getenv( "hlalib" );
+		tmpPath = getenv( _ifx( threadSafe, "hlalib_safe", "hlalib" ) );
 		_if( tmpPath != NULL )
 		
 			strcpy( hlalibPath, tmpPath );
@@ -2405,14 +2462,32 @@ _begin( main )
 			// hla.exe:
 			
 			strcpy( hlalibPath, hlaPath );
-			strcat( hlalibPath, "\\hlalib\\hlalib.lib" );
+			strcat
+			( 
+				hlalibPath, 
+				_ifx
+				( 
+					threadSafe, 
+					"\\hlalib\\hlalib_safe.lib", 
+					"\\hlalib\\hlalib.lib" 
+				) 
+			);
 			rtnVal = GetFileAttributes( hlalibPath );
 			_if( rtnVal == -1 )
 			
 				// Couldn't find hlalib\hlalib.lib in the same
 				// directory holding HLA.EXE, so try "C:\HLA\HLALIB\HLALIB.LIB"
 				
-				strcpy( hlalibPath, "C:\\HLA\\HLALIB\\HLALIB.LIB" );
+				strcpy
+				( 
+					hlalibPath, 
+					_ifx
+					(
+						threadSafe,
+						"c:\\hla\\hlalib\\hlalib_safe.lib",
+						"c:\\hla\\hlalib\\hlalib.lib" 
+					)
+				);
 				rtnVal = GetFileAttributes( hlalibPath );
 				_if( rtnVal == -1 )
 				
@@ -2552,7 +2627,16 @@ _begin( main )
 			// First, let's see if we can find the hlalib
 			// directory in /usr/hla
 			
-			strcpy( hlalibPath, "/usr/hla/hlalib/hlalib.a" );
+			strcpy
+			( 
+				hlalibPath, 
+				_ifx
+				(
+					threadSafe,
+					"/usr/hla/hlalib/hlalib_safe.a",
+					"/usr/hla/hlalib/hlalib.a"
+				) 
+			);
 			rtnVal = stat( hlalibPath, &statbuf );
 			_if( rtnVal == -1 )
 			
@@ -2806,6 +2890,9 @@ _begin( main )
 			"%s"
 			"%s"
 			"%s"
+			"%s"
+			"%s"
+			"%s"
 			"%s%s%s"
 			"%s%s%s"
 			"\n",
@@ -2886,6 +2973,9 @@ _begin( main )
 			_ifx( ExeName != NULL, "-e:<name> active (", "" ),
 			_ifx( ExeName != NULL, ExeName, "" ),
 			_ifx( ExeName != NULL, ")\n", "" ),
+			_ifx( BinName != NULL, "-b:<name> active (", "" ),
+			_ifx( BinName != NULL, BinName, "" ),
+			_ifx( BinName != NULL, ")\n", "" ),
 			_ifx
 			( 
 				tempPath != NULL && *tempPath != '\0', 
