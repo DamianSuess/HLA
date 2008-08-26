@@ -478,7 +478,7 @@ p_id            	#id
 p_if            	#if
 p_include       	#include
 p_includeonce   	#includeonce
-p_includelib		#includelib
+p_linker			#linker
 p_keyword       	#keyword
 p_macro         	#macro
 p_match				#match
@@ -4992,15 +4992,15 @@ _zstring		zstring
 
 
 
- /* #includelib( "string" ) adds the string argument to a list of strings */
+ /* #linker( "string" ) adds the string argument to a list of strings */
  /* that the main compiler emits to the linker response file.			  */
 
-{p_includelib} {
+{p_linker} {
                     includeLibList_t 	*temp;
 					int					exists;
 
                     /*
-                    ** Get the string expression that follows #includelib
+                    ** Get the string expression that follows #linker
                     ** (the expression must be surrounded by parens).
                     */
 
@@ -5012,7 +5012,7 @@ _zstring		zstring
 
                         yyerror
                         ( 
-                            "#includelib requires a string expression" 
+                            "#linker requires a string expression" 
                         );
 
                     _else

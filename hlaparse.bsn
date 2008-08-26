@@ -5590,25 +5590,18 @@ pgm:
 		_here;
 
 		/*
-		** Support for coroutines.  Put a coroutine
-		** object for the main program here.
-		** WARNING: this must remain in sync with
-		** the definition of the "coroutine" object
-		** in the HLA standard library.
+		** Support for coroutines.  Must define the MainPgmCoroutine
+		** object as an external here (actual definition appears in
+		** the stdlib code).
 		*/
 
-		startDseg();
-		EmitPublic( "MainPgmCoroutine" sympost );
-		EmitTypedLabel( "MainPgmCoroutine" sympost, tByte );
-		EmitAdrs( "MainPgmVMT" sympost );
-		EmitDwordConst( 0, "\t\t;/* CurrentSP */" );
-		EmitDwordConst( 0, "\t\t;/* Pointer to stack */" );
-		EmitDwordConst( 0, "\t\t;/* ExceptionContext */" );
-		EmitDwordConst( 0, "\t\t;/* Pointer to last caller */" );
-		EmitTypedLabel( "MainPgmVMT" sympost, tDWord );
-		EmitAdrs( "QuitMain" sympost ); 
-
-		endDseg();
+		_if( !threadSafe )
+		
+			startDseg();
+			EmitImmExtern( "MainPgmCoroutine" sympost, tByte ); 
+			endDseg();
+			
+		_endif
 
 		/*
 		** If the FullExceptions variable is true, then link in the

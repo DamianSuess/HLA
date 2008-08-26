@@ -21718,6 +21718,7 @@ void
 EndMain( void )
 _begin( EndMain )
 
+	EmitPublic( "QuitMain" sympost );
 	_if( assembler == gas || assembler == fasm || assembler == nasm )
 
 		asmPuts( "QuitMain" sympost ":\n");
