@@ -3889,6 +3889,9 @@ _begin( main )
 			
 		_endif
 		
+		// If an existing link file is present, then copy its contents
+		// to the new link file that we will actually use:
+		
 		linkFile = fopen( LinkName, "r" );
 		_if( linkFile != NULL )
 		
@@ -3898,12 +3901,7 @@ _begin( main )
 				
 			_endwhile;
 			fclose( linkFile );
-															  
-		_else
-			
-			printf( "Could not open file '%s' for linking\n", LinkName );
-			_return 1;
-			
+															  			
 		_endif 
 		
 		

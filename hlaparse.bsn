@@ -6728,7 +6728,6 @@ TypeID:		DefinedTypeID
 				_here;
 				assert( $<s>1 != NULL );
 
-
 				/*
 				** Figure out the base class for this type name.
 				*/
@@ -44598,6 +44597,27 @@ StaticDef:
 			_endif
 		}
 	;
+	
+StaticDef:
+		vmtTkn				/* $1 */
+		Lparen				/* $2 */
+		UndefID				/* $3 */
+		Rparen				/* $4 */
+		Semicolon			/* $5 */
+		OptionalExternal	/* $6 */
+		{
+			char msg[1024];
+			
+			sprintf
+			( 
+				msg, 
+				"Undefined type ID in VMT statement: '%s'\n", 
+				$<idStr>3 
+			);
+			yyerror( msg );			
+		}
+	;
+	
 
 
 
@@ -92241,7 +92261,7 @@ _begin( main )
 	_if
 	( 
 			ResponseFile 
-		&&	wasProgram 
+		&&	( wasProgram || (ResponseFile >= 2) ) 
 		&& 	(targetOS == windows_os || includeLibList != NULL ))
 	
 		_if( ResponseFile == 2 || !fexists( LinkName ))
