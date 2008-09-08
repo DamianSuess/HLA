@@ -18233,27 +18233,31 @@ procs:
 
 				
 				$<s>$ = lookup( "_finalize_", 1 );
-				s=$<s>$->Next;
-				InvisibleCode = NULL;
-				_if
-				( 
-						s->pType != tString 
-					&&	s->pType != tZString 
-				)
-
-					WarnNear
+				_if( $<options.UseFrame>9 )
+				
+					s=$<s>$->Next;
+					InvisibleCode = NULL;
+					_if
 					( 
-						"_initialize_'s type is not string.  "
-						"Initialization ignored",
-						"_initialize_" 
-					);
+							s->pType != tString 
+						&&	s->pType != tZString 
+					)
 
-				_elseif( strlen( s->u.strval ) != 0 )
+						WarnNear
+						( 
+							"_initialize_'s type is not string.  "
+							"Initialization ignored",
+							"_initialize_" 
+						);
 
-					InvisibleCode = s->u.strval;
-					PushBackStr( "\xF3" );
-					PushBackStr( s->u.strval );
+					_elseif( strlen( s->u.strval ) != 0 )
 
+						InvisibleCode = s->u.strval;
+						PushBackStr( "\xF3" );
+						PushBackStr( s->u.strval );
+
+					_endif
+					
 				_endif
 
 			}
@@ -18310,40 +18314,42 @@ procs:
 				** Emit the exit label for this procedure.
 				*/
 
-				{
+				PushBackStr( "end" );
+				_if( $<options.UseFrame>9 )
+
 					char lbl[256];
 					
 					sprintf( lbl, "x%s" sympost, $<en.s>6->StaticName );
 					EmitStmtLbl( lbl );
+
+
+
+					/*
+					** Deal with the _finalize_ string here.
+					*/
+
 					_here;
-				}
+					InvisibleCode = NULL;
+					_if
+					( 
+							$<s>15->pType != tString 
+						&&	$<s>15->pType != tZString 
+					)
 
+						WarnNear
+						(
+							"_finalize_ must be a string constant.  Value ignored",
+							"_finalize_"
+						);
 
-				/*
-				** Deal with the _finalize_ string here.
-				*/
+					_elseif( strlen( $<s>15->u.strval ) != 0 )
 
-				PushBackStr( "end" );
-				_here;
-				InvisibleCode = NULL;
-				_if
-				( 
-						$<s>15->pType != tString 
-					&&	$<s>15->pType != tZString 
-				)
+						InvisibleCode = $<s>15->u.strval;
+						PushBackStr( "\xF3" );
+						PushBackStr( $<s>15->u.strval );
 
-					WarnNear
-					(
-						"_finalize_ must be a string constant.  Value ignored",
-						"_finalize_"
-					);
-
-				_elseif( strlen( $<s>15->u.strval ) != 0 )
-
-					InvisibleCode = $<s>15->u.strval;
-					PushBackStr( "\xF3" );
-					PushBackStr( $<s>15->u.strval );
-
+					_endif
+					
 				_endif
 				_here;
 
@@ -19034,27 +19040,31 @@ procs:
 			
 			$<s>$ = lookup( "_finalize_", 1 );
 			assert( $<s>$ != NULL );
-			s=$<s>$->Next;
-			InvisibleCode = NULL;
-			_if
-			( 
-					s->pType != tString 
-				&&	s->pType != tZString 
-			)
-
-				WarnNear
+			_if( $<options.UseFrame>9 )
+			
+				s=$<s>$->Next;
+				InvisibleCode = NULL;
+				_if
 				( 
-					"_initialize_'s type is not string.  "
-					"Initialization ignored.",
-					"_initialize_" 
-				);
+						s->pType != tString 
+					&&	s->pType != tZString 
+				)
 
-			_elseif( strlen( s->u.strval ) != 0 )
+					WarnNear
+					( 
+						"_initialize_'s type is not string.  "
+						"Initialization ignored.",
+						"_initialize_" 
+					);
 
-				InvisibleCode = s->u.strval;
-				PushBackStr( "\xF3" );
-				PushBackStr( s->u.strval );
+				_elseif( strlen( s->u.strval ) != 0 )
 
+					InvisibleCode = s->u.strval;
+					PushBackStr( "\xF3" );
+					PushBackStr( s->u.strval );
+
+				_endif
+				
 			_endif
 			_here;
 
@@ -19112,37 +19122,39 @@ procs:
 			** Emit the label at the end of the procedure
 			*/
 
-				{
-					char lbl[256];
-					
-					sprintf( lbl, "x%s" sympost, $<en.s>6->StaticName );
-					EmitStmtLbl( lbl );
-				}
-
-			/*
-			** Deal with the _finalize_ string here.
-			*/
-
 			PushBackStr( "end" );
-			InvisibleCode = NULL;
-			_if
-			( 
-					$<s>15->pType != tString 
-				&&	$<s>15->pType != tZString 
-			)
+			_if( $<options.UseFrame>9 )
 
-				WarnNear
-				(
-					"_finalize_ must be a string constant.  Value ignored",
-					"_finalize_"
-				);
+				char lbl[256];
+				
+				sprintf( lbl, "x%s" sympost, $<en.s>6->StaticName );
+				EmitStmtLbl( lbl );
 
-			_elseif( strlen( $<s>15->u.strval ) != 0 )
+				/*
+				** Deal with the _finalize_ string here.
+				*/
 
-				InvisibleCode = $<s>15->u.strval;
-				PushBackStr( "\xF3" );
-				PushBackStr( $<s>15->u.strval );
+				InvisibleCode = NULL;
+				_if
+				( 
+						$<s>15->pType != tString 
+					&&	$<s>15->pType != tZString 
+				)
 
+					WarnNear
+					(
+						"_finalize_ must be a string constant.  Value ignored",
+						"_finalize_"
+					);
+
+				_elseif( strlen( $<s>15->u.strval ) != 0 )
+
+					InvisibleCode = $<s>15->u.strval;
+					PushBackStr( "\xF3" );
+					PushBackStr( $<s>15->u.strval );
+
+				_endif
+				
 			_endif
 
 		}
@@ -19826,28 +19838,32 @@ procs:		procedureTkn		/* $1 */
 				*/
 				
 				$<s>$ = lookup( "_finalize_", 1 );
-				assert( $<s>$ != NULL );
-				s=$<s>$->Next;
-				InvisibleCode = NULL;
-				_if
-				( 
-						s->pType != tString 
-					&&	s->pType != tZString 
-				)
-
-					WarnNear
+				_if( $<options.UseFrame>11 )
+				
+					assert( $<s>$ != NULL );
+					s=$<s>$->Next;
+					InvisibleCode = NULL;
+					_if
 					( 
-						"_initialize_'s type is not string.  "
-						"Initialization ignored.",
-						"_initialize_" 
-					);
+							s->pType != tString 
+						&&	s->pType != tZString 
+					)
 
-				_elseif( strlen( s->u.strval ) != 0 )
+						WarnNear
+						( 
+							"_initialize_'s type is not string.  "
+							"Initialization ignored.",
+							"_initialize_" 
+						);
 
-					InvisibleCode = s->u.strval;
-					PushBackStr( "\xF3" );
-					PushBackStr( s->u.strval );
+					_elseif( strlen( s->u.strval ) != 0 )
 
+						InvisibleCode = s->u.strval;
+						PushBackStr( "\xF3" );
+						PushBackStr( s->u.strval );
+
+					_endif
+					
 				_endif
 				_here;
 
@@ -19905,38 +19921,40 @@ procs:		procedureTkn		/* $1 */
 				** Emit the label at the end of the procedure
 				*/
 
-				{
+				PushBackStr( "end" );
+				_if( $<options.UseFrame>11 )
+
 					char lbl[256];
 					
 					sprintf( lbl, "x%s" sympost, $<s>2->StaticName );
 					EmitStmtLbl( lbl );
-				}
 
 
-				/*
-				** Deal with the _finalize_ string here.
-				*/
+					/*
+					** Deal with the _finalize_ string here.
+					*/
 
-				PushBackStr( "end" );
-				InvisibleCode = NULL;
-				_if
-				( 
-						$<s>19->pType != tString 
-					&&	$<s>19->pType != tZString 
-				)
+					InvisibleCode = NULL;
+					_if
+					( 
+							$<s>19->pType != tString 
+						&&	$<s>19->pType != tZString 
+					)
 
-					WarnNear
-					(
-						"_finalize_ must be a string constant.  Value ignored",
-						"_finalize_"
-					);
+						WarnNear
+						(
+							"_finalize_ must be a string constant.  Value ignored",
+							"_finalize_"
+						);
 
-				_elseif( strlen( $<s>19->u.strval ) != 0 )
+					_elseif( strlen( $<s>19->u.strval ) != 0 )
 
-					InvisibleCode = $<s>19->u.strval;
-					PushBackStr( "\xF3" );
-					PushBackStr( $<s>19->u.strval );
+						InvisibleCode = $<s>19->u.strval;
+						PushBackStr( "\xF3" );
+						PushBackStr( $<s>19->u.strval );
 
+					_endif
+					
 				_endif
 
 			}
@@ -20630,27 +20648,31 @@ procs:		methodTkn			/* $1 */
 				
 				$<s>$ = lookup( "_finalize_", 1 );
 				assert( $<s>$ != NULL );
-				s=$<s>$->Next;
-				InvisibleCode = NULL;
-				_if
-				( 
-						s->pType != tString 
-					&&	s->pType != tZString 
-				)
-
-					WarnNear
+				_if( $<options.UseFrame>11 )
+				
+					s=$<s>$->Next;
+					InvisibleCode = NULL;
+					_if
 					( 
-						"_initialize_'s type is not string.  "
-						"Initialization ignored.",
-						"_initialize_" 
-					);
+							s->pType != tString 
+						&&	s->pType != tZString 
+					)
 
-				_elseif( strlen( s->u.strval ) != 0 )
+						WarnNear
+						( 
+							"_initialize_'s type is not string.  "
+							"Initialization ignored.",
+							"_initialize_" 
+						);
 
-					InvisibleCode = s->u.strval;
-					PushBackStr( "\xF3" );
-					PushBackStr( s->u.strval );
+					_elseif( strlen( s->u.strval ) != 0 )
 
+						InvisibleCode = s->u.strval;
+						PushBackStr( "\xF3" );
+						PushBackStr( s->u.strval );
+
+					_endif
+					
 				_endif
 				_here;
 
@@ -20708,38 +20730,40 @@ procs:		methodTkn			/* $1 */
 				** Emit the label at the end of the procedure
 				*/
 
-				{
+				PushBackStr( "end" );
+				_if( $<options.UseFrame>11 )
+
 					char lbl[256];
 					
 					sprintf( lbl, "x%s" sympost, $<s>2->StaticName );
 					EmitStmtLbl( lbl );
-				}
 
 
-				/*
-				** Deal with the _finalize_ string here.
-				*/
+					/*
+					** Deal with the _finalize_ string here.
+					*/
 
-				PushBackStr( "end" );
-				InvisibleCode = NULL;
-				_if
-				( 
-						$<s>19->pType != tString 
-					&&	$<s>19->pType != tZString 
-				)
+					InvisibleCode = NULL;
+					_if
+					( 
+							$<s>19->pType != tString 
+						&&	$<s>19->pType != tZString 
+					)
 
-					WarnNear
-					(
-						"_finalize_ must be a string constant.  Value ignored",
-						"_finalize_"
-					);
+						WarnNear
+						(
+							"_finalize_ must be a string constant.  Value ignored",
+							"_finalize_"
+						);
 
-				_elseif( strlen( $<s>19->u.strval ) != 0 )
+					_elseif( strlen( $<s>19->u.strval ) != 0 )
 
-					InvisibleCode = $<s>19->u.strval;
-					PushBackStr( "\xF3" );
-					PushBackStr( $<s>19->u.strval );
+						InvisibleCode = $<s>19->u.strval;
+						PushBackStr( "\xF3" );
+						PushBackStr( $<s>19->u.strval );
 
+					_endif
+					
 				_endif
 
 			}
@@ -21452,27 +21476,31 @@ procs:
 			
 			$<s>$ = lookup( "_finalize_", 1 );
 			assert( $<s>$ != NULL );
-			s=$<s>$->Next;
-			InvisibleCode = NULL;
-			_if
-			( 
-					s->pType != tString 
-				&&	s->pType != tZString 
-			)
-
-				WarnNear
+			_if( $<options.UseFrame>11 )
+			
+				s=$<s>$->Next;
+				InvisibleCode = NULL;
+				_if
 				( 
-					"_initialize_'s type is not string.  "
-					"Initialization ignored.",
-					"_initialize_" 
-				);
+						s->pType != tString 
+					&&	s->pType != tZString 
+				)
 
-			_elseif( strlen( s->u.strval ) != 0 )
+					WarnNear
+					( 
+						"_initialize_'s type is not string.  "
+						"Initialization ignored.",
+						"_initialize_" 
+					);
 
-				InvisibleCode = s->u.strval;
-				PushBackStr( "\xF3" );
-				PushBackStr( s->u.strval );
+				_elseif( strlen( s->u.strval ) != 0 )
 
+					InvisibleCode = s->u.strval;
+					PushBackStr( "\xF3" );
+					PushBackStr( s->u.strval );
+
+				_endif
+				
 			_endif
 			_here;
 
@@ -21530,38 +21558,40 @@ procs:
 			** Emit the label at the end of the procedure
 			*/
 
-			{
+			PushBackStr( "end" );
+			_if( $<options.UseFrame>11 )
+
 				char lbl[256];
 				
 				sprintf( lbl, "x%s" sympost, $<s>2->StaticName );
 				EmitStmtLbl( lbl );
-			}
 
 	
-			/*
-			** Deal with the _finalize_ string here.
-			*/
+				/*
+				** Deal with the _finalize_ string here.
+				*/
 
-			PushBackStr( "end" );
-			InvisibleCode = NULL;
-			_if
-			( 
-					$<s>19->pType != tString 
-				&&	$<s>19->pType != tZString 
-			)
+				InvisibleCode = NULL;
+				_if
+				( 
+						$<s>19->pType != tString 
+					&&	$<s>19->pType != tZString 
+				)
 
-				WarnNear
-				(
-					"_finalize_ must be a string constant.  Value ignored",
-					"_finalize_"
-				);
+					WarnNear
+					(
+						"_finalize_ must be a string constant.  Value ignored",
+						"_finalize_"
+					);
 
-			_elseif( strlen( $<s>19->u.strval ) != 0 )
+				_elseif( strlen( $<s>19->u.strval ) != 0 )
 
-				InvisibleCode = $<s>19->u.strval;
-				PushBackStr( "\xF3" );
-				PushBackStr( $<s>19->u.strval );
+					InvisibleCode = $<s>19->u.strval;
+					PushBackStr( "\xF3" );
+					PushBackStr( $<s>19->u.strval );
 
+				_endif
+			
 			_endif
 
 		}
@@ -23011,27 +23041,31 @@ procs:		procedureTkn		/* $1  */
 				
 				$<s>$ = lookup( "_finalize_", 1 );
 				assert( $<s>$ != NULL );
-				s=$<s>$->Next;
-				InvisibleCode = NULL;
-				_if
-				( 
-						s->pType != tString 
-					&&	s->pType != tZString 
-				)
-
-					WarnNear
+				_if( $<options.UseFrame>9 )
+				
+					s=$<s>$->Next;
+					InvisibleCode = NULL;
+					_if
 					( 
-						"_initialize_'s type is not string.  "
-						"Initialization ignored.",
-						"_initialize_" 
-					);
+							s->pType != tString 
+						&&	s->pType != tZString 
+					)
 
-				_elseif( strlen( s->u.strval ) != 0 )
+						WarnNear
+						( 
+							"_initialize_'s type is not string.  "
+							"Initialization ignored.",
+							"_initialize_" 
+						);
 
-					InvisibleCode = s->u.strval;
-					PushBackStr( "\xF3" );
-					PushBackStr( s->u.strval );
+					_elseif( strlen( s->u.strval ) != 0 )
 
+						InvisibleCode = s->u.strval;
+						PushBackStr( "\xF3" );
+						PushBackStr( s->u.strval );
+
+					_endif
+					
 				_endif
 				_here;
 
@@ -23093,38 +23127,40 @@ procs:		procedureTkn		/* $1  */
 				** Emit the label at the end of the procedure
 				*/
 
-				{
+				PushBackStr( "end" );
+				_if( $<options.UseFrame>9 )
+
 					char lbl[256];
 					
 					sprintf( lbl, "x%s" sympost, $<s>5->StaticName );
 					EmitStmtLbl( lbl );
-				}
 
 
-				/*
-				** Deal with the _finalize_ string here.
-				*/
+					/*
+					** Deal with the _finalize_ string here.
+					*/
 
-				PushBackStr( "end" );
-				InvisibleCode = NULL;
-				_if
-				( 
-						$<s>17->pType != tString 
-					&&	$<s>17->pType != tZString 
-				)
+					InvisibleCode = NULL;
+					_if
+					( 
+							$<s>17->pType != tString 
+						&&	$<s>17->pType != tZString 
+					)
 
-					WarnNear
-					(
-						"_finalize_ must be a string constant.  Value ignored",
-						"_finalize_"
-					);
+						WarnNear
+						(
+							"_finalize_ must be a string constant.  Value ignored",
+							"_finalize_"
+						);
 
-				_elseif( strlen( $<s>17->u.strval ) != 0 )
+					_elseif( strlen( $<s>17->u.strval ) != 0 )
 
-					InvisibleCode = $<s>17->u.strval;
-					PushBackStr( "\xF3" );
-					PushBackStr( $<s>17->u.strval );
+						InvisibleCode = $<s>17->u.strval;
+						PushBackStr( "\xF3" );
+						PushBackStr( $<s>17->u.strval );
 
+					_endif
+					
 				_endif
 
 			}
@@ -23852,27 +23888,31 @@ procs:		iteratorTkn			/* $1  */
 				
 				$<s>$ = lookup( "_finalize_", 1 );
 				assert( $<s>$ != NULL );
-				s=$<s>$->Next;
-				InvisibleCode = NULL;
-				_if
-				( 
-						s->pType != tString 
-					&&	s->pType != tZString 
-				)
-
-					WarnNear
+				_if( $<options.UseFrame>9 )
+				
+					s=$<s>$->Next;
+					InvisibleCode = NULL;
+					_if
 					( 
-						"_initialize_'s type is not string.  "
-						"Initialization ignored.",
-						"_initialize_" 
-					);
+							s->pType != tString 
+						&&	s->pType != tZString 
+					)
 
-				_elseif( strlen( s->u.strval ) != 0 )
+						WarnNear
+						( 
+							"_initialize_'s type is not string.  "
+							"Initialization ignored.",
+							"_initialize_" 
+						);
 
-					InvisibleCode = s->u.strval;
-					PushBackStr( "\xF3" );
-					PushBackStr( s->u.strval );
+					_elseif( strlen( s->u.strval ) != 0 )
 
+						InvisibleCode = s->u.strval;
+						PushBackStr( "\xF3" );
+						PushBackStr( s->u.strval );
+
+					_endif
+					
 				_endif
 				_here;
 
@@ -23932,38 +23972,40 @@ procs:		iteratorTkn			/* $1  */
 				** Emit the label at the end of the procedure
 				*/
 
-				{
+				PushBackStr( "end" );
+				_if( $<options.UseFrame>9 )
+
 					char lbl[256];
 					
 					sprintf( lbl, "x%s" sympost, $<s>5->StaticName );
 					EmitStmtLbl( lbl );
-				}
 
 
-				/*
-				** Deal with the _finalize_ string here.
-				*/
+					/*
+					** Deal with the _finalize_ string here.
+					*/
 
-				PushBackStr( "end" );
-				InvisibleCode = NULL;
-				_if
-				(
-						$<s>17->pType != tString 
-					&&	$<s>17->pType != tZString 
-				)
-
-					WarnNear
+					InvisibleCode = NULL;
+					_if
 					(
-						"_finalize_ must be a string constant.  Value ignored",
-						"_finalize_"
-					);
+							$<s>17->pType != tString 
+						&&	$<s>17->pType != tZString 
+					)
 
-				_elseif( strlen( $<s>17->u.strval ) != 0 )
+						WarnNear
+						(
+							"_finalize_ must be a string constant.  Value ignored",
+							"_finalize_"
+						);
 
-					InvisibleCode = $<s>17->u.strval;
-					PushBackStr( "\xF3" );
-					PushBackStr( $<s>17->u.strval );
+					_elseif( strlen( $<s>17->u.strval ) != 0 )
 
+						InvisibleCode = $<s>17->u.strval;
+						PushBackStr( "\xF3" );
+						PushBackStr( $<s>17->u.strval );
+
+					_endif
+					
 				_endif
 
 			}
@@ -79394,13 +79436,22 @@ StartTry:
 			
 				initAdrs( &adrs, -1, -1, 0, 0 );
 				fseg_prefix();
+				EmitMov_m_r( &adrs, reg_ebp, 4 );
 			
 			_else
 			
-				initLbl( &adrs, ExceptionPtr, 0 );
+				_if( threadSafe )
+				
+					EmitCallLabel( "_HLA_GET_EXCEPTIONPTREBP" );
+				
+				_else
+				
+					initLbl( &adrs, ExceptionPtr, 0 );
+					EmitMov_m_r( &adrs, reg_ebp, 4 );
+					
+				_endif
 				
 			_endif
-			EmitMov_m_r( &adrs, reg_ebp, 4 );
 			
 			initAdrs( &adrs, reg_ebp, -1, 0, 8 );
 			push_mem( &adrs, 4 );
@@ -79421,10 +79472,25 @@ StartTry:
 				// so we'll use the entry at ESP+4 as a
 				// signature value.
 				
-				Pushd( 0xe8ce972 );
-				initLbl( &adrs, ExceptionPtr, 0 );
-				push_mem( &adrs, 4 );
-				EmitMov_r_m( reg_esp, &adrs, 4 ); 			
+				_if( threadSafe )
+				
+					Pushd( 0xe8ce972 );
+					push_r( reg_eax );
+					EmitCallLabel( "_HLA_PUSH_EXCEPTIONPTR" );
+					push_r( reg_eax );
+					initLea_m_r( reg_esp, 4, reg_eax );
+					push_r( reg_eax );
+					EmitCallLabel( "_HLA_SET_EXCEPTIONPTR" );
+					pop_r( reg_eax );
+				
+				_else
+				
+					Pushd( 0xe8ce972 );
+					initLbl( &adrs, ExceptionPtr, 0 );
+					push_mem( &adrs, 4 );
+					EmitMov_r_m( reg_esp, &adrs, 4 );
+					
+				_endif 			
 
 			_endif
 		}
@@ -79450,12 +79516,25 @@ PopExcepts:
 				
 			_else
 			
-				initLbl( &adrs, ExceptionPtr, 0 );
-				EmitMov_m_r( &adrs, reg_esp, 4 );
-				pop_mem( &adrs, 4 );
-				EmitGeneric_c_r( add_instr, 8, reg_esp );
-				pop_r( reg_ebp );
-				EmitGeneric_c_r( add_instr, 4, reg_esp );
+				_if( threadSafe )
+				
+					EmitCallLabel( "_HLA_GET_EXCEPTIONPTREBP" );
+					EmitMov_r_r( reg_ebp, reg_esp );
+					EmitCallLabel( "_HLA_SET_EXCEPTIONPTR" );
+					EmitGeneric_c_r( add_instr, 8, reg_esp );
+					pop_r( reg_ebp );
+					EmitGeneric_c_r( add_instr, 4, reg_esp );
+					
+				_else
+				
+					initLbl( &adrs, ExceptionPtr, 0 );
+					EmitMov_m_r( &adrs, reg_esp, 4 );
+					pop_mem( &adrs, 4 );
+					EmitGeneric_c_r( add_instr, 8, reg_esp );
+					pop_r( reg_ebp );
+					EmitGeneric_c_r( add_instr, 4, reg_esp );
+					
+				_endif
 
 			_endif
 		}

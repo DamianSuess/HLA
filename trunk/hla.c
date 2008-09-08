@@ -3742,16 +3742,20 @@ _begin( main )
 				int lfLen;
 			
 				lfLen = 0; 
-				_while( !feof( linkFile ))
+				_while( fgets( ilInput, 1024, linkFile ) != NULL)
 				
-					fgets( ilInput, 1024, linkFile );
 					len = strlen( ilInput );
+					_if( len > 0 && ilInput[ len-1 ] == '\n' )
+					
+						ilInput[ len-1 ] = '\0';
+						--len;
+						
+					_endif
 					_if( lfLen + len < 4090 )
 					
-						strcat( includeLib, "\"" );
 						strcat( includeLib, ilInput );
-						strcat( includeLib, "\" " );
-						lfLen += len + 3;
+						strcat( includeLib, " " );
+						lfLen += len + 1;
 						
 					_endif
 				
