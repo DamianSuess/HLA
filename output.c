@@ -21540,6 +21540,17 @@ _begin( BeginMain )
 		AlignStack();
 
 	_endif
+	
+	// For threaded code, we need to initialize the static
+	// MainPgmCoroutinePtr__hla_ variable:
+	
+	_if( threadSafe )
+	
+		EmitImmExtern( "_HLA_SETMAINPGMCOROUTINEPTR", tLabel );
+		EmitCallLabel( "_HLA_SETMAINPGMCOROUTINEPTR" );
+	
+	_endif
+	
 	NewLn();
 	NewLn();
 

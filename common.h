@@ -142,7 +142,9 @@ extern void fasmMain
 );
 
 
+// flag that denotes "-thread" command-line option was present
 
+extern int threadSafe;
 
 /*
 ** Constants used by the "SpecifiedOptions" field of the
