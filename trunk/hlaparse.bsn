@@ -102,9 +102,6 @@ enum    asmLevel langLevel;			// Language level we support.
 
 
 
-/*
-** Utility macro for setting the "IsReferenced/ForceRef" field:
-*/
 
 /*
 ** Commonly used strings in program:
@@ -47679,6 +47676,14 @@ StaticLabelIDs:
 			_here;
 		}
 		
+	|	ClassStaticID
+		{
+			_here;
+			$<s>$ = $<s>1;
+			SetReferenced( $<s>1 );
+			_here;
+		}
+	
 	|	LocalStaticID
 		{
 			_here;
@@ -86606,16 +86611,9 @@ SimpleMemoryVar:
 SimpleMemoryVar:
 		ClassStaticID
 		{
-			char name[ 256 ];
-
 			_here;
+			assert( $<s>1 != NULL );
 			SetReferenced( $<s>1 );
-			sprintf
-			(
-				name,
-				"this.%s",
-				$<s>1->TrueName
-			);
 			_if( $<s>1->Arity == 0 )
 
 				/*
