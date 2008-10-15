@@ -8982,8 +8982,10 @@ _zstring		zstring
                                     ||  symbol->SymClass == cParm 
                                 )
                                     ClassVarID;
+									
                                 _returnif( symbol->SymClass == cStatic )
                                         ClassStaticID;
+										
                                 _return NonLocalID;
 
                             _endif
@@ -11818,21 +11820,17 @@ _begin( ProcessID )
             
         _endif
         
-        PushBackStr( yytext );
-        PushBackStr( "." );
-        yylval->s = symbol;
-        
+
         _if( cn.Sym->SymClass == cStatic ) 
 
-            _return _ifx
-                    ( 
-                        symbol->LexLevel == CurLexLevel,
-                        LocalStaticID,
-                        NonLocalStaticID
-                    );
+			yylval->s = cn.Sym;
+			_return ClassStaticID;
             
         _endif
         
+        PushBackStr( yytext );
+        PushBackStr( "." );
+        yylval->s = symbol;
         
         /*
         ** All the processing above has handled a single

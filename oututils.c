@@ -1639,7 +1639,33 @@ _end( mergeMem )
 
 
 
+void
+SetReferenced( struct SymNode *sym  )
+_begin( SetReferenced )
 
+	_if( sym != NULL )
+	
+		_if( sym->IsReferenced != NULL) 
+		
+			sym->IsReferenced->ForceRef = 1;
+			
+		_elseif( sym->IsExternal )
+			
+			extLookup
+			( 
+				sym, 
+				sym->StaticName, 
+				sym->pType, 
+				0,				// IsPublic
+				1,				// IsReferenced
+				0				// isVMT 
+			);
+			
+		_endif
+		
+	_endif
+		
+_end( SetReferenced )
 
 
 
@@ -1689,7 +1715,8 @@ _begin( extLookup )
 	// too.
 
 	index ^= (CurChar - theLabel ) & 2047;
-		
+	
+			
 	// Okay, this gives us an index into the hash table.
 	// See if there's a corresponding entry in the hash table.
 

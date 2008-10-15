@@ -2578,7 +2578,7 @@ _begin( EmitExternDataSymbols )
 					)
 				&&	CurSym->pType != tLabel 
 			)
-					
+				
 				EmitExternDirective( CurSym, "2" );
 				
 			_endif

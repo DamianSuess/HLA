@@ -58,9 +58,6 @@
 #define ifgas(isgas,notgas) _ifx( assembler == gas, isgas, notgas )
 #define iffasm(isfasm,notfasm) _ifx( assembler == fasm, isfasm, notfasm )
 
-#define SetReferenced(s) \
-	if(s != NULL && s->IsReferenced != NULL) s->IsReferenced->ForceRef = 1;
-
 #define SetPublic(s) \
 	if(s != NULL && s->IsReferenced != NULL) s->IsReferenced->IsPublic = 1;
 
@@ -695,6 +692,8 @@ extern void	AlignTo( int *offset, int minAlign, int maxAlign, int objSize );
 
 extern void MakeMemStr( char *address, padrsYYS adrs, int EmitSize );
 extern void MakeMemStrSize( char *address, padrsYYS adrs, int size );
+
+extern void SetReferenced(struct	SymNode	*sym);
 
 extern void extLookup
 ( 
