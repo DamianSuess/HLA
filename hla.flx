@@ -9612,9 +9612,13 @@ u\"([^\"\n]|\"\")*\"    {
 
  /*
  ** Whitespace
+ ** Note: Because saving Windows files to other file systems (e.g., 
+ ** Mac/Linux) can sometimes result in NUL characters being added to
+ ** the end of the file (bad editor!), we'll treat NUL characters
+ ** like white space characters. 
  */
 
-[\ \t]+     {}
+[\ \t\000]+ {}
 \r\n        { 
                 _here;
                 ++LineCnt;
