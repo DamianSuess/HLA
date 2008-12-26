@@ -82,6 +82,12 @@ FILE *MsgOut;
 	enum	LinkerChoice	linker 		= ld;
 			int				Internal 	= 0;
 			char			*OSName		= "Linux";
+			char			fileSep		= '/';
+			char			*fileSepStr	= "/";
+			char			*libSuffix	= ".a";
+			char			*dfltPath	= "/usr/hla/hlalib/hlalib.a";
+			char			*dfltSafe	= "/usr/hla/hlalib/hlalib_safe.a";
+			char			*dfltInc	= "/usr/hla/include";
 
 #elif defined( freeBSD_c )
 
@@ -95,6 +101,12 @@ FILE *MsgOut;
 	enum	LinkerChoice	linker 		= ld;
 			int				Internal 	= 0;
 			char			*OSName		= "FreeBSD";
+			char			fileSep		= '/';
+			char			*fileSepStr	= "/";
+			char			*libSuffix	= ".a";
+			char			*dfltPath	= "/usr/hla/hlalib/hlalib.a";
+			char			*dfltSafe	= "/usr/hla/hlalib/hlalib_safe.a";
+			char			*dfltInc	= "/usr/hla/include";
 
 #elif defined( macOS_c )
 
@@ -108,6 +120,12 @@ FILE *MsgOut;
 	enum	LinkerChoice	linker 		= ld;
 			int				Internal 	= 0;
 			char			*OSName		= "Mac OSX";
+			char			fileSep		= '/';
+			char			*fileSepStr	= "/";
+			char			*libSuffix	= ".a";
+			char			*dfltPath	= "/usr/hla/hlalib/hlalib.a";
+			char			*dfltSafe	= "/usr/hla/hlalib/hlalib_safe.a";
+			char			*dfltInc	= "/usr/hla/include";
 
 #else
 
@@ -124,7 +142,12 @@ FILE *MsgOut;
 	enum	LinkerChoice	linker 		= polink;
 			int				Internal 	= 1;
 			char			*OSName		= "Windows";
-
+			char			fileSep		= '\\';
+			char			*fileSepStr	= "\\";
+			char			*libSuffix	= ".lib";
+			char			*dfltPath	= "c:\\hla\\hlalib\\hlalib.lib";
+			char			*dfltSafe	= "c:\\hla\\hlalib\\hlalib_safe.lib";
+			char			*dfltInc	= "c:\\hla\\include";
 	
 #endif
 
@@ -2304,6 +2327,193 @@ _begin( doCmdLine)
 
 _end( doCmdLine)
 
+
+void
+appendFileSep( char *path )
+_begin( appendFileSep )
+
+	int len;
+	
+	len = strlen( path );
+	_if( len > 0  && path[ len - 1 ] !=  fileSep )
+	
+		strcat( path, fileSepStr );
+	
+	_endif
+
+_end( appendFileSep )
+
+
+void
+getHLAPath( char *hlaPath )
+_begin( getHLAPath )
+
+	int		pathLen;
+	char	*startOfFullName;
+	char 	fullPath[4096];
+
+	#ifdef windows_c
+	
+		/*
+		** Under Windows, use the directory containing hlaparse.exe
+		** as the base directory for the hlainc and hlalib directories
+		** if the environment variables are undefined. This will
+		** eliminate a lot of nagging installation problems with
+		** beginning HLA users under Windows.
+		*/
+
+		startOfFullName = NULL;
+		SearchPath
+		(
+			NULL,
+			"hlaparse.exe",
+			NULL,
+			4000,
+			fullPath,
+			&startOfFullName
+		);
+		assert(	startOfFullName != NULL  );
+		
+		// Create a string with the path to the HLA.EXE file (that does
+		// not include "\HLA.EXE" tacked on to the end of the string):
+		
+		pathLen = startOfFullName - fullPath;
+		strncpy( hlaPath, fullPath, pathLen );
+		hlaPath[ _ifx( pathLen > 0, pathLen-1, 0 ) ] = '\0'; 
+		  
+	#else
+	
+		strcpy( hlaPath, "/usr/hla" );
+	
+	#endif
+	appendFileSep( hlaPath );
+	
+_end( getHLAPath )
+
+
+// fileExists-
+//
+//	Returns true if the specified file exists.
+
+int 
+fileExists( char *path )
+_begin( fileExists )
+
+	#ifdef windows_c
+	
+		_return( ((int) GetFileAttributes( path ) ) != -1 );
+		
+	#else
+	
+		struct stat statbuf;
+		int 		handle;
+	
+		_return stat( path, &statbuf ) != -1;
+	
+	#endif
+	
+_end( fileExists )
+
+
+// hlalibExists
+//
+//	Returns true if an appropriate hlalib.xxx file exists
+
+int
+hlalibExists( char *hlaLibPath, char *hlaPath )
+_begin( hlaLibExists )
+
+	int rtnVal;
+	
+	// If we've got a path, see if the file exists at that path.
+	
+	rtnVal = 0;
+	_if( hlaLibPath[0] != '\0' )
+	
+		appendFileSep( hlaLibPath );
+		strcat( hlaLibPath, "hlalib" );
+		_if( threadSafe )
+		
+			strcat( hlaLibPath, "_safe" );
+			
+		_endif
+		strcat( hlaLibPath, libSuffix );
+		 
+		 // If the hlalib file doesn't exist at the specified
+		 // location, then clear hlalibPath so we will try one
+		 // of the default locations:
+		 
+		rtnVal = fileExists( hlaLibPath );
+		_if( !rtnVal )
+		
+			hlaLibPath[0] = 0;
+			
+		_endif
+		
+	_endif
+
+	_if( hlaLibPath[0] == '\0' )
+	
+		// There is no HLALIB environment variable set or it
+		// doesn't contain the path to a valid file.
+		// First, let's see if we can find the hlalib
+		// directory in the same directory that contained
+		// hla.exe:
+		
+		strcpy( hlaLibPath, hlaPath );
+		strcat( hlaLibPath, "hlalib" );
+		strcat( hlaLibPath, fileSepStr );
+		strcat( hlaLibPath, "hlalib" );
+		_if( threadSafe )
+		
+			strcat( hlaLibPath, "_safe" );
+			
+		_endif
+		strcat( hlaLibPath, libSuffix );
+		 
+		rtnVal = fileExists( hlaLibPath );
+		_if( !rtnVal )
+		
+			// Couldn't find hlalib\hlalib.lib in the same
+			// directory holding HLA, so try the default path:
+			
+			strcpy
+			( 
+				hlaLibPath, 
+				_ifx
+				(
+					threadSafe,
+					dfltSafe,
+					dfltPath 
+				)
+			);
+			rtnVal = fileExists( hlaLibPath );
+			_if( !rtnVal )
+			
+				// We can't find the HLALIB directory (and the hlalib.lib
+				// file), so print a descriptive error message and bail.
+														   
+				fprintf
+				( 
+					stderr, 
+					"ERROR! Could not locate the hlalib%s%s file.\n"
+					"Have you set the 'hlalib' environment variable properly?\n",
+					_ifx( threadSafe, "_safe", ""),
+					libSuffix
+				);
+				
+			_endif
+				
+		_endif
+		
+	_endif
+	_return rtnVal;
+
+_end( hlaLibExists )
+
+
+
+
 // Here's the "shell" for the HLA compiler...
 
 int
@@ -2312,7 +2522,6 @@ _begin( main )
 
 	int		pathLen;
 	int		rtnVal;
-	char 	*startOfFullName;
 	char	*envVar;
 	char	*libVar;
 	char	*linkerOptions;
@@ -2321,7 +2530,6 @@ _begin( main )
 	char	*testHLAinc;
 	char	*envResult;
 	char	*hlaThreadSafe;
-	char 	fullPath[4096];
 	char	hlaPath[4096];
 	char	hlalibPath[4096];
 	char	libPath[4096];
@@ -2389,21 +2597,24 @@ _begin( main )
 	_endif
 	
 	
-	// If the path to the hlalib.lib file is specified by the hlalib environment
+	// If the path to the hlalib file is specified by the hlalib environment
 	// variable, then copy it to hlalibPath, else set hlalibPath to the
 	// empty string.
 	
+	getHLAPath( hlaPath );
 	hlalibPath[0] = '\0';
 	_begin( getEnvPath )
 	
-		char *tmpPath;
+		char 	*tmpPath;
+		int		len;
 		
-		tmpPath = getenv( _ifx( threadSafe, "hlalib_safe", "hlalib" ) );
+		tmpPath = getenv( "hlalib" );
 		_if( tmpPath != NULL )
 		
 			strcpy( hlalibPath, tmpPath );
 			
 		_endif
+		appendFileSep( hlalibPath );
 		
 		// If the path to the hlainc directory is specified by the hlainc environment
 		// variable, then copy it to hlaincPath, else set hlaincPath to the
@@ -2416,104 +2627,26 @@ _begin( main )
 			strcpy( hlaincPath, tmpPath );
 			
 		_endif
+		appendFileSep( hlaincPath );
 
 	_end( getEnvPath )
 	
+	_if( !hlalibExists( hlalibPath, hlaPath ))
 	
+		_return( 1 );
+		
+	_endif
+	
+	// Set the hlalib environment variable for use by HLAPARSE:
+	
+	strcpy( environment, "hlalib=" );
+	strcat( environment, hlalibPath );
+	envResult = strdup( environment );
+	assert( envResult != NULL );
+	putenv( envResult );
 	
 	#ifdef windows_c
 	
-		/*
-		** Under Windows, use the directory containing hlaparse.exe
-		** as the base directory for the hlainc and hlalib directories
-		** if the environment variables are undefined. This will
-		** eliminate a lot of nagging installation problems with
-		** beginning HLA users under Windows.
-		*/
-
-		startOfFullName = NULL;
-		SearchPath
-		(
-			NULL,
-			"hlaparse.exe",
-			NULL,
-			4000,
-			fullPath,
-			&startOfFullName
-		);
-		assert(	startOfFullName != NULL  );
-		
-		// Create a string with the path to the HLA.EXE file (that does
-		// not include "\HLA.EXE" tacked on to the end of the string):
-		
-		pathLen = startOfFullName - fullPath;
-		strncpy( hlaPath, fullPath, pathLen );
-		hlaPath[ _ifx( pathLen > 0, pathLen-1, 0 ) ] = '\0'; 
-		
-		// Okay, let's see if we can find ...\hlalib\hlalib.lib.
-		// Note that hlalibPath is *not* the empty string if
-		// we found the hlalib environment variable.
-		
-		_if( hlalibPath[0] == '\0' )  
-
-			// There is no HLALIB environment variable set.
-			// First, let's see if we can find the hlalib
-			// directory in the same directory that contained
-			// hla.exe:
-			
-			strcpy( hlalibPath, hlaPath );
-			strcat
-			( 
-				hlalibPath, 
-				_ifx
-				( 
-					threadSafe, 
-					"\\hlalib\\hlalib_safe.lib", 
-					"\\hlalib\\hlalib.lib" 
-				) 
-			);
-			rtnVal = GetFileAttributes( hlalibPath );
-			_if( rtnVal == -1 )
-			
-				// Couldn't find hlalib\hlalib.lib in the same
-				// directory holding HLA.EXE, so try "C:\HLA\HLALIB\HLALIB.LIB"
-				
-				strcpy
-				( 
-					hlalibPath, 
-					_ifx
-					(
-						threadSafe,
-						"c:\\hla\\hlalib\\hlalib_safe.lib",
-						"c:\\hla\\hlalib\\hlalib.lib" 
-					)
-				);
-				rtnVal = GetFileAttributes( hlalibPath );
-				_if( rtnVal == -1 )
-				
-					// We can't find the HLALIB directory (and the hlalib.lib
-					// file), so print a descriptive error message and bail.
-					
-					fprintf
-					( 
-						stderr, 
-						"ERROR! Could not locate the HLALIB.LIB file.\n"
-						"Have you set the HLALIB environment variable properly?\n"
-					);
-					_return( 1 );
-					
-				_endif
-					
-			_endif
-
-			strcpy( environment, "hlalib=" );
-			strcat( environment, hlalibPath );
-			envResult = strdup( environment );
-			assert( envResult != NULL );
-			putenv( envResult );
-			
-		_endif
-		
 		
 		// Process the LIB environment variable (used by the linker to
 		// find, among other things, the hlalib.lib file).
@@ -2561,122 +2694,35 @@ _begin( main )
 			putenv( envResult );
 			
 		_endif
+		
+	#endif
 				
-		// Okay, let's see if we can find ...\include
-		// Note that hlaincPath is *not* the empty string if
-		// we found the hlainc environment variable earlier.
-		
-		_if( hlaincPath[0] == '\0' )  
+	
+	// Okay, let's see if we can find ...\include
+	// Note that hlaincPath is *not* the empty string if
+	// we found the hlainc environment variable earlier.
+	
+	_if( hlaincPath[0] == '\0' )  
 
-			// There is no HLAINC environment variable set.
-			// First, let's see if we can find the include
-			// directory in the same directory that contained
-			// hla.exe:
-			
-			strcpy( hlaincPath, hlaPath );
-			strcat( hlaincPath, "\\include" );
-			rtnVal = GetFileAttributes( hlaincPath );
-			_if( rtnVal == -1 )
-			
-				// Couldn't find include in the same
-				// directory holding HLA.EXE, so try "C:\HLA\INCLUDE"
-				
-				strcpy( hlaincPath, "C:\\HLA\\INCLUDE" );
-				rtnVal = GetFileAttributes( hlaincPath );
-				_if( rtnVal == -1 )
-				
-					// We can't find the include directory , so print a 
-					// descriptive error message and bail.
-					
-					fprintf
-					( 
-						stderr, 
-						"ERROR! Could not locate the HLA INCLUDE directory.\n"
-						"Have you set the HLAINC environment variable properly?\n"
-					);
-					_return( 1 );
-					
-				_endif
-					
-			_endif
-
-			strcpy( environment, "hlainc=" );
-			strcat( environment, hlaincPath );
-			envResult = strdup( environment );
-			assert( envResult != NULL );
-			putenv( envResult );
-			
-		_endif
+		// There is no HLAINC environment variable set.
+		// First, let's see if we can find the include
+		// directory in the same directory that contained
+		// hla.exe:
 		
-	#else
-	{
-		struct stat statbuf;
-		int 		handle;
+		strcpy( hlaincPath, hlaPath );
+		appendFileSep( hlaincPath );
+		strcat( hlaincPath, "include" );
+		rtnVal = fileExists( hlaincPath );
+		_if( !rtnVal )
 		
-		// If Linux, FreeBSD, macOS, or some other Unix-based OS,
-		// then use "/usr/hla" as the default base directory for
-		// find the include and library directories.
-
-		// Okay, let's see if we can find ...\hlalib\hlalib.lib.
-		// Note that hlalibPath is *not* the empty string if
-		// we found the hlalib environment variable.
-		
-		_if( hlalibPath[0] == '\0' )  
-
-			// There is no HLALIB environment variable set.
-			// First, let's see if we can find the hlalib
-			// directory in /usr/hla
+			// Couldn't find include in the same
+			// directory holding HLA, so try the default path
 			
-			strcpy
-			( 
-				hlalibPath, 
-				_ifx
-				(
-					threadSafe,
-					"/usr/hla/hlalib/hlalib_safe.a",
-					"/usr/hla/hlalib/hlalib.a"
-				) 
-			);
-			rtnVal = stat( hlalibPath, &statbuf );
-			_if( rtnVal == -1 )
+			strcpy( hlaincPath, dfltInc );
+			rtnVal = fileExists( hlaincPath );
+			_if( !rtnVal )
 			
-				// We can't find the HLALIB directory (and the hlalib.lib
-				// file), so print a descriptive error message and bail.
-				
-				fprintf
-				( 
-					stderr, 
-					"ERROR! Could not locate the HLALIB.A file.\n"
-					"Have you set the HLALIB environment variable properly?\n"
-				);
-				_return( 1 );
-					
-					
-			_endif
-
-			strcpy( environment, "hlalib=" );
-			strcat( environment, hlalibPath );
-			envResult = strdup( environment );
-			assert( envResult != NULL );
-			putenv( envResult );
-			
-		_endif
-		
-		// Okay, let's see if we can find .../include
-		// Note that hlaincPath is *not* the empty string if
-		// we found the hlainc environment variable earlier.
-		
-		_if( hlaincPath[0] == '\0' )  
-
-			// There is no HLAINC environment variable set.
-			// First, let's see if we can find the include
-			// directory in /usr/hla
-			
-			strcpy( hlaincPath, "/usr/hla/include" );
-			rtnVal = stat( hlaincPath, &statbuf );
-			_if( rtnVal == -1 )
-			
-				// We can't find the include directory , so print a 
+				// We can't find the include directory, so print a 
 				// descriptive error message and bail.
 				
 				fprintf
@@ -2686,19 +2732,19 @@ _begin( main )
 					"Have you set the HLAINC environment variable properly?\n"
 				);
 				_return( 1 );
-					
-					
+				
 			_endif
-
-			strcpy( environment, "hlainc=" );
-			strcat( environment, hlaincPath );
-			envResult = strdup( environment );
-			assert( envResult != NULL );
-			putenv( envResult );
-			
+				
 		_endif
-	}	
-	#endif
+
+		strcpy( environment, "hlainc=" );
+		strcat( environment, hlaincPath );
+		envResult = strdup( environment );
+		assert( envResult != NULL );
+		putenv( envResult );
+		
+	_endif
+		
 
 	// Note: if tempPath is non-NULL, that means that it was set
 	// from the command line and we don't want to change it here.
