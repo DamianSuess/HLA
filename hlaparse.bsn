@@ -13531,6 +13531,7 @@ regexItems:
 			_endif
 			_here;
 		}
+	;
 		
 		
 optionalConcat:
@@ -32663,6 +32664,7 @@ ValueDef:		startParmOfsTkn assignTkn ConstOnlyExpr Semicolon
 
 					
 			}
+		;
 
 
 
@@ -32682,6 +32684,7 @@ ValueDef:
 
 				
 		}
+	;
 
 
 
@@ -32701,6 +32704,7 @@ ValueDef:
 
 					
 			}
+		;
 
 
 
@@ -69914,6 +69918,7 @@ SingleStmt:
 			$<returns>$ = hlastrdup( "st0" );
 			_here;
 		}
+	;
 
 
 
@@ -73508,6 +73513,7 @@ leaProc:
 		{
 			$<s>$ = $<s>1;
 		}
+	;
 
 
 SingleStmt:
