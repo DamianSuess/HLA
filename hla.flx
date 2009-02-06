@@ -5050,9 +5050,9 @@ _zstring		zstring
 								includeLibList = temp;
 
 							_endif
+							includeLibList->lib = strdup( d1ceReturnVal.v.u.strval );
 							
 						_endif
-						includeLibList->lib = strdup( d1ceReturnVal.v.u.strval );
 							 
                     _endif
                     FreeValue( &d1ceReturnVal );
