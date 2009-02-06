@@ -92340,6 +92340,15 @@ _begin( main )
 	** Create a linker response file here:
 	*/
 
+	_if( ResponseFile >= 2 )
+	
+		// If we're forcing the creation of a new link file,
+		// begin by deleting the old one if it exists.
+		
+		unlink( LinkName );
+		
+	_endif
+	
 	
 	_if
 	( 
