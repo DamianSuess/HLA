@@ -9700,6 +9700,11 @@ _begin( prefixName )
     int  len;
     
     root = strrchr( filename, '\\' );
+	_if( root == NULL )
+	
+		root = strrchr( filename, '/' );
+		
+	_endif
     _if( root == NULL )
 
         strcpy( result, "" );
