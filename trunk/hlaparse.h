@@ -2214,7 +2214,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 927 "hlaparse.bsn"
+#line 928 "hlaparse.bsn"
 {
 	unsigned				u;
 	int						i;

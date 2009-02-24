@@ -524,6 +524,8 @@ _begin( Help )
 		"\n" 
 		"  -obj:path Use <path> as the directory to hold the object files.\n"
 		"\n"
+		"  -inc:path Application-specific include path.\n"
+		"\n"
 		"  -i:path   Include path (used to override HLAINC "
 		             "environment variable).\n"
 		"\n"
@@ -543,6 +545,9 @@ _begin( Help )
 			"\n"
 			"  hlainc=<path>        Sets path to HLA include subdirectory\n"
 			"                         (e.g., c:\\hla\\include)\n"
+			"\n"
+			"  hlaauxinc=<path>     Sets path to HLA app-specific include\n"
+			"                         subdirectory.\n"
 			"\n"
 			"  hlatmp=<path>        Sets path to directory to hold temp "
 			                      "files (optional)\n"
@@ -1889,6 +1894,45 @@ _begin( doCmdLine)
 					putenv( newPath );
 					
 				_endif
+		
+
+			// Check for the "-INC:<path>" command line parameter
+			// to specify the application-specific include path 
+			// for header files.
+			
+			_elseif( strncmp( ucArg, "INC:", 2 ) == 0 )
+			
+				int  lastPosn;
+				char *newPath;
+				char *incPath;
+			
+				incPath = &argv[ CurArg ][5];
+				lastPosn = strlen( incPath ) - 1;
+				_if( lastPosn > 0 )
+				
+					// Remove any trailing slash or backslash;  We'll
+					// manually add this.
+					
+					_if
+					( 
+							incPath[ lastPosn ] == '\\' 
+						||	incPath[ lastPosn ] == '/' 
+					)
+					
+						incPath[ lastPosn ] = '\0';
+						--lastPosn;
+						
+					_endif
+					
+					newPath = malloc( lastPosn + 10 );
+					strcpy( newPath, "hlaauxinc=" );
+					lastPosn = strcat( newPath, incPath ) - newPath;
+					lastPosn = strlen( strcat );
+					newPath[ lastPosn ] = DIR_SEP_CHAR;
+					newPath[ lastPosn+1 ] = '\0';
+					putenv( newPath );
+					
+				_endif
 				
 
 			// Check for the "-LIB:<path>" command line parameter
@@ -3047,6 +3091,12 @@ _begin( main )
 		envVar = getenv( "hlainc" );
 		assert( envVar != NULL );
 		fprintf( MsgOut, "HLA include path: %s\n", envVar );
+		envVar = getenv( "hlaauxinc" );
+		_if( envVar != NULL )
+		
+			fprintf( MsgOut, "HLA app-specific include path: %s\n", envVar );
+			
+		_endif
 		assert( tempPath != NULL );
 		fprintf( MsgOut, "HLA temp path:    %s\n", tempPath );
 		envVar = getenv( "lib" );

@@ -496,6 +496,7 @@ extern FILE *readHandle;
 extern FILE *PrintOut;
 
 extern char *hlainc;
+extern char *hlaauxinc;
 extern char *yytext;
 extern char *InvisibleCode;
 extern int LineCnt;
