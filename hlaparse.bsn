@@ -283,6 +283,7 @@ int EnterDefault = 1;	// "1" means "no enter, use manual"
  */
 	
 char	*hlainc  	= NULL;	/* Path to HLA include directory.				*/
+char	*hlaauxinc  = NULL;	/* Path to app-specific include directory.		*/
 char 	*outPath 	= NULL;	/* hlatmp:Path prefix used for output files.	*/
 char	*objPath 	= NULL;	/* -obj:obj output path for object files.		*/
 
@@ -91413,6 +91414,7 @@ _begin( main )
 	*/
 
 	hlainc = getenv( "hlainc" );
+	hlaauxinc = getenv( "hlaauxinc" );
 	outPath = getenv( "hlatmp" );
 	_if( outPath == NULL )
 	
@@ -91934,6 +91936,7 @@ _begin( main )
 			"File: %s\n"
 			"Output Path: \"%s\"\n"
 			"hlainc Path: \"%s\"\n"
+			"hlaauxinc Path: \"%s\"\n"
 			"Compiler running under %s OS\n"
 			"Back-end assembler: %s%s\n"
 			"Language Level: %s\n"
@@ -91944,6 +91947,7 @@ _begin( main )
 			SourceFile,
 			outPath,
 			hlainc,
+			hlaauxinc,
 			OSChoiceStrs[ targetOS ],
 			_ifx( assembler == gas && gasSyntax == macGas, "Mac OSX ", "" ),
 			ASMChoiceStrs[assembler],

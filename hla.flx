@@ -4825,6 +4825,28 @@ _zstring		zstring
                         
                         _endif
 
+                        _if( theFile == NULL && hlaauxinc != NULL )
+
+                            int  len;
+
+                            len = strlen( hlaauxinc );
+                            strcpy( path, hlaauxinc );
+                            _if
+                            ( 
+                                    path[ len - 1 ] != '/' 
+                                &&  path[ len - 1 ] != '\\' 
+                            )
+
+                                path[ len ] = DIR_SEP_CHAR;
+                                path[ len+1 ] = '\0';
+
+                            _endif
+                            strcat( path, d1ceReturnVal.v.u.strval );
+
+                            theFile = fopen( path, "r" );
+
+                        _endif
+
                         _if( theFile == NULL && hlainc != NULL )
 
                             int  len;
@@ -4933,6 +4955,27 @@ _zstring		zstring
                         
                         _endif
 
+                        _if( theFile == NULL && hlaauxinc != NULL )
+
+                            int  len;
+
+                            len = strlen( hlaauxinc );
+                            strcpy( path, hlaauxinc );
+                            _if
+                            ( 
+                                    path[ len - 1 ] != '/' 
+                                &&  path[ len - 1 ] != '\\' 
+                            )
+
+                                path[ len ] = DIR_SEP_CHAR;
+                                path[ len+1 ] = '\0';
+
+                            _endif
+                            strcat( path, d1ceReturnVal.v.u.strval );
+                            theFile = fopen( path, "r" );
+
+                        _endif
+						
                         _if( theFile == NULL && hlainc != NULL )
 
                             int  len;
