@@ -7167,7 +7167,7 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 )
+				SetReferenced( $<s>1 );
 				_here;
 			}
 
