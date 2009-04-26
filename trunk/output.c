@@ -16990,6 +16990,7 @@ _begin( EmitLabelledTbyteConst )
 				asmPrintf( ":%s\n", label );
 				
 			_endif
+			asmPrintf( hlabe_tbyte "$" );
 			_for( int i=9, i>=0, --i )
 			
 				asmPrintf
@@ -18421,7 +18422,23 @@ _begin( EmitArrayConst )
 		
 		_case( hlabe )
 		
-			asmPrintf( hlabe_dup "$%x,$%x\n", elements, value );
+			_if( pType == tByte )
+			 
+				asmPrintf( hlabe_dupb "$%x,$%x\n", elements, value );
+			
+			_elseif( pType == tWord )
+			 
+				asmPrintf( hlabe_dupw "$%x,$%x\n", elements, value );
+			
+			_elseif( pType == tDWord )
+			 
+				asmPrintf( hlabe_dupd "$%x,$%x\n", elements, value );
+				
+			_else
+			
+				assert( "Unexpected hlabe_dup value" == NULL );
+				
+			_endif
 			
 		_endcase
 		
@@ -27788,7 +27805,14 @@ _begin( OutputMemParm )
 				** to the actual parameter here.
 				*/
 
-				_if( abt != NULL && abt->pType == tArray )
+				_if
+				( 
+						abt != NULL 
+					&&	(
+								abt->pType == tArray
+							||	abt->pType == tPointer 
+						)
+				)
 
 					abt = GetBaseType( abt );
 
@@ -27803,6 +27827,7 @@ _begin( OutputMemParm )
 					*/
 
 					_case( refp_pc )
+
 						_if
 						(
 								formal->Type == &variant_ste
@@ -27876,10 +27901,12 @@ _begin( OutputMemParm )
 							sprintf
 							( 
 								msg, 
-								"Reference parameter type mismatch for %s, "
-								"expected type %s",
+								"Reference parameter type mismatch for %s,\n"
+								"expected type %s,\n"
+								"encountered %s",
 								formal->TrueName,
-								formal->Type->TrueName
+								formal->Type->TrueName,
+								actual->BaseType->TrueName
 							);
 								
 
