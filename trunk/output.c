@@ -2166,7 +2166,7 @@ _begin( EmitOffset )
 	
 		asmPrintf
 		( 
-			hlabe_dword "%s%s%d\n",
+			hlabe_dword "%s%%d\n",
 			offset,
 			_ifx( disp < 0, "", "+" ),
 			disp
