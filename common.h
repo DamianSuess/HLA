@@ -377,6 +377,7 @@ struct FwdRefLabelType
 	char					*StaticName;
 	int						lexLevel;
 	int						isExternal;
+	int						referenced;
 };
 
 

@@ -478,6 +478,7 @@ _begin( CheckStatic )
 					
 				_endif
 				StaticList->Fixed = 1;
+				SetReferenced( StaticList->DefinedSym );
 
 			_else
 
@@ -521,6 +522,7 @@ _begin( CheckStatic )
 					&&	StaticSymEntry->StaticName != NULL 
 				)
 
+					SetReferenced( StaticSymEntry );
 					_if
 					( 
 						_strne
@@ -543,7 +545,7 @@ _begin( CheckStatic )
 					_endif
 					StaticList->Fixed = 1;
 								
-				_endif
+				_endif				
 
 			_endif
 
@@ -939,6 +941,22 @@ _begin( CheckFwdRef )
 						
 					_endif
 
+				_endif
+				
+			_else
+			
+				// If the symbol is external, we need to reference it
+				// if the reference bit in the forward list is set.
+				
+				_if( flist->referenced )
+				
+					s = lookup( flist->label, 1 );
+					_if( s != NULL )
+					
+						SetReferenced( s );
+						
+					_endif
+				
 				_endif
 				
 			_endif
@@ -1716,7 +1734,6 @@ _begin( extLookup )
 
 	index ^= (CurChar - theLabel ) & 2047;
 	
-			
 	// Okay, this gives us an index into the hash table.
 	// See if there's a corresponding entry in the hash table.
 
@@ -1788,7 +1805,7 @@ _begin( extLookup )
 	// in for Sym).
 	
 	_if( sym != NULL )
-	
+
 		sym->IsReferenced = CurSym;
 		
 	_endif

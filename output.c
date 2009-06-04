@@ -4937,6 +4937,7 @@ _begin( str_instr )
 			_endcase
 			
 			_case( hla )
+			_case( hlabe )
 			
 				asmTestMode( str_strs[2][ instr ], testMode );
 				
@@ -14498,6 +14499,8 @@ _begin( processCondJump )
 
 		_if( flist != NULL )
 
+			flist->referenced = 1;
+			
 			/*
 			** We found the symbol in the forward reference
 			** list.  So just use the StaticName field of the
@@ -14532,6 +14535,7 @@ _begin( processCondJump )
 				temp->label = hlastrdup( target );
 				temp->lexLevel = CurLexLevel;
 				temp->isExternal = 0;
+				temp->referenced = 1;
 				sprintf( sn, "%s" sympost "%d", target, LblCntr++ );
 				temp->StaticName = hlastrdup( sn );
 				assert( temp->StaticName != NULL );
@@ -15733,6 +15737,8 @@ _begin( callUndefSym )
 
 		_if( flist != NULL )
 
+			flist->referenced = 1;
+			
 			/*
 			** We found the symbol in the forward reference
 			** list.  So just use the StaticName field of the
@@ -15767,6 +15773,7 @@ _begin( callUndefSym )
 				temp->label = hlastrdup2( undefSym );
 				temp->lexLevel = CurLexLevel;
 				temp->isExternal = 0;
+				temp->referenced = 1;
 				assert( temp->label != NULL );
 				sprintf( sn, "%s" sympost "%d", undefSym, LblCntr++ );
 				temp->StaticName = hlastrdup2( sn );
@@ -16083,6 +16090,8 @@ _begin( jmpTargetID )
 
 		_if( flist != NULL )
 
+			flist->referenced = 1;
+			
 			/*
 			** We found the symbol in the forward reference
 			** list.  So just use the StaticName field of the
@@ -16120,6 +16129,7 @@ _begin( jmpTargetID )
 				temp->label = hlastrdup2( jmpSym );
 				temp->lexLevel = CurLexLevel;
 				temp->isExternal = 0;
+				temp->referenced = 1;
 				assert( temp->label != NULL );
 				sprintf( sn, "%s" sympost "%d", jmpSym, LblCntr++ );
 				temp->StaticName = hlastrdup2( sn );
@@ -16706,10 +16716,15 @@ _begin( EmitGlobalStmtLbl )
 
 	asmPrintf
 	(
-		"%s%s:%s\n",
+		"%s%s%s\n",
 		_ifx( assembler == hlabe, ":", "" ),
 		label,
-		_ifx( (assembler==masm || assembler==tasm), ":", "" )
+		_ifx
+		( 
+			assembler == hlabe, 
+			"",
+			_ifx( (assembler==masm || assembler==tasm), "::", ":" )
+		)
 	);
 
 _end( EmitGlobalStmtLbl )
@@ -20191,7 +20206,7 @@ _begin( EmitBooleanExpr )
 					
 					asmPrintf
 					(
-						"%s:\n",
+						":%s\n",
 						newLblc
 					);
 				
@@ -22849,6 +22864,7 @@ _begin( HexToStr )
 				_return sprintf( dest, "0x%x", hex );
 				
 			_case( hla )
+			_case( hlabe );
 			
 				_return sprintf( dest, "$%x", hex );
 				
@@ -22909,6 +22925,20 @@ _begin( HexToStr64 )
 				
 			_endcase
 			
+			_case( hla )
+			_case( hlabe )
+			
+				_return 
+					sprintf
+					( 
+						dest, 
+						"$%x%08xh", 
+						value->v.u.lwordval[1], 
+						value->v.u.lwordval[0] 
+					);
+				
+			_endcase
+			
 		_endswitch
 		assert( !"Bad assembler value" );
 		_return 0;
@@ -22931,6 +22961,29 @@ _begin( HexToStr80 )
 						dest, 
 						"0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x," 
 						"0x%x,0x%x", 
+						value->v.u.bytes[0], 
+						value->v.u.bytes[1], 
+						value->v.u.bytes[2], 
+						value->v.u.bytes[3], 
+						value->v.u.bytes[4], 
+						value->v.u.bytes[5], 
+						value->v.u.bytes[6], 
+						value->v.u.bytes[7], 
+						value->v.u.bytes[8], 
+						value->v.u.bytes[9] 
+					);
+				
+			_endcase
+			
+			_case( hla )
+			_case( hlabe )
+			
+				_return 
+					sprintf
+					( 
+						dest, 
+						"$%x,$%x,$%x,$%x,$%x,$%x,$%x,$%x," 
+						"$%x,$%x", 
 						value->v.u.bytes[0], 
 						value->v.u.bytes[1], 
 						value->v.u.bytes[2], 
@@ -23022,6 +23075,35 @@ _begin( HexToStr128 )
 						dest, 
 						"0%xh,0%xh,0%xh,0%xh,0%xh,0%xh,0%xh,0%xh," 
 						"0%xh,0%xh,0%xh,0%xh,0%xh,0%xh,0%xh,0%xh", 
+						value->v.u.bytes[0], 
+						value->v.u.bytes[1], 
+						value->v.u.bytes[2], 
+						value->v.u.bytes[3], 
+						value->v.u.bytes[4], 
+						value->v.u.bytes[5], 
+						value->v.u.bytes[6], 
+						value->v.u.bytes[7], 
+						value->v.u.bytes[8], 
+						value->v.u.bytes[9], 
+						value->v.u.bytes[10], 
+						value->v.u.bytes[11], 
+						value->v.u.bytes[12], 
+						value->v.u.bytes[13], 
+						value->v.u.bytes[14], 
+						value->v.u.bytes[15] 
+					);
+				
+			_endcase
+			
+			_case( hla )
+			_case( hlabe )
+			
+				_return 
+					sprintf
+					( 
+						dest, 
+						"$%x,$%x,$%x,$%x,$%x,$%x,$%x,$%x," 
+						"$%x,$%x,$%x,$%x,$%x,$%x,$%x,$%x", 
 						value->v.u.bytes[0], 
 						value->v.u.bytes[1], 
 						value->v.u.bytes[2], 

@@ -14,7 +14,7 @@
 ** debug.h must be first!
 */
 
-%{
+%{				 
 
 #define YYERROR_VERBOSE 1
 #define YYDEBUG 0
@@ -21737,6 +21737,7 @@ procs:		procedureTkn		/* $1  */
 			Semicolon			/* $13 */
 			{
 				struct SymNode	*ParmList;
+				struct SymNode	*localProcDcl;
 				char			*CurrentType;
 				struct SymNode	value;
 
@@ -21763,14 +21764,21 @@ procs:		procedureTkn		/* $1  */
 
 				_endif
 
+
+				// On return. u.proc.parms points at the local
+				// declaration for this procedure. Save it so
+				// we can use that data later.
+				
+				localProcDcl = $<en.s>6->u.proc.parms;
+
 				/*
 				** Change the static name to correspond to the
 				** external name of this procedure.  Note that
 				** we need to update the name in two places.
 				*/
 
-				free2( vss $<en.s>6->u.proc.parms->StaticName );
-				$<en.s>6->u.proc.parms->StaticName = hlastrdup2( $<idStr>12 );
+				free2( vss localProcDcl->StaticName );
+				localProcDcl->StaticName = hlastrdup2( $<idStr>12 );
 
 				free2( vss $<en.s>6->StaticName );
 				$<en.s>6->StaticName = $<idStr>12;
@@ -21799,9 +21807,9 @@ procs:		procedureTkn		/* $1  */
 				*/
 
 
-				$<en.s>6->u.proc.parms->u.proc.parms = SymbolTable;
-				$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>9;
-				$<en.s>6->u.proc.parms->u.proc.use = $<options.use>9;
+				localProcDcl->u.proc.parms = SymbolTable;
+				localProcDcl->u.proc.returns = $<options.returns>9;
+				localProcDcl->u.proc.use = $<options.use>9;
 
 
 
@@ -21875,8 +21883,11 @@ procs:		procedureTkn		/* $1  */
 				*/
 
 				CurrentContext = $<en.s>6;
+				localProcDcl->IsExternal = 1;
 				CheckStatic( StaticList, 0 );
 				CurrentContext = $<s>5;
+				$<en.s>6->IsReferenced = localProcDcl->IsReferenced;
+				
 
 
 
@@ -24568,7 +24579,7 @@ FwdMethod:
 			$<en.s>7->u.proc.returns = $<options.returns>10;
 			$<en.s>7->u.proc.use = $<options.use>10;
 
-			// Iterators always use the pascal calling sequence
+			// Methods always use the pascal calling sequence
 			
 			$<en.s>7->u.proc.parms->u.proc.cs = pascal_cs;
 			$<en.s>7->u.proc.cs = pascal_cs;
@@ -25446,6 +25457,245 @@ FwdMethod:
 
 		
 		
+ /*
+ ** Handle an overridden iterator declaration that appears within a class.
+ */
+
+oiID:
+		overrideTkn			/* $1 */
+		iteratorTkn			/* $2 */
+		LocalIterID			/* $3 */
+		{
+			$<s>$ = $<s>3; 
+		}
+
+	|	overrideTkn
+		iteratorTkn
+		NonLocalIterID /* Need this because lex level is probably -256 */
+		{ 
+			$<s>$ = $<s>3; 
+		}
+
+	|	overrideTkn
+		iteratorTkn
+		ClassIterID /* Need this because lex level is probably -256 */
+		{ 
+			$<s>$ = $<s>3; 
+		}
+	;
+
+
+
+
+FwdMethod:	
+		oiID		 		/* $1 */
+		Semicolon			/* $2 */
+		{					/* $3 */
+
+			char   StaticName[ 256 ];
+			struct MethodListType	*ml;
+			struct SymNode *sym;
+
+
+			_here;
+
+			/*
+			** Verify that the lex level of the original iterator
+			** is the same as the current lex level (provided by $0).
+			*/
+
+			_if( $<s>1->LexLevel != $<v.u.intval>0 )
+
+				yyerror
+				( 
+					"Lex level of overriden iterator does not match\n"
+					"the lex level of the original iterator"
+				);
+
+			_endif
+
+			/*
+			** Change the symbol's static ID at this point.
+			*/
+
+			sym = lookupin( $<s>1->TrueName, $<s>1->u.proc.parms );
+			
+			sprintf( StaticName, "%s" sympost "%d", $<s>1->TrueName, LblCntr++ );
+			free2( vss $<s>1->StaticName );
+			$<s>1->StaticName = hlastrdup2( StaticName );
+			_if( sym != NULL )
+
+				sym->StaticName = hlastrdup2( StaticName );
+
+			_endif
+
+			/*
+			** Ensure that this is not an external ID.
+			*/
+
+			$<s>1->IsExternal = 0;
+			SetReferenced( $<s>1 );
+
+
+			/*
+			** Set the BaseClass field to point at the base
+			** class for this symbol.
+			*/
+
+			$<s>1->u.proc.BaseClass = ClassPtr;
+
+
+
+			/*
+			** This is a forward iterator, so mark it as such
+			** in the symbol table.
+			*/
+
+			$<s>1->u.proc.Forward = $<s>1; /* Any non-NULL value works */
+
+
+			/*
+			** Add this method to the
+			** Method List so we can check later to see
+			** if it has been properly defined.
+			*/
+
+			ml = malloc2( sizeof( struct MethodListType ));
+			ml->Next = MethodList;
+			MethodList = ml;
+
+			ml->ClassSym = ClassPtr;
+			ml->MethodSym = $<s>1;
+			ml->LexLevel = CurLexLevel;
+
+			_here;
+		}
+	;
+
+
+
+
+
+
+	/*
+	** Handle an overridden external method here.
+	*/
+
+FwdMethod:	
+		oiID		 	/* $1 */
+		Semicolon		/* $2 */
+		externalTkn		/* $3 */
+		{				/* $4 */ 
+
+			char DefaultName[ 256 ];
+
+			/*
+			** We need to pass the default external name to the
+			** OptionalExtName production to use if there is no
+			** external name explicitly supplied.  The default
+			** name is:
+			**
+			**	<classname> + "_" + <itername>
+			*/
+			
+			strcpy( DefaultName, ClassPtr->TrueName );
+			strcat( DefaultName, "_" );
+			strcat( DefaultName, $<s>1->TrueName );
+			$<idStr>$ = hlastrdup2( DefaultName ); 
+		} 
+		OptionalExtName	/* $5 */ 
+		{				/* $6 */
+
+			char   StaticName[ 256 ];
+			struct MethodListType	*ml;
+			struct SymNode	*sym;
+
+
+			_here;
+
+			/*
+			** Verify that the lex level of the original iterator
+			** is the same as the current lex level (provided by $0).
+			*/
+
+			_if( $<s>1->LexLevel != $<v.u.intval>0 )
+
+				yyerror
+				( 
+					"Lex level of overriden iterator does not match\n"
+					"the lex level of the original iterator"
+				);
+
+			_endif
+
+			/*
+			** Change the symbol's static ID at this point.
+			*/
+
+			free2( vss $<s>1->StaticName );
+			$<s>1->StaticName = $<idStr>5;
+			sym = lookupin( $<s>1->TrueName, $<s>1->u.proc.parms );
+			_if( sym != NULL )
+
+				sym->StaticName = hlastrdup2( $<idStr>5 );
+
+			_endif
+
+			/*
+			** Ensure that this is an external ID.
+			*/
+
+			$<s>1->IsExternal = 1;
+
+			/*
+			** Set the BaseClass field to point at the base
+			** class for this symbol.
+			*/
+
+			$<s>1->u.proc.BaseClass = ClassPtr;
+
+
+
+			/*
+			** This is a forward iterator, so mark it as such
+			** in the symbol table.
+			*/
+
+			$<s>1->u.proc.Forward = $<s>1; /* Any non-NULL value works */
+
+
+			/*
+			** Add this method to the
+			** Method List so we can check later to see
+			** if it has been properly defined.
+			*/
+
+			ml = malloc2( sizeof( struct MethodListType ));
+			ml->Next = MethodList;
+			MethodList = ml;
+
+			ml->ClassSym = ClassPtr;
+			ml->MethodSym = $<s>1;
+			ml->LexLevel = CurLexLevel;
+
+			/*
+			** Output an externdef directive to keep MASM happy.
+			*/
+
+			EmitTypedExtern( $<s>1, $<s>1->StaticName, tLabel );
+			(void) $<idStr>4;	// shut up bison
+			_here;
+		}
+	;
+
+
+
+
+
+
+
+
+
 
 
  /*
@@ -31526,6 +31776,7 @@ FwdLabels:
 				sprintf( sn, "%s" sympost "%d", $<idStr>2, LblCntr++ );
 				temp->StaticName = hlastrdup2( sn );
 				temp->isExternal = 0;
+				temp->referenced = 0;
 				FwdLabelsList = temp;
 
 					
@@ -31581,7 +31832,7 @@ FwdLabels:
 					NULL,				/* Value		*/
 					0,					/* ObjectSize	*/
 					0,					/* Offset		*/
-					hlastrdup2( sn ),		/* Static Name	*/
+					hlastrdup2( sn ),	/* Static Name	*/
 					NULL,				/* Base			*/
 					NULL,				/* Fields		*/
 					0					/* FieldCnt		*/
@@ -47289,7 +47540,8 @@ StaticExpr:
 				// Okay, it's in the forward list, just use the
 				// static name we find there:
 				
-				$<idStr>$ = hlastrdup2( flist->StaticName );			
+				$<idStr>$ = hlastrdup2( flist->StaticName );
+				flist->referenced = 1;			
 
 			_else
 			
@@ -47388,6 +47640,7 @@ StaticExpr:
 					$<v.u.intval>4 
 				);
 				$<idStr>$ = hlastrdup2( StaticName );
+				flist->referenced = 1;
 
 			_else
 
@@ -63715,6 +63968,13 @@ OneStmt:
 			_if( flist != NULL )
 
 				/*
+				** It's defined here, so may as well set the
+				** referenced flag
+				*/
+				
+				flist->referenced = 1;
+				
+				/*
 				** Okay, we've found a forward referenced
 				** label, so use its StaticName entry.
 				*/
@@ -63841,6 +64101,8 @@ OneStmt:
 
 			_if( flist != NULL )
 
+				flist->referenced = 1;	// Defined here, so set referenced.
+				
 				/*
 				** Okay, we've found a forward referenced
 				** label, so use its StaticName entry.
@@ -73634,6 +73896,8 @@ SingleStmt:
 
 			_if( flist != NULL )
 
+				flist->referenced = 1;
+				
 				/*
 				** We found the symbol in the forward reference
 				** list.  So just use the StaticName field of the
@@ -73667,6 +73931,7 @@ SingleStmt:
 					temp->label = hlastrdup2( $<idStr>5 );
 					temp->lexLevel = CurLexLevel;
 					temp->isExternal = 0;
+					temp->referenced = 1;
 					sprintf( sn, "%s" sympost "%d", $<idStr>5, LblCntr++ );
 					temp->StaticName = hlastrdup2( sn );
 					FwdLabelsList = temp;
@@ -73723,6 +73988,8 @@ SingleStmt:
 
 			_if( flist != NULL )
 
+				flist->referenced = 1;
+				
 				/*
 				** We found the symbol in the forward reference
 				** list.  So just use the StaticName field of the
@@ -73755,6 +74022,7 @@ SingleStmt:
 					temp->label = hlastrdup2( $<idStr>3 );
 					temp->lexLevel = CurLexLevel;
 					temp->isExternal = 0;
+					temp->referenced = 1;
 					sprintf( sn, "%s" sympost "%d", $<idStr>3, LblCntr++ );
 					temp->StaticName = hlastrdup2( sn );
 					FwdLabelsList = temp;
@@ -82442,6 +82710,8 @@ SingleStmt:
 
 				_if( flist != NULL )
 
+					flist->referenced = 1;
+					
 					/*
 					** We found the symbol in the forward reference
 					** list.  So just use the StaticName field of the
@@ -82471,6 +82741,7 @@ SingleStmt:
 					sprintf( target, "%s" sympost "%d", $<idStr>8, LblCntr++ );
 					temp->StaticName = hlastrdup2( target );
 					temp->isExternal = 0;
+					temp->referenced = 0;
 					FwdLabelsList = temp;
 					EmitBackPatchds
 					(
@@ -82637,6 +82908,8 @@ SingleStmt:
 
 				_if( flist != NULL )
 
+					flist->referenced = 1;
+					
 					/*
 					** We found the symbol in the forward reference
 					** list.  So just use the StaticName field of the
@@ -82667,6 +82940,7 @@ SingleStmt:
 					temp->label = hlastrdup2( $<idStr>8 );
 					temp->lexLevel = CurLexLevel;
 					temp->isExternal = 0;
+					temp->referenced = 1;
 					sprintf( target, "%s" sympost "%d", $<idStr>8, LblCntr++ );
 					temp->StaticName = hlastrdup2( target );
 					FwdLabelsList = temp;
@@ -82843,6 +83117,8 @@ EmitJmp:
 
 				_if( flist != NULL )
 
+					flist->referenced = 1;
+					
 					/*
 					** We found the symbol in the forward reference
 					** list.  So just use the StaticName field of the
@@ -82871,6 +83147,7 @@ EmitJmp:
 						temp->label = hlastrdup2( $<idStr>-1 );
 						temp->lexLevel = CurLexLevel;
 						temp->isExternal = 0;
+						temp->referenced = 1;
 						sprintf( target, "%s" sympost "%d", $<idStr>-1, LblCntr++ );
 						temp->StaticName = hlastrdup2( target );
 						FwdLabelsList = temp;
