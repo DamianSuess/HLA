@@ -862,6 +862,8 @@ _begin( hla2asmDrctv )
 
 		
 		_case( fasm )
+		_case( masm )
+		_case( tasm )
 
 			_switch( pType )
 			
@@ -894,46 +896,6 @@ _begin( hla2asmDrctv )
 					
 				_case( tReal80 )
 					_return "dt";
-					
-			_endswitch
-			_return NULL;
-			
-		
-		_case( masm )
-		_case( tasm )
-
-
-			_switch( pType )
-			
-				_case( tByte )
-					_return "db";
-			
-				_case( tWord )
-					_return "dw";
-				
-				_case( tDWord )
-				   _return "dd";
-				
-				_case( tQWord )
-					_return "dq";
-				
-				_case( tTByte )
-					_return "dt";
-					
-				_case( tLWord )
-					_return NULL;
-				
-				_case( tLabel )
-					_return "";
-					
-				_case( tReal32 )
-					_return "real4";
-					
-				_case( tReal64 )
-					_return "real8";
-					
-				_case( tReal80 )
-					_return "real10";
 					
 			_endswitch
 			_return NULL;
@@ -2160,17 +2122,37 @@ void
 EmitOffset( char *offset, int disp )
 _begin( EmitOffset )
 
+	int offs;
+	
 	assert( offset != NULL );
 	assert( assembler != hla );	// This function is for object-code only!
+	
 	_if( assembler == hlabe )
 	
-		asmPrintf
-		( 
-			hlabe_dword "%s%%d\n",
-			offset,
-			_ifx( disp < 0, "", "+" ),
-			disp
-		);
+		_if( isdigit( *offset ) )
+		
+			// If the string begins with a numeric digit, then we've got
+			// a numeric constant (e.g., NULL )
+			
+			offs = parsePtrExpr( offset ) + disp;
+			asmPrintf
+			( 
+				hlabe_dword "$%x\n",
+				offs
+			);
+			
+		
+		_else
+		
+			asmPrintf
+			( 
+				hlabe_dword "%s%s%d\n",
+				offset,
+				_ifx( disp < 0, "", "+" ),
+				disp
+			);
+			
+		_endif
 
 	_else
 	
@@ -3246,6 +3228,17 @@ _begin( asmOneOperand )
 
 			_endcase
 			
+			_case( hlabe )
+
+				asmPrintf
+				(
+					";      %s( %s );\n",
+					instr,
+					operand
+				);
+
+			_endcase
+			
 			_case( masm )
 			_case( tasm )
 			_case( nasm )
@@ -3290,13 +3283,17 @@ asm1opr
 _begin( asm1opr )
 
 	assert( size >= -16 && size <=10 );
-	_if( sourceOutput )
+	_if( assembler != hlabe ) 
 	
-		asmOneOperand( instr, operand, size, 0 );
+		_if( sourceOutput )
 		
-	_elseif( testMode )
-	
-		asmOneOperand( instr, operand, size, 1 );
+			asmOneOperand( instr, operand, size, 0 );
+			
+		_elseif( testMode )
+		
+			asmOneOperand( instr, operand, size, 1 );
+			
+		_endif
 		
 	_endif
 			
@@ -3327,35 +3324,39 @@ _begin( asm1opm )
 	// Note: forcedSize must be handle external to this function!
 	
 	assert( size >= -16 && size <=10 );
-	_if( sourceOutput || testMode )
-	
-		forcedSize = abs( size );
-		_if
-		( 
-				(
-						assembler == nasm 
-					||	assembler == fasm
-				)
-			&&	adrs->forcedSize != 0 )
+	_if( assembler != hlabe ) 
 
-			forcedSize = adrs->forcedSize;
+		_if( sourceOutput || testMode )
+		
+			forcedSize = abs( size );
+			_if
+			( 
+					(
+							assembler == nasm 
+						||	assembler == fasm
+					)
+				&&	adrs->forcedSize != 0 )
+
+				forcedSize = adrs->forcedSize;
+
+			_endif
+			_if( forcedSize != 0 )
+			
+				adrs->Size = forcedSize;
+				
+			_endif			
+			MakeAdrsStr( adrsStr, adrs, forcedSize );
 
 		_endif
-		_if( forcedSize != 0 )
+		_if( sourceOutput )
 		
-			adrs->Size = forcedSize;
+			asmOneOperand( instr, adrsStr, size, 0 );
 			
-		_endif			
-		MakeAdrsStr( adrsStr, adrs, forcedSize );
-
-	_endif
-	_if( sourceOutput )
-	
-		asmOneOperand( instr, adrsStr, size, 0 );
+		_elseif( testMode )
 		
-	_elseif( testMode )
-	
-		asmOneOperand( instr, adrsStr, size, 1 );
+			asmOneOperand( instr, adrsStr, size, 1 );
+			
+		_endif
 		
 	_endif
 			
@@ -3418,6 +3419,18 @@ _begin( asmTwoOperand )
 				
 			_endcase
 			
+			_case( hlabe )
+			
+				asmPrintf
+				(
+					";      %s( %s, %s );\n",
+					instr,
+					srcOprnd,
+					destOprnd
+				);
+
+			_endcase
+			
 			_case( masm )
 			_case( tasm )
 			_case( fasm )
@@ -3466,14 +3479,18 @@ asm2oprr
 _begin( asm2oprr )
 
 	assert( size >= -16 && size <=10 );
-	_if( sourceOutput )
-	
-		asmTwoOperand( instr, srcOprnd, destOprnd, size, 0 );
+	_if( assembler != hlabe )
+	 
+		_if( sourceOutput )
 		
-	_elseif( testMode )
-	
-		asmTwoOperand( instr, srcOprnd, destOprnd, size, 1 );
+			asmTwoOperand( instr, srcOprnd, destOprnd, size, 0 );
+			
+		_elseif( testMode )
+		
+			asmTwoOperand( instr, srcOprnd, destOprnd, size, 1 );
 
+		_endif
+		
 	_endif
 		
 _end( asm2oprr )
@@ -3505,7 +3522,7 @@ _begin( asm2opcr )
 	
 		v->v.pType = tDWord;
 		v->v.Type = &dword_ste;
-		v->v.u.intval = atoi( v->v.u.strval );
+		v->v.u.intval = parsePtrExpr( v->v.u.strval );
 		
 	_endif
 	_if( v->v.pType != tPointer )
@@ -3542,6 +3559,15 @@ _begin( asm2opcr )
 				
 			_endcase
 			
+			_case( hlabe )
+			
+				// No source output at all for hlabe emission.
+				
+				sourceOutput = 0;
+				testMode = 0;
+				
+			_endcase
+				
 			_default
 				assert( !"Bad assembler value" );
 			
@@ -3589,7 +3615,7 @@ _begin( asm2opcm )
 	
 		v->v.pType = tDWord;
 		v->v.Type = &dword_ste;
-		v->v.u.intval = atoi( v->v.u.strval );
+		v->v.u.intval = parsePtrExpr( v->v.u.strval );
 		
 	_endif
 	forcedSize = abs( size );
@@ -3626,6 +3652,15 @@ _begin( asm2opcm )
 				_case( hla )
 				
 					sprintf( cnst, "&%s", v->v.u.strval );
+					
+				_endcase
+				
+				_case( hlabe )
+				
+					// No source output at all for hlabe emission.
+					
+					sourceOutput = 0;
+					testMode = 0;
 					
 				_endcase
 				
@@ -3815,6 +3850,13 @@ _begin( asmThreeOperand )
 				
 			_endcase
 			
+			_case( hlabe )
+			
+				// No source output at all for hlabe emission.
+				
+				
+			_endcase
+				
 			_case( masm )
 			_case( nasm )
 			_case( tasm )
@@ -13354,7 +13396,7 @@ _begin( EmitGeneric_i_r )
 	
 	_if( v->v.pType == tPointer && isdigit(*v->v.u.strval))
 	
-		v->v.u.intval = atoi( v->v.u.strval );
+		v->v.u.intval = parsePtrExpr( v->v.u.strval );
 		v->v.pType = tDWord;
 		v->v.Type = &dword_ste;
 		
@@ -13532,7 +13574,7 @@ _begin( EmitGeneric_i_r )
 			
 				v->v.pType = tDWord;
 				v->v.Type = &dword_ste;
-				v->v.u.unsval = atoi( v->v.u.strval );
+				v->v.u.unsval = parsePtrExpr( v->v.u.strval );
 				
 			_endif
 			_if( v->v.pType == tPointer )
@@ -13759,7 +13801,7 @@ _begin( EmitGeneric_i_m )
 			
 			_if( v->v.pType == tPointer && isdigit(*v->v.u.strval))
 			
-				v->v.u.intval = atoi( v->v.u.strval );
+				v->v.u.intval = parsePtrExpr( v->v.u.strval );
 				v->v.pType = tInt32;
 				
 			_endif  
@@ -14709,7 +14751,7 @@ _begin( EmitTest_c_r )
 	
 	_if( cnst->v.pType == tPointer && isdigit(*cnst->v.u.strval))
 	
-		cnst->v.u.intval = atoi( cnst->v.u.strval );
+		cnst->v.u.intval = parsePtrExpr( cnst->v.u.strval );
 		cnst->v.pType = tInt32;
 		
 	_endif  
@@ -17487,11 +17529,13 @@ _begin( EmitLabelledReal4Const )
 		
 			asmPrintf
 			(
-				"%-7s %s%s    %15.8e\n",
+				"%-7s %s.byte    0x%x,0x%x,0x%x,0x%x\n",
 				label,
-				_ifx( *label != '\0', ":", "" ),
-				_ifx( gasSyntax == macGas, ".single", ".float" ),  
-				theConst
+				_ifx( *label != '\0', ":", " " ),  
+				((unsigned char*) &theConst)[0],
+				((unsigned char*) &theConst)[1],
+				((unsigned char*) &theConst)[2],
+				((unsigned char*) &theConst)[3]
 			);
 			
 		_endcase
@@ -17501,9 +17545,12 @@ _begin( EmitLabelledReal4Const )
 		
 			asmPrintf
 			(
-				"%-7s dd         %15.8e\n",
+				   "%-7s db    0%xh,0%xh,0%xh,0%xh\n",
 				label,
-				theConst
+				((unsigned char*) &theConst)[0],
+				((unsigned char*) &theConst)[1],
+				((unsigned char*) &theConst)[2],
+				((unsigned char*) &theConst)[3]
 			);
 			
 		_endcase
@@ -17511,11 +17558,22 @@ _begin( EmitLabelledReal4Const )
 		_case( tasm )
 		_case( masm )
 		
+			_if( *label != '\0' )
+			
+				asmPrintf
+				(
+					"%-7s label real4\n",
+					label
+				);
+				
+			_endif
 			asmPrintf
 			(
-				"%-7s real4     %15.8e\n",
-				label,
-				theConst
+				"        db    0%xh,0%xh,0%xh,0%xh\n",
+				((unsigned char*) &theConst)[0],
+				((unsigned char*) &theConst)[1],
+				((unsigned char*) &theConst)[2],
+				((unsigned char*) &theConst)[3]
 			);
 			
 		_endcase
@@ -17579,10 +17637,17 @@ _begin( EmitLabelledReal8Const )
 		
 			asmPrintf
 			(
-				"%-7s %s.double    %24.18e\n",
+				"%-7s %s.byte    0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x,0x%x\n",
 				label,
-				_ifx( *label != '\0', ":", "" ),  
-				theConst
+				_ifx( *label != '\0', ":", " " ),  
+				((unsigned char*) &theConst)[0],
+				((unsigned char*) &theConst)[1],
+				((unsigned char*) &theConst)[2],
+				((unsigned char*) &theConst)[3],
+				((unsigned char*) &theConst)[4],
+				((unsigned char*) &theConst)[5],
+				((unsigned char*) &theConst)[6],
+				((unsigned char*) &theConst)[7]
 			);
 			
 		_endcase
@@ -17592,9 +17657,16 @@ _begin( EmitLabelledReal8Const )
 		
 			asmPrintf
 			(
-				"%-7s dq         %24.18e\n",
+				   "%-7s db    0%xh,0%xh,0%xh,0%xh,0%xh,0%xh,0%xh,0%xh\n",
 				label,
-				theConst
+				((unsigned char*) &theConst)[0],
+				((unsigned char*) &theConst)[1],
+				((unsigned char*) &theConst)[2],
+				((unsigned char*) &theConst)[3],
+				((unsigned char*) &theConst)[4],
+				((unsigned char*) &theConst)[5],
+				((unsigned char*) &theConst)[6],
+				((unsigned char*) &theConst)[7]
 			);
 			
 		_endcase
@@ -17602,11 +17674,26 @@ _begin( EmitLabelledReal8Const )
 		_case( tasm )
 		_case( masm )
 		
+			_if( *label != '\0' )
+			
+				asmPrintf
+				(
+					"%-7s label real8\n",
+					label
+				);
+				
+			_endif
 			asmPrintf
 			(
-				"%-7s real8     %24.18e\n",
-				label,
-				theConst
+				"        db    0%xh,0%xh,0%xh,0%xh,0%xh,0%xh,0%xh,0%xh\n",
+				((unsigned char*) &theConst)[0],
+				((unsigned char*) &theConst)[1],
+				((unsigned char*) &theConst)[2],
+				((unsigned char*) &theConst)[3],
+				((unsigned char*) &theConst)[4],
+				((unsigned char*) &theConst)[5],
+				((unsigned char*) &theConst)[6],
+				((unsigned char*) &theConst)[7]
 			);
 			
 		_endcase
@@ -17665,20 +17752,20 @@ _begin( EmitLabelledReal10Const )
 			
 				asmPrintf( ":%s\n", label );
 				
-			_endif
+			_endif				   
 			asmPrintf
 			(
-				hlabe_lword "$%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n",
-				(unsigned char) theConst.f.x[0],
-				(unsigned char) theConst.f.x[1],
-				(unsigned char) theConst.f.x[2],
-				(unsigned char) theConst.f.x[3],
-				(unsigned char) theConst.f.x[4],
-				(unsigned char) theConst.f.x[5],
-				(unsigned char) theConst.f.x[6],
-				(unsigned char) theConst.f.x[7],
+				hlabe_tbyte "$%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x\n",
+				(unsigned char) theConst.f.x[9],
 				(unsigned char) theConst.f.x[8],
-			    (unsigned char) theConst.f.x[9]
+				(unsigned char) theConst.f.x[7],
+				(unsigned char) theConst.f.x[6],
+				(unsigned char) theConst.f.x[5],
+				(unsigned char) theConst.f.x[4],
+				(unsigned char) theConst.f.x[3],
+				(unsigned char) theConst.f.x[2],
+				(unsigned char) theConst.f.x[1],
+			    (unsigned char) theConst.f.x[0]
 			);
 		
 		_endcase
@@ -17714,8 +17801,19 @@ _begin( EmitLabelledReal10Const )
 		
 			asmPrintf
 			(
-				"%-7s dt         %s\n",
+				   "%-7s db    0%xh,0%xh,0%xh,0%xh,0%xh,0%xh,0%xh,0%xh\n"
+				"        db    0%xh,0%xh ; %s\n",
 				label,
+				(unsigned char) theConst.f.x[0],
+				(unsigned char) theConst.f.x[1],
+				(unsigned char) theConst.f.x[2],
+				(unsigned char) theConst.f.x[3],
+				(unsigned char) theConst.f.x[4],
+				(unsigned char) theConst.f.x[5],
+				(unsigned char) theConst.f.x[6],
+				(unsigned char) theConst.f.x[7],
+				(unsigned char) theConst.f.x[8],
+			    (unsigned char) theConst.f.x[9],
 				realStr
 			);
 			
@@ -17724,10 +17822,29 @@ _begin( EmitLabelledReal10Const )
 		_case( tasm )
 		_case( masm )
 		
+			_if( *label != '\0' )
+			
+				asmPrintf
+				(
+					"%-7s label real10\n",
+					label
+				);
+				
+			_endif
 			asmPrintf
 			(
-				"%-7s real10     %s\n",
-				label,
+				"        db    0%xh,0%xh,0%xh,0%xh,0%xh,0%xh,0%xh,0%xh\n"
+				"        db    0%xh,0%xh ; %s\n",
+				(unsigned char) theConst.f.x[0],
+				(unsigned char) theConst.f.x[1],
+				(unsigned char) theConst.f.x[2],
+				(unsigned char) theConst.f.x[3],
+				(unsigned char) theConst.f.x[4],
+				(unsigned char) theConst.f.x[5],
+				(unsigned char) theConst.f.x[6],
+				(unsigned char) theConst.f.x[7],
+				(unsigned char) theConst.f.x[8],
+			    (unsigned char) theConst.f.x[9],
 				realStr
 			);
 			
@@ -19349,7 +19466,7 @@ _begin( EmitBackPatchds )
 		
 		_case( hlabe )
 		
-			sprintf( bp, hlabe_equate "%s,%s", sym, equals );
+			sprintf( bp, hlabe_equate "%s,%s", sn, equals );
 			
 		_endcase
 		
@@ -19532,7 +19649,7 @@ _begin( RtnOperand )
 
 		_if( oprnd->o.v.pType == tPointer && isdigit(*oprnd->o.v.u.strval))
 		
-			oprnd->o.v.u.intval = atoi( oprnd->o.v.u.strval );
+			oprnd->o.v.u.intval = parsePtrExpr( oprnd->o.v.u.strval );
 			oprnd->o.v.pType = tInt32;
 			
 		_endif  
@@ -22280,7 +22397,7 @@ _begin( OutValue )
 
 				_if( Value->v.pType == tPointer && isdigit(*Value->v.u.strval))
 				
-					Value->v.u.intval = atoi( Value->v.u.strval );
+					Value->v.u.intval = parsePtrExpr( Value->v.u.strval );
 					Value->v.pType = tInt32;
 					
 				_endif  
@@ -22641,7 +22758,7 @@ _begin( OutValue )
 							++CurElement
 						)
 							allTheSame = 
-								v.v.u.bytes[0] == CurValue->v.u.bytes[0];
+								v.v.u.bytes[0] == CurValue->v.u.bytes[CurElement];
 							
 							_breakif( !allTheSame );
 							++CurValue;
@@ -22659,7 +22776,7 @@ _begin( OutValue )
 							++CurElement
 						)
 							allTheSame = 
-								v.v.u.words[0] == CurValue->v.u.words[0];
+								v.v.u.words[0] == CurValue->v.u.words[CurElement];
 								
 							_breakif( !allTheSame );
 							++CurValue;
@@ -22678,7 +22795,7 @@ _begin( OutValue )
 							++CurElement
 						)
 							allTheSame = 
-								v.v.u.dwords[0] == CurValue->v.u.dwords[0];
+								v.v.u.dwords[0] == CurValue->v.u.dwords[CurElement];
 								
 							_breakif( !allTheSame );
 							++CurValue;
@@ -23321,51 +23438,191 @@ _begin( StaticConstToStr )
 			
 				_case( tReal32 ) 
 		
-					sprintf( dest, "%15.8e", *((float*) &value->v.u.fltval) );
+					_switch( assembler )
+					
+						_case( hlabe )
+					
+							sprintf
+							( 
+								dest, 
+								"$%08x", 
+								*((unsigned*) &value->v.u.fltval) 
+							);
+							
+						_endcase
+						
+						_case( masm )
+						_case( tasm )
+						_case( fasm )
+					
+							sprintf
+							( 
+								dest, 
+								"0%08xh", 
+								*((unsigned*) &value->v.u.fltval) 
+							);
+					
+						_endcase
+						
+						_case( nasm )
+						_case( gas )
+					
+							sprintf
+							( 
+								dest, 
+								"%15.8e", 
+								*((float*) &value->v.u.fltval) 
+							);
+							
+						_endcase
+						
+						_default
+						
+							assert( !"Unknown assembler value" );
+						
+					_endswitch
 					
 				_endcase
 				
 				_case( tReal64 ) 
 
-					sprintf( dest, "%24.18e", *((double*) &value->v.u.fltval) );
+					_switch( assembler )
+					
+						_case( hlabe )
+					
+							sprintf
+							( 
+								dest, 
+								"$%08x%08x", 
+								((unsigned*) &value->v.u.fltval)[1], 
+								((unsigned*) &value->v.u.fltval)[0] 
+							);
+							
+						_endcase
+						
+						_case( masm )
+						_case( tasm )
+						_case( fasm )
+					
+							sprintf
+							( 
+								dest, 
+								"0%08x%08xh", 
+								((unsigned*) &value->v.u.fltval)[1], 
+								((unsigned*) &value->v.u.fltval)[0] 
+							);
+					
+						_endcase
+						
+						_case( nasm )
+						_case( gas )
+					
+							sprintf
+							( 
+								dest, 
+								"%24.18e", 
+								*((double*) &value->v.u.fltval) 
+							);
+							
+						_endcase
+						
+						_default
+						
+							assert( !"Unknown assembler value" );
+						
+					_endswitch
 					
 				_endcase
 				
 				_case( tReal80 ) 
-		
-					_if( assembler == gas )
 					
-						char fpOperand[64];
+					_switch( assembler )
+					
+						_case( gas )
+						{
+					
+							char fpOperand[64];
+				
+							_if( e80Valid( value->v.u.fltval ))
 						
-						_if( e80Valid( value->v.u.fltval ))
+								e80Str( fpOperand, value->v.u.fltval );
+								sprintf
+								( 
+									dest, 
+									"0x%x,0x%x,0x%x,0x%x,0x%x,"
+									"0x%x,0x%x,0x%x,0x%x,0x%x   "
+									"/* %s */",
+									(unsigned char) value->v.u.fltval.f.x[0],
+									(unsigned char) value->v.u.fltval.f.x[1],
+									(unsigned char) value->v.u.fltval.f.x[2],
+									(unsigned char) value->v.u.fltval.f.x[3],
+									(unsigned char) value->v.u.fltval.f.x[4],
+									(unsigned char) value->v.u.fltval.f.x[5],
+									(unsigned char) value->v.u.fltval.f.x[6],
+									(unsigned char) value->v.u.fltval.f.x[7],
+									(unsigned char) value->v.u.fltval.f.x[8],
+									(unsigned char) value->v.u.fltval.f.x[9],
+									fpOperand
+								);
+								
+							_endif										
+						}
+						_endcase
 					
-							e80Str( fpOperand, value->v.u.fltval );
+						_case( hlabe )
+						
 							sprintf
 							( 
 								dest, 
-								"0x%x,0x%x,0x%x,0x%x,0x%x,"
-								"0x%x,0x%x,0x%x,0x%x,0x%x   "
-								"/* %s */",
-								(unsigned char) value->v.u.fltval.f.x[0],
-								(unsigned char) value->v.u.fltval.f.x[1],
-								(unsigned char) value->v.u.fltval.f.x[2],
-								(unsigned char) value->v.u.fltval.f.x[3],
-								(unsigned char) value->v.u.fltval.f.x[4],
-								(unsigned char) value->v.u.fltval.f.x[5],
-								(unsigned char) value->v.u.fltval.f.x[6],
-								(unsigned char) value->v.u.fltval.f.x[7],
-								(unsigned char) value->v.u.fltval.f.x[8],
+								"$%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
 								(unsigned char) value->v.u.fltval.f.x[9],
-								fpOperand
+								(unsigned char) value->v.u.fltval.f.x[8],
+								(unsigned char) value->v.u.fltval.f.x[7],
+								(unsigned char) value->v.u.fltval.f.x[6],
+								(unsigned char) value->v.u.fltval.f.x[5],
+								(unsigned char) value->v.u.fltval.f.x[4],
+								(unsigned char) value->v.u.fltval.f.x[3],
+								(unsigned char) value->v.u.fltval.f.x[2],
+								(unsigned char) value->v.u.fltval.f.x[1],
+								(unsigned char) value->v.u.fltval.f.x[0]
 							);
+							
+						_endcase
 						
-						_endif
 					
-					_elseif( e80Valid( value->v.u.fltval ))
+						_case( masm )
+						_case( tasm )
 					
-						e80Str( dest, value->v.u.fltval  );
+							sprintf
+							( 
+								dest, 
+								"0%02x%02x%02x%02x%02x%02x%02x%02x%02x%02xh",
+								(unsigned char) value->v.u.fltval.f.x[9],
+								(unsigned char) value->v.u.fltval.f.x[8],
+								(unsigned char) value->v.u.fltval.f.x[7],
+								(unsigned char) value->v.u.fltval.f.x[6],
+								(unsigned char) value->v.u.fltval.f.x[5],
+								(unsigned char) value->v.u.fltval.f.x[4],
+								(unsigned char) value->v.u.fltval.f.x[3],
+								(unsigned char) value->v.u.fltval.f.x[2],
+								(unsigned char) value->v.u.fltval.f.x[1],
+								(unsigned char) value->v.u.fltval.f.x[0]
+							);
+	
+						_endcase
 						
-					_endif
+						_case( nasm )
+						_case( fasm )
+						
+								e80Str( dest, value->v.u.fltval );
+								
+						_endcase
+							
+						_default
+						
+							assert( !"Unknown assembler value" );
+											
+					_endswitch
 					
 				_endcase
 				
@@ -25778,7 +26035,7 @@ _begin( EmitValpConst )
 			
 		_elseif( isdigit( *value->v.u.strval ))
 		
-			int intval = atoi( value->v.u.strval );
+			int intval = parsePtrExpr( value->v.u.strval );
 			
 			Pushd( intval );
 		

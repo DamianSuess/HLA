@@ -2017,7 +2017,7 @@ _end( CombineAttrs )
 /***************************************************************/
 
 
-void 
+struct	SymNode* 
 CreatePtrToProc
 ( 
 	char 			*newName, 
@@ -2036,6 +2036,8 @@ _begin( CreatePtrToProc )
 	struct SymNode *dummy;
 	struct SymNode temp;
 
+	saveSyms = NULL;
+	
 	_if( ct == cVar || ct == cParm )
 	
 
@@ -2179,6 +2181,7 @@ _begin( CreatePtrToProc )
 		);
 		
 	_endif
+	_return( saveSyms );
 	
 _end( CreatePtrToProc )
 

@@ -70,6 +70,42 @@ _begin( ForceFPLink )
 _end( ForceFPLink )
 
 
+
+//parsePtrExpr-
+//
+//Parses a pointer expression of the form dddd+dddd or dddd-dddd
+//that the compiler emits for @pointer( expr )+dddd.
+
+int
+parsePtrExpr( char *expr )
+_begin( parsePtrExpr )
+
+	int  disp = 0;
+	char *plusPt;
+	char *minusPt;
+	
+	plusPt = strchr( expr, '+' );
+	disp = atoi( expr );
+	_if( plusPt != NULL )
+	
+		disp += atoi( plusPt + 1 );
+	
+	_else
+	
+		minusPt = strchr( expr, '-' );
+		_if( minusPt != NULL )
+		
+			disp -= atoi( minusPt + 1 );
+			
+		_endif
+	
+	_endif
+	_return( disp );
+	
+_end( parsePtrExpr )
+
+
+
 /*********************************************************/
 /*                                                       */
 /* asmPrintf-                                            */

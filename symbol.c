@@ -3051,6 +3051,43 @@ _end( recCopyParms )
 
 
 
+struct SymNode*
+recCopyParms2( struct SymNode *toCopy, struct SymNode *endCopy )
+_begin( recCopyParms2 )
+
+	struct SymNode *temp;
+	struct SymNode *prevItem;
+	
+	assert( toCopy != NULL );
+
+	_if( toCopy->Next != endCopy )
+
+		prevItem = recCopyParms2( toCopy->Next, endCopy );
+		temp = malloc2( sizeofSymNode );
+		memcpy( temp, toCopy, sizeofSymNode );
+		temp->Next = prevItem;
+		
+	_else
+	
+		temp = SymbolTable;
+
+	_endif
+	_return temp;
+		
+_end( recCopyParms2 )
+
+
+
+void
+copyProcPtrParms( struct SymNode *parms )
+_begin( copyProcPtrParms )
+
+	SymbolTable = recCopyParms2( parms->u.proc.parms, parms );
+	
+	
+_end( copyProcPtrParms )
+
+
 /*************************************************************/
 /*                                                           */
 /* CopySymbols-                                              */
@@ -4693,7 +4730,11 @@ _begin( DumpSym )
 					struct SymNode *restore;
 					char   *TheType = "ProcPtr";
 
-					_if( SymbolTable->Type != NULL )
+					_if
+					( 
+							SymbolTable->Type != NULL
+						&&	SymbolTable->u.proc.ParmSize == 0 
+					)
 
 						/*
 						** If this is not a "base" procedure
@@ -4744,9 +4785,38 @@ _begin( DumpSym )
 							fprintf
 							( 
 								MsgOut, 
-								" parms:%d\n", 
+								" parms:%d", 
 								SymbolTable->u.proc.ParmSize 
 							);
+							_if
+							( 
+									SymbolTable->u.proc.use != NULL
+								&&	strcmp( SymbolTable->u.proc.use, "" ) != 0
+							)
+							
+								fprintf
+								( 
+									MsgOut, 
+									" Use:'%s'", 
+									SymbolTable->u.proc.use 
+								);
+							
+							_endif
+							_if
+							( 
+									SymbolTable->u.proc.returns != NULL
+								&&	strcmp( SymbolTable->u.proc.returns, "" ) != 0
+							)
+							
+								fprintf
+								( 
+									MsgOut, 
+									" Returns:'%s'", 
+									SymbolTable->u.proc.returns 
+								);
+							
+							_endif
+							fprintf( MsgOut, "\n" );
 							PrintIndent( indent+1 );
 							fprintf
 							( 
@@ -4811,9 +4881,38 @@ _begin( DumpSym )
 						fprintf
 						( 
 							MsgOut, 
-							" parms:%d\n", 
+							" parms:%d", 
 							SymbolTable->u.proc.ParmSize 
 						);
+						_if
+						( 
+								SymbolTable->u.proc.use != NULL
+							&&	strcmp( SymbolTable->u.proc.use, "" ) != 0
+						)
+						
+							fprintf
+							( 
+								MsgOut, 
+								" Use:'%s'", 
+								SymbolTable->u.proc.use 
+							);
+						
+						_endif
+						_if
+						( 
+								SymbolTable->u.proc.returns != NULL
+							&&	strcmp( SymbolTable->u.proc.returns, "" ) != 0
+						)
+						
+							fprintf
+							( 
+								MsgOut, 
+								" Returns:'%s'", 
+								SymbolTable->u.proc.returns 
+							);
+						
+						_endif
+						fprintf( MsgOut, "\n" );
 						PrintIndent( indent+1 );
 						fprintf
 						( 
@@ -4876,9 +4975,38 @@ _begin( DumpSym )
 						fprintf
 						( 
 							MsgOut, 
-							" parms:%d\n", 
+							" parms:%d", 
 							SymbolTable->u.proc.ParmSize 
 						);
+						_if
+						( 
+								SymbolTable->u.proc.use != NULL
+							&&	strcmp( SymbolTable->u.proc.use, "" ) != 0
+						)
+						
+							fprintf
+							( 
+								MsgOut, 
+								" Use:'%s'", 
+								SymbolTable->u.proc.use 
+							);
+						
+						_endif
+						_if
+						( 
+								SymbolTable->u.proc.returns != NULL
+							&&	strcmp( SymbolTable->u.proc.returns, "" ) != 0
+						)
+						
+							fprintf
+							( 
+								MsgOut, 
+								" Returns:'%s'", 
+								SymbolTable->u.proc.returns 
+							);
+						
+						_endif
+						fprintf( MsgOut, "\n" );
 						PrintIndent( indent+1 );
 						fprintf
 						( 
@@ -4936,9 +5064,38 @@ _begin( DumpSym )
 						fprintf
 						( 
 							MsgOut, 
-							" parms:%d\n", 
+							" parms:%d", 
 							SymbolTable->u.proc.ParmSize 
 						);
+						_if
+						( 
+								SymbolTable->u.proc.use != NULL
+							&&	strcmp( SymbolTable->u.proc.use, "" ) != 0
+						)
+						
+							fprintf
+							( 
+								MsgOut, 
+								" Use:'%s'", 
+								SymbolTable->u.proc.use 
+							);
+						
+						_endif
+						_if
+						( 
+								SymbolTable->u.proc.returns != NULL
+							&&	strcmp( SymbolTable->u.proc.returns, "" ) != 0
+						)
+						
+							fprintf
+							( 
+								MsgOut, 
+								" Returns:'%s'", 
+								SymbolTable->u.proc.returns 
+							);
+						
+						_endif
+						fprintf( MsgOut, "\n" );
 						PrintIndent( indent+1 );
 						fprintf
 						( 
@@ -4998,9 +5155,38 @@ _begin( DumpSym )
 						fprintf
 						( 
 							MsgOut, 
-							" parms:%d\n", 
+							" parms:%d", 
 							SymbolTable->u.proc.ParmSize 
 						);
+						_if
+						( 
+								SymbolTable->u.proc.use != NULL
+							&&	strcmp( SymbolTable->u.proc.use, "" ) != 0
+						)
+						
+							fprintf
+							( 
+								MsgOut, 
+								" Use:'%s'", 
+								SymbolTable->u.proc.use 
+							);
+						
+						_endif
+						_if
+						( 
+								SymbolTable->u.proc.returns != NULL
+							&&	strcmp( SymbolTable->u.proc.returns, "" ) != 0
+						)
+						
+							fprintf
+							( 
+								MsgOut, 
+								" Returns:'%s'", 
+								SymbolTable->u.proc.returns 
+							);
+						
+						_endif
+						fprintf( MsgOut, "\n" );
 						PrintIndent( indent+1 );
 						fprintf
 						( 
@@ -5059,9 +5245,38 @@ _begin( DumpSym )
 						fprintf
 						( 
 							MsgOut, 
-							" parms:%d\n", 
+							" parms:%d", 
 							SymbolTable->u.proc.ParmSize 
 						);
+						_if
+						( 
+								SymbolTable->u.proc.use != NULL
+							&&	strcmp( SymbolTable->u.proc.use, "" ) != 0
+						)
+						
+							fprintf
+							( 
+								MsgOut, 
+								" Use:'%s'", 
+								SymbolTable->u.proc.use 
+							);
+						
+						_endif
+						_if
+						( 
+								SymbolTable->u.proc.returns != NULL
+							&&	strcmp( SymbolTable->u.proc.returns, "" ) != 0
+						)
+						
+							fprintf
+							( 
+								MsgOut, 
+								" Returns:'%s'", 
+								SymbolTable->u.proc.returns 
+							);
+						
+						_endif
+						fprintf( MsgOut, "\n" );
 						PrintIndent( indent+1 );
 						fprintf
 						( 

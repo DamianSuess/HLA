@@ -568,6 +568,7 @@ extern void ErrorNear
 );
 
 extern void CopyParms( struct SymNode *proc );
+extern void copyProcPtrParms( struct SymNode *parms );
 extern void Add2PtrList
 ( 
 	struct SymNode *reference, 
@@ -681,7 +682,7 @@ extern int numBits32( union YYSTYPE *value );
 
 extern int MakeCompatible( struct SymNode *LeftOp, struct SymNode  *RightOp );
 
-extern void CreatePtrToProc
+extern struct SymNode *CreatePtrToProc
 ( 
 	char *newName, 
 	struct SymNode *existingProc,

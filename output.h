@@ -119,6 +119,8 @@ extern void cfasmMain
 extern int TrueLabel;
 extern int FalseLabel;
 
+extern int parsePtrExpr( char *expr );
+
 extern void callUndefSym( char *undefSym );
 extern void jmpTargetID( char *sym );
 extern void jmpHere( int disp );

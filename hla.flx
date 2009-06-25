@@ -1319,7 +1319,8 @@ _por            por
 _prefetchnta    prefetchnta
 _prefetcht0     prefetcht0 
 _prefetcht1     prefetcht1 
-_prefetcht2     prefetcht2 
+_prefetcht2     prefetcht2
+_proc			proc 
 _procedure      procedure
 _program        program     
 _psadbw         psadbw   
@@ -5594,6 +5595,7 @@ _zstring		zstring
 
 {_begin}                                { testRW( beginTkn );       }
 {_end}                                  { testRW( endTkn );         }
+{_proc}		                            { testRW( procTkn );   		}
 {_procedure}                            { testRW( procedureTkn );   }
 {_iterator}                             { testRW( iteratorTkn );    }
 {_method}                               { testRW( methodTkn );      }
@@ -5602,6 +5604,7 @@ _zstring		zstring
 
 ~begin                                  { _return beginTkn;         }
 ~end                                    { _return endTkn;           }
+~proc		                            { _return procTkn;     		}
 ~procedure                              { _return procedureTkn;     }
 ~iterator                               { _return iteratorTkn;      }
 ~method                                 { _return methodTkn;        }
