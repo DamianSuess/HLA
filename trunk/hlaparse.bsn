@@ -18477,31 +18477,6 @@ procs:
 
 			 
 
-newProcOptions:
-			Semicolon		/* $1 */
-			{
-				$<options.returns>$ = hlastrdup2( "" );
-				$<options.use>$ = NULL;
-				$<options.SpecifiedOptions>$ = 0;
-				$<options.UseFrame>$ = FrameDefault;
-				$<options.UseDisplay>$ = DisplayDefault;
-				$<options.AlignStk>$ = AlignStackDefault;
-				$<options.Alignment>$ = AlignDefault;
-				$<options.NoEnter>$ = EnterDefault;
-				$<options.NoLeave>$ = LeaveDefault;
-				$<options.CallingSequence>$ = pascal_cs;
-			}
-		;
-		
-newProcOptions:
-			':'				/* $1 */
-			newOptions		/* $2 */
-			Semicolon		/* $3 */
-			{
-				$<options>$ = $<options>2;
-			}
-		;
-
 colonProcedure:
 			':'
 			procedureTkn
@@ -18558,7 +18533,7 @@ newProcs:
 			** Process the optional returns, nonest, and noframe clauses.
 			*/
 
-			newProcOptions	/* $9 */
+			newProcOptionsSemicolon	/* $9 */
 
 			
 			/*
@@ -19348,7 +19323,7 @@ newProcs:
 			** Process the optional returns, nonest, and noframe clauses.
 			*/
 
-			newProcOptions	/* $9 */
+			newProcOptionsSemicolon	/* $9 */
 
 			
 			/*
@@ -20978,7 +20953,7 @@ newProcs:
 		** Process the optional returns, nonest, and noframe clauses.
 		*/
 
-		newProcOptions	/* $9  */
+		newProcOptionsSemicolon	/* $9  */
 
 		
 		/*
@@ -22670,8 +22645,8 @@ newProcs:	ClassProcID			/* $1  */
 				CurOffsetDir = -1;
 				_here;
 			}
-			newProcOptions		/* $11 */
-			{					/* $12 */
+			newProcOptionsSemicolon		/* $11 */
+			{							/* $12 */
 
 				char 					msg[ 256 ];
 				int	 					*dimension;
@@ -24276,8 +24251,8 @@ newProcs:	ClassMethodID	    /* $1  */
 				_here;
 
 			}
-			newProcOptions		/* $11 */
-			{					/* $12 */
+			newProcOptionsSemicolon	/* $11 */
+			{						/* $12 */
 
 				int	 *dimension;
 				struct contextListType	*p;
@@ -25937,9 +25912,9 @@ newProcs:
 
 			_here;
 		}
-		Empty				/* $10 */
-		newProcOptions		/* $11 */
-		{					/* $12 */
+		Empty					/* $10 */
+		newProcOptionsSemicolon	/* $11 */
+		{						/* $12 */
 
 			int	 *dimension;
 			struct contextListType	*p;
@@ -29349,16 +29324,16 @@ procs:		procedureTkn		/* $1  */
 // Handle a procedure with a forward/external declaration using new syntax:
 
 
-newProcs:	LocalProcID			/* $1  */ 
-			SaveOffset			/* $2  */
-			SaveDirection 		/* $3  */
-			SaveContext 		/* $4  */
-			colonProcedure2		/* $5  */
-			MatchParms			/* $6  */
-			PatchLocals			/* $7  */
-			Empty				/* $8  */
-			newProcOptions		/* $9  */
-			{					/* $10 */
+newProcs:	LocalProcID				/* $1  */ 
+			SaveOffset				/* $2  */
+			SaveDirection 			/* $3  */
+			SaveContext 			/* $4  */
+			colonProcedure2			/* $5  */
+			MatchParms				/* $6  */
+			PatchLocals				/* $7  */
+			Empty					/* $8  */
+			newProcOptionsSemicolon	/* $9  */
+			{						/* $10 */
 
 				int						*dimension;
 				struct	SymNode			*s;
@@ -30247,16 +30222,16 @@ MatchParms2:
 
 
 
-newProcs:	LocalProcID			/* $1  */ 
-			SaveOffset			/* $2  */
-			SaveDirection 		/* $3  */
-			SaveContext 		/* $4  */
-			':'					/* $5  */
-			{ $<s>$ = $<s>1; }	/* $6  */
-			MatchParms2			/* $7  */
-			PatchLocals			/* $8  */
-			newProcOptions		/* $9  */
-			{					/* $10 */
+newProcs:	LocalProcID				/* $1  */ 
+			SaveOffset				/* $2  */
+			SaveDirection 			/* $3  */
+			SaveContext 			/* $4  */
+			':'						/* $5  */
+			{ $<s>$ = $<s>1; }		/* $6  */
+			MatchParms2				/* $7  */
+			PatchLocals				/* $8  */
+			newProcOptionsSemicolon	/* $9  */
+			{						/* $10 */
 
 				int						*dimension;
 				struct	SymNode			*s;
@@ -31842,16 +31817,16 @@ procs:		iteratorTkn			/* $1  */
  */
 
 
-newProcs:	LocalIterID			/* $1  */ 
-			SaveOffset 			/* $2  */
-			SaveDirection 		/* $3  */
-			SaveContext 		/* $4  */
-			colonIterator2 		/* $5  */
-			MatchParms			/* $6  */
-			PatchLclIter		/* $7  */
-			Empty				/* $8  */
-			newProcOptions		/* $9  */
-			{					/* $10 */
+newProcs:	LocalIterID				/* $1  */ 
+			SaveOffset 				/* $2  */
+			SaveDirection 			/* $3  */
+			SaveContext 			/* $4  */
+			colonIterator2 			/* $5  */
+			MatchParms				/* $6  */
+			PatchLclIter			/* $7  */
+			Empty					/* $8  */
+			newProcOptionsSemicolon	/* $9  */
+			{						/* $10 */
 
 				char 					msg[ 256 ];
 				int						*dimension;
@@ -33034,17 +33009,17 @@ colonMethod:
  */
 
 newClassProc:	
-		UndefinedID 	/* $1 */
-		colonMethod		/* $2 */
-		SaveOffset 		/* $3 */
-		SaveDirection	/* $4 */
-		SaveContext 	/* $5 */
-		FMSaveLexLvl	/* $6 	Saves CurLexLevel here and sets it to $0 */
-		EnterName4		/* $7 */
-		OptionalParms 	/* $8 */
-		Empty			/* $9 */
-		newProcOptions	/* $10 */
-		{				/* $11 */
+		UndefinedID 			/* $1 */
+		colonMethod				/* $2 */
+		SaveOffset 				/* $3 */
+		SaveDirection			/* $4 */
+		SaveContext 			/* $5 */
+		FMSaveLexLvl			/* $6 	Saves CurLexLevel here and sets it to $0 */
+		EnterName4				/* $7 */
+		OptionalParms 			/* $8 */
+		Empty					/* $9 */
+		newProcOptionsSemicolon	/* $10 */
+		{						/* $11 */
 
 			struct SymNode			*ParmList;
 			struct SymNode			*s;
@@ -34029,7 +34004,7 @@ FwdMethod:
 
 newClassOverride:	
 		omID2		 	/* $1 */
-		Semicolon		/* $2 */
+		Colon			/* $2 */
 		externalTkn		/* $3 */
 		{				/* $4 */ 
 
@@ -35417,7 +35392,7 @@ FwdMethod:
 
 newClassOverride:	
 		oiID2		 	/* $1 */
-		Semicolon		/* $2 */
+		Colon			/* $2 */
 		externalTkn		/* $3 */
 		{				/* $4 */ 
 
@@ -35797,7 +35772,7 @@ newClassProc:
 		FMSaveLexLvl	/* $6 	Saves CurLexLevel here and sets it to $0 */
 		EnterIterName4	/* $7  */
 		OptionalParms 	/* $8  */
-		Semicolon		/* $9  */
+		Colon			/* $9  */
 		Empty			/* $10 */
 		externalTkn		/* $11 */ 
 		{				/* $12 */ 
@@ -36254,17 +36229,17 @@ ClassProc:
 */
 
 newClassProc:	
-		UndefinedID 		/* $1  */
-		colonProcedure		/* $2  */
-		SaveOffset 			/* $3  */
-		SaveDirection		/* $4  */
-		SaveContext 		/* $5  */
-		FMSaveLexLvl		/* $6  */
-		EnterName4			/* $7  */
-		OptionalParms 		/* $8  */
-		Empty				/* $9  */
-		newProcOptions		/* $10 */
-		{					/* $11 */
+		UndefinedID 			/* $1  */
+		colonProcedure			/* $2  */
+		SaveOffset 				/* $3  */
+		SaveDirection			/* $4  */
+		SaveContext 			/* $5  */
+		FMSaveLexLvl			/* $6  */
+		EnterName4				/* $7  */
+		OptionalParms 			/* $8  */
+		Empty					/* $9  */
+		newProcOptionsSemicolon	/* $10 */
+		{						/* $11 */
 
 			struct SymNode			*ParmList;
 			struct SymNode			*s;
@@ -37234,7 +37209,7 @@ ClassProc:
 newClassOverride:
 		ClassProcID 				/* $1 */
 		colonProcedure				/* $2 */ 
-		Semicolon					/* $3 */
+		Colon						/* $3 */
 		externalTkn					/* $4 */ 
 		{							/* $5 */ 
 
@@ -38711,6 +38686,57 @@ useRegTkn:
 			$<idStr>$ = "edi";
 		}
 	;
+
+
+newProcOptionsSemicolon:
+			Semicolon		/* $1 */
+			{
+				$<options.returns>$ = hlastrdup2( "" );
+				$<options.use>$ = NULL;
+				$<options.SpecifiedOptions>$ = 0;
+				$<options.UseFrame>$ = FrameDefault;
+				$<options.UseDisplay>$ = DisplayDefault;
+				$<options.AlignStk>$ = AlignStackDefault;
+				$<options.Alignment>$ = AlignDefault;
+				$<options.NoEnter>$ = EnterDefault;
+				$<options.NoLeave>$ = LeaveDefault;
+				$<options.CallingSequence>$ = pascal_cs;
+			}
+		;
+		
+newProcOptionsSemicolon:
+			':'				/* $1 */
+			newOptions		/* $2 */
+			Semicolon		/* $3 */
+			{
+				$<options>$ = $<options>2;
+			}
+		;
+
+
+newProcOptions:
+			Empty		/* $1 */
+			{
+				$<options.returns>$ = hlastrdup2( "" );
+				$<options.use>$ = NULL;
+				$<options.SpecifiedOptions>$ = 0;
+				$<options.UseFrame>$ = FrameDefault;
+				$<options.UseDisplay>$ = DisplayDefault;
+				$<options.AlignStk>$ = AlignStackDefault;
+				$<options.Alignment>$ = AlignDefault;
+				$<options.NoEnter>$ = EnterDefault;
+				$<options.NoLeave>$ = LeaveDefault;
+				$<options.CallingSequence>$ = pascal_cs;
+			}
+		;
+		
+newProcOptions:
+			':'				/* $1 */
+			newOptions		/* $2 */
+			{
+				$<options>$ = $<options>2;
+			}
+		;
 
 
 newOptions:
