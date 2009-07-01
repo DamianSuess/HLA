@@ -1927,7 +1927,7 @@ _begin( doCmdLine)
 					newPath = malloc( lastPosn + 10 );
 					strcpy( newPath, "hlaauxinc=" );
 					lastPosn = strcat( newPath, incPath ) - newPath;
-					lastPosn = strlen( strcat );
+					lastPosn = strlen( newPath );
 					newPath[ lastPosn ] = DIR_SEP_CHAR;
 					newPath[ lastPosn+1 ] = '\0';
 					putenv( newPath );
