@@ -7,6 +7,7 @@ hlaasm.masm:
 	ml -c -Cp hlaasm.asm
 	copy hlaasm.obj ..\hlaasm.obj
 	
+	
 hfasm.masm:
 	hla -AZi -AZd -AZf -sourcemode -sm -dcfunc hfasm.hla
 	copy hfasm.asm ..\hfasm.masm
