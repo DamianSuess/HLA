@@ -4214,7 +4214,7 @@ _end( DumpFields )
 #define notgraphic(c) (!isgraph(c) && (c) != ' ')
 
 
-void
+void   
 DumpSym
 ( 
 	struct SymNode *SymbolTable, 
@@ -4874,7 +4874,17 @@ _begin( DumpSym )
 							fprintf
 							( 
 								MsgOut, 
-								" (ID=%s)", SymbolTable->StaticName 
+								" (ID=%s%d%s%s%s)", 
+								SymbolTable->StaticName,
+								_ifx( SymbolTable->IsExternal, " X", "" ),
+								_ifx
+								( 
+									!SymbolTable->IsExternal && 
+										SymbolTable->IsReferenced != NULL, 
+									" ", 
+									"" 
+								),
+								_ifx( SymbolTable->IsReferenced != NULL, "R", "" )
 							);
 
 						_endif
@@ -4968,7 +4978,17 @@ _begin( DumpSym )
 							fprintf
 							( 
 								MsgOut, 
-								" (ID=%s)", SymbolTable->StaticName 
+								" (ID=%s%s%s%s)", 
+								SymbolTable->StaticName,
+								_ifx( SymbolTable->IsExternal, " X", "" ),
+								_ifx
+								( 
+									!SymbolTable->IsExternal && 
+										SymbolTable->IsReferenced != NULL, 
+									" ", 
+									"" 
+								),
+								_ifx( SymbolTable->IsReferenced != NULL, "R", "" )
 							);
 
 						_endif
@@ -5056,8 +5076,17 @@ _begin( DumpSym )
 							fprintf
 							( 
 								MsgOut, 
-								" (ID=%s)", 
-								SymbolTable->StaticName 
+								" (ID=%s%s%s%s)", 
+								SymbolTable->StaticName,
+								_ifx( SymbolTable->IsExternal, " X", "" ),
+								_ifx
+								( 
+									!SymbolTable->IsExternal && 
+										SymbolTable->IsReferenced != NULL, 
+									" ", 
+									"" 
+								),
+								_ifx( SymbolTable->IsReferenced != NULL, "R", "" )
 							);
 
 						_endif
@@ -5146,9 +5175,18 @@ _begin( DumpSym )
 							fprintf
 							( 
 								MsgOut, 
-								" (ID=%s ofs=%d)", 
+								" (ID=%s ofs=%d%s%s%s)", 
 								SymbolTable->StaticName,
-								SymbolTable->Offset
+								SymbolTable->Offset,
+								_ifx( SymbolTable->IsExternal, " X", "" ),
+								_ifx
+								( 
+									!SymbolTable->IsExternal && 
+										SymbolTable->IsReferenced != NULL, 
+									" ", 
+									"" 
+								),
+								_ifx( SymbolTable->IsReferenced != NULL, "R", "" )
 							);
 
 						_endif
@@ -5236,9 +5274,18 @@ _begin( DumpSym )
 							fprintf
 							( 
 								MsgOut, 
-								" (ID=%s ofs=%d)", 
+								" (ID=%s ofs=%d%s%s%s)", 
 								SymbolTable->StaticName,
-								SymbolTable->Offset
+								SymbolTable->Offset,
+								_ifx( SymbolTable->IsExternal, " X", "" ),
+								_ifx
+								( 
+									!SymbolTable->IsExternal && 
+										SymbolTable->IsReferenced != NULL, 
+									" ", 
+									"" 
+								),
+								_ifx( SymbolTable->IsReferenced != NULL, "R", "" )
 							);
 
 						_endif

@@ -2606,7 +2606,7 @@ _begin( lexer );
 				mov( (type tableNode_t [eax]).Value, ecx );
 				test
 				( 
-					isExtern_c | isDefined_c, 
+					isDefined_c, 
 					(type symbol_t [ecx]).flags 
 				);
 				if( @nz ) then
@@ -2623,6 +2623,17 @@ _begin( lexer );
 					
 				endif;
 				
+				// If it's externally declared, we'll allow that
+				// and eliminate the external declaration and
+				// make it public:
+				
+				test( isExtern_c, (type symbol_t [ecx]).flags );
+				if( @nz ) then
+				
+					and( isExtern_c ^ $FF, (type symbol_t [ecx]).flags );
+					or( isPublic_c, (type symbol_t [ecx]).flags ); 
+				
+				endif;
 				or( isDefined_c, (type symbol_t [ecx]).flags );
 				
 				// Set the section to the current section number
