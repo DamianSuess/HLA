@@ -2570,12 +2570,13 @@ _begin( EmitExternCodeSymbols )
 		CurSym = extHashTable[ index ];
 		_while( CurSym != NULL )
 
+
 			_if
 			(
 					!CurSym->IsPublic 
 				&&	(
-							CurSym->ForceRef				
-						||	CurSym->theSym == NULL 
+							CurSym->theSym == NULL 
+						||	CurSym->ForceRef
 					)
 				&&	CurSym->pType == tLabel 
 			)
