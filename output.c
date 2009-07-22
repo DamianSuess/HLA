@@ -280,7 +280,7 @@ char *ptrPrefixes[ 7 ][ numAssemblers ] =
 	{	"dword ptr ", 	"dword ",	"dword ptr ",	"",  	"dword ",	"(type dword ",	"" 	},
 	{	"qword ptr ", 	"qword ",	"qword ptr ",	"",  	"qword ",	"(type qword ",	"" 	},
 	{	"tbyte ptr ", 	"tword ",	"tbyte ptr ",	"",  	"tword ",	"(type tbyte ",	"" 	},
-	{	"",				"dqword ",	"",				"",		"",			"(type lword ",	"" 	},
+	{	"oword ptr ",	"dqword ",	"",				"",		"",			"(type lword ",	"" 	},
 };
 
 char *ptrSuffixes[ numAssemblers ] =
@@ -1411,26 +1411,11 @@ _begin( EmitDotBSS )
 		
 			_if( targetOS == windows_os )
 
-				_if( useCFASM )
-				
-					// If using internal FASM, create a "BSS" typed section.
-					
-					asmPuts
-					( 
-						"\n\n"
-						"  section '.bss' bss readable writeable align 16\n\n"
-					);
-					
-				_else
-				
-					asmPuts
-					( 
-						"\n\n"
-						"  section '.bss'  readable writeable align 16\n\n"
-					);
-					
-				
-				_endif
+				asmPuts
+				( 
+					"\n\n"
+					"  section '.bss'  readable writeable align 16\n\n"
+				);
 				
 			_else
 
@@ -2122,7 +2107,7 @@ void
 EmitOffset( char *offset, int disp )
 _begin( EmitOffset )
 
-	int offs;
+	int 	offs;
 	
 	assert( offset != NULL );
 	assert( assembler != hla );	// This function is for object-code only!
@@ -3515,7 +3500,7 @@ asm2opcr
 )
 _begin( asm2opcr )
 
-	char cnst[256];
+	char	cnst[256];
 	
 	assert( size >= -16 && size <=10 );
 	_if( v->v.pType == tPointer && isdigit( *v->v.u.strval ))
@@ -4601,7 +4586,7 @@ _begin( implied_instr )
 	_if
 	( 
 			sourceOutput 
-		&&	instr < sysenter_instr 
+		&&	( instr < sysenter_instr || assembler != tasm ) 
 		&&	!(assembler == tasm && instr == rsm_instr )
 	)
 		
@@ -5791,7 +5776,6 @@ _begin( fisttp_mem )
 	_endif
 	doSource = 
 			sourceOutput 
-		&&	assembler != masm  
 		&&	assembler != tasm
 		&&	assembler != gas; 
 	
@@ -6062,7 +6046,7 @@ _begin( fp_op1Or2_instr )
 
 	_else
 		
-		int doSource = sourceOutput && assembler != masm && assembler != gas;
+		int doSource = sourceOutput && assembler != gas && assembler != masm;
 		asm1opr
 		( 
 			strs[instr], 
@@ -6455,8 +6439,7 @@ _begin( movd_r32_r )
 			sourceOutput 
 		&&	!(
 					(
-							assembler == masm	// MASM6 doesn't handle SSE version.
-						||	assembler == tasm	// Neither does TASM5
+							assembler == tasm	// TASM doesn't handle SSE version.
 					)
 				&&	prefix66
 			);
@@ -6509,8 +6492,7 @@ _begin( movd_r_r32 )
 			sourceOutput 
 		&&	!(
 					(
-							assembler == masm	// MASM6 doesn't handle SSE version.
-						||	assembler == tasm	// Neither does TASM5
+							assembler == tasm	// TASM doesn't handle SSE version.
 					)
 				&&	prefix66
 			);
@@ -6562,7 +6544,7 @@ _begin( movd_r_m )
 			sourceOutput 
 		&&	!(
 					(
-							assembler == masm	// MASM6 doesn't handle SSE version.
+							assembler == tasm	// MASM6 doesn't handle SSE version.
 						||	assembler == tasm	// Neither does TASM5
 					)
 				&&	prefix66
@@ -6578,7 +6560,7 @@ _begin( movd_r_m )
 		"movd",
 		src,
 		adrs,
-		0,
+		4,
 		testMode,
 		doSource
 	);
@@ -6620,8 +6602,7 @@ _begin( movd_m_r )
 			sourceOutput 
 		&&	!(
 					(
-							assembler == masm	// MASM6 doesn't handle SSE version.
-						||	assembler == tasm	// Neither does TASM5
+							assembler == tasm	// TASM doesn't handle SSE version.
 					)
 				&&	prefix66
 			);
@@ -6636,7 +6617,7 @@ _begin( movd_m_r )
 		"movd",
 		adrs,
 		dest,
-		0,
+		4,
 		testMode,
 		doSource
 	);	 
@@ -6733,7 +6714,7 @@ _begin( movq_regxmm_m )
 	int noSource;
 	
 	assert( reg <= 7 );
-	noSource = !sourceOutput || (assembler == masm || assembler == tasm);
+	noSource = !sourceOutput || (assembler == tasm);
 	_if( 8 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 8;
@@ -6744,7 +6725,7 @@ _begin( movq_regxmm_m )
 		"movq",
 		xmmregmap[ reg ][ assembler ], 
 		adrs, 
-		0,
+		_ifx( assembler == masm, -8, 0),
 		testMode && noSource,
 		!noSource
 	);
@@ -6770,13 +6751,21 @@ _begin( movq_m_regxmm )
 	int	doSource;
 	
 	assert( reg <= 7 );
-	doSource = sourceOutput && assembler != masm && assembler != tasm;
+	doSource = sourceOutput && assembler != tasm;
 	_if( 8 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 8;
 		
 	_endif
-   	asm2opmr( "movq", adrs, xmmregmap[ reg ][ assembler ], 0, testMode, doSource );
+   	asm2opmr
+	( 
+		"movq", 
+		adrs, 
+		xmmregmap[ reg ][ assembler ], 
+		_ifx( assembler == masm, -8, 0), 
+		testMode, 
+		doSource 
+	);
 	_if( !doSource )
 	
 		EmitByteConst(  0xf3 , "opcode prefix" );		// Prefix to make it SSE
@@ -6819,7 +6808,7 @@ _begin( movq_r_r )
 		);
 		
 	doSource =
-		sourceOutput && ((assembler != masm && assembler != tasm) || !xmmInstr );
+		sourceOutput && (assembler != tasm || !xmmInstr );
 		
 	asm2oprr
 	(
@@ -6831,7 +6820,7 @@ _begin( movq_r_r )
 		doSource
 	);
 	
-	// MASM6 doesn't support SSE:
+	// TASM doesn't support SSE:
 	
 	_if( !doSource )
 		
@@ -7173,9 +7162,8 @@ _begin( sse_instr_r_r )
 	doSource = 
 			sourceOutput
 		&&	assembler != tasm
-		&&	assembler != masm
-		&&	assembler != gas 
-		&&	(instr < movshdup_instr ); 
+		&&	assembler != gas; 
+//		&&	(assembler == masm || instr < movshdup_instr); 
 	
 	asm2oprr
 	( 	
@@ -7222,7 +7210,6 @@ _begin( sse_instr_m_r )
 	
 	doSource =
 			sourceOutput 
-		&&	assembler != masm 
 		&& assembler != tasm 
 		&&	!(assembler == gas && instr >= movshdup_instr ); 
 	
@@ -7246,7 +7233,12 @@ _begin( sse_instr_m_r )
 		SSE_strs[instr],
 		adrs,
 		xmmregmap[ reg ][ assembler ],
-		0,
+		_ifx
+		( 
+			assembler == masm, 
+			_ifx( instr == addsubps_instr, -(adrs->Size / 2), -adrs->Size), 
+			0
+		),
 		testMode,
 		doSource
 	);
@@ -7326,7 +7318,7 @@ _begin( sse_mov_instr_r_m )
 	assert( instr < num_sse_mov_instrs );
 	assert( reg < 8 );
 	
-	doSource = sourceOutput && assembler != masm && assembler != tasm;
+	doSource = sourceOutput && assembler != tasm;
 	_if( 16 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 16;
@@ -7337,7 +7329,7 @@ _begin( sse_mov_instr_r_m )
 		SSE_mov_instr_strs[instr], 
 		xmmregmap[ reg ][ assembler ],
 		adrs,
-		0,
+		_ifx( assembler == masm, -16, 0),
 		testMode,
 		doSource
 	);
@@ -7372,7 +7364,7 @@ _begin( sse_mov_instr_m_r )
 	assert( instr < num_sse_mov_instrs );
 	assert( reg < 8 );
 	
-	doSource = sourceOutput && assembler != masm && assembler != tasm;
+	doSource = sourceOutput && assembler != tasm;
 	_if( 16 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 16;
@@ -7383,7 +7375,7 @@ _begin( sse_mov_instr_m_r )
 		SSE_mov_instr_strs[instr], 
 		adrs,
 		xmmregmap[ reg ][ assembler ],
-		0,
+		_ifx( assembler == masm, -16, 0),
 		testMode,
 		doSource
 	);
@@ -7418,7 +7410,7 @@ _begin( sse_mov_instr_r_r )
 	assert( instr < num_sse_mov_instrs );
 	assert( srcReg < 8 );
 	assert( destReg < 8 );
-	doSource = sourceOutput && assembler != masm  && assembler != tasm;	
+	doSource = sourceOutput && assembler != tasm;	
 	asm2oprr
 	(
 		SSE_mov_instr_strs[instr],
@@ -7478,7 +7470,7 @@ _begin( EmitMovsds_r_r )
 	assert( srcReg < 8 );
 	assert( destReg < 8 );
 	
-	doSource = sourceOutput && assembler != masm && assembler != tasm;
+	doSource = sourceOutput && assembler != tasm;
 	
 	asm2oprr
 	(
@@ -7514,7 +7506,7 @@ _begin( EmitMovsds_m_r )
 	
 	assert( instr < num_movsds_instrs );
 	assert( reg < 8 );
-	doSource = sourceOutput && assembler != masm && assembler != tasm;
+	doSource = sourceOutput && assembler != tasm;
 	adrs->forcedSize = setForced( adrs, _ifx( instr == movss_instr, 4, 8 ) );
 	asm2opmr
 	(
@@ -7550,7 +7542,7 @@ _begin( EmitMovsds_r_m )
 	
 	assert( instr < num_movsds_instrs );
 	assert( reg < 8 );
-	doSource = sourceOutput && assembler != masm && assembler != tasm;	
+	doSource = sourceOutput && assembler != tasm;	
 	adrs->forcedSize = setForced( adrs, _ifx( instr == movss_instr, 4, 8 ) );
 	asm2oprm
 	(
@@ -7628,7 +7620,7 @@ _begin(Emit_mw_rv_r)
 				assembler == fasm 
 			||	assembler == nasm
 			||	(
-					isReg16( reg ) && assembler == gas
+					isReg16( reg ) && ( assembler == gas ||	assembler == masm )
 				) 
 		)
 		
@@ -7847,7 +7839,7 @@ _begin( Emit_Gv_Ew_m )
 		larlsl_strs[instr],
 		adrs,
 		gpregmap[ reg ][assembler],
-		0,
+		2,
 		testMode,
 		sourceOutput
 	);
@@ -8030,7 +8022,7 @@ _begin( Emit_Mq_Vps )
 		_ifx( instr == movlps_instr, "movlps", "movhps" ),
 		adrs,
 		xmmregmap[reg][assembler],
-		0,
+		_ifx( assembler != nasm, 8, 0),
 		testMode,
 		doSource
 	);
@@ -8073,7 +8065,7 @@ _begin( Emit_Vps_Wq_m )
 		_ifx( instr == unpcklps_instr, "unpcklps", "unpckhps" ),
 		adrs,
 		xmmregmap[reg][assembler],
-		0,
+		-16,
 		testMode,
 		doSource
 	);
@@ -8144,7 +8136,7 @@ _begin( Emit_Vsd_Mq_m )
 	
 	assert( instr == movlpd_instr || instr == movhpd_instr );
 	assert( reg < 8 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm;
 	_if( 8 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 8;
@@ -8185,7 +8177,7 @@ _begin( Emit_Mq_Vsd_m )
 	
 	assert( instr == movlpd_instr || instr == movhpd_instr );
 	assert( reg < 8 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm;
 	_if( 8 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 8;
@@ -8251,7 +8243,7 @@ _begin( Emit_Vpd_Wq_m )
 	
 	assert( instr < num_Vpd_Wq_instrs );
 	assert( reg < 8 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm;
 	_if( 16 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 16;
@@ -8262,7 +8254,7 @@ _begin( Emit_Vpd_Wq_m )
 		Vpd_Wq_strs[ instr ],
 		adrs,
 		xmmregmap[reg][assembler],
-		0,
+		_ifx( assembler == masm, 8, 0),
 		testMode,
 		doSource
 	);
@@ -8287,13 +8279,13 @@ _begin( Emit_Vpd_Wq_r )
 	
 	assert( instr < num_Vpd_Wq_instrs );
 	assert( src < 8 && dest < 8 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm;
 	asm2oprr
 	( 
 		Vpd_Wq_strs[ instr ], 
 		xmmregmap[ src ][assembler], 
 		xmmregmap[ dest ][assembler],
-		0,
+		_ifx( assembler == masm, 8, 0),
 		testMode,
 		doSource
 	);
@@ -8443,8 +8435,7 @@ _begin( Emit_Gd_VRp )
 	assert( dest >= reg_eax && dest <= reg_edi );
 	doSource = 
 			sourceOutput 
-		&&	assembler != tasm 
-		&&	!(assembler == masm && instr == movmskpd_instr);
+		&&	assembler != tasm; 
 		
 	asm2oprr
 	(
@@ -8676,13 +8667,6 @@ _begin( Emit_Pq_Qq_r )
 							Pq_Qq_tasm[instr]
 						&&	!isXmm
 					)
-			)
-		&&	(
-					assembler != masm
-				||	(
-							Pq_Qq_masm[instr]
-						&&	!isXmm
-					)
 			);
 			
 	asm2oprr
@@ -8726,13 +8710,6 @@ _begin( Emit_Pq_Qq_m )
 							Pq_Qq_tasm[instr]
 						&&	!isXmm
 					)
-			)
-		&&	(
-					assembler != masm
-				||	(
-							Pq_Qq_tasm[instr]
-						&&	!isXmm
-					)
 			);
 			
 	rgsz = _ifx( isXmm, 16, 8 );
@@ -8742,7 +8719,7 @@ _begin( Emit_Pq_Qq_m )
 		Pq_Qq_strs[ instr ],
 		adrs,
 		_ifx( isXmm, xmmregmap[reg][assembler],mmxregmap[reg][assembler]),
-		0,
+		_ifx( assembler == masm && isXmm, -16, 0),
 		testMode,
 		doSource
 	);
@@ -8823,7 +8800,6 @@ _begin( Emit_Vdq_Wq_r )
 					instr != punpcklqdq_instr
 				&&	instr != punpckhqdq_instr
 				&&	!(assembler == tasm && isXmm)
-				&&	!(assembler == masm && isXmm)
 				&&	!(assembler == gas && instr == lddqu_instr) 
 			);
 			
@@ -8832,7 +8808,7 @@ _begin( Emit_Vdq_Wq_r )
 		Vdq_Wq_strs[ instr ],
 		_ifx( isXmm, xmmregmap[ src ][assembler], mmxregmap[ src ][assembler] ),
 		_ifx( isXmm, xmmregmap[ dest ][assembler], mmxregmap[ dest ][assembler] ),
-		0,
+		_ifx( assembler == masm && isXmm, -16, 0),
 		testMode,
 		doSource
 	);
@@ -8866,7 +8842,6 @@ _begin( Emit_Vdq_Wq_m )
 					instr != punpcklqdq_instr
 				&&	instr != punpckhqdq_instr
 				&&	!(assembler == tasm && isXmm)
-				&&	!(assembler == masm && isXmm)
 				&&	!(assembler == gas && instr == lddqu_instr)
 			);
 			
@@ -8877,7 +8852,7 @@ _begin( Emit_Vdq_Wq_m )
 		Vdq_Wq_strs[ instr ],
 		adrs,
 		_ifx( isXmm, xmmregmap[ reg ][assembler], mmxregmap[ reg ][assembler] ),
-		0,
+		_ifx( isXmm, -16, 8),
 		testMode,
 		doSource
 	);
@@ -8897,6 +8872,96 @@ _end( Emit_Vdq_Wq_m )
 
 
 
+
+	
+	
+void
+Emit_Vdq_Wd_r( enum Vdq_Wq_instrs instr, int src, int dest, int isXmm )
+_begin( Emit_Vdq_Wd_r )
+
+	int	doSource;
+	
+	assert( instr < num_Vdq_Wq_instrs );
+	assert( src >= reg_mm0 && src <= reg_mm7 );
+	assert( dest >= reg_mm0 && src <= reg_mm7 );
+	doSource =
+			sourceOutput
+		&&	(
+					instr != punpcklqdq_instr
+				&&	instr != punpckhqdq_instr
+				&&	!(assembler == tasm && isXmm)
+				&&	!(assembler == gas && instr == lddqu_instr) 
+			);
+			
+	asm2oprr
+	(
+		Vdq_Wq_strs[ instr ],
+		_ifx( isXmm, xmmregmap[ src ][assembler], mmxregmap[ src ][assembler] ),
+		_ifx( isXmm, xmmregmap[ dest ][assembler], mmxregmap[ dest ][assembler] ),
+		0,
+		testMode,
+		doSource
+	);
+	_if( !doSource )
+	
+		_if( isXmm )
+		
+			EmitByteConst(  Vdq_Wq_prefix[instr] , "opcode prefix" );
+			
+		_endif
+		EmitWordConst( Vdq_Wq_opcodes[ instr ] );
+		EmitByteConst( 0xc0 | (regCode( dest ) << 3 ) | regCode( src ) , "mod-reg-r/m" );
+		
+	_endif
+	
+_end( Emit_Vdq_Wd_r )
+
+
+void 
+Emit_Vdq_Wd_m( enum Vdq_Wq_instrs instr, padrsYYS adrs, int reg, int isXmm )
+_begin( Emit_Vdq_Wd_m )
+
+	int	doSource;
+	int rgsz;
+	
+	assert( instr < num_Vdq_Wq_instrs );
+	assert( reg <= 7 );
+	doSource =
+			sourceOutput
+		&&	(
+					instr != punpcklqdq_instr
+				&&	instr != punpckhqdq_instr
+				&&	!(assembler == tasm && isXmm)
+				&&	!(assembler == gas && instr == lddqu_instr)
+			);
+			
+	rgsz = _ifx( isXmm, 16, 4 );
+	adrs->forcedSize = setForced( adrs, rgsz );
+	asm2opmr
+	(
+		Vdq_Wq_strs[ instr ],
+		adrs,
+		_ifx( isXmm, xmmregmap[ reg ][assembler], mmxregmap[ reg ][assembler] ),
+		_ifx( isXmm, -16, _ifx( assembler == fasm || assembler == nasm, 8, 4) ),
+		testMode,
+		doSource
+	);
+	_if( !doSource )
+	
+		_if( isXmm )
+		
+			EmitByteConst(  Vdq_Wq_prefix[instr] , "opcode prefix" );
+			
+		_endif
+		EmitWordConst( Vdq_Wq_opcodes[ instr ] );
+		EmitModRegRm( reg, adrs );
+		
+	_endif
+	
+_end( Emit_Vdq_Wd_m )
+
+
+
 // Handle movddup
  
 void 
@@ -8910,8 +8975,7 @@ _begin( Emit_Movddup )
 	doSource =
 			sourceOutput 
 		&&	assembler != gas 
-		&&	assembler != tasm 
-		&&	assembler != masm;
+		&&	assembler != tasm; 
 			
 	asm2oprr
 	(
@@ -8944,8 +9008,7 @@ _begin( Emit_Movddup )
 	doSource =
 			sourceOutput 
 		&&	assembler != gas 
-		&&	assembler != tasm 
-		&&	assembler != masm;
+		&&	assembler != tasm; 
 		
 	adrs->forcedSize = setForced( adrs, 8 );
 	asm2opmr
@@ -9006,8 +9069,7 @@ _begin( Emit_pshuf_r )
 	assert( dest < 8 );
 	doSource = 
 			sourceOutput 
-		&&	assembler != tasm
-		&&	(assembler != masm || instr == pshufw_instr);
+		&&	assembler != tasm;
 	
 	asm3opcrr
 	(
@@ -9025,7 +9087,7 @@ _begin( Emit_pshuf_r )
 			mmxregmap[ dest ][assembler],
 			xmmregmap[ dest ][assembler]
 		),
-		0,
+		_ifx( assembler == masm, -16, 0),
 		testMode,
 		doSource
 	);
@@ -9060,8 +9122,7 @@ _begin( Emit_pshuf_m )
 	assert( reg < 8 );
 	doSource = 
 			sourceOutput 
-		&&	assembler != tasm
-		&&	(assembler != masm || instr == pshufw_instr);
+		&&	assembler != tasm;
 
 	rgsz = _ifx( instr == pshufw_instr, 8, 16 );
 	adrs->forcedSize = setForced( adrs, rgsz );
@@ -9076,7 +9137,7 @@ _begin( Emit_pshuf_m )
 			mmxregmap[ reg ][assembler],
 			xmmregmap[ reg ][assembler]
 		),
-		0,
+		_ifx( assembler == masm, -rgsz, 0),
 		testMode,
 		doSource
 	);
@@ -9157,8 +9218,7 @@ _begin( Emit_psl_psr_imm )
 	doSource = 
 			sourceOutput 
 		&&	(assembler != tasm || !isXmm)
-		&&	(assembler != gas || (instr != psrldq_instr && instr != pslldq_instr))
-		&&	(assembler != masm || !isXmm);
+		&&	(assembler != gas || (instr != psrldq_instr && instr != pslldq_instr));
 		
 	asm2oprr
 	(
@@ -9212,8 +9272,7 @@ _begin( Emit_psl_psr_r )
 	doSource = 
 			sourceOutput 
 		&&	(assembler != tasm || !isXmm)
-		&&	(assembler != gas || (instr != psrldq_instr && instr != pslldq_instr))
-		&&	(assembler != masm || !isXmm);
+		&&	(assembler != gas || (instr != psrldq_instr && instr != pslldq_instr));
 		
 	asm2oprr
 	(
@@ -9264,8 +9323,7 @@ _begin( Emit_psl_psr_m )
 	doSource = 
 			sourceOutput 
 		&&	(assembler != tasm || !isXmm)
-		&&	(assembler != gas || (instr != psrldq_instr && instr != pslldq_instr))
-		&&	(assembler != masm || !isXmm);
+		&&	(assembler != gas || (instr != psrldq_instr && instr != pslldq_instr));
 		
 	rgsz = _ifx( isXmm, 16, 8 );
 	adrs->forcedSize = setForced( adrs, rgsz );
@@ -9279,7 +9337,7 @@ _begin( Emit_psl_psr_m )
 			mmxregmap[ reg ][assembler],
 			xmmregmap[ reg ][assembler]
 		),
-		0,
+		_ifx( assembler == masm, -rgsz, 0),
 		testMode,
 		doSource
 	);
@@ -10101,7 +10159,7 @@ _begin( EmitMov_sr_m )
 	
 	_if( !sourceOutput )
 	
-		_if( assembler == masm || (assembler == gas && targetOS == freeBSD_os)  )
+		_if( (assembler == gas && targetOS == freeBSD_os)  )
 		
 			EmitByteConst(  0x66 , "size prefix" );
 			
@@ -10138,11 +10196,6 @@ _begin( EmitMov_m_sr )
 	
 	_if( !sourceOutput )
 	
-		_if( assembler == masm )
-		
-			EmitByteConst(  0x66 , "size prefix" );
-			
-		_endif
 		EmitByteConst(  0x8e , "" );
 		EmitModRegRm( sreg, adrs );
 		
@@ -11229,7 +11282,7 @@ _begin( EmitCmpps_m_r )
 		subop,
 		adrs,
 		xmmregmap[destReg][assembler],
-		0,
+		-16,
 		testMode,
 		doSource
 	);
@@ -11270,7 +11323,7 @@ _begin( EmitCmppd_r_r )
 	assert( _in( subop, 0, 7 ));
 	assert( _in( srcReg, reg_xmm0, reg_xmm7 ));
 	assert( _in( destReg, reg_xmm0, reg_xmm7 ));
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm;// && assembler != masm;
 	
 	_if( testMode || sourceOutput )
 	
@@ -11314,7 +11367,7 @@ _begin( EmitCmppd_m_r )
 	
 	assert( _in( subop, 0, 7 ));
 	assert( _in( destReg, reg_xmm0, reg_xmm7 ));
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	_if( 16 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 16;
@@ -11337,7 +11390,7 @@ _begin( EmitCmppd_m_r )
 		subop,
 		adrs,
 		xmmregmap[destReg][assembler],
-		0,
+		_ifx( assembler == masm, -16, 0),
 		testMode,
 		doSource
 	);
@@ -11487,7 +11540,7 @@ _begin( EmitCmpsd_r_r )
 	assert( _in( subop, 0, 7 ));
 	assert( _in( srcReg, reg_xmm0, reg_xmm7 ));
 	assert( _in( destReg, reg_xmm0, reg_xmm7 ));
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	_if( testMode || sourceOutput )
 	
 		asmPrintf
@@ -11530,7 +11583,7 @@ _begin( EmitCmpsd_m_r )
 	
 	assert( _in( subop, 0, 7 ));
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	_if( testMode || sourceOutput )
 	
 		asmPrintf
@@ -11553,7 +11606,7 @@ _begin( EmitCmpsd_m_r )
 		subop,
 		adrs,
 		xmmregmap[destReg][assembler],
-		0,
+		_ifx( assembler == masm, 8, 0),
 		testMode,
 		doSource
 	);
@@ -11582,14 +11635,14 @@ _begin( EmitMovnti_r_m )
 	assert( isReg32( reg ));
 	assert( adrs != NULL );
 	
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	adrs->forcedSize = setForced( adrs, 4 );
 	asm2oprm
 	(
 		"movnti",
 		gpregmap[reg][assembler],
 		adrs,
-		0,
+		_ifx( assembler == masm, 4, 0),
 		testMode,
 		doSource
 	);
@@ -11616,8 +11669,8 @@ _begin( EmitPinsrw_r_r )
 	assert( destReg <= 7 );
 	doSource = 
 			sourceOutput 
-		&&	assembler != tasm 
-		&&	!(assembler == masm && prefix != 0);
+		&&	assembler != tasm; 
+//		&&	!(assembler == masm && prefix != 0);
 		
 	// Syntactically, HLA allows "ax" (as this is the actual value being
 	// used) but underlying assemblers require "eax".
@@ -11667,8 +11720,8 @@ _begin( EmitPinsrw_m_r )
 	assert( destReg <= 7 );
 	doSource = 
 			sourceOutput 
-		&&	assembler != tasm 
-		&&	!(assembler == masm && prefix != 0);
+		&&	assembler != tasm; 
+//		&&	!(assembler == masm && prefix != 0);
 
 	adrs->forcedSize = setForced( adrs, 2 );
 	asm3opcmr
@@ -11719,8 +11772,8 @@ _begin( EmitPextrw_r_r )
 	assert( srcReg <= 7 );
 	doSource = 
 			sourceOutput 
-		&&	assembler != tasm 
-		&&	!(assembler == masm && prefix != 0);
+		&&	assembler != tasm; 
+//		&&	!(assembler == masm && prefix != 0);
 
 	asm3opcrr
 	(
@@ -11770,8 +11823,8 @@ _begin( EmitShufxx_r_r )
 	assert( destReg <= 7 );
 	doSource = 
 			sourceOutput 
-		&&	assembler != tasm 
-		&&	assembler != masm;
+		&&	assembler != tasm; 
+//		&&	assembler != masm;
 		
 	asm3opcrr
 	(
@@ -11808,8 +11861,7 @@ _begin( EmitShufxx_m_r )
 	assert( destReg <= 7 );
 	doSource = 
 			sourceOutput 
-		&&	assembler != tasm 
-		&&	assembler != masm;
+		&&	assembler != tasm; 
 		
 	adrs->forcedSize = setForced( adrs, 16 );
 	asm3opcmr
@@ -11818,7 +11870,7 @@ _begin( EmitShufxx_m_r )
 		cnst,
 		adrs,
 		xmmregmap[destReg][assembler],
-		0,
+		_ifx( assembler == masm, -16, 0),
 		testMode,
 		doSource
 	);
@@ -11880,7 +11932,7 @@ _begin( EmitMovq2dq_r_r )
 	
 	assert( mReg <= 7 );
 	assert( xReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm;// && assembler != masm;
 	asm2oprr
 	(
 		"movq2dq",
@@ -11913,7 +11965,7 @@ _begin( EmitMovq2dq_r_r )
 	
 	assert( mReg <= 7 );
 	assert( xReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	asm2oprr
 	(
 		"movdq2q",
@@ -11946,7 +11998,7 @@ _begin( EmitPmovmskb_r_r )
 	assert( srcReg <= 7 );
 	assert( isReg32( gpReg ));
 	doSource = 
-		sourceOutput && assembler != tasm && !(assembler == masm && prefix != 0);
+		sourceOutput && assembler != tasm; // && !(assembler == masm && prefix != 0);
 	
 	asm2oprr
 	(
@@ -12020,14 +12072,14 @@ _begin( EmitMovntdq_r_m )
 	int doSource;
 	
 	assert( srcReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	adrs->forcedSize = setForced( adrs, 16 );
 	asm2oprm
 	(
 		"movntdq",
 		xmmregmap[srcReg][assembler],
 		adrs,
-		0,
+		_ifx( assembler == masm, -16, 0),
 		testMode,
 		doSource
 	);
@@ -12077,7 +12129,7 @@ _begin( EmitMaskMovdqu_r_r )
 	
 	assert( srcReg <= 7 );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	asm2oprr
 	(
 		"maskmovdqu",
@@ -12128,7 +12180,7 @@ _begin( EmitCom_r_r )
 	assert( instr < num_com_instrs );
 	assert( srcReg <= 7 );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	asm2oprr
 	(
 			com_strs[ instr ],
@@ -12163,7 +12215,7 @@ _begin( EmitCom_m_r )
 	
 	assert( instr < num_com_instrs );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	rgsz = _ifx( instr==comiss_instr || instr==ucomiss_instr, 4, 8);
 	adrs->forcedSize = setForced( adrs, rgsz );
 	asm2opmr
@@ -12171,7 +12223,7 @@ _begin( EmitCom_m_r )
 			com_strs[ instr ],
 			adrs,
 			xmmregmap[destReg][assembler],
-			0,
+			_ifx( assembler == masm, rgsz, 0),
 			testMode,
 			doSource 
 	);
@@ -12217,7 +12269,7 @@ _begin( EmitPd2pi_r_r )
 	assert( instr < num_pd2pi_instrs );
 	assert( srcReg <= 7 );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	asm2oprr
 	(
 			pd2pi_strs[ instr ],
@@ -12246,14 +12298,14 @@ _begin( EmitPd2pi_m_r )
 	
 	assert( instr < num_pd2pi_instrs );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	adrs->forcedSize = setForced( adrs, 16 );
 	asm2opmr
 	(
 			pd2pi_strs[ instr ],
 			adrs,
 			mmxregmap[destReg][assembler],
-			0,
+			_ifx( assembler == masm, -16, 0),
 			testMode,
 			doSource 
 	);
@@ -12296,7 +12348,7 @@ _begin( EmitPssd2pdss_r_r )
 	assert( instr < num_pdsd2pdss_instrs );
 	assert( srcReg <= 7 );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	asm2oprr
 	(
 			pdsd2pdss_strs[ instr ],
@@ -12332,8 +12384,8 @@ _begin( EmitPssd2pdss_m_r )
 	assert( destReg <= 7 );
 	doSource = 
 			sourceOutput 
-		&&	assembler != tasm 
-		&&	assembler != masm;
+		&&	assembler != tasm; 
+//		&&	assembler != masm;
 
 	_if( assembler == nasm && adrs->forcedSize != 0 )
 	
@@ -12346,7 +12398,7 @@ _begin( EmitPssd2pdss_m_r )
 			pdsd2pdss_strs[ instr ],
 			adrs,
 			xmmregmap[destReg][assembler],
-			0,
+			_ifx( assembler == masm, -8, 0),
 			testMode,
 			doSource 
 	);
@@ -12390,7 +12442,7 @@ _begin( Emitpi2pdps_r_r )
 	assert( instr < num_pi2pdps_instrs );
 	assert( srcReg <= 7 );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	asm2oprr
 	(
 			pi2pdps_strs[ instr ],
@@ -12423,14 +12475,14 @@ _begin( Emitpi2pdps_m_r )
 	
 	assert( instr < num_pi2pdps_instrs );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	adrs->forcedSize = setForced( adrs, 8 );
 	asm2opmr
 	(
 			pi2pdps_strs[ instr ],
 			adrs,
 			xmmregmap[destReg][assembler],
-			0,
+			_ifx( assembler == masm, 8, 0),
 			testMode,
 			doSource 
 	);
@@ -12476,7 +12528,7 @@ _begin( Emitps2pi_r_r )
 	assert( instr < num_ps2pi_instrs );
 	assert( srcReg <= 7 );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	asm2oprr
 	(
 			ps2pi_strs[ instr ],
@@ -12504,14 +12556,14 @@ _begin( Emitps2pi_m_r )
 	
 	assert( instr < num_ps2pi_instrs );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	adrs->forcedSize = setForced( adrs, 8 );
 	asm2opmr
 	(
 			ps2pi_strs[ instr ],
 			adrs,
 			mmxregmap[destReg][assembler],
-			0,
+			_ifx( assembler == masm, -8, 0),
 			testMode,
 			doSource 
 	);
@@ -12554,7 +12606,7 @@ _begin( Emitsd2si_r_r )
 	assert( instr < num_sd2si_instrs );
 	assert( srcReg <= 7 );
 	assert( isReg32( destReg ) );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	asm2oprr
 	(
 			sd2si_strs[ instr ],
@@ -12583,14 +12635,14 @@ _begin( Emitsd2si_m_r )
 	
 	assert( instr < num_sd2si_instrs );
 	assert( isReg32( destReg ) );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	adrs->forcedSize = setForced( adrs, 8 );
 	asm2opmr
 	(
 			sd2si_strs[ instr ],
 			adrs,
 			gpregmap[destReg][assembler],
-			0,
+			_ifx( assembler == masm, -8, 0),
 			testMode,
 			doSource 
 	);
@@ -12634,13 +12686,13 @@ _begin( Emitss2si_r_r )
 	assert( instr < num_ss2si_instrs );
 	assert( srcReg <= 7 );
 	assert( isReg32( destReg ) );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	asm2oprr
 	(
 			ss2si_strs[ instr ],
 			xmmregmap[srcReg][assembler],
 			gpregmap[destReg][assembler],
-			0,
+			_ifx( assembler == masm, 4, 0),
 			testMode,
 			doSource 
 	);
@@ -12663,14 +12715,14 @@ _begin( Emitss2si_m_r )
 	
 	assert( instr < num_ss2si_instrs );
 	assert( isReg32( destReg ) );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	adrs->forcedSize = setForced( adrs, 4 );
 	asm2opmr
 	(
 			ss2si_strs[ instr ],
 			adrs,
 			gpregmap[destReg][assembler],
-			0,
+			_ifx( assembler == masm, 4, 0),
 			testMode,
 			doSource 
 	);
@@ -12715,13 +12767,13 @@ _begin( Emitsi2sds_r_r )
 	assert( instr < num_si2sds_instrs );
 	assert( isReg32( srcReg ) );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	asm2oprr
 	(
 			si2sds_strs[ instr ],
 			gpregmap[srcReg][assembler],
 			xmmregmap[destReg][assembler],
-			0,
+			_ifx( assembler == masm, 4, 0),
 			testMode,
 			doSource 
 	);
@@ -12744,14 +12796,14 @@ _begin( Emitsi2sds_m_r )
 	
 	assert( instr < num_si2sds_instrs );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	adrs->forcedSize = setForced( adrs, 4 );
 	asm2opmr
 	(
 			si2sds_strs[ instr ],
 			adrs,
 			xmmregmap[destReg][assembler],
-			0,
+			_ifx( assembler == masm, 4, 0),
 			testMode,
 			doSource 
 	);
@@ -12781,13 +12833,13 @@ _begin( Emitss2sd_r_r )
 	
 	assert( srcReg <= 7 );
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	asm2oprr
 	(
 			"cvtss2sd",
 			xmmregmap[srcReg][assembler],
 			xmmregmap[destReg][assembler],
-			0,
+			_ifx( assembler == masm, 4, 0),
 			testMode,
 			doSource 
 	);
@@ -12809,14 +12861,14 @@ _begin( Emitss2sd_m_r )
 	int doSource;
 	
 	assert( destReg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	adrs->forcedSize = setForced( adrs, 4 );
 	asm2opmr
 	(
 			"cvtss2sd",
 			adrs,
 			xmmregmap[destReg][assembler],
-			0,
+			_ifx( assembler == masm, 4, 0),
 			testMode,
 			doSource 
 	);
@@ -12851,7 +12903,7 @@ _begin( EmitMovntp )
 	int doSource;
 	
 	assert( reg <= 7 );
-	doSource = sourceOutput && assembler != tasm && assembler != masm;
+	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	_if( 16 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 16;
@@ -12862,7 +12914,7 @@ _begin( EmitMovntp )
 			movnt_strs[ instr ],
 			xmmregmap[reg][assembler],
 			adrs,
-			0,
+			_ifx( assembler == masm, -16, 0),
 			testMode,
 			doSource 
 	);
@@ -12920,8 +12972,8 @@ _begin( EmitM8Instr )
 	doSource = sourceOutput && assembler != tasm && 
 		!(
 				(
-						assembler == masm 
-					||	assembler == nasm
+						assembler == nasm 
+//					||	assembler == masm
 				)
 			&& instr == clflush_instr
 		);
@@ -12975,8 +13027,8 @@ _begin( fence_instr )
 	assert( instr < num_fence_instrs );
 	doSource = 
 			sourceOutput 
-		&&	assembler != tasm
-		&&	(assembler != masm || instr == sfence_instr);
+		&&	assembler != tasm;
+ //		&&	(assembler != masm || instr == sfence_instr);
 		
 	asmTestMode( fence_instrs[ instr ], !doSource );
 	_if( doSource )
@@ -13236,7 +13288,6 @@ _begin( generic_r_r )
 				assembler == fasm
 			||	assembler == nasm
 			||	assembler == gas 
-			||	(assembler == masm && isReg8( srcReg ) && instr == cmp_instr) 
 		)
 		 
 		 	// MASM kludge -- to make disassembly output comparison easier.
@@ -13456,6 +13507,7 @@ _begin( EmitGeneric_i_r )
 			( 
 					assembler == masm 
 				||	assembler == fasm 
+				||	assembler == nasm 
 				||	assembler == gas 
 				||	(
 							assembler == nasm
@@ -13466,7 +13518,7 @@ _begin( EmitGeneric_i_r )
 					) 
 			)
 			
-				// MASM and FASM give the sign-extension opcode priority
+				// MASM, NASM, and FASM give the sign-extension opcode priority
 				// over the (const,AX) opcode.
 				
 				_if
@@ -14152,12 +14204,17 @@ _begin( EmitBound_r_m )
 		_elseif( assembler == hla )
 		
 			mem->forcedSize = 0;
+			_if( assembler == tasm || assembler == masm )
+			
+				mem->forcedSize = size * 2;
+				
+			_endif
 			asm2oprm
 			(
 				"bound",
 				gpregmap[ reg ][ assembler ],
 				mem,
-				0,
+				_ifx( assembler == masm, mem->forcedSize, 0),
 				testMode,
 				sourceOutput
 			);
@@ -14165,7 +14222,7 @@ _begin( EmitBound_r_m )
 		_else
 		
 			mem->forcedSize = 0;
-			_if( assembler == tasm )
+			_if( assembler == tasm || assembler == masm )
 			
 				mem->forcedSize = size * 2;
 				
@@ -14175,7 +14232,7 @@ _begin( EmitBound_r_m )
 				"bound",
 				mem,
 				gpregmap[ reg ][ assembler ],
-				0,
+				_ifx( assembler == masm, mem->forcedSize, 0),
 				testMode,
 				sourceOutput
 			);
@@ -14251,7 +14308,7 @@ _begin( EmitBound_r_c_c )
 				&adrs,
 				2,
 				2,
-				lbound,
+				hlastrdup2( lbound ),
 				NULL,
 				NULL,
 				0,
@@ -14271,7 +14328,7 @@ _begin( EmitBound_r_c_c )
 				&adrs,
 				4,
 				4,
-				lbound,
+				hlastrdup2( lbound ),
 				NULL,
 				NULL,
 				0,
@@ -19622,8 +19679,8 @@ static char*
 RtnOperand( struct operandYYS *oprnd, char **dest, unsigned Size )
 _begin( RtnOperand )
 
-	char op[256];			// Disgusting and non-reentrant
-							// but okay for this program.
+	char op[256];
+				 
 
 	static unsigned SizeMask[] =
 	{
@@ -22332,9 +22389,9 @@ _end( EmitFields )
 void
 OutValue
 ( 
-	char *Name, 
-	struct SymNode *Type, 
-	union YYSTYPE *Value 
+	char			*Name, 
+	struct SymNode	*Type, 
+	union YYSTYPE	*Value 
 )
 _begin( OutValue )
 
@@ -22558,7 +22615,7 @@ _begin( OutValue )
 	_elseif( Type->pType == tArray )
 
 		enum	PrimType	pType;
-		union	YYSTYPE	*CurValue;
+		union	YYSTYPE		*CurValue;
 
 		assert( Type->Type != NULL );
 		pType = GetBaseType( Type )->pType;
@@ -22758,10 +22815,10 @@ _begin( OutValue )
 							++CurElement
 						)
 							allTheSame = 
-								v.v.u.bytes[0] == CurValue->v.u.bytes[CurElement];
-							
+								CurValue[0].v.u.bytes[0] == 
+										CurValue[CurElement].v.u.bytes[0];
+								
 							_breakif( !allTheSame );
-							++CurValue;
 							
 						_endfor
 						
@@ -22776,10 +22833,10 @@ _begin( OutValue )
 							++CurElement
 						)
 							allTheSame = 
-								v.v.u.words[0] == CurValue->v.u.words[CurElement];
+								CurValue[0].v.u.words[0] == 
+										CurValue[CurElement].v.u.words[0];
 								
 							_breakif( !allTheSame );
-							++CurValue;
 							
 						_endfor
 						
@@ -22795,10 +22852,10 @@ _begin( OutValue )
 							++CurElement
 						)
 							allTheSame = 
-								v.v.u.dwords[0] == CurValue->v.u.dwords[CurElement];
+								CurValue[0].v.u.dwords[0] == 
+										CurValue[CurElement].v.u.dwords[0];
 								
 							_breakif( !allTheSame );
-							++CurValue;
 							
 						_endfor
 						
@@ -23049,7 +23106,7 @@ _begin( HexToStr64 )
 					sprintf
 					( 
 						dest, 
-						"$%x%08xh", 
+						"$%x%08x", 
 						value->v.u.lwordval[1], 
 						value->v.u.lwordval[0] 
 					);
@@ -24798,7 +24855,7 @@ _begin( FreeAdrs )
 	
 	free2( vss adrs->IndexReg );
 	adrs->IndexReg = NULL;
-	
+
 _end( FreeAdrs )
 
 

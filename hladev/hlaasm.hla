@@ -4,6 +4,13 @@ unit Int64unit;
 ?@noalignstack := true;
 ?@leave := true;
 
+type
+	real80_t:
+		record
+			r	:real80;
+			pad	:byte[6];
+		endrecord;
+		
 const
 	#if( @defined( unix ) )
 	
@@ -380,27 +387,27 @@ procedure _HLAmalloc( size:dword ); @cdecl; @external( cPrefix "HLAmalloc" );
 
 
 procedure atold( s:string; var dest:real80 ); @external( cPrefix "atold" );
-procedure e80Str( r80:real80; buffer:dword ); @external( cPrefix "e80Str" );
+procedure e80Str( r80:real80_t; buffer:dword ); @external( cPrefix "e80Str" );
 
-procedure fadd80( r:real80; l:real80; var f:real80 ); @external( cPrefix "fadd80" );
-procedure fsub80( r:real80; l:real80; var f:real80 ); @external( cPrefix "fsub80" );
-procedure fmul80( r:real80; l:real80; var f:real80 ); @external( cPrefix "fmul80" );
-procedure fdiv80( r:real80; l:real80; var f:real80 ); @external( cPrefix "fdiv80" );
+procedure fadd80( r:real80_t; l:real80_t; var f:real80 ); @external( cPrefix "fadd80" );
+procedure fsub80( r:real80_t; l:real80_t; var f:real80 ); @external( cPrefix "fsub80" );
+procedure fmul80( r:real80_t; l:real80_t; var f:real80 ); @external( cPrefix "fmul80" );
+procedure fdiv80( r:real80_t; l:real80_t; var f:real80 ); @external( cPrefix "fdiv80" );
 
-procedure fneg80( l:real80; var f:real80 ); @external( cPrefix "fneg80" );
-procedure fabs80( l:real80; var f:real80 ); @external( cPrefix "fabs80" );
+procedure fneg80( l:real80_t; var f:real80 ); @external( cPrefix "fneg80" );
+procedure fabs80( l:real80_t; var f:real80 ); @external( cPrefix "fabs80" );
 
-procedure fmax80( r:real80; l:real80; var f:real80 ); @external( cPrefix "fmax80" );
-procedure fmin80( r:real80; l:real80; var f:real80 ); @external( cPrefix "fmin80" );
+procedure fmax80( r:real80_t; l:real80_t; var f:real80 ); @external( cPrefix "fmax80" );
+procedure fmin80( r:real80_t; l:real80_t; var f:real80 ); @external( cPrefix "fmin80" );
 
-procedure feq80 ( r:real80; l:real80 ); @external( cPrefix "feq80" );
-procedure fne80 ( r:real80; l:real80 ); @external( cPrefix "fne80" );
-procedure flt80 ( r:real80; l:real80 ); @external( cPrefix "flt80" );
-procedure fle80 ( r:real80; l:real80 ); @external( cPrefix "fle80" );
-procedure fgt80 ( r:real80; l:real80 ); @external( cPrefix "fgt80" );
-procedure fge80 ( r:real80; l:real80 ); @external( cPrefix "fge80" );
+procedure feq80 ( r:real80_t; l:real80_t ); @external( cPrefix "feq80" );
+procedure fne80 ( r:real80_t; l:real80_t ); @external( cPrefix "fne80" );
+procedure flt80 ( r:real80_t; l:real80_t ); @external( cPrefix "flt80" );
+procedure fle80 ( r:real80_t; l:real80_t ); @external( cPrefix "fle80" );
+procedure fgt80 ( r:real80_t; l:real80_t ); @external( cPrefix "fgt80" );
+procedure fge80 ( r:real80_t; l:real80_t ); @external( cPrefix "fge80" );
 
-procedure f80int ( src:real80; var dest:var ); 
+procedure f80int ( src:real80_t; var dest:var ); 
 	@cdecl;
 	@external( cPrefix "f80int" );
 	
@@ -408,15 +415,15 @@ procedure unsf80 ( var src:var; var f:real80 );
 	@cdecl;
 	@external( cPrefix "unsf80" );
 
-procedure ceil80( src:real80; var dest:real80 ); @external( cPrefix "ceil80" );
-procedure floor80( src:real80; var dest:real80 ); @external( cPrefix "floor80" );
-procedure cos80( src:real80; var dest:real80 ); @external( cPrefix "cos80" );
-procedure sin80( src:real80; var dest:real80 ); @external( cPrefix "sin80" );
-procedure tan80( src:real80; var dest:real80 ); @external( cPrefix "tan80" );
-procedure exp80( src:real80; var dest:real80 ); @external( cPrefix "exp80" );
-procedure log80( src:real80; var dest:real80 ); @external( cPrefix "log80" );
-procedure log1080( src:real80; var dest:real80 ); @external( cPrefix "log1080" );
-procedure sqrt80( src:real80; var dest:real80 ); @external( cPrefix "sqrt80" );
+procedure ceil80( src:real80_t; var dest:real80 ); @external( cPrefix "ceil80" );
+procedure floor80( src:real80_t; var dest:real80 ); @external( cPrefix "floor80" );
+procedure cos80( src:real80_t; var dest:real80 ); @external( cPrefix "cos80" );
+procedure sin80( src:real80_t; var dest:real80 ); @external( cPrefix "sin80" );
+procedure tan80( src:real80_t; var dest:real80 ); @external( cPrefix "tan80" );
+procedure exp80( src:real80_t; var dest:real80 ); @external( cPrefix "exp80" );
+procedure log80( src:real80_t; var dest:real80 ); @external( cPrefix "log80" );
+procedure log1080( src:real80_t; var dest:real80 ); @external( cPrefix "log1080" );
+procedure sqrt80( src:real80_t; var dest:real80 ); @external( cPrefix "sqrt80" );
 
 procedure negval
 ( 
@@ -9291,7 +9298,7 @@ end unsf80;
 //	Converts an 80-bit real to an integer via truncation.
 
 
-procedure f80int( src:real80; var dest:var ); @nodisplay;
+procedure f80int( src:real80_t; var dest:var ); @nodisplay;
 var
 	fcw16: 		word[2];
 	
@@ -9303,7 +9310,7 @@ begin f80int;
 	fstcw( fcw16 );
 	fldcw( fcw );
 	
-	fld( src );
+	fld( src.r );
 	mov( dest, eax );
 	fistp( (type qword [eax]) );	// Convert with truncation.
 	
@@ -9317,13 +9324,13 @@ end f80int;
 //	This do the obvious operations.
 //	Computation is f = l op r;
 
-procedure fadd80(  r:real80; l:real80; var f:real80 ); @noframe; @nodisplay;
+procedure fadd80(  r:real80_t; l:real80_t; var f:real80 ); @noframe; @nodisplay;
 begin fadd80;
 
 	push( ebp );
 	mov( esp, ebp );
-	fld( l );
-	fld( r );
+	fld( l.r );
+	fld( r.r );
 	faddp();
 	mov( f, eax );
 	fstp( (type real80 [eax]) );
@@ -9333,13 +9340,13 @@ begin fadd80;
 end fadd80;
 	
 
-procedure fsub80(  r:real80; l:real80; var f:real80 ); @noframe; @nodisplay;
+procedure fsub80(  r:real80_t; l:real80_t; var f:real80 ); @noframe; @nodisplay;
 begin fsub80;
 
 	push( ebp );
 	mov( esp, ebp );
-	fld( l );
-	fld( r );
+	fld( l.r );
+	fld( r.r );
 	fsubp();
 	mov( f, eax );
 	fstp( (type real80 [eax]) );
@@ -9348,13 +9355,13 @@ begin fsub80;
 	
 end fsub80;
 
-procedure fmul80(  r:real80; l:real80; var f:real80 ); @noframe; @nodisplay;
+procedure fmul80(  r:real80_t; l:real80_t; var f:real80 ); @noframe; @nodisplay;
 begin fmul80;
 
 	push( ebp );
 	mov( esp, ebp );
-	fld( l );
-	fld( r );
+	fld( l.r );
+	fld( r.r );
 	fmulp();
 	mov( f, eax );
 	fstp( (type real80 [eax]) );
@@ -9363,13 +9370,13 @@ begin fmul80;
 	
 end fmul80;
 
-procedure fdiv80(  r:real80; l:real80; var f:real80 ); @noframe; @nodisplay;
+procedure fdiv80(  r:real80_t; l:real80_t; var f:real80 ); @noframe; @nodisplay;
 begin fdiv80;
 
 	push( ebp );
 	mov( esp, ebp );
-	fld( l );
-	fld( r );
+	fld( l.r );
+	fld( r.r );
 	fdivp();
 	mov( f, eax );
 	fstp( (type real80 [eax]) );
@@ -9383,12 +9390,12 @@ end fdiv80;
 //
 //	Computes f = -l;
 
-procedure fneg80(  l:real80; var f:real80 ); @noframe; @nodisplay;
+procedure fneg80(  l:real80_t; var f:real80 ); @noframe; @nodisplay;
 begin fneg80;
 
 	push( ebp );
 	mov( esp, ebp );
-	fld( l );
+	fld( l.r );
 	fchs();
 	mov( f, eax );
 	fstp( (type real80 [eax]) );
@@ -9402,12 +9409,12 @@ end fneg80;
 //
 //	Computes f = abs( l );
 
-procedure fabs80(  l:real80; var f:real80 ); @noframe; @nodisplay;
+procedure fabs80(  l:real80_t; var f:real80 ); @noframe; @nodisplay;
 begin fabs80;
 
 	push( ebp );
 	mov( esp, ebp );
-	fld( l );
+	fld( l.r );
 	fabs();
 	mov( f, eax );
 	fstp( (type real80 [eax]) );
@@ -9422,27 +9429,27 @@ end fabs80;
 //	Compute the maximum and minimum of the l and r operands, and
 //  return the result in f.
 
-procedure fmax80( r:real80; l:real80; var f:real80 ); @nodisplay; @noframe;
+procedure fmax80( r:real80_t; l:real80_t; var f:real80 ); @nodisplay; @noframe;
 begin fmax80;
 
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( l );
-	fld( r );
+	fld( l.r );
+	fld( r.r );
 	fcom();
 	fstsw( ax );
 	sahf();
 	mov( f, eax );
 	if( @nb ) then
 	
-		fstp( r );						// Just pop r off the stack.
+		fstp( r.r );					// Just pop r off the stack.
 		fstp( (type real80 [eax]) );	// Max is l, store into f.
 		
 	else
 	
 		fstp( (type real80 [eax]) );	// r is max, store it into f.
-		fstp( l );						// just pop l off the stack.
+		fstp( l.r );					// just pop l off the stack.
 		
 	endif;
 	
@@ -9452,27 +9459,27 @@ begin fmax80;
 end fmax80;	
 	
 	
-procedure fmin80( r:real80; l:real80; var f:real80 ); @nodisplay; @noframe;
+procedure fmin80( r:real80_t; l:real80_t; var f:real80 ); @nodisplay; @noframe;
 begin fmin80;
 
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( l );
-	fld( r );
+	fld( l.r );
+	fld( r.r );
 	fcom();
 	fstsw( ax );
 	sahf();
 	mov( f, eax );
 	if( @b ) then
 	
-		fstp( r );						// Just pop r off the stack.
+		fstp( r.r );					// Just pop r off the stack.
 		fstp( (type real80 [eax]) );	// Min is l, store into f.
 		
 	else
 	
 		fstp( (type real80 [eax]) );	// r is min, store it into f.
-		fstp( l );						// just pop l off the stack.
+		fstp( l.r );					// just pop l off the stack.
 		
 	endif;
 	
@@ -9488,14 +9495,14 @@ end fmin80;
 //	These functions compare their operands and return
 //	true/false in EAX to denote the result of the comparison.
 
-procedure feq80 ( r:real80; l:real80 ); @nodisplay; @noframe;
+procedure feq80 ( r:real80_t; l:real80_t ); @nodisplay; @noframe;
 begin feq80;
 
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( r );
-	fld( l );
+	fld( r.r );
+	fld( l.r );
 	fcompp();
 	fstsw( ax );
 	sahf();
@@ -9506,14 +9513,14 @@ begin feq80;
 	
 end feq80;
 
-procedure fne80 ( r:real80; l:real80 ); @nodisplay; @noframe;
+procedure fne80 ( r:real80_t; l:real80_t ); @nodisplay; @noframe;
 begin fne80;
 
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( r );
-	fld( l );
+	fld( r.r );
+	fld( l.r );
 	fcompp();
 	fstsw( ax );
 	sahf();
@@ -9524,14 +9531,14 @@ begin fne80;
 	
 end fne80;
 
-procedure flt80 ( r:real80; l:real80 ); @nodisplay; @noframe;
+procedure flt80 ( r:real80_t; l:real80_t ); @nodisplay; @noframe;
 begin flt80;
 
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( r );
-	fld( l );
+	fld( r.r );
+	fld( l.r );
 	fcompp();
 	fstsw( ax );
 	sahf();
@@ -9542,14 +9549,14 @@ begin flt80;
 	
 end flt80;
 
-procedure fle80 ( r:real80; l:real80 ); @nodisplay; @noframe;
+procedure fle80 ( r:real80_t; l:real80_t ); @nodisplay; @noframe;
 begin fle80;
 
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( r );
-	fld( l );
+	fld( r.r );
+	fld( l.r );
 	fcompp();
 	fstsw( ax );
 	sahf();
@@ -9560,14 +9567,14 @@ begin fle80;
 	
 end fle80;
 
-procedure fgt80 ( r:real80; l:real80 ); @nodisplay; @noframe;
+procedure fgt80 ( r:real80_t; l:real80_t ); @nodisplay; @noframe;
 begin fgt80;
 
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( r );
-	fld( l );
+	fld( r.r );
+	fld( l.r );
 	fcompp();
 	fstsw( ax );
 	sahf();
@@ -9578,14 +9585,14 @@ begin fgt80;
 	
 end fgt80;
 
-procedure fge80 ( r:real80; l:real80 ); @nodisplay; @noframe;
+procedure fge80 ( r:real80_t; l:real80_t ); @nodisplay; @noframe;
 begin fge80;
 
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( r );
-	fld( l );
+	fld( r.r );
+	fld( l.r );
 	fcompp();
 	fstsw( ax );
 	sahf();
@@ -9608,7 +9615,7 @@ end fge80;
 //	log8010-	Computes the base-10 log of the operand.
 //	sqrt80-		Computes the square root of the operand.
 
-procedure ceil80( src:real80; var dest:real80 ); @nodisplay; @noframe;
+procedure ceil80( src:real80_t; var dest:real80 ); @nodisplay; @noframe;
 static
 	fcwSave:	word;
 	fcw:		word;
@@ -9665,9 +9672,9 @@ begin ceil80;
 		// (is the integer component equal to the whole value?)
 		// If not, then add one to the integer value if it is positive.
 		
-		fld( src );
+		fld( src.r );
 		frndint();
-		fld( src );
+		fld( src.r );
 		fcomp();
 		fstsw( ax );
 		sahf();
@@ -9697,7 +9704,7 @@ begin ceil80;
 end ceil80;
 
  
-procedure floor80( src:real80; var dest:real80 ); @nodisplay; @noframe;
+procedure floor80( src:real80_t; var dest:real80 ); @nodisplay; @noframe;
 static
 	fcwSave:	word;
 	fcw:		word;
@@ -9731,9 +9738,9 @@ begin floor80;
 		// (is the integer component equal to the whole value?)
 		// If not, then subtract one from the integer value if it is negative.
 		
-		fld( src );
+		fld( src.r );
 		frndint();
-		fld( src );
+		fld( src.r );
 		fcomp();
 		fstsw( ax );
 		sahf();
@@ -9765,13 +9772,13 @@ end floor80;
  
 
  
-procedure cos80( src:real80; var dest:real80 ); @nodisplay; @noframe; 
+procedure cos80( src:real80_t; var dest:real80 ); @nodisplay; @noframe; 
 begin cos80;
 
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( src );
+	fld( src.r );
 	fcos();
 	mov( dest, eax );
 	fstp( (type real80 [eax]) );
@@ -9782,13 +9789,13 @@ begin cos80;
 end cos80;
 
  
-procedure sin80( src:real80; var dest:real80 ); @nodisplay; @noframe; 
+procedure sin80( src:real80_t; var dest:real80 ); @nodisplay; @noframe; 
 begin sin80;
 
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( src );
+	fld( src.r );
 	fsin();
 	mov( dest, eax );
 	fstp( (type real80 [eax]) );
@@ -9799,13 +9806,13 @@ begin sin80;
 end sin80;
 
  
-procedure tan80( src:real80; var dest:real80 ); @nodisplay; @noframe; 
+procedure tan80( src:real80_t; var dest:real80 ); @nodisplay; @noframe; 
 begin tan80;
 
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( src );
+	fld( src.r );
 	fsincos();
 	fdivp();
 	mov( dest, eax );
@@ -9817,7 +9824,7 @@ begin tan80;
 end tan80;
 
  
-procedure log80( src:real80; var dest:real80 ); @nodisplay; @noframe; 
+procedure log80( src:real80_t; var dest:real80 ); @nodisplay; @noframe; 
 begin log80;
 
 	push( ebp );
@@ -9825,7 +9832,7 @@ begin log80;
 	
 
 	fld1();
-	fld( src );
+	fld( src.r );
 	fyl2x();		// Compute 1*lg(x).
 	fldl2e();		// Load lg(e).
 	fdivp();			// Compute lg(x)/lg(e).
@@ -9838,14 +9845,14 @@ begin log80;
 end log80;
 
  
-procedure log1080( src:real80; var dest:real80 ); @nodisplay; @noframe;
+procedure log1080( src:real80_t; var dest:real80 ); @nodisplay; @noframe;
 begin log1080;
 
 	push( ebp );
 	mov( esp, ebp );
 	
 	fld1();
-	fld( src );
+	fld( src.r );
 	fyl2x();		// Compute 1*lg(x).
 	fldl2t();		// Load lg(10).
 	fdivp();		// Compute lg(x)/lg(10).
@@ -9858,13 +9865,13 @@ begin log1080;
 end log1080;
 
  
-procedure sqrt80( src:real80; var dest:real80 ); @nodisplay; @noframe; 
+procedure sqrt80( src:real80_t; var dest:real80 ); @nodisplay; @noframe; 
 begin sqrt80;
 
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( src );
+	fld( src.r );
 	fsqrt();
 	mov( dest, eax );
 	fstp( (type real80 [eax]) );
@@ -9875,7 +9882,7 @@ end sqrt80;
 
 
 
-procedure exp80( src:real80; var dest:real80 ); @nodisplay; @noframe;
+procedure exp80( src:real80_t; var dest:real80 ); @nodisplay; @noframe;
 static
 	SaveCW:		word;
 	MaskedCW:	word;
@@ -9885,7 +9892,7 @@ begin exp80;
 	push( ebp );
 	mov( esp, ebp );
 	
-	fld( src );
+	fld( src.r );
 	fldl2e();		// Put lg(e) onto the stack.
 	fmulp(); 		// Compute x*lg(e).
 	
@@ -10718,7 +10725,7 @@ end FPDigits;
 
 
 
-procedure e80Str( r80:real80; buffer:dword ); @nodisplay; @noframe;
+procedure e80Str( r80:real80_t; buffer:dword ); @nodisplay; @noframe;
 
 static
 	Digits:		byte[ 32 ];
@@ -10761,7 +10768,7 @@ begin e80Str;
 		** Do the conversion.
 		*/
 
-		fld( r80 );					// Put FP number of FPU stack.
+		fld( r80.r );				// Put FP number on FPU stack.
 		lea( edi, Digits );			// Store result string here.
 		call( FPDigits );			// Convert r80 to digit string.
 		mov( eax, Exponent );		// Save away exponent result.

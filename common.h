@@ -124,18 +124,26 @@ extern outputBuf constBuf;
 extern enum OSChoice targetOS;
 
 
-// Linkage to the CFASM module:
+// Linkage to the HLABE module:
 
-extern int useCFASM;
+extern int useHLABE;
 
-extern void fasmMain
-( 
-	char	*fName,
-	char	*outName,
-	void	*memory,
-	int		memsize,
-	int		passes,
-	int		verbose
+// objType values:
+
+#define objt_pecoff_c		0
+#define objt_elf_c			1
+#define objt_elfLinux_c		2
+#define objt_elfFreeBSD_c	3
+#define objt_macho_c		4
+
+extern void hlabe_compile
+(
+	char 		*inputFilename,
+	char 		*outputFilename, 
+	char 		*start_source, 
+	char 		*end_source,
+	unsigned	objType,
+	unsigned	verbose 
 );
 
 
@@ -319,12 +327,12 @@ struct flt80
 {
 	union
 	{
-		char 	x[12];  // Really just 10 bytes, add two bytes for padding.
+		char 	x[16];  // Really just 10 bytes, add six bytes for padding.
 		double	d;
 		float	f;
 	}f;
 };
-
+				  
 							
 							
 struct StaticListType

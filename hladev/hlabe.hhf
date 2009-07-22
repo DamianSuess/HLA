@@ -1,0 +1,446 @@
+#if( !@defined( hlabe_hhf ))
+?hlabe_hhf := true;
+
+#includeOnce( "tables.hhf" )
+
+const
+	// Used to emit some extra data to the code file for debugging purposes:
+	
+	trace_c		:= false;
+	dbgTrace_c	:= false;
+	verbose_c	:= false;
+
+	// Values for symbol_t "flags" field:
+	
+	isExtern_c		:= @{0};
+	isPublic_c		:= @{1};
+	isReferenced_c	:= @{2};
+	isDefined_c		:= @{3};
+	
+	// Brand values for ELF files:
+	
+	brandNone		:= 0;
+	brandLinux		:= 0;
+	brandFreeBSD	:= 0;
+	
+
+
+	tknEBX		:text := "(type tokenStmt_t [ebx])";
+	dispEBX		:text := "(type disp_t [ebx])";
+	rel1EBX		:text := "(type rel_1_Stmt_t [ebx])";
+	rel2EBX		:text := "(type rel_2_Stmt_t [ebx])";
+	rel14EBX	:text := "(type rel_1_4_Stmt_t [ebx])";
+	rel4EBX		:text := "(type rel_4_Stmt_t [ebx])";
+	jmpEBX		:text := "(type jmp_Stmt_t [ebx])";
+	srcEBX		:text := "(type sourceFileList_t [ebx])";
+	dupEBX		:text := "(type dupStmt_t [ebx])";
+	tblEDX		:text := "(type tableNode_t [edx])";
+	tblEAX		:text := "(type tableNode_t [eax])";
+	symEDX		:text := "(type symbol_t [edx])";
+	symEAX		:text := "(type symbol_t [eax])";
+	symECX		:text := "(type symbol_t [ecx])";
+	symEBX		:text := "(type symbol_t [ebx])";
+	relocESI	:text := "(type w.IMAGE_RELOCATION [ESI])";
+	
+	
+type
+
+	// HLABE supports a three-section object file model (like a.out),
+	// a text/code section, a static/data section, and a BSS section:
+	
+	section_t	:enum
+	{
+		undefinedSection_c,
+		code_c,		// Must be in this order!
+		data_c,
+		bss_c
+	};
+	
+	// Supported object file formats:
+	
+	obj_t		:enum
+	{
+		pecoff_c,
+		elf_c,
+		elfLinux_c,
+		elfFreeBSD_c,
+		macho_c
+	};
+	
+	
+	// Data type for a symbol table entry:
+	
+	symbol_t	:record
+	
+		next	:pointer to symbol_t;
+		id		:string;
+		coffSym	:uns32;					// index to coff file symbol table entry
+		offset	:dword;
+		section	:section_t;
+		flags	:byte;
+		align(4);
+			
+	endrecord;
+	
+	
+	tokens_t	:enum
+	{
+		start_tkn,				// Start-of-token-list token.
+		align_tkn,				// .a	<x>
+		bytes_tkn,				// Any absolute data
+		
+		label_tkn,				// :label definition
+		
+		reloc_tkn,				// Relocatable expression
+		
+		reserve_tkn,			// Reserve storage
+		dupByte_tkn,			// Duplicate byte data
+		dupWord_tkn,			// Duplicate word data
+		dupDword_tkn,			// Duplicate dword data
+				
+		code_tkn,				// .c
+		data_tkn,				// .s
+		bss_tkn,				// .v
+		
+		rel1_tkn,				// loopX, jecxz, etc., that have 1-byte disp
+		rel2_tkn,				// jcxz with 2-byte opcode and 1-byte disp
+		rel1_4_tkn,				// Jmp instrs that have 1 or 4-byte disp
+		rel4_tkn,				// Instrs (e.g., 'call') that have 4-byte disp
+		jmp_tkn,				// Jmp disp instructions that have 1 or 4-byte disp
+		
+		public_tkn,				// .p
+		extern_tkn,				// .x
+		
+		dummy_tkn				// Dummy record emitted at the end of a section.
+	};
+	
+	tokenStmt_t	:record
+	
+		prev		:pointer to tokenStmt_t;
+		next		:pointer to tokenStmt_t;
+		token		:tokens_t;
+		instrOffset	:dword;
+		
+	endrecord;
+	
+	// ":lbldef" creates this record:
+	
+	labelStmt_t	:record inherits( tokenStmt_t );
+	
+		symTabEntry	:tableNodePtr_t;
+		
+	endrecord;
+	
+	
+	
+	// ".a <n>" creates this record:
+	
+	alignStmt_t	:record inherits( tokenStmt_t );
+	
+		alignExpr	:dword;
+		
+	endrecord;
+	
+	
+	// Data structure used by data declaration statements:
+	
+	varLen_t	:record inherits( tokenStmt_t );
+	
+		numBytes	:dword;
+		
+	endrecord;
+	
+	
+	// ".b <n>" creates this record (and any other statement
+	// that emits absolute data):
+	
+	byteStmt_t	:record inherits( varLen_t );
+	
+		byteData	:byte[1];	// Variable length
+		
+	endrecord;
+	
+	
+	
+	
+	// ".d <reloc expr>" creates this record:
+	
+	relocStmt_t	:record inherits( tokenStmt_t );
+	
+		symbol		:tableNodePtr_t;
+		offset		:dword;
+		
+	endrecord;
+	
+	
+	// All the jump and call instructions have the following fields in common:
+	
+	sflPtr			:pointer to sourceFileList_t;
+	sourceFileList_t	:record
+	
+		next		:sflPtr;
+		filename	:string;
+		lineNumber	:uns32;
+		
+	endrecord;
+	
+	disp_t	:record inherits( tokenStmt_t );
+	
+		disp		:int32;
+		symbol		:tableNodePtr_t;
+		offset		:dword;
+		line		:sflPtr;
+		
+	endrecord;
+	
+	
+	// Two-byte (only) conditional jumps emit this record:
+	
+	rel_1_Stmt_t	:record inherits( disp_t );
+	
+		opcode		:byte;
+		
+	endrecord;
+	
+	// rel_2_Stmt_t - used by jcxz.
+	
+	rel_2_Stmt_t	:record inherits( disp_t );
+	
+		opcode		:word;
+		
+	endrecord;
+	
+	
+	// Four-byte (only) control-transfer instructions emit this record:
+	
+	rel_4_Stmt_t	:record inherits( disp_t );
+	
+		opcode		:byte;
+		
+	endrecord;
+	
+	
+	// Variable-length Jcc instructions emit this record:
+	
+	rel_1_4_Stmt_t	:record inherits( disp_t );
+	
+		opcode1		:byte;
+		opcode2		:word;
+		curOfsSize	:byte;
+		
+	endrecord;
+	
+	
+	// Jmp disp instructions emit this record:
+	
+	jmp_Stmt_t	:record inherits( disp_t );
+	
+		opcode1		:byte;
+		opcode2		:byte;
+		curOfsSize	:byte;
+		
+	endrecord;
+	
+	
+	// ".ub <n>,<m>", ".uw <n>,<m>", and ".ud <n>,<m>" create these records:
+	
+	dupStmt_t	:record inherits( tokenStmt_t );
+	
+		size		:dword;
+		count		:dword;
+		data		:dword;
+		
+	endrecord;
+	
+	
+	
+	
+	// ".r <n>" creates this record:
+	
+	reserveStmt_t	:record inherits( tokenStmt_t );
+	
+		sizeExpr	:dword;
+		
+	endrecord;
+	
+	
+	
+	
+	
+	
+	tokenList_t	:pointer to tokenStmt_t;
+	
+	
+	
+	
+static
+	codeSize		:dword;					@external;
+	numCodeRelocs	:dword;					@external;
+	dataSize		:dword;					@external;
+	numDataRelocs	:dword;					@external;
+	bssSize			:dword;					@external;
+
+    symbolTable     :table_t;				@external;
+    equatesTable    :table_t;				@external;
+	
+	currentSection  :section_t;				@external;
+	verbose			:boolean;				@external;
+
+
+
+	#macro _proc( string procname ):dummy,dummy2;
+
+		?dummy := procname + @string(dummy2);		
+		#if( trace_c )
+		
+			procedure @text( dummy ); @noframe;
+			begin @text( dummy );
+			byte procname,0;
+			nop;
+			nop;
+			nop;
+			align(4);
+			end @text( dummy );
+			
+		#endif
+		procedure @text( procname )
+		
+	#endmacro
+
+	#macro _begin( string procname ):dummy,dummy2;
+
+		?dummy := procname + @string(dummy2);		
+		#if( trace_c )
+		
+			procedure @text( dummy ); @noframe;
+			begin @text( dummy );
+			byte "begin ", procname,0;
+			nop;
+			nop;
+			nop;
+			align(4);
+			end @text( dummy );
+			
+		#endif
+		begin @text( procname )
+		
+			#if( dbgTrace_c ) 
+			
+				;stdout.put( procname, nl );
+				
+			#endif 
+		
+	#endmacro
+
+	#macro _end( string procname ):dummy,dummy2;
+
+		end @text( procname );
+		?dummy := procname + @string(dummy2);		
+		#if( trace_c )
+		
+			procedure @text( dummy ); @noframe;
+			begin @text( dummy );
+			byte " end ", procname,0;
+			nop;
+			nop;
+			nop;
+			align(4);
+			end @text( dummy )
+			
+		#endif
+		
+		
+	#endmacro
+
+	// Print the file name/line numbers associated with a branch stmt:
+	
+	procedure printLineNumberChain( var dispRec:disp_t in ebx ); @external;
+	
+	
+	// HLABE lexical analyzer:
+	
+	procedure lexer
+	( 
+				start_source	:dword; 
+				end_src 		:dword; 
+		result	codeListHead	:tokenList_t;
+		result	dataListHead	:tokenList_t;
+		result	bssListHead		:tokenList_t
+	);	@external;
+	
+	
+	
+	// Optimize the branch displacements
+	
+	procedure optimizeDisps
+	( 
+		codeList	:tokenList_t;
+		dataList	:tokenList_t;
+		bssList	    :tokenList_t;
+		verbose		:boolean
+	);	@external;
+	
+	
+	// Generate COFF file from compiled code:
+	
+	procedure compileCOFF
+	( 
+			inputFilename	:string;
+			outputFilename	:string; 
+			start_source	:dword; 
+			end_source		:dword;
+			verbose			:boolean; 
+		var	codeListPtr		:tokenList_t;
+		var	dataListPtr		:tokenList_t;
+		var	bssListPtr	    :tokenList_t
+	);	@external;
+	
+	
+	
+	// Generate ELF file from compiled code:
+	
+	procedure compileELF
+	( 
+				inputFilename	:string;
+				outputFilename	:string; 
+				start_source	:dword; 
+				end_source		:dword;
+				brand			:byte;
+				verbose			:boolean; 
+		result	codeList		:tokenList_t;
+		result	dataList		:tokenList_t;
+		result	bssList	    	:tokenList_t
+	);	@external;
+	
+	
+	// Generate Mach-O file from compiled code:
+	
+	procedure compileMACHO
+	( 
+				inputFilename	:string;
+				outputFilename	:string; 
+				start_source	:dword; 
+				end_source		:dword;
+				verbose			:boolean; 
+		result	codeList		:tokenList_t;
+		result	dataList		:tokenList_t;
+		result	bssList	    	:tokenList_t
+	);	@external;
+	
+	
+	// C-callable function to compile an HLABE source file:
+	
+	
+	procedure hlabe_compile
+	(
+			inputFilename	:zstring;
+			outputFilename	:zstring; 
+			start_source	:dword; 
+			end_source		:dword;
+			objType			:obj_t;
+			verbose			:boolean 
+	);	@cdecl;
+		@external( "_hlabe_compile" );
+
+	
+#endif

@@ -1,5 +1,5 @@
 ; Assembly code emitted by HLA compiler
-; Version 1.102 build 18984 (prototype)
+; Version 2.106 build 21552 (prototype)
 ; HLA compiler written by Randall Hyde
 ; MASM compatible output
 
@@ -1229,19 +1229,18 @@ lcLoop__hla_100:
         mov        byte ptr [edx-1], 0 
         mov        eax, [esp+4] 
         ret
-x_lowercase:
 _lowercase endp
 
 _SearchHash proc near32
         push        ebx
         push        esi
-        mov        ebx, [esp+12] 
+        mov        ebx, dword ptr [esp+12] 
         test       ebx, ebx 
         jz         failure__hla_101
-        mov        edx, [esp+16] 
+        mov        edx, dword ptr [esp+16] 
 
 whileLp__hla_102:
-        mov        ecx, [esp+20] 
+        mov        ecx, dword ptr [esp+20] 
         cmp        ecx, dword ptr [ebx+16] 
         jne        NextInHashList__hla_103
         mov        esi, dword ptr [ebx+8] 
@@ -1302,19 +1301,18 @@ failure__hla_101:
         pop        ebx
         xor        eax, eax 
         ret
-x_SearchHash:
 _SearchHash endp
 
 _SearchNext proc near32
         push        ebx
         push        esi
-        mov        ebx, [esp+12] 
+        mov        ebx, dword ptr [esp+12] 
         test       ebx, ebx 
         jz         failure__hla_139
-        mov        edx, [esp+16] 
+        mov        edx, dword ptr [esp+16] 
 
 whileLp__hla_140:
-        mov        ecx, [esp+20] 
+        mov        ecx, dword ptr [esp+20] 
         cmp        ecx, dword ptr [ebx+16] 
         jne        NextInList__hla_110
         mov        esi, dword ptr [ebx+8] 
@@ -1787,7 +1785,6 @@ failure__hla_139:
         pop        ebx
         xor        eax, eax 
         ret
-x_SearchNext:
 _SearchNext endp
 
 _strcpylc proc near32
@@ -1815,7 +1812,6 @@ cpyLoop__hla_148:
         mov        [edx], ebx 
         pop        ebx
         ret
-x_strcpylc:
 _strcpylc endp
 
 _compactType proc near32
@@ -1928,7 +1924,7 @@ endif__hla_150:
         pop        edx
         pop        ebx
         pop        eax
-x_compactType:
+x_compactType__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -1980,9 +1976,9 @@ isUns8__hla_175:
         jne        Failure__hla_196
 
 setUns8__hla_204:
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 2 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _uns8_ste
         mov        eax, 1 
         pop        edx
@@ -2018,9 +2014,9 @@ isUns16__hla_176:
         jne        Failure__hla_196
 
 setUns16__hla_206:
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 3 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _uns16_ste
         mov        eax, 1 
         pop        edx
@@ -2054,9 +2050,9 @@ isUns32__hla_177:
         jne        Failure__hla_196
 
 setUns32__hla_208:
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 4 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _uns32_ste
         mov        eax, 1 
         pop        edx
@@ -2088,9 +2084,9 @@ isUns64__hla_178:
         jne        Failure__hla_196
 
 setUns64__hla_210:
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 5 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _uns64_ste
         mov        eax, 1 
         pop        edx
@@ -2117,9 +2113,9 @@ isUns128__hla_179:
         jl         Failure__hla_196
 
 setUns128__hla_211:
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 6 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _uns128_ste
         mov        eax, 1 
         pop        edx
@@ -2146,9 +2142,9 @@ isByte__hla_180:
         jne        Failure__hla_196
 
 setByte__hla_212:
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 7 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _byte_ste
         mov        eax, 1 
         pop        edx
@@ -2173,9 +2169,9 @@ isWord__hla_181:
         jne        Failure__hla_196
 
 setWord__hla_213:
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 8 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _word_ste
         mov        eax, 1 
         pop        edx
@@ -2198,9 +2194,9 @@ isDWord__hla_182:
         jne        Failure__hla_196
 
 setDWord__hla_215:
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 9 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _dword_ste
         mov        eax, 1 
         pop        edx
@@ -2220,8 +2216,8 @@ checkPtrDW__hla_214:
 isQWord__hla_183:
         cmp        al, 19 
         ja         Failure__hla_196
-        mov        eax, [ebx+8] 
-        or         eax, [ebx+12] 
+        mov        eax, dword ptr [ebx+8] 
+        or         eax, dword ptr [ebx+12] 
         je         setQWord__hla_217
         movsx      eax, byte ptr [ebx+7] 
         mov        al, ah 
@@ -2231,9 +2227,9 @@ isQWord__hla_183:
         jne        Failure__hla_196
 
 setQWord__hla_217:
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 10 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _qword_ste
         mov        eax, 1 
         pop        edx
@@ -2244,7 +2240,7 @@ isTByte__hla_184:
         cmp        al, 19 
         ja         Failure__hla_196
         movzx      eax, word ptr [ebx+10] 
-        or         eax, [ebx+12] 
+        or         eax, dword ptr [ebx+12] 
         je         setTByte__hla_218
         movsx      eax, byte ptr [ebx+9] 
         mov        al, ah 
@@ -2254,9 +2250,9 @@ isTByte__hla_184:
         jne        Failure__hla_196
 
 setTByte__hla_218:
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 11 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _tbyte_ste
         mov        eax, 1 
         pop        edx
@@ -2266,9 +2262,9 @@ setTByte__hla_218:
 isLWord__hla_185:
         cmp        al, 19 
         ja         Failure__hla_196
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 12 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _lword_ste
         mov        eax, 1 
         pop        edx
@@ -2304,9 +2300,9 @@ setInt8__hla_221:
         mov        [ebx+4], eax 
         mov        [ebx+8], eax 
         mov        [ebx+12], eax 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 13 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _int8_ste
         mov        eax, 1 
         pop        edx
@@ -2376,9 +2372,9 @@ setInt16__hla_226:
         mov        [ebx+4], eax 
         mov        [ebx+8], eax 
         mov        [ebx+12], eax 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 14 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _int16_ste
         mov        eax, 1 
         pop        edx
@@ -2443,9 +2439,9 @@ setInt32__hla_230:
         mov        [ebx+4], eax 
         mov        [ebx+8], eax 
         mov        [ebx+12], eax 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 15 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _int32_ste
         mov        eax, 1 
         pop        edx
@@ -2505,9 +2501,9 @@ setInt64__hla_234:
         mov        al, ah 
         mov        [ebx+8], eax 
         mov        [ebx+12], eax 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 16 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _int64_ste
         mov        eax, 1 
         pop        edx
@@ -2553,9 +2549,9 @@ isInt128__hla_190:
         ja         int128Failure__hla_235
 
 setInt128__hla_236:
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 17 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _int128_ste
         mov        eax, 1 
         pop        edx
@@ -2591,9 +2587,9 @@ isReal32__hla_193:
         mov        dword ptr [ebx+4], 0 
         mov        dword ptr [ebx+8], 0 
         mov        dword ptr [ebx+12], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 20 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _real32_ste
 
 real32Success__hla_240:
@@ -2608,9 +2604,9 @@ IsReal3264__hla_241:
         mov        dword ptr [ebx+4], 0 
         mov        dword ptr [ebx+8], 0 
         mov        dword ptr [ebx+12], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 20 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _real32_ste
         mov        eax, 1 
         pop        edx
@@ -2630,9 +2626,9 @@ IsReal32Uns__hla_238:
         mov        dword ptr [ebx+4], 0 
         mov        dword ptr [ebx+8], 0 
         mov        dword ptr [ebx+12], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 20 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _real32_ste
         mov        eax, 1 
         pop        edx
@@ -2653,9 +2649,9 @@ IsReal32Int__hla_239:
         mov        dword ptr [ebx+4], 0 
         mov        dword ptr [ebx+8], 0 
         mov        dword ptr [ebx+12], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 20 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _real32_ste
         mov        eax, 1 
         pop        edx
@@ -2679,9 +2675,9 @@ isReal64__hla_194:
         fstp       real8 ptr [ebx]
         mov        dword ptr [ebx+8], 0 
         mov        dword ptr [ebx+12], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 21 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _real64_ste
         mov        eax, 1 
         pop        edx
@@ -2693,9 +2689,9 @@ IsReal6432__hla_244:
         fstp       real8 ptr [ebx]
         mov        dword ptr [ebx+8], 0 
         mov        dword ptr [ebx+12], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 21 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _real64_ste
         mov        eax, 1 
         pop        edx
@@ -2713,9 +2709,9 @@ IsReal64Uns__hla_242:
         fstp       real8 ptr [ebx]
         mov        dword ptr [ebx+8], 0 
         mov        dword ptr [ebx+12], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 21 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _real64_ste
         mov        eax, 1 
         pop        edx
@@ -2737,9 +2733,9 @@ IsReal64Int__hla_243:
         fstp       real8 ptr [ebx]
         mov        dword ptr [ebx+8], 0 
         mov        dword ptr [ebx+12], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 21 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _real64_ste
         mov        eax, 1 
         pop        edx
@@ -2763,9 +2759,9 @@ isReal80__hla_195:
         fstp       real10 ptr [ebx]
         mov        word ptr [ebx+10], 0 
         mov        dword ptr [ebx+12], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 22 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _real80_ste
         mov        eax, 1 
         pop        edx
@@ -2777,9 +2773,9 @@ IsReal8032__hla_247:
         fstp       real10 ptr [ebx]
         mov        word ptr [ebx+10], 0 
         mov        dword ptr [ebx+12], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 22 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _real80_ste
         mov        eax, 1 
         pop        edx
@@ -2789,16 +2785,16 @@ IsReal8032__hla_247:
 IsReal80Uns__hla_245:
         mov        al, [ebx+7] 
         and        eax, 128 
-        or         eax, [ebx+8] 
-        or         eax, [ebx+12] 
+        or         eax, dword ptr [ebx+8] 
+        or         eax, dword ptr [ebx+12] 
         jnz        Failure__hla_196
         fild       qword ptr [ebx]
         fstp       real10 ptr [ebx]
         mov        word ptr [ebx+10], 0 
         mov        dword ptr [ebx+12], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 22 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _real80_ste
         mov        eax, 1 
         pop        edx
@@ -2816,9 +2812,9 @@ IsReal80Int__hla_246:
         fstp       real10 ptr [ebx]
         mov        word ptr [ebx+10], 0 
         mov        dword ptr [ebx+12], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 22 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _real80_ste
         mov        eax, 1 
         pop        edx
@@ -2853,9 +2849,9 @@ isText__hla_248:
         mov        [eax], dl 
         mov        byte ptr [eax+1], 0 
         mov        [ebx], eax 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 24 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _string_ste
         mov        eax, 1 
         pop        edx
@@ -2869,9 +2865,9 @@ isChar__hla_191:
         jne        Failure__hla_196
         cmp        byte ptr [ebx+1], 0 
         jne        Failure__hla_196
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 18 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _char_ste
         mov        eax, 1 
         pop        edx
@@ -2884,9 +2880,9 @@ isWChar__hla_192:
         cmp        al, 18 
         jne        Failure__hla_196
         mov        byte ptr [ebx], 0 
-        mov        ebx, [esp+24] 
+        mov        ebx, dword ptr [esp+24] 
         mov        byte ptr [ebx], 19 
-        mov        ebx, [esp+28] 
+        mov        ebx, dword ptr [esp+28] 
         mov        dword ptr [ebx], offset32  _wchar_ste
 
 Success__hla_216:
@@ -2908,7 +2904,6 @@ isPointer__hla_202:
         pop        edx
         pop        ebx
         ret
-x_InRange:
 _InRange endp
 
 _MakeCompAsm proc near32
@@ -3078,7 +3073,7 @@ false__hla_511:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      4030
+        pushd      4037
 
         pushd      offset32 str__hla_515
 
@@ -3111,7 +3106,7 @@ false__hla_517:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      4068
+        pushd      4075
 
         pushd      offset32 str__hla_515
 
@@ -3176,7 +3171,7 @@ false__hla_521:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      4165
+        pushd      4172
 
         pushd      offset32 str__hla_522
 
@@ -3205,7 +3200,7 @@ false__hla_523:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      4198
+        pushd      4205
 
         pushd      offset32 str__hla_522
 
@@ -3240,7 +3235,7 @@ false__hla_524:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      4234
+        pushd      4241
 
         pushd      offset32 str__hla_522
 
@@ -3275,7 +3270,7 @@ false__hla_528:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      4265
+        pushd      4272
 
         pushd      offset32 str__hla_522
 
@@ -3325,7 +3320,7 @@ false__hla_532:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      4327
+        pushd      4334
 
         pushd      offset32 str__hla_535
 
@@ -3357,7 +3352,7 @@ false__hla_536:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      4354
+        pushd      4361
 
         pushd      offset32 str__hla_535
 
@@ -3392,7 +3387,7 @@ false__hla_539:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      4388
+        pushd      4395
 
         pushd      offset32 str__hla_535
 
@@ -3427,7 +3422,7 @@ false__hla_543:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      4418
+        pushd      4425
 
         pushd      offset32 str__hla_535
 
@@ -4193,7 +4188,7 @@ exit__hla_503:
         pop        edx
         pop        ecx
         pop        ebx
-x_MakeCompAsm:
+x_MakeCompAsm__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -4229,7 +4224,7 @@ false__hla_568:
         pop        ebx
         pop        edi
         pop        esi
-x_UnsLT:
+x_UnsLT__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -4265,7 +4260,7 @@ false__hla_571:
         pop        ebx
         pop        edi
         pop        esi
-x_UnsLE:
+x_UnsLE__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -4301,7 +4296,7 @@ false__hla_574:
         pop        ebx
         pop        edi
         pop        esi
-x_UnsGT:
+x_UnsGT__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -4337,7 +4332,7 @@ false__hla_577:
         pop        ebx
         pop        edi
         pop        esi
-x_UnsGE:
+x_UnsGE__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -4373,7 +4368,7 @@ false__hla_580:
         pop        ebx
         pop        edi
         pop        esi
-x_IntLT:
+x_IntLT__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -4409,7 +4404,7 @@ false__hla_583:
         pop        ebx
         pop        edi
         pop        esi
-x_IntLE:
+x_IntLE__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -4445,7 +4440,7 @@ false__hla_586:
         pop        ebx
         pop        edi
         pop        esi
-x_IntGT:
+x_IntGT__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -4481,7 +4476,7 @@ false__hla_589:
         pop        ebx
         pop        edi
         pop        esi
-x_IntGE:
+x_IntGE__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -4632,7 +4627,7 @@ default__hla_592::
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      5805
+        pushd      5812
 
         pushd      offset32 str__hla_617
 
@@ -4674,7 +4669,7 @@ false__hla_618:
         pop        edx
         pop        ecx
         pop        ebx
-x_negval:
+x_negval__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -4728,7 +4723,7 @@ false__hla_622:
         mov        dword ptr [esi], offset32  _byte_ste
         jmp        endswitch__hla_619
 case__hla_623::
-        mov        al, [ebx] 
+        mov        al, byte ptr [ebx] 
         not        al
         or         eax, -256 
         mov        [ecx], eax 
@@ -4886,9 +4881,9 @@ false__hla_634:
         mov        eax, [ebx+4] 
         not        eax
         mov        [ecx+4], eax 
-        mov        ax, [ebx+8] 
+        mov        ax, word ptr [ebx+8] 
         not        ax
-        mov        [ecx+4], ax 
+        mov        word ptr [ecx+4], ax 
         mov        byte ptr [edi], 11 
         mov        dword ptr [esi], offset32  _tbyte_ste
         push        esi
@@ -4928,7 +4923,7 @@ default__hla_619::
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      6210
+        pushd      6217
 
         pushd      offset32 str__hla_636
 
@@ -4948,7 +4943,7 @@ endswitch__hla_619:
         pop        edx
         pop        ecx
         pop        ebx
-x_notval:
+x_notval__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -5336,7 +5331,7 @@ default__hla_637:
         pop        ecx
         pop        edi
         pop        esi
-x_addval:
+x_addval__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -5693,7 +5688,7 @@ default__hla_670:
         pop        ecx
         pop        edi
         pop        esi
-x_subval:
+x_subval__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -5701,55 +5696,54 @@ _subval endp
 
 mul128__hla_695 proc near32
         push        edx
-        mov        eax, [esi] 
+        mov        eax, dword ptr [esi] 
         mul        dword ptr [edi]
         mov        [ebp-16], eax 
         mov        [ebp-12], edx 
-        mov        eax, [esi] 
+        mov        eax, dword ptr [esi] 
         mul        dword ptr [edi+4]
         add        [ebp-12], eax 
         adc        edx, 0 
         mov        [ebp-8], edx 
-        mov        eax, [esi] 
+        mov        eax, dword ptr [esi] 
         mul        dword ptr [edi+8]
         add        [ebp-8], eax 
         adc        edx, 0 
         mov        [ebp-4], edx 
-        mov        eax, [esi] 
+        mov        eax, dword ptr [esi] 
         mul        dword ptr [edi+12]
         add        [ebp-4], eax 
-        mov        eax, [esi+4] 
+        mov        eax, dword ptr [esi+4] 
         mul        dword ptr [edi]
         add        [ebp-12], eax 
         adc        [ebp-8], edx 
-        mov        eax, [esi+4] 
+        mov        eax, dword ptr [esi+4] 
         mul        dword ptr [edi+4]
         add        [ebp-8], eax 
         adc        [ebp-4], edx 
-        mov        eax, [esi+4] 
+        mov        eax, dword ptr [esi+4] 
         mul        dword ptr [edi+8]
         add        [ebp-4], eax 
-        mov        eax, [esi+8] 
+        mov        eax, dword ptr [esi+8] 
         mul        dword ptr [edi]
         add        [ebp-8], eax 
         adc        [ebp-4], edx 
-        mov        eax, [esi+8] 
+        mov        eax, dword ptr [esi+8] 
         mul        dword ptr [edi+4]
         add        [ebp-4], eax 
-        mov        eax, [esi+12] 
+        mov        eax, dword ptr [esi+12] 
         mul        dword ptr [edi]
         add        [ebp-4], eax 
         mov        eax, [ebp-16] 
-        mov        [edi], eax 
+        mov        dword ptr [edi], eax 
         mov        eax, [ebp-12] 
-        mov        [edi+4], eax 
+        mov        dword ptr [edi+4], eax 
         mov        eax, [ebp-8] 
-        mov        [edi+8], eax 
+        mov        dword ptr [edi+8], eax 
         mov        eax, [ebp-4] 
-        mov        [edi+12], eax 
+        mov        dword ptr [edi+12], eax 
         pop        edx
         ret
-xmul128__hla_695:
 mul128__hla_695 endp
 
 _mulval proc near32
@@ -5836,48 +5830,48 @@ case__hla_710::
         cmp        byte ptr [edi+15], 0 
         jnl        false__hla_711
         xor        eax, eax 
-        sub        eax, [edi] 
-        mov        [edi], eax 
+        sub        eax, dword ptr [edi] 
+        mov        dword ptr [edi], eax 
         mov        eax, 0 
-        sbb        eax, [edi+4] 
-        mov        [edi+4], eax 
+        sbb        eax, dword ptr [edi+4] 
+        mov        dword ptr [edi+4], eax 
         mov        eax, 0 
-        sbb        eax, [edi+8] 
-        mov        [edi+8], eax 
+        sbb        eax, dword ptr [edi+8] 
+        mov        dword ptr [edi+8], eax 
         mov        eax, 0 
-        sbb        eax, [edi+12] 
-        mov        [edi+12], eax 
+        sbb        eax, dword ptr [edi+12] 
+        mov        dword ptr [edi+12], eax 
 false__hla_711:
         cmp        byte ptr [esi+15], 0 
         jnl        false__hla_712
         xor        eax, eax 
-        sub        eax, [esi] 
-        mov        [esi], eax 
+        sub        eax, dword ptr [esi] 
+        mov        dword ptr [esi], eax 
         mov        eax, 0 
-        sbb        eax, [esi+4] 
-        mov        [esi+4], eax 
+        sbb        eax, dword ptr [esi+4] 
+        mov        dword ptr [esi+4], eax 
         mov        eax, 0 
-        sbb        eax, [esi+8] 
-        mov        [esi+8], eax 
+        sbb        eax, dword ptr [esi+8] 
+        mov        dword ptr [esi+8], eax 
         mov        eax, 0 
-        sbb        eax, [esi+12] 
-        mov        [esi+12], eax 
+        sbb        eax, dword ptr [esi+12] 
+        mov        dword ptr [esi+12], eax 
 false__hla_712:
         call       mul128__hla_695
         popfd
         jns        false__hla_713
         xor        eax, eax 
-        sub        eax, [edi] 
-        mov        [edi], eax 
+        sub        eax, dword ptr [edi] 
+        mov        dword ptr [edi], eax 
         mov        eax, 0 
-        sbb        eax, [edi+4] 
-        mov        [edi+4], eax 
+        sbb        eax, dword ptr [edi+4] 
+        mov        dword ptr [edi+4], eax 
         mov        eax, 0 
-        sbb        eax, [edi+8] 
-        mov        [edi+8], eax 
+        sbb        eax, dword ptr [edi+8] 
+        mov        dword ptr [edi+8], eax 
         mov        eax, 0 
-        sbb        eax, [edi+12] 
-        mov        [edi+12], eax 
+        sbb        eax, dword ptr [edi+12] 
+        mov        dword ptr [edi+12], eax 
 false__hla_713:
         mov        byte ptr [ebx], 17 
         mov        dword ptr [ecx], offset32  _int128_ste
@@ -5897,12 +5891,12 @@ false__hla_713:
         mov        dword ptr [ecx], offset32  _int32_ste
         movsx      eax, byte ptr [edi+1] 
         mov        al, ah 
-        cmp        [edi+2], ax 
+        cmp        word ptr [edi+2], ax 
         jne        false__hla_717
         mov        byte ptr [ebx], 14 
         mov        dword ptr [ecx], offset32  _int16_ste
         movsx      ax, byte ptr [edi] 
-        cmp        [edi+1], ah 
+        cmp        byte ptr [edi+1], ah 
         jne        false__hla_718
         mov        byte ptr [ebx], 13 
         mov        dword ptr [ecx], offset32  _int8_ste
@@ -5934,21 +5928,21 @@ case__hla_721::
         fstp       real10 ptr [edi]
         jmp        endswitch__hla_696
 case__hla_722::
-        mov        eax, [esi] 
-        and        [edi], eax 
-        mov        eax, [esi+4] 
-        and        [edi+4], eax 
-        mov        eax, [esi+8] 
-        and        [edi+8], eax 
-        mov        eax, [esi+12] 
-        and        [edi+12], eax 
+        mov        eax, dword ptr [esi] 
+        and        dword ptr [edi], eax 
+        mov        eax, dword ptr [esi+4] 
+        and        dword ptr [edi+4], eax 
+        mov        eax, dword ptr [esi+8] 
+        and        dword ptr [edi+8], eax 
+        mov        eax, dword ptr [esi+12] 
+        and        dword ptr [edi+12], eax 
 endswitch__hla_696:
 default__hla_696:
         pop        edi
         pop        esi
         pop        ecx
         pop        ebx
-x_mulval:
+x_mulval__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -6032,7 +6026,7 @@ exitloop__hla_724:
         pop        edi
         pop        ecx
         pop        eax
-xdiv128__hla_723:
+xdiv128__hla_723__hla_:
         mov        esp, ebp 
         pop        ebp
         ret        40
@@ -6067,7 +6061,7 @@ case__hla_727::
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      7733
+        pushd      7740
 
         pushd      offset32 str__hla_729
 
@@ -6124,7 +6118,7 @@ case__hla_735::
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      7794
+        pushd      7801
 
         pushd      offset32 str__hla_729
 
@@ -6182,32 +6176,32 @@ case__hla_743::
         cmp        byte ptr [edi+15], 0 
         jnl        false__hla_744
         xor        eax, eax 
-        sub        eax, [edi] 
-        mov        [edi], eax 
+        sub        eax, dword ptr [edi] 
+        mov        dword ptr [edi], eax 
         mov        eax, 0 
-        sbb        eax, [edi+4] 
-        mov        [edi+4], eax 
+        sbb        eax, dword ptr [edi+4] 
+        mov        dword ptr [edi+4], eax 
         mov        eax, 0 
-        sbb        eax, [edi+8] 
-        mov        [edi+8], eax 
+        sbb        eax, dword ptr [edi+8] 
+        mov        dword ptr [edi+8], eax 
         mov        eax, 0 
-        sbb        eax, [edi+12] 
-        mov        [edi+12], eax 
+        sbb        eax, dword ptr [edi+12] 
+        mov        dword ptr [edi+12], eax 
 false__hla_744:
         cmp        byte ptr [esi+15], 0 
         jnl        false__hla_745
         xor        eax, eax 
-        sub        eax, [esi] 
-        mov        [esi], eax 
+        sub        eax, dword ptr [esi] 
+        mov        dword ptr [esi], eax 
         mov        eax, 0 
-        sbb        eax, [esi+4] 
-        mov        [esi+4], eax 
+        sbb        eax, dword ptr [esi+4] 
+        mov        dword ptr [esi+4], eax 
         mov        eax, 0 
-        sbb        eax, [esi+8] 
-        mov        [esi+8], eax 
+        sbb        eax, dword ptr [esi+8] 
+        mov        dword ptr [esi+8], eax 
         mov        eax, 0 
-        sbb        eax, [esi+12] 
-        mov        [esi+12], eax 
+        sbb        eax, dword ptr [esi+12] 
+        mov        dword ptr [esi+12], eax 
 false__hla_745:
         mov        eax, [esi] 
         or         eax, [esi+4] 
@@ -6219,7 +6213,7 @@ false__hla_745:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      7911
+        pushd      7918
 
         pushd      offset32 str__hla_729
 
@@ -6243,17 +6237,17 @@ false__hla_746:
         popfd
         jns        false__hla_747
         xor        eax, eax 
-        sub        eax, [edi] 
-        mov        [edi], eax 
+        sub        eax, dword ptr [edi] 
+        mov        dword ptr [edi], eax 
         mov        eax, 0 
-        sbb        eax, [edi+4] 
-        mov        [edi+4], eax 
+        sbb        eax, dword ptr [edi+4] 
+        mov        dword ptr [edi+4], eax 
         mov        eax, 0 
-        sbb        eax, [edi+8] 
-        mov        [edi+8], eax 
+        sbb        eax, dword ptr [edi+8] 
+        mov        dword ptr [edi+8], eax 
         mov        eax, 0 
-        sbb        eax, [edi+12] 
-        mov        [edi+12], eax 
+        sbb        eax, dword ptr [edi+12] 
+        mov        dword ptr [edi+12], eax 
 false__hla_747:
         mov        byte ptr [ebx], 17 
         mov        dword ptr [ecx], offset32  _int128_ste
@@ -6273,12 +6267,12 @@ false__hla_747:
         mov        dword ptr [ecx], offset32  _int32_ste
         movsx      eax, byte ptr [edi+1] 
         mov        al, ah 
-        cmp        [edi+2], ax 
+        cmp        word ptr [edi+2], ax 
         jne        false__hla_751
         mov        byte ptr [ebx], 14 
         mov        dword ptr [ecx], offset32  _int16_ste
         movsx      ax, byte ptr [edi] 
-        cmp        [edi+1], ah 
+        cmp        byte ptr [edi+1], ah 
         jne        false__hla_752
         mov        byte ptr [ebx], 13 
         mov        dword ptr [ecx], offset32  _int8_ste
@@ -6295,7 +6289,7 @@ case__hla_753::
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      7990
+        pushd      7997
 
         pushd      offset32 str__hla_729
 
@@ -6321,7 +6315,7 @@ case__hla_755::
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      8008
+        pushd      8015
 
         pushd      offset32 str__hla_729
 
@@ -6350,7 +6344,7 @@ case__hla_758::
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      8033
+        pushd      8040
 
         pushd      offset32 str__hla_729
 
@@ -6371,7 +6365,7 @@ default__hla_726:
         pop        esi
         pop        ecx
         pop        ebx
-x_divval:
+x_divval__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -6406,7 +6400,7 @@ case__hla_763::
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      8107
+        pushd      8114
 
         pushd      offset32 str__hla_729
 
@@ -6463,7 +6457,7 @@ case__hla_770::
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      8169
+        pushd      8176
 
         pushd      offset32 str__hla_729
 
@@ -6521,32 +6515,32 @@ case__hla_778::
         cmp        byte ptr [edi+15], 0 
         jnl        false__hla_779
         xor        eax, eax 
-        sub        eax, [edi] 
-        mov        [edi], eax 
+        sub        eax, dword ptr [edi] 
+        mov        dword ptr [edi], eax 
         mov        eax, 0 
-        sbb        eax, [edi+4] 
-        mov        [edi+4], eax 
+        sbb        eax, dword ptr [edi+4] 
+        mov        dword ptr [edi+4], eax 
         mov        eax, 0 
-        sbb        eax, [edi+8] 
-        mov        [edi+8], eax 
+        sbb        eax, dword ptr [edi+8] 
+        mov        dword ptr [edi+8], eax 
         mov        eax, 0 
-        sbb        eax, [edi+12] 
-        mov        [edi+12], eax 
+        sbb        eax, dword ptr [edi+12] 
+        mov        dword ptr [edi+12], eax 
 false__hla_779:
         cmp        byte ptr [esi+15], 0 
         jnl        false__hla_780
         xor        eax, eax 
-        sub        eax, [esi] 
-        mov        [esi], eax 
+        sub        eax, dword ptr [esi] 
+        mov        dword ptr [esi], eax 
         mov        eax, 0 
-        sbb        eax, [esi+4] 
-        mov        [esi+4], eax 
+        sbb        eax, dword ptr [esi+4] 
+        mov        dword ptr [esi+4], eax 
         mov        eax, 0 
-        sbb        eax, [esi+8] 
-        mov        [esi+8], eax 
+        sbb        eax, dword ptr [esi+8] 
+        mov        dword ptr [esi+8], eax 
         mov        eax, 0 
-        sbb        eax, [esi+12] 
-        mov        [esi+12], eax 
+        sbb        eax, dword ptr [esi+12] 
+        mov        dword ptr [esi+12], eax 
 false__hla_780:
         mov        eax, [esi] 
         or         eax, [esi+4] 
@@ -6558,7 +6552,7 @@ false__hla_780:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      8286
+        pushd      8293
 
         pushd      offset32 str__hla_729
 
@@ -6582,17 +6576,17 @@ false__hla_781:
         popfd
         jns        false__hla_782
         xor        eax, eax 
-        sub        eax, [edi] 
-        mov        [edi], eax 
+        sub        eax, dword ptr [edi] 
+        mov        dword ptr [edi], eax 
         mov        eax, 0 
-        sbb        eax, [edi+4] 
-        mov        [edi+4], eax 
+        sbb        eax, dword ptr [edi+4] 
+        mov        dword ptr [edi+4], eax 
         mov        eax, 0 
-        sbb        eax, [edi+8] 
-        mov        [edi+8], eax 
+        sbb        eax, dword ptr [edi+8] 
+        mov        dword ptr [edi+8], eax 
         mov        eax, 0 
-        sbb        eax, [edi+12] 
-        mov        [edi+12], eax 
+        sbb        eax, dword ptr [edi+12] 
+        mov        dword ptr [edi+12], eax 
 false__hla_782:
         mov        byte ptr [ebx], 17 
         mov        dword ptr [ecx], offset32  _int128_ste
@@ -6612,12 +6606,12 @@ false__hla_782:
         mov        dword ptr [ecx], offset32  _int32_ste
         movsx      eax, byte ptr [edi+1] 
         mov        al, ah 
-        cmp        [edi+2], ax 
+        cmp        word ptr [edi+2], ax 
         jne        false__hla_786
         mov        byte ptr [ebx], 14 
         mov        dword ptr [ecx], offset32  _int16_ste
         movsx      ax, byte ptr [edi] 
-        cmp        [edi+1], ah 
+        cmp        byte ptr [edi+1], ah 
         jne        false__hla_787
         mov        byte ptr [ebx], 13 
         mov        dword ptr [ecx], offset32  _int8_ste
@@ -6631,7 +6625,7 @@ default__hla_762:
         pop        esi
         pop        ecx
         pop        ebx
-x_modval:
+x_modval__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -6666,7 +6660,7 @@ exitloop__hla_788:
         add        esp, 12 
         pop        ecx
         pop        edi
-x_shlval:
+x_shlval__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -6701,7 +6695,7 @@ exitloop__hla_790:
         add        esp, 12 
         pop        ecx
         pop        edi
-x_shrval:
+x_shrval__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -6755,7 +6749,7 @@ setRight__hla_792:
 bmux__hla_794:
         pop        edi
         pop        esi
-x_bigmaxUns:
+x_bigmaxUns__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -6809,7 +6803,7 @@ setRight__hla_795:
 bmux__hla_797:
         pop        edi
         pop        esi
-x_bigmaxInt:
+x_bigmaxInt__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -6863,7 +6857,7 @@ setRight__hla_798:
 bmux__hla_800:
         pop        edi
         pop        esi
-x_bigminUns:
+x_bigminUns__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -6917,7 +6911,7 @@ setRight__hla_801:
 bmux__hla_803:
         pop        edi
         pop        esi
-x_bigminInt:
+x_bigminInt__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -6950,7 +6944,6 @@ false__hla_806:
         inc        edi
         mov        byte ptr [edi], 0 
         ret
-xNumToStr__hla_804:
 NumToStr__hla_804 endp
 
 _UnsToStr proc near32
@@ -6965,7 +6958,7 @@ _UnsToStr proc near32
         pop        esi
         pop        edi
         pop        edx
-x_UnsToStr:
+x_UnsToStr__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -7000,7 +6993,7 @@ false__hla_807:
         pop        esi
         pop        edi
         pop        edx
-x_IntToStr:
+x_IntToStr__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -7055,7 +7048,7 @@ Overflow__hla_809:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      8286
+        pushd      8293
 
         pushd      offset32 str__hla_811
 
@@ -7063,7 +7056,6 @@ Overflow__hla_809:
         mov        esp, ebx 
         pop        ebx
         ret
-xMulReslt10__hla_808:
 MulReslt10__hla_808 endp
 
 _DecStrToInt proc near32
@@ -7125,7 +7117,7 @@ AllDone__hla_814:
         pop        edx
         pop        ecx
         pop        ebx
-x_DecStrToInt:
+x_DecStrToInt__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -7156,7 +7148,7 @@ ForEachDigit__hla_816:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      8286
+        pushd      8293
 
         pushd      offset32 str__hla_817
 
@@ -7207,7 +7199,7 @@ start__hla_815:
 
 AllDone__hla_818:
         pop        ebx
-x_BinStrToInt:
+x_BinStrToInt__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -7247,7 +7239,7 @@ repeat__hla_822:
         sub        esp, 28 
         and        esp, -16 
         pushd      offset32 str__hla_516
-        pushd      8286
+        pushd      8293
 
         pushd      offset32 str__hla_824
 
@@ -7305,7 +7297,7 @@ start__hla_819:
 AllDone__hla_825:
         pop        ecx
         pop        ebx
-x_HexStrToInt:
+x_HexStrToInt__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -7319,7 +7311,7 @@ _real80to64 proc near32
         fstp       real8 ptr [eax]
         mov        dword ptr [eax+8], 0 
         mov        dword ptr [eax+12], 0 
-x_real80to64:
+x_real80to64__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -7334,7 +7326,7 @@ _real80to32 proc near32
         mov        dword ptr [eax+4], 0 
         mov        dword ptr [eax+8], 0 
         mov        dword ptr [eax+12], 0 
-x_real80to32:
+x_real80to32__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -7347,7 +7339,7 @@ _unsf80 proc near32
         fild       qword ptr [eax]
         mov        eax, [ebp+12] 
         fstp       real10 ptr [eax]
-x_unsf80:
+x_unsf80__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -7360,10 +7352,10 @@ _f80int proc near32
         fstcw      word ptr [ebp-4]
         fldcw      fcw__hla_826
         fld        real10 ptr [ebp+8]
-        mov        eax, [ebp+20] 
+        mov        eax, [ebp+24] 
         fistp      qword ptr [eax]
         fldcw      word ptr [ebp-4]
-x_f80int:
+x_f80int__hla_:
         mov        esp, ebp 
         pop        ebp
         ret
@@ -7373,52 +7365,48 @@ _fadd80 proc near32
         push        ebp
         mov        ebp, esp 
         fld        real10 ptr [ebp+12]
-        fld        real10 ptr [ebp+24]
+        fld        real10 ptr [ebp+28]
         faddp      st(1), st(0) 
         mov        eax, [ebp+8] 
         fstp       real10 ptr [eax]
         pop        ebp
         ret
-x_fadd80:
 _fadd80 endp
 
 _fsub80 proc near32
         push        ebp
         mov        ebp, esp 
         fld        real10 ptr [ebp+12]
-        fld        real10 ptr [ebp+24]
+        fld        real10 ptr [ebp+28]
         fsubp      st(1), st(0) 
         mov        eax, [ebp+8] 
         fstp       real10 ptr [eax]
         pop        ebp
         ret
-x_fsub80:
 _fsub80 endp
 
 _fmul80 proc near32
         push        ebp
         mov        ebp, esp 
         fld        real10 ptr [ebp+12]
-        fld        real10 ptr [ebp+24]
+        fld        real10 ptr [ebp+28]
         fmulp      st(1), st(0) 
         mov        eax, [ebp+8] 
         fstp       real10 ptr [eax]
         pop        ebp
         ret
-x_fmul80:
 _fmul80 endp
 
 _fdiv80 proc near32
         push        ebp
         mov        ebp, esp 
         fld        real10 ptr [ebp+12]
-        fld        real10 ptr [ebp+24]
+        fld        real10 ptr [ebp+28]
         fdivp      st(1), st(0) 
         mov        eax, [ebp+8] 
         fstp       real10 ptr [eax]
         pop        ebp
         ret
-x_fdiv80:
 _fdiv80 endp
 
 _fneg80 proc near32
@@ -7430,7 +7418,6 @@ _fneg80 proc near32
         fstp       real10 ptr [eax]
         pop        ebp
         ret
-x_fneg80:
 _fneg80 endp
 
 _fabs80 proc near32
@@ -7442,20 +7429,19 @@ _fabs80 proc near32
         fstp       real10 ptr [eax]
         pop        ebp
         ret
-x_fabs80:
 _fabs80 endp
 
 _fmax80 proc near32
         push        ebp
         mov        ebp, esp 
         fld        real10 ptr [ebp+12]
-        fld        real10 ptr [ebp+24]
+        fld        real10 ptr [ebp+28]
         fcom       st(1)
         fstsw      ax
         sahf
         mov        eax, [ebp+8] 
         jb         false__hla_827
-        fstp       real10 ptr [ebp+24]
+        fstp       real10 ptr [ebp+28]
         fstp       real10 ptr [eax]
         jmp        endif__hla_827
 false__hla_827:
@@ -7464,20 +7450,19 @@ false__hla_827:
 endif__hla_827:
         pop        ebp
         ret
-x_fmax80:
 _fmax80 endp
 
 _fmin80 proc near32
         push        ebp
         mov        ebp, esp 
         fld        real10 ptr [ebp+12]
-        fld        real10 ptr [ebp+24]
+        fld        real10 ptr [ebp+28]
         fcom       st(1)
         fstsw      ax
         sahf
         mov        eax, [ebp+8] 
         jnb        false__hla_828
-        fstp       real10 ptr [ebp+24]
+        fstp       real10 ptr [ebp+28]
         fstp       real10 ptr [eax]
         jmp        endif__hla_828
 false__hla_828:
@@ -7486,13 +7471,12 @@ false__hla_828:
 endif__hla_828:
         pop        ebp
         ret
-x_fmin80:
 _fmin80 endp
 
 _feq80  proc near32
         push        ebp
         mov        ebp, esp 
-        fld        real10 ptr [ebp+20]
+        fld        real10 ptr [ebp+24]
         fld        real10 ptr [ebp+8]
         fcompp     
         fstsw      ax
@@ -7501,13 +7485,12 @@ _feq80  proc near32
         setz       al
         pop        ebp
         ret
-x_feq80:
 _feq80  endp
 
 _fne80  proc near32
         push        ebp
         mov        ebp, esp 
-        fld        real10 ptr [ebp+20]
+        fld        real10 ptr [ebp+24]
         fld        real10 ptr [ebp+8]
         fcompp     
         fstsw      ax
@@ -7516,13 +7499,12 @@ _fne80  proc near32
         setnz      al
         pop        ebp
         ret
-x_fne80:
 _fne80  endp
 
 _flt80  proc near32
         push        ebp
         mov        ebp, esp 
-        fld        real10 ptr [ebp+20]
+        fld        real10 ptr [ebp+24]
         fld        real10 ptr [ebp+8]
         fcompp     
         fstsw      ax
@@ -7531,13 +7513,12 @@ _flt80  proc near32
         setb       al
         pop        ebp
         ret
-x_flt80:
 _flt80  endp
 
 _fle80  proc near32
         push        ebp
         mov        ebp, esp 
-        fld        real10 ptr [ebp+20]
+        fld        real10 ptr [ebp+24]
         fld        real10 ptr [ebp+8]
         fcompp     
         fstsw      ax
@@ -7546,13 +7527,12 @@ _fle80  proc near32
         setbe      al
         pop        ebp
         ret
-x_fle80:
 _fle80  endp
 
 _fgt80  proc near32
         push        ebp
         mov        ebp, esp 
-        fld        real10 ptr [ebp+20]
+        fld        real10 ptr [ebp+24]
         fld        real10 ptr [ebp+8]
         fcompp     
         fstsw      ax
@@ -7561,13 +7541,12 @@ _fgt80  proc near32
         setnbe     al
         pop        ebp
         ret
-x_fgt80:
 _fgt80  endp
 
 _fge80  proc near32
         push        ebp
         mov        ebp, esp 
-        fld        real10 ptr [ebp+20]
+        fld        real10 ptr [ebp+24]
         fld        real10 ptr [ebp+8]
         fcompp     
         fstsw      ax
@@ -7576,7 +7555,6 @@ _fge80  proc near32
         setnb      al
         pop        ebp
         ret
-x_fge80:
 _fge80  endp
 
 _ceil80 proc near32
@@ -7631,7 +7609,6 @@ endif__hla_831:
         fldcw      fcwSave__hla_829
         pop        ebp
         ret
-x_ceil80:
 _ceil80 endp
 
 _floor80 proc near32
@@ -7668,7 +7645,6 @@ endif__hla_839:
         fldcw      fcwSave__hla_837
         pop        ebp
         ret
-x_floor80:
 _floor80 endp
 
 _cos80  proc near32
@@ -7680,7 +7656,6 @@ _cos80  proc near32
         fstp       real10 ptr [eax]
         pop        ebp
         ret
-x_cos80:
 _cos80  endp
 
 _sin80  proc near32
@@ -7692,7 +7667,6 @@ _sin80  proc near32
         fstp       real10 ptr [eax]
         pop        ebp
         ret
-x_sin80:
 _sin80  endp
 
 _tan80  proc near32
@@ -7705,7 +7679,6 @@ _tan80  proc near32
         fstp       real10 ptr [eax]
         pop        ebp
         ret
-x_tan80:
 _tan80  endp
 
 _log80  proc near32
@@ -7720,7 +7693,6 @@ _log80  proc near32
         fstp       real10 ptr [eax]
         pop        ebp
         ret
-x_log80:
 _log80  endp
 
 _log1080 proc near32
@@ -7735,7 +7707,6 @@ _log1080 proc near32
         fstp       real10 ptr [eax]
         pop        ebp
         ret
-x_log1080:
 _log1080 endp
 
 _sqrt80 proc near32
@@ -7747,7 +7718,6 @@ _sqrt80 proc near32
         fstp       real10 ptr [eax]
         pop        ebp
         ret
-x_sqrt80:
 _sqrt80 endp
 
 _exp80  proc near32
@@ -7773,7 +7743,6 @@ _exp80  proc near32
         fldcw      SaveCW__hla_842
         pop        ebp
         ret
-x_exp80:
 _exp80  endp
 
 DigitsToRightOfDecPt__hla_846 proc near32
@@ -7802,7 +7771,6 @@ exitloop__hla_848:
 
 EndDigits__hla_849:
         ret
-xDigitsToRightOfDecPt__hla_846:
 DigitsToRightOfDecPt__hla_846 endp
 
 _atold  proc near32
@@ -8193,7 +8161,6 @@ ExitAtold__hla_895:
         mov        esp, ebp 
         pop        ebp
         ret
-x_atold:
 _atold  endp
 
 htoa__hla_896 proc near32
@@ -8208,7 +8175,6 @@ htoa__hla_896 proc near32
         stosb
         pop        eax
         ret
-xhtoa__hla_896:
 htoa__hla_896 endp
 
 FPDigits__hla_897 proc near32
@@ -8335,7 +8301,6 @@ exitloop__hla_922:
 endif__hla_905:
         mov        eax, edx 
         ret
-xFPDigits__hla_897:
 FPDigits__hla_897 endp
 
 _e80Str proc near32
@@ -8417,7 +8382,6 @@ endif__hla_927:
         popfd
         pop        ebp
         ret
-x_e80Str:
 _e80Str endp
 
 

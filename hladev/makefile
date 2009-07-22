@@ -1,36 +1,47 @@
 
-all: hlaasm.masm hlaasm.gas hfasm.masm hfasm.gas
+all: hlaasm.masm hlaasm.gas hlaasm.gasx 
 
 hlaasm.masm:	
 	hla -sourcemode -sm hlaasm.hla
 	copy hlaasm.asm ..\hlaasm.masm
-	ml -c -Cp hlaasm.asm
+	ml -c -coff -Cp hlaasm.asm
 	copy hlaasm.obj ..\hlaasm.obj
 	
-	
-hfasm.masm:
-	hla -AZi -AZd -AZf -sourcemode -sm -dcfunc hfasm.hla
-	copy hfasm.asm ..\hfasm.masm
-	ml -c -Cp hfasm.asm
-	copy hfasm.obj ..\hfasm.obj	
 	
 hlaasm.gas:
 	hla -sourcemode -sg -dunix hlaasm.hla
 	copy hlaasm.asm ..\hlaasm.gas
 	
+	
 hlaasm.gasx:
 	hla -sourcemode -sx -dmacosx hlaasm.hla
 	copy hlaasm.asm ..\hlaasm.gasx
 	
-hfasm.gas:
-	hla -sourcemode -sg -dcfunc -dunix hfasm.hla
-	copy hfasm.asm ..\hfasm.gas
 	
-
+hlabe.masm: hlabe.hla hlabe.hhf
+	hla -sourcemode -sm hlabe
+	copy hlabe.asm ..\hlabe.masm
+	ml -c -coff -Cp hlabe.asm
+	copy hlabe.obj ..\hlabe.obj
+	
+	
+hlabe.gas: hlabe.hla hlabe.hhf
+	hla -sourcemode -sg hlabe
+	copy hlabe.asm ..\hlabe.gas
+	
+	
+hlabe.gasx: hlabe.hla hlabe.hhf
+	hla -sourcemode -sx hlabe
+	copy hlabe.asm ..\hlabe.gasx
+	
+	
 clean:
 	delete *.obj
 	delete *.asm
 	delete *.bak
 	delete *.link
 	delete *.inc
+	delete *.masm
+	delete *.gas
+	delete *.gasx
 

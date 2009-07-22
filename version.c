@@ -24,7 +24,7 @@ int main()
 	( 
 		g, 
 		"#define VersionInformation "
-		"\"Version 1.%d build %d (prototype)\"\n\n",
+		"\"Version 2.%d build %d (prototype)\"\n\n",
 		version,
 		build
 	);
@@ -34,7 +34,7 @@ int main()
 	fprintf
 	( 
 		g, 
-		"AppVerName=hla v1.%d\n",
+		"AppVerName=hla v2.%d\n",
 		version
 	);
 	fclose( g );
