@@ -65,7 +65,7 @@ FILE *MsgOut;
 //	linker    - selects which linker will process the object files.
 //	SourceFmt - specifies the assembly language output format.
 //	ObjFmt 	  - specifies the ultimate object code format.
-//	Internal  - If true, use internal FASM to directly produce an OBJ file.
+//	Internal  - If true, use internal HLABE to directly produce an OBJ file.
 //  targetOS  - The OS under which the (user's) compiled code is to run.
 //	gasSyntax - Select standard Gas syntax or Mac OSX gas syntax if 
 //					SourceFmt is "gas".
@@ -136,7 +136,7 @@ FILE *MsgOut;
 	#undef  unixOS
 	enum	OSChoice		targetOS 	= windows_os;
 	enum	OSChoice		hostOS	 	= windows_os;
-	enum	AsmChoice		SourceFmt	= fasm;
+	enum	AsmChoice		SourceFmt	= hlabe;
 	enum	gasChoice		gasSyntax	= stdGas;
 	enum	ObjFormat		ObjFmt 		= coff;
 	enum	LinkerChoice	linker 		= polink;
@@ -201,7 +201,7 @@ char	*FileList[128];		/* Filenames provided on cmd line.		*/
 
  
 
-char	*asmStrs[4] = { "MASM", "FASM", "TASM", "GAS" };
+char	*asmStrs[7] = { "MASM", "FASM", "TASM", "GAS", "NASM", "HLA", "HLABE" };
 char	*linkStrs[4] = { "MSLINK", "POLINK", "LD" };
 char	*objStrs[3] = { "coff", "omf", "elf" };
 char	*levelStrs[4] =
@@ -461,7 +461,7 @@ _begin( Help )
 		"  -ct       Compile/assemble to object using TASM (Windows only).\n"
 		"  -cg       Compile/assemble to object using GAS (Linux/FreeBSD only).\n"
 		"  -cx       Compile/assemble to object using GAS (Mac only).\n"
-		"  -co       Compile/assemble to object using internal FASM back-end (Win32).\n"
+		"  -co       Compile/assemble to object using HLABE (Win32).\n"
 		"\n"
 		"  -o:omf    Produce OMF files (for Windows).\n"
 		"  -o:coff   Produce win32 COFF files (for Windows).\n"
@@ -482,7 +482,7 @@ _begin( Help )
 		"  -xt       Compile/assemble/link to object using TASM (Windows only).\n"
 		"  -xg       Compile/assemble/link to object using GAS (Linux/FreeBSD only).\n"
 		"  -xx       Compile/assemble/link to object using GAS (Mac only).\n"
-		"  -xo       Compile/assemble/link to object internal FASM back-end (Windows only).\n"
+		"  -xo       Compile/assemble/link to object using HLABE (Win32).\n"
 		"\n"
 		"  -win32    Generate code for Win32 OS.\n"
 		"  -linux    Generate code for Linux OS.\n"
@@ -579,7 +579,7 @@ _begin( Help )
 		"hla=<asm>      Sets default assembler behavior\n"
 		"                 <asm>:\n"
 		"                    hla-  uses internal version of FASM\n"
-		"                    ohla- uses internal version of FASM\n"
+		"                    ohla- uses internal HLA Back Engine\n"
 		"                    fhla- uses FASM as the back-end assembler\n"
 		"                    nhla- uses NASM as the back-end assembler\n"
 		"                   Windows Only:\n"
@@ -653,113 +653,7 @@ _begin( License )
 	fprintf
 	(
 		MsgOut,
-		"The HLAPARSE compiler module contains public domain code\n"
-		"written by Randall Hyde and freely distributable software\n"
-		"written by Tomasz Grysztar. As such, this code inherits\n"
-		"the FASM license, which is the following:\n"
-		"\n"
-"flat assembler	version 1.66\n"
-"Copyright (c) 1999-2006, Tomasz Grysztar.\n"
-"All rights reserved.\n"
-"\n"
-"This program is free for commercial and non-commercial use as long as \n"
-"the following conditions are adhered to.							   \n"
-"\n"
-"(continued on next screen)\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-"(FASM license continues...)\n\n"
-"																	   \n"
-"Copyright remains Tomasz Grysztar, and as such any Copyright notices  \n"
-"in the code are not to be removed.									   \n"
-"\n"
-"Redistribution and use in source and binary forms, with or without	   \n"
-"modification, are permitted provided that the following conditions are\n"
-"met:																   \n"
-"																	   \n"
-"1. Redistributions of source code must retain the above copyright notice,\n"
-"   this list of conditions and the following disclaimer.				\n"
-"2. Redistributions in binary form must reproduce the above copyright	\n"
-"   notice, this list of conditions and the following disclaimer in the	\n"
-"   documentation and/or other materials provided with the distribution.\n"
-"\n"
-"(continued on next screen)\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-"(FASM license, continues):\n\n"
-
-"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND			 \n"
-"CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,	 \n"
-"INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF		 \n"
-"MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE		 \n"
-"DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE	 \n"
-"LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,			 \n"
-"EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED \n"
-"TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,   \n"
-"DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND	 \n"
-"ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT		 \n"
-"LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING	 \n"
-"IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF	 \n"
-"THE POSSIBILITY OF SUCH DAMAGE.\n"			  
-"\n"
-"(continued on next screen)\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-"(FASM license continues...)\n\n"
-"The licence and distribution terms for any publically available	 \n"
-"version or derivative of this code cannot be changed. i.e. this code\n"
-"cannot simply be copied and put under another distribution licence\n"
-"(including the GNU Public Licence).\n"
-"\n"
-"(end of FASM license)\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-		"If you use to use HLA in conjunction with MASM,\n"
-		"the Microsoft Linker, and Microsoft's RC.EXE\n"
-		"resource compiler, then the use of those tools\n"
-		"is subject to the Microsoft end-user license\n"
-		"agreement (EULA) that accompanies those products.\n"
-		"As you are responsible for obtaining these products\n"
-		"(they are not provided as part of the HLA package)\n"
-		"you need to check the EULA that comes with the\n"
-		"distribution of these products that you've obtained.\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-		"If you use to use HLA in conjunction with FSF's,\n"
-		"GAS (as) and linker (ld) programs, then note\n"
-		"that those products are licensed under the GPL\n"
-		"(see the license text accompanying those products\n"
-		"for details). Note that these products are separate\n"
-		"applicatons in the HLA system and the fact that they\n"
-		"are GPL in no way forces this license onto the rest\n"
-		"of the HLA system. As you are responsible for obtaining\n"
-		"copies of GAS and LD to use with HLA, please consult\n"
-		"your source of these products for a copy of the GPL\n"
-		"license. Note that the HLA distributions to not include\n"
-		"any FSF GPL'd code. The HLA end-user is responsible\n"
-		"for installing HLA in a system that already contains\n"
-		"these GPL'd components.\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-		"If you use to use HLA in conjunction with the,\n"
+		"If you use to use HLA in conjunction with\n"
 		"the Pelle C tools (polink.exe and porc.exe)\n"
 		"then the use of those particular tools is subject\n"
 		"to the license agreement for the Pelles C system.\n"
@@ -956,7 +850,7 @@ _begin( doCmdLine)
 			_if( _streq( ucArg, "WIN32" ))
 			
 				targetOS = windows_os;
-				SourceFmt	= fasm;
+				SourceFmt	= hlabe;
 				gasSyntax	= stdGas;
 				ObjFmt 		= coff;
 				linker 		= polink;
@@ -1130,7 +1024,7 @@ _begin( doCmdLine)
 	//	  THLA			TASM
 	//	  FHLA			FASM
 	//    GHLA			GAS
-	//    OHLA          FASM, producing object-code output.
+	//    OHLA          HLABE, producing object-code output.
 	//
 	// The back-end assembler designation can be overridden with the
 	// "-s*" command-line option, though this will only produce a source
@@ -1190,25 +1084,20 @@ _begin( doCmdLine)
 								
 			_elseif( _streq( pgmName, "OHLA" ))
 			
-				// If the environment name is "OHLA" (internal FASM back-end)
-				// then we use the internal version of FASM to produce an 
+				// If the environment name is "OHLA" (internal HLABE back-end)
+				// then we use the internal version of HLABE to produce an 
 				// OBJ file.
 				
-				SourceFmt = fasm;
-				Internal = 1;
 				_if( targetOS == windows_os )
 				
+					SourceFmt = hlabe;
+					Internal = 1;
 					ObjFmt = coff;
 					_if( linkerName == NULL )
 					
 						linker = polink;
 						
 					_endif
-					
-				_else
-				
-					ObjFmt = elf;
-					linker = ld;
 					
 				_endif
 				
@@ -1268,23 +1157,15 @@ _begin( doCmdLine)
 			
 		_elseif( strncmp( pgmName, "OHLA", 4 ) == 0 )
 		
-			SourceFmt = fasm;
+			SourceFmt = hlabe;
 			Internal = 1;
-			_if( targetOS == windows_os )
+			ObjFmt = coff;
+			_if( linkerName == NULL )
 			
-				ObjFmt = coff;
-				_if( linkerName == NULL )
-				
-					linker = polink;
-					
-				_endif
-			
-			_else 
-			
-				ObjFmt = elf;
-				linker = ld;
+				linker = polink;
 				
 			_endif
+			
 			
 		_endif
 		
@@ -1372,7 +1253,7 @@ _begin( doCmdLine)
 			//        using GAS.
 			//
 			// -CO  selects "compile and assemble to coff object" (no link)
-			//        using the internal version of FASM.
+			//        using the internal HLA Back Engine.
 
 			_elseif( _streq( ucArg, "C" ))
 			
@@ -1457,7 +1338,7 @@ _begin( doCmdLine)
 				
 				CompileOnly = 1;
 				SourceOnly = 0;		// Mutually exclusive with -Sx
-				SourceFmt = fasm;
+				SourceFmt = hlabe;
 				Internal = 1;
 				_if( targetOS == windows_os )
 				
@@ -1489,7 +1370,7 @@ _begin( doCmdLine)
 			//        using GAS.
 			//
 			// -XO  selects "compile and assemble to coff object" (no link)
-			//        using the internal version of FASM.
+			//        using the internal HLA Back Engine.
 			
 
 			_elseif( _streq( ucArg, "XF" ))
@@ -1583,7 +1464,7 @@ _begin( doCmdLine)
 			
 				CompileOnly = 0;
 				SourceOnly = 0;
-				SourceFmt = fasm;
+				SourceFmt = hlabe;
 				Internal = 1;
 				_if( targetOS == windows_os )
 				
@@ -2825,6 +2706,7 @@ _begin( main )
 		&& 	SourceFmt != masm 
 		&&	SourceFmt != fasm
 		&&	SourceFmt != nasm
+		&&	SourceFmt != hlabe
 		&&	!SourceOnly 
 	)
 	
@@ -2833,7 +2715,8 @@ _begin( main )
 			MsgOut,
 			"\n"
 			"***************************************************************\n"
-			"Warning: COFF output is only available when using MASM or FASM.\n"
+			"Warning: COFF output is only available when using MASM, FASM,  \n"
+			"         NASM, or HLABE.                                       \n"
 			"***************************************************************\n"
 			"\n"
 		);
@@ -2914,6 +2797,8 @@ _begin( main )
 			(
 					SourceFmt == masm
 				||	SourceFmt == tasm
+				||	SourceFmt == nasm
+				||	SourceFmt == hlabe
 			)
 		&&	!SourceOnly
 		&&	targetOS != windows_os
@@ -2923,9 +2808,9 @@ _begin( main )
 		(
 			MsgOut,
 			"\n"
-			"*************************************************************\n"
-			"Warning: MASM/TASM assembly is only available under Windows.\n"
-			"*************************************************************\n"
+			"***********************************************************************\n"
+			"Warning: MASM/TASM/NASM/HLABE assembly is only available under Windows.\n"
+			"***********************************************************************\n"
 			"\n"
 		);
 		SourceOnly = 1;
@@ -2969,7 +2854,7 @@ _begin( main )
 			MsgOut,
 			"HLA (High Level Assembler)\n"
 			"Use '-license' to see licensing information.\n"
-			"Version %s\n"
+			"%s\n"
 			"%s"
 			"%s"
 			"%s"
@@ -3041,7 +2926,7 @@ _begin( main )
 						_ifx
 						(
 							Internal,
-							"OBJ output using internal FASM back-end\n",
+							"OBJ output using HLA Back Engine\n",
 							_ifx
 							(
 								SourceFmt == fasm,
@@ -3192,7 +3077,7 @@ _begin( main )
 			//
 			// Note that this only applies to compilations that use an
 			// external assembler (i.e., it does not apply when using
-			// the internal version of FASM).
+			// the internal HLA Back Engine).
 			
 			_if( !Internal )
 			
@@ -3636,7 +3521,7 @@ _begin( main )
 
 		_endif
 		
-	_else	// We used the internal version of FASM to create an OBJ file.
+	_else	// We used the internal HLA Back Engine to create an OBJ file.
 	
 		_for( HlaFile=0, HlaFile < FileCnt, ++HlaFile )
 

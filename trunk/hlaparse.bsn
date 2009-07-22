@@ -20,7 +20,7 @@
 #define YYDEBUG 0
 #define YYINITDEPTH 16384
 #define YYMAXDEPTH 65536
-
+#define _STDLIB_H
 
 #define MAX_PATH 1023
 
@@ -769,9 +769,10 @@ char	constname[ 256 ];
 enum	AsmChoice	assembler = masm;
 enum	gasChoice	gasSyntax = stdGas;
 
-// useCFASM controls whether to use the internal version of cFASM.
+// useHLABE controls whether to use the internal HLA back engine for code
+// generation.
 
-int	useCFASM = 0;
+int	useHLABE = 0;
 
 // objFmt determines whether FASM would output COFF (0) or ELF (1)
 // object code.
@@ -20199,8 +20200,8 @@ procs:
 
 			// Iterators always use the pascal calling sequence:
 			
-			$<en.s>6->u.proc.parms->u.proc.use = pascal_cs;
-			$<en.s>6->u.proc.use = pascal_cs;
+			$<en.s>6->u.proc.parms->u.proc.cs = pascal_cs;
+			$<en.s>6->u.proc.cs = pascal_cs;
 
 			/*
 			** Create a symbol table entry for the "yield" thunk.
@@ -21011,8 +21012,8 @@ newProcs:
 
 			// Iterators always use the pascal calling sequence:
 			
-			$<en.s>6->u.proc.parms->u.proc.use = pascal_cs;
-			$<en.s>6->u.proc.use = pascal_cs;
+			$<en.s>6->u.proc.parms->u.proc.cs = pascal_cs;
+			$<en.s>6->u.proc.cs = pascal_cs;
 
 			/*
 			** Create a symbol table entry for the "yield" thunk.
@@ -36478,7 +36479,7 @@ ClassProc:
 			
 			// Always use pascal calling sequence for class stuff:
 			
-			$<en.s>7->u.proc.use = pascal_cs;
+			$<en.s>7->u.proc.cs = pascal_cs;
 			$<en.s>7->u.proc.parms->u.proc.cs = pascal_cs;
 
 			CheckLegalOptions
@@ -36726,7 +36727,7 @@ newClassProc:
 			
 			// Always use pascal calling sequence for class stuff:
 			
-			$<en.s>7->u.proc.use = pascal_cs;
+			$<en.s>7->u.proc.cs = pascal_cs;
 			$<en.s>7->u.proc.parms->u.proc.cs = pascal_cs;
 
 			CheckLegalOptions
@@ -53699,7 +53700,7 @@ StaticSingleTypeWasExt:
 									GetBaseType( $<v.Type>5 ) 
 						)
 
-							OutValue( sn, $<s>3, YYS &$<v>5 );
+							OutValue( $<s>1->StaticName, $<s>3, YYS &$<v>5 );
 
 
 
@@ -83849,7 +83850,7 @@ SingleStmt:
 
  
 
-Vdq_Wq_Tkns:
+Vdq_Wd_Tkns:
 		punpcklbwTkn
 		{
 			_here;
@@ -83865,7 +83866,10 @@ Vdq_Wq_Tkns:
 			_here;
 			$<u>$ = punpckldq_instr;
 		}
-	|	punpckhbwTkn
+	;
+	
+Vdq_Wq_Tkns:
+		punpckhbwTkn
 		{
 			_here;
 			$<u>$ = punpckhbw_instr;
@@ -83907,6 +83911,32 @@ SingleStmt:
 	;
 	
 	
+	
+	
+SingleStmt:
+		Vdq_Wd_Tkns		/* $1 */
+		ppp				/* $2 */
+		{
+			_here;
+			Emit_Vdq_Wd_r( $<u>1, $<rr>2.l, $<rr>2.r, 0 );
+			$<returns>$ = hlastrdup2( uToMmx[ $<rr>2.r ] );
+			_here;
+		}
+	;
+	
+	
+SingleStmt:
+		Vdq_Wd_Tkns		/* $1 */
+		pxx				/* $2 */
+		{
+			_here;
+			Emit_Vdq_Wd_r( $<u>1, $<rr>2.l, $<rr>2.r, 1 );
+			$<returns>$ = hlastrdup2( uToXmm[ $<rr>2.r ] );
+			_here;
+		}
+	;
+	
+	
 SingleStmt:
 		punpcklqdqTkn	/* $1 */
 		pxx				/* $2 */
@@ -83940,10 +83970,6 @@ SingleStmt:
 		{
 			_here;
 			
-			// Note: Intel claims the size should be dword.
-			// MASM, however, requires qword. We'll go with the
-			// most common usage and require a qword operand.
-			
 			_if( $<adrs.Size>3 == 0 )
 				
 				$<adrs.Size>3 = 8;
@@ -83962,6 +83988,35 @@ SingleStmt:
 	;
 	
 SingleStmt:
+		Vdq_Wd_Tkns				/* $1 */
+		Lparen					/* $2 */
+		fEitherMemDest			/* $3 */
+		comma					/* $4 */
+		fmmxReg					/* $5 */
+		Rparen					/* $6 */
+		{
+			_here;
+			
+			// Note: Intel claims the size should be dword.
+			
+			_if( $<adrs.Size>3 == 0 )
+				
+				$<adrs.Size>3 = 4;
+				
+			_endif
+			_if( $<adrs.Size>3 != 4 )
+			
+				yyerror( "Instruction expects a dword operand" );
+				
+			_endif
+			Emit_Vdq_Wd_m( $<u>1, &$<adrs>3, $<u>5, 0 );
+			FreeAdrs( &$<adrs>3 );
+			$<returns>$ = hlastrdup2( uToMmx[$<u>5] );
+			_here;
+		}
+	;
+	
+SingleStmt:
 		Vdq_Wq_Tkns				/* $1 */
 		Lparen					/* $2 */
 		fEitherMemDest			/* $3 */
@@ -83971,6 +84026,22 @@ SingleStmt:
 		{
 			_here;
 			Emit_Vdq_Wq_m( $<u>1, &$<adrs>3, $<u>5, 1 );
+			FreeAdrs( &$<adrs>3 );
+			$<returns>$ = hlastrdup2( uToXmm[ $<u>5 ] );
+			_here;
+		}
+	;
+	
+SingleStmt:
+		Vdq_Wd_Tkns				/* $1 */
+		Lparen					/* $2 */
+		fEitherMemDest			/* $3 */
+		comma					/* $4 */
+		fXmmReg					/* $5 */
+		Rparen					/* $6 */
+		{
+			_here;
+			Emit_Vdq_Wd_m( $<u>1, &$<adrs>3, $<u>5, 1 );
 			FreeAdrs( &$<adrs>3 );
 			$<returns>$ = hlastrdup2( uToXmm[ $<u>5 ] );
 			_here;
@@ -86553,7 +86624,7 @@ SingleStmt:
 		{
 			_here;
 			EmitMaskMovq_r_r( $<rr>2.l, $<rr>2.r );
-			$<returns>$ = uToMmx[ $<rr>2.r ];
+			$<returns>$ = hlastrdup2( uToMmx[ $<rr>2.r ] );
 			_here;
 		}
 	;
@@ -86566,7 +86637,7 @@ SingleStmt:
 		{
 			_here;
 			EmitMaskMovdqu_r_r( $<rr>2.l, $<rr>2.r );
-			$<returns>$ = uToXmm[ $<rr>2.r ];
+			$<returns>$ = hlastrdup2( uToXmm[ $<rr>2.r ] );
 			_here;
 		}
 	;
@@ -88943,7 +89014,7 @@ SingleStmt:
 				EmitXchg_r_r( $<u>1, $<reg.encoding>3, $<reg.encoding>5 );
 				
 			_endif
-			$<returns>$ = regStrs[ $<reg.encoding>5 ];
+			$<returns>$ = hlastrdup2( regStrs[ $<reg.encoding>5 ] );
 			_here;
 		}
 	;
@@ -88966,7 +89037,7 @@ SingleStmt:
 				EmitXchg_r_m( $<u>1, $<reg.encoding>5, &$<adrs>3 );
 				
 			_endif
-			$<returns>$ = regStrs[ $<reg.encoding>5 ];
+			$<returns>$ = hlastrdup2( regStrs[ $<reg.encoding>5 ] );
 			_here;
 		}
 	;
@@ -102484,7 +102555,7 @@ _begin( Usage )
 		"  -sf      Produce FASM compatible ASM output file.\n"
 		"  -sn      Produce NASM compatible ASM output file.\n"
 		"  -source  Produce instruction translation (rather than hex output)\n"
-		"  -ccoff   Produce COFF OBJ file using internal version of FASM.\n"
+		"  -ccoff   Produce COFF OBJ file using internal HLA Back Engine.\n"
 		"  -obj:XX  Output path for coff/elf object files.\n"
 		"  -win32   Generate code for Win32 OS.\n"
 		"  -linux   Generate code for Linux OS.\n"
@@ -102520,21 +102591,7 @@ _begin( License )
 		"*              HLA License Information                *\n"
 		"*                                                     *\n"
 		"*******************************************************\n"
-		"\n\n"
-		"The HLA system is built from many different components,\n"
-		"each with its own separate end-user license. Because\n"
-		"an end-user can mix and match the components that make\n"
-		"up the HLA system, it is not possible to provide a single\n"
-		"all-encompassing license for the entire HLA system. The\n"
-		"following paragraphs will explain how to determine the\n"
-		"specific license requirements for your particular HLA\n"
-		"configuration.\n"
 		"\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
 		"The HLA shell program ('HLA.EXE' under Windows, 'hla'\n"
 		"under other operating systems) is open source and public\n"
 		"domain. You may do anything you like with this code,\n"
@@ -102552,194 +102609,7 @@ _begin( License )
 "responsibilities for using this software in an appropriate manner.		 \n"
 "																		 \n"
 "Notice of declaration of public domain, 3/2/2007, by Randall Hyde		 \n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-		"The HLAPARSE compiler module contains public domain code\n"
-		"written by Randall Hyde and freely distributable software\n"
-		"written by Tomasz Grysztar. As such, this code inherits\n"
-		"the FASM license, which is the following:\n"
-		"\n"
-"flat assembler	version 1.66\n"
-"Copyright (c) 1999-2006, Tomasz Grysztar.\n"
-"All rights reserved.\n"
 "\n"
-"This program is free for commercial and non-commercial use as long as \n"
-"the following conditions are adhered to.							   \n"
-"\n"
-"(continued on next screen)\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-"(FASM license continues...)\n\n"
-"																	   \n"
-"Copyright remains Tomasz Grysztar, and as such any Copyright notices  \n"
-"in the code are not to be removed.									   \n"
-"\n"
-"Redistribution and use in source and binary forms, with or without	   \n"
-"modification, are permitted provided that the following conditions are\n"
-"met:																   \n"
-"																	   \n"
-"1. Redistributions of source code must retain the above copyright notice,\n"
-"   this list of conditions and the following disclaimer.				\n"
-"2. Redistributions in binary form must reproduce the above copyright	\n"
-"   notice, this list of conditions and the following disclaimer in the	\n"
-"   documentation and/or other materials provided with the distribution.\n"
-"\n"
-"(continued on next screen)\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-"(FASM license, continues):\n\n"
-
-"THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND			 \n"
-"CONTRIBUTORS \"AS IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES,	 \n"
-"INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF		 \n"
-"MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE		 \n"
-"DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE	 \n"
-"LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,			 \n"
-"EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED \n"
-"TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,   \n"
-"DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND	 \n"
-"ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT		 \n"
-"LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING	 \n"
-"IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF	 \n"
-"THE POSSIBILITY OF SUCH DAMAGE.\n"			  
-"\n"
-"(continued on next screen)\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-"(FASM license continues...)\n\n"
-"The licence and distribution terms for any publically available	 \n"
-"version or derivative of this code cannot be changed. i.e. this code\n"
-"cannot simply be copied and put under another distribution licence\n"
-"(including the GNU Public Licence).\n"
-"\n"
-"(end of FASM license)\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-		"If you use to use HLA in conjunction with MASM,\n"
-		"the Microsoft Linker, and Microsoft's RC.EXE\n"
-		"resource compiler, then the use of those tools\n"
-		"is subject to the Microsoft end-user license\n"
-		"agreement (EULA) that accompanies those products.\n"
-		"As you are responsible for obtaining these products\n"
-		"(they are not provided as part of the HLA package)\n"
-		"you need to check the EULA that comes with the\n"
-		"distribution of these products that you've obtained.\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-		"If you use to use HLA in conjunction with FSF's,\n"
-		"GAS (as) and linker (ld) programs, then note\n"
-		"that those products are licensed under the GPL\n"
-		"(see the license text accompanying those products\n"
-		"for details). Note that these products are separate\n"
-		"applicatons in the HLA system and the fact that they\n"
-		"are GPL in no way forces this license onto the rest\n"
-		"of the HLA system. As you are responsible for obtaining\n"
-		"copies of GAS and LD to use with HLA, please consult\n"
-		"your source of these products for a copy of the GPL\n"
-		"license. Note that the HLA distributions to not include\n"
-		"any FSF GPL'd code. The HLA end-user is responsible\n"
-		"for installing HLA in a system that already contains\n"
-		"these GPL'd components.\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-		"If you use to use HLA in conjunction with\n"
-		"the Pelle C tools (polink.exe and porc.exe)\n"
-		"then the use of those particular tools is subject\n"
-		"to the license agreement for the Pelles C system.\n"
-		"That license applies only to polink.exe and porc.exe\n"
-		"it does not apply to the rest of the HLA system.\n"
-		"The Pelles C license is replicated here for your\n"
-		"information. Note that the phrase 'applies to all\n"
-		"parts except the C compiler' means that this license\n"
-		"is what covers POLINK.EXE and PORC.EXE, the components\n"
-		"that are part of the HLA system.  If the Pelles C\n"
-		"compiler appears as part of the HLA download, it will\n"
-		"also include a copy of the C compiler license, please\n"
-		"see that license for details.\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-		
-"(Pelle C license for POLINK.EXE and PORC.EXE):\n\n" 
-"The following license applies to all parts except the C \n"
-"compiler (which is not part of the HLA system):\n"
-"															 \n"
-"This software is provided 'as-is', without any expressed or \n"
-"implied warranty. In no event will the author be held liable\n"
-"for any damages arising from the use of this software.		 \n"
-"\n"
-"(continued)\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-		
-"Permission is granted to anyone to use this software for any\n"
-"purpose, including commercial  applications, and to		 \n"
-"redistribute it freely, subject to the following			 \n"
-"restrictions:										 		 \n"
-"															 \n"				 
-"1. The origin of this software must not be misrepresented;  \n"
-"   you must not claim that you wrote the original software.\n"
-"2. Including Pelles C in a CDROM or in other products sold	 \n"
-"   for profit needs explicit agreement from the author.	 \n"
-"3. This notice may not be removed or altered from any		 \n"				 
-"   distribution.											 \n"				 
-"\n"
-"Pelle Orinius\n"
-"Stockholm, Sweden\n"
-"\n"
-"(end of Pelle license)\n"
-	);
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
-		"In general, there are no restrictions on HLA's output.\n"
-		"The HLA standard library code is all public domain\n"
-		"and the code emitted by the HLA compiler is totally\n"
-		"free for any use. When using FASM, GAS, or TASM output\n"
-		"there are no restrictions at all on the programs you\n"
-		"create with HLA.  If you're using MASM as the back-end\n"
-		"of the HLA system, be sure to check the EULA. There has\n"
-		"been some discussion that the EULA forbids the creation\n"
-		"of certain types of applications using MASM, and if\n"
-		"you're using MASM with HLA, any restrictions in the\n"
-		"MASM EULA would apply to the code processed by the\n"
-		"HLA system when using MASM as a back end. Note that\n"
-		"this declaration is not claiming such restrictions\n"
-		"exist, only that you should check your MASM EULA\n"
-		"if you have concerns.\n"
-	);
-		
-	PressReturnToContinue();
-	fprintf
-	(
-		MsgOut,
 		"You can assume that all HLA sample programs written by\n"
 		"Randall Hyde and distributed as part of the HLA system\n"
 		"are public domain (governed by the public domain \n"
@@ -102885,7 +102755,7 @@ _begin( main )
 	**	-linux			Generate code for Linux OS.
 	**	-freebsd		Generate code for freeBSD OS.
 	**	-macos			Generate code for Mac OSX.
-	**	-ccoff			Object output in COFF form (using internal FASM).
+	**	-ccoff			Object output in COFF form (using HLA Back Engine).
 	**	-d<sym>			Define a symbol.
 	**	-sym			Dump the symbol table.
 	**	-v				Verbose output
@@ -103135,13 +103005,13 @@ _begin( main )
 			_elseif( _streq( option, "-CCOFF" ))
 			
 				// If  the -c command line option is given,
-				// then use the internal version of FASM
+				// then use the internal HLA back engine
 				// to compile to an OBJ file.
 				
 				_if( targetOS == windows_os )
 				 
-					assembler = fasm;
-					useCFASM = 1;
+					assembler = hlabe;
+					useHLABE = 1;
 					objFmt = 0;
 					
 				_else
@@ -103151,7 +103021,7 @@ _begin( main )
 						"COFF object output is available only under Windows" 
 					);
 					assembler = gas;
-					useCFASM = 0;
+					useHLABE = 0;
 					objFmt = 0;
 					
 				_endif
@@ -103160,7 +103030,7 @@ _begin( main )
 			_elseif( _streq( option, "-HLABE" ))
 			
 				assembler = hlabe;
-				useCFASM = 0;
+				useHLABE = 0;		// We want source output
 				objFmt = 0;
 				testMode = 0;
 				sourceOutput = 0;
@@ -103359,7 +103229,7 @@ _begin( main )
 			MsgOut,
 			"HLA (High Level Assembler) Parser\n"
 			"use '-license' to view license information\n"
-			"Version %s\n"
+			"%s\n"
 			"%s"
 			"%s"
 			"File: %s\n"
@@ -103580,7 +103450,7 @@ _begin( main )
 		
 		baseName[ strlen( baseName ) - 4 ] = '\0';
 		
-		_if( useCFASM )
+		_if( useHLABE )
 		
 			// If the "-obj:path" option was specified, then
 			// write the object file to the specified path:
@@ -103615,13 +103485,13 @@ _begin( main )
 				
 			_endif
 			
-			// When using the internal version of FASM, we're really creating
+			// When using the internal HLA back engin, we're really creating
 			// an .obj file, but the common code that follows expects the output
 			// filename in the AsmName variable:
 			
 			strcpy( AsmName, name );
 
-			// As we're generating an object file (using internal FASM)
+			// As we're generating an object file (using internal HLABE)
 			// rather than a ".asm" file, put the appropriate suffix on
 			// the "AsmName":
 			
@@ -103643,7 +103513,7 @@ _begin( main )
 				_case( macOS_os )
 				_default
 
-					yyerror( "Target OS doesn't support the use of FASM" );
+					yyerror( "Target OS doesn't support the use of HLABE" );
 					strcat( AsmName, ".o" );
 					
 			_endswitch
@@ -103671,7 +103541,7 @@ _begin( main )
 			
 		_else
 		
-			// If we're not using the internal version of FASM, then
+			// If we're not using the internal HLA back engine, then
 			// we're creating an ".asm" file as output and we need to
 			// put it in the temp (outPath) directory, if one was specified.
 			
@@ -103878,7 +103748,7 @@ _begin( main )
 
 	_here;
 	
-	// Copy all the data to one buffer (mainly for internal FASM
+	// Copy all the data to one buffer (mainly for HLA Back Engine
 	// compilation):
 	
 	_begin( outputBuffer )
@@ -103913,7 +103783,7 @@ _begin( main )
 		_endif
 		asmPrintf( "\n" );	
 
-		_if( !useCFASM )
+		_if( !useHLABE )
 		
 			fOut = fopen( AsmName, "w+" );
 			_if( fOut == NULL )
@@ -103935,15 +103805,16 @@ _begin( main )
 		
 			#if( defined( windows_c ) )
 			
-			
-				cfasmMain
-				( 
-					FileName, 
+				hlabe_compile
+				(
+					FileName,
 					AsmName, 
 					buffer.base, 
-					buffer.offset,
+					buffer.base + buffer.offset,
+					objt_pecoff_c,
 					Verbose 
 				);
+			
 				
 			#else
 			
@@ -103952,7 +103823,7 @@ _begin( main )
 					"Object output is available only under Windows" 
 				);
 				assembler = gas;
-				useCFASM = 0;
+				useHLABE = 0;
 				objFmt = 0;
 				
 			#endif

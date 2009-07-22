@@ -4,8 +4,8 @@
 # make clean		-- deletes unnecessary OBJ and EXE files.
 # make cln			-- Cleans up the compiler only.
 
-INC=-Ic:\bc5\include
-LIBR=-Lc:\bc5\lib
+INC=
+LIBR=
 RATC=ratc.h
 DBG=debug.h
 ENM=enums.h
@@ -15,29 +15,32 @@ OUT=output.h
 SYM=symbol.h
 
 #DB=-v -y -M
-DB=
+CARGS= /GF /TC
 
-hla:  hlaparse.exe hla.exe 
+hla:  vsvars hlaparse.exe hla.exe 
 	build
 
+vsvars:
+	vsvars32
+	
 hla.exe: hla.obj 
-	bcc32 $(DB) -N -K -5 -O2 $(INC) $(LIBR) hla.obj
+	link hla.obj
 	copy hla.exe ..\..\executables 
 	copy hla.exe ..\.. 
 
 hla.obj: hla.c $(RATC) $(DBG)
-	bcc32 $(DB) -d -N -K -w-rch- -5 -O2 $(INC) $(LIBR) -c hla.c
+	cl $(CARGS) $(INC) $(LIBR) -c hla.c		  
 
 hlaparse.exe: hlaparse.obj lex.yy.obj symbol.obj hlautils.obj \
 				output.obj oututils.obj coerce.obj funcs.obj  \
-				cfasm.obj hlaasm.obj hfasm.obj
-	bcc32 -lS:0x10000000 -lSc:0x400000  $(DB) @hla.bcc
+				hlaasm.obj hlabe.obj
+	link @hla.bcc
 	build
 	copy hlaparse.exe ..\..\executables
 	copy hlaparse.exe ..\..
 
 hlaparse.obj: hlaparse.c $(SYM) $(RATC) $(CMN) $(ENM) $(DBG) $(OUT)
-	 bcc32 $(DB) -d -N -K -w-rch- -5 -O2 $(INC) $(LIBR) -c hlaparse.c
+	 cl $(CARGS) $(INC) $(LIBR) -c hlaparse.c
 
 
 hlaasm.obj: hladev\hlaasm.hla
@@ -47,11 +50,13 @@ hlaasm.obj: hladev\hlaasm.hla
 	make hlaasm.gasx
 	cd ..
 
-hfasm.obj: hladev\hfasm.hla
+hlabe.obj: hladev\hlabe.hla
 	cd hladev
-	make hfasm.masm
-	make hfasm.gas
+	make hlabe.masm
+	make hlabe.gas
+	make hlabe.gasx
 	cd ..
+
 	____
 
 
@@ -59,31 +64,29 @@ hfasm.obj: hladev\hfasm.hla
 hlaparse.c: hlaparse.bsn
 	c:\cygwin\bin\bison -d -o hlaparse.c hlaparse.bsn
 	____
-	
+						  
 lex.yy.obj: hla.flx hlaparse.c $(DBG) $(AH)
 	flex -8 -i hla.flx
-	bcc32 $(DB) -d -N -K -5 -w-rch- -O2 $(INC) $(LIBR) -c lex.yy.c
+	cl $(CARGS) $(INC) $(LIBR) -c lex.yy.c
 
 symbol.obj: symbol.c $(SYM) $(CMN) $(RATC) $(DBG) $(ENM) $(AH)
-	bcc32 $(DB) -d -N -K -5 -w-rch- -O2 $(INC) $(LIBR) -c symbol.c
+	cl $(CARGS) $(INC) $(LIBR) -c symbol.c
 
 hlautils.obj: hlautils.c $(SYM) $(CMN) $(RATC) $(DBG) $(ENM) $(AH)
-	bcc32 $(DB) -d -N -K -5 -w-rch- -O2 $(INC) $(LIBR) -c hlautils.c
+	cl $(CARGS) $(INC) $(LIBR) -c hlautils.c
 
 output.obj: output.c $(SYM) $(CMN) $(RATC) $(DBG) $(ENM) $(AH)
-	bcc32 $(DB) -d -N -K -5 -w-rch- -O2 $(INC) $(LIBR) -c output.c
+	cl $(CARGS) $(INC)$(LIBR) -c output.c
 
 oututils.obj: oututils.c $(SYM) $(CMN) $(RATC) $(DBG) $(ENM) $(AH)
-	bcc32 $(DB) -d -N -K -5 -w-rch- -O2 $(INC) $(LIBR) -c oututils.c
+	cl $(CARGS) $(INC) $(LIBR) -c oututils.c
 
 coerce.obj: coerce.c $(SYM) $(CMN) $(RATC) $(DBG) $(ENM) $(AH)
-	bcc32 $(DB) -d -N -K -5 -w-rch- -O2 $(INC) $(LIBR) -c coerce.c
+	cl $(CARGS) $(INC) $(LIBR) -c coerce.c
 
 funcs.obj: funcs.c $(SYM) $(CMN) $(RATC) $(DBG) $(ENM) $(AH)
-	bcc32 $(DB) -d -N -K -5 -w-rch- -O2 $(INC) $(LIBR) -c funcs.c
+	cl $(CARGS) $(INC) $(LIBR) -c funcs.c
 
-cfasm.obj: cfasm.c $(SYM) $(CMN) $(RATC) $(DBG) $(ENM) $(AH)
-	bcc32 $(DB) -d -N -K -5 -w-rch- -O2 $(INC) $(LIBR) -c cfasm.c
 
 
 
@@ -109,6 +112,9 @@ clean:
 	delete *.link
 	delete *.inc
 	delete *.map
+	delete *.gas
+	delete *.gasx
+	delete *.masm
 	delete lex.yy.c
 	delete hlaparse.c
 	delete hlaparse.tab.c

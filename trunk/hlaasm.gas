@@ -1,5 +1,5 @@
 // Assembly code emitted by HLA compiler
-// Version 1.102 build 18984 (prototype)
+// Version 2.106 build 21552 (prototype)
 // HLA compiler written by Randall Hyde
 // GAS compatible output
 
@@ -1224,7 +1224,6 @@ lcLoop__hla_100:
         movb       $0, -1(%edx) 
         mov        4(%esp), %eax 
         ret
-xlowercase:
 
 /* procedure SearchHash */
 
@@ -1298,7 +1297,6 @@ failure__hla_102:
         popl       %ebx 
         xorl       %eax, %eax 
         ret
-xSearchHash:
 
 /* procedure SearchNext */
 
@@ -1784,7 +1782,6 @@ failure__hla_141:
         popl       %ebx 
         xorl       %eax, %eax 
         ret
-xSearchNext:
 
 /* procedure strcpylc */
 
@@ -1813,7 +1810,6 @@ cpyLoop__hla_151:
         mov        %ebx, (%edx) 
         popl       %ebx 
         ret
-xstrcpylc:
 
 /* procedure compactType */
 
@@ -1927,7 +1923,7 @@ endif__hla_154:
         popl       %edx 
         popl       %ebx 
         popl       %eax 
-xcompactType:
+xcompactType__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -2625,7 +2621,7 @@ IsReal32Uns__hla_243:
         mov        (%ebx), %eax 
         andl       $-8388608, %eax 
         jnz        Failure__hla_201
-        filds      (%ebx) 
+        fildl      (%ebx) 
         fstps      (%ebx) 
         movl       $0, 4(%ebx) 
         movl       $0, 8(%ebx) 
@@ -2648,7 +2644,7 @@ IsReal32Int__hla_244:
         jne        Failure__hla_201
         cmpl       12(%ebx), %eax 
         jne        Failure__hla_201
-        filds      (%ebx) 
+        fildl      (%ebx) 
         fstps      (%ebx) 
         movl       $0, 4(%ebx) 
         movl       $0, 8(%ebx) 
@@ -2709,7 +2705,7 @@ IsReal64Uns__hla_247:
         mov        4(%ebx), %eax 
         andl       $-1048576, %eax 
         jnz        Failure__hla_201
-        fildl      (%ebx) 
+        fildll     (%ebx) 
         fstpl      (%ebx) 
         movl       $0, 8(%ebx) 
         movl       $0, 12(%ebx) 
@@ -2733,7 +2729,7 @@ IsReal64Int__hla_248:
         jne        Failure__hla_201
         cmpl       12(%ebx), %eax 
         jne        Failure__hla_201
-        fildl      (%ebx) 
+        fildll     (%ebx) 
         fstpl      (%ebx) 
         movl       $0, 8(%ebx) 
         movl       $0, 12(%ebx) 
@@ -2792,7 +2788,7 @@ IsReal80Uns__hla_250:
         orl        8(%ebx), %eax 
         orl        12(%ebx), %eax 
         jnz        Failure__hla_201
-        fildl      (%ebx) 
+        fildll     (%ebx) 
         fstpt      (%ebx) 
         movw       $0, 10(%ebx) 
         movl       $0, 12(%ebx) 
@@ -2812,7 +2808,7 @@ IsReal80Int__hla_251:
         jne        Failure__hla_201
         cmpl       12(%ebx), %eax 
         jne        Failure__hla_201
-        fildl      (%ebx) 
+        fildll     (%ebx) 
         fstpt      (%ebx) 
         movw       $0, 10(%ebx) 
         movl       $0, 12(%ebx) 
@@ -2908,7 +2904,6 @@ isPointer__hla_207:
         popl       %edx 
         popl       %ebx 
         ret
-xInRange:
 
 /* procedure MakeCompAsm */
 
@@ -3066,7 +3061,7 @@ UnsReal32__hla_273:
         jne        false__hla_517
         testw      $65408, 2(%eax) 
         jnz        false__hla_520
-        filds      (%eax) 
+        fildl      (%eax) 
         fstps      (%eax) 
         movb       $20, (%ebx) 
         movl       $real32_ste, (%edi) 
@@ -3079,7 +3074,7 @@ false__hla_517:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $4030 
+        pushl      $4037 
 
         pushl      $str__hla_521 
 
@@ -3099,7 +3094,7 @@ Real32Uns__hla_496:
         jne        false__hla_523
         testw      $65408, 2(%eax) 
         jnz        false__hla_526
-        filds      (%eax) 
+        fildl      (%eax) 
         fstps      (%eax) 
         movb       $20, (%ecx) 
         movl       $real32_ste, (%esi) 
@@ -3112,7 +3107,7 @@ false__hla_523:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $4068 
+        pushl      $4075 
 
         pushl      $str__hla_521 
 
@@ -3124,7 +3119,7 @@ false__hla_523:
 
 IntReal32__hla_430:
         mov        24(%ebp), %edx 
-        fildl      (%edx) 
+        fildll     (%edx) 
         fstps      (%edx) 
         movb       $20, (%ebx) 
         movl       $real32_ste, (%edi) 
@@ -3133,7 +3128,7 @@ IntReal32__hla_430:
 
 Real32Int__hla_497:
         mov        28(%ebp), %edx 
-        fildl      (%edx) 
+        fildll     (%edx) 
         fstps      (%edx) 
         movb       $20, (%ecx) 
         movl       $real32_ste, (%esi) 
@@ -3165,7 +3160,7 @@ UnsReal64__hla_274:
         orl        8(%edx), %eax 
         orl        12(%edx), %eax 
         jnz        false__hla_527
-        fildl      (%edx) 
+        fildll     (%edx) 
         fstpl      (%edx) 
         movb       $21, (%ebx) 
         movl       $real64_ste, (%edi) 
@@ -3177,7 +3172,7 @@ false__hla_527:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $4165 
+        pushl      $4172 
 
         pushl      $str__hla_528 
 
@@ -3194,7 +3189,7 @@ Real64Uns__hla_500:
         orl        8(%edx), %eax 
         orl        12(%edx), %eax 
         jnz        false__hla_529
-        fildl      (%edx) 
+        fildll     (%edx) 
         fstpl      (%edx) 
         movb       $21, (%ecx) 
         movl       $real64_ste, (%esi) 
@@ -3206,7 +3201,7 @@ false__hla_529:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $4198 
+        pushl      $4205 
 
         pushl      $str__hla_528 
 
@@ -3229,7 +3224,7 @@ L533__hla_:
         jne        false__hla_530
         cmpl       12(%ecx), %edx 
         jne        false__hla_530
-        fildl      (%ecx) 
+        fildll     (%ecx) 
         fstpl      (%ecx) 
         movb       $21, (%ebx) 
         movl       $real64_ste, (%edi) 
@@ -3241,7 +3236,7 @@ false__hla_530:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $4234 
+        pushl      $4241 
 
         pushl      $str__hla_528 
 
@@ -3264,7 +3259,7 @@ L537__hla_:
         jne        false__hla_534
         cmpl       12(%ebx), %edx 
         jne        false__hla_534
-        fildl      (%ebx) 
+        fildll     (%ebx) 
         fstpl      (%ebx) 
         movb       $21, (%ecx) 
         movl       $real64_ste, (%esi) 
@@ -3276,7 +3271,7 @@ false__hla_534:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $4265 
+        pushl      $4272 
 
         pushl      $str__hla_528 
 
@@ -3314,7 +3309,7 @@ UnsReal80__hla_275:
         jne        false__hla_538
         cmpl       12(%ecx), %edx 
         jne        false__hla_538
-        fildl      (%ecx) 
+        fildll     (%ecx) 
         fstpt      (%ecx) 
         movb       $22, (%ebx) 
         movl       $real80_ste, (%edi) 
@@ -3326,7 +3321,7 @@ false__hla_538:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $4327 
+        pushl      $4334 
 
         pushl      $str__hla_541 
 
@@ -3346,7 +3341,7 @@ Real80Uns__hla_504:
         jne        false__hla_542
         cmpl       12(%ebx), %edx 
         jne        false__hla_542
-        fildl      (%ebx) 
+        fildll     (%ebx) 
         fstpt      (%ebx) 
         movb       $22, (%ecx) 
         movl       $real80_ste, (%esi) 
@@ -3358,7 +3353,7 @@ false__hla_542:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $4354 
+        pushl      $4361 
 
         pushl      $str__hla_541 
 
@@ -3381,7 +3376,7 @@ L548__hla_:
         jne        false__hla_545
         cmpl       12(%ecx), %edx 
         jne        false__hla_545
-        fildl      (%ecx) 
+        fildll     (%ecx) 
         fstpt      (%ecx) 
         movb       $22, (%ebx) 
         movl       $real80_ste, (%edi) 
@@ -3393,7 +3388,7 @@ false__hla_545:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $4388 
+        pushl      $4395 
 
         pushl      $str__hla_541 
 
@@ -3416,7 +3411,7 @@ L552__hla_:
         jne        false__hla_549
         cmpl       12(%ebx), %edx 
         jne        false__hla_549
-        fildl      (%ebx) 
+        fildll     (%ebx) 
         fstpt      (%ebx) 
         movb       $22, (%ecx) 
         movl       $real80_ste, (%esi) 
@@ -3428,7 +3423,7 @@ false__hla_549:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $4418 
+        pushl      $4425 
 
         pushl      $str__hla_541 
 
@@ -4194,7 +4189,7 @@ exit__hla_509:
         popl       %edx 
         popl       %ecx 
         popl       %ebx 
-xMakeCompAsm:
+xMakeCompAsm__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -4231,7 +4226,7 @@ false__hla_575:
         popl       %ebx 
         popl       %edi 
         popl       %esi 
-xUnsLT:
+xUnsLT__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -4268,7 +4263,7 @@ false__hla_579:
         popl       %ebx 
         popl       %edi 
         popl       %esi 
-xUnsLE:
+xUnsLE__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -4305,7 +4300,7 @@ false__hla_583:
         popl       %ebx 
         popl       %edi 
         popl       %esi 
-xUnsGT:
+xUnsGT__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -4342,7 +4337,7 @@ false__hla_587:
         popl       %ebx 
         popl       %edi 
         popl       %esi 
-xUnsGE:
+xUnsGE__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -4379,7 +4374,7 @@ false__hla_591:
         popl       %ebx 
         popl       %edi 
         popl       %esi 
-xIntLT:
+xIntLT__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -4416,7 +4411,7 @@ false__hla_595:
         popl       %ebx 
         popl       %edi 
         popl       %esi 
-xIntLE:
+xIntLE__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -4453,7 +4448,7 @@ false__hla_599:
         popl       %ebx 
         popl       %edi 
         popl       %esi 
-xIntGT:
+xIntGT__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -4490,7 +4485,7 @@ false__hla_603:
         popl       %ebx 
         popl       %edi 
         popl       %esi 
-xIntGE:
+xIntGE__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -4642,7 +4637,7 @@ default__hla_607:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $5805 
+        pushl      $5812 
 
         pushl      $str__hla_632 
 
@@ -4684,7 +4679,7 @@ false__hla_633:
         popl       %edx 
         popl       %ecx 
         popl       %ebx 
-xnegval:
+xnegval__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -4939,7 +4934,7 @@ default__hla_635:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $6210 
+        pushl      $6217 
 
         pushl      $str__hla_652 
 
@@ -4959,7 +4954,7 @@ endswitch__hla_635:
         popl       %edx 
         popl       %ecx 
         popl       %ebx 
-xnotval:
+xnotval__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -5348,7 +5343,7 @@ default__hla_654:
         popl       %ecx 
         popl       %edi 
         popl       %esi 
-xaddval:
+xaddval__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -5706,7 +5701,7 @@ default__hla_688:
         popl       %ecx 
         popl       %edi 
         popl       %esi 
-xsubval:
+xsubval__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -5763,7 +5758,6 @@ mul128__hla_714:
         mov        %eax, 12(%edi) 
         popl       %edx 
         ret
-xmul128__hla_714:
 
 /* procedure mulval */
 
@@ -5963,7 +5957,7 @@ default__hla_716:
         popl       %esi 
         popl       %ecx 
         popl       %ebx 
-xmulval:
+xmulval__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -6048,7 +6042,7 @@ exitloop__hla_745:
         popl       %edi 
         popl       %ecx 
         popl       %eax 
-xdiv128__hla_744:
+xdiv128__hla_744__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret        $40
@@ -6084,7 +6078,7 @@ case__hla_749:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $7733 
+        pushl      $7740 
 
         pushl      $str__hla_751 
 
@@ -6141,7 +6135,7 @@ case__hla_757:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $7794 
+        pushl      $7801 
 
         pushl      $str__hla_751 
 
@@ -6236,7 +6230,7 @@ false__hla_767:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $7911 
+        pushl      $7918 
 
         pushl      $str__hla_751 
 
@@ -6312,7 +6306,7 @@ case__hla_775:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $7990 
+        pushl      $7997 
 
         pushl      $str__hla_751 
 
@@ -6338,7 +6332,7 @@ case__hla_777:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $8008 
+        pushl      $8015 
 
         pushl      $str__hla_751 
 
@@ -6367,7 +6361,7 @@ case__hla_780:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $8033 
+        pushl      $8040 
 
         pushl      $str__hla_751 
 
@@ -6388,7 +6382,7 @@ default__hla_748:
         popl       %esi 
         popl       %ecx 
         popl       %ebx 
-xdivval:
+xdivval__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -6424,7 +6418,7 @@ case__hla_786:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $8107 
+        pushl      $8114 
 
         pushl      $str__hla_751 
 
@@ -6481,7 +6475,7 @@ case__hla_793:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $8169 
+        pushl      $8176 
 
         pushl      $str__hla_751 
 
@@ -6576,7 +6570,7 @@ false__hla_803:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $8286 
+        pushl      $8293 
 
         pushl      $str__hla_751 
 
@@ -6649,7 +6643,7 @@ default__hla_785:
         popl       %esi 
         popl       %ecx 
         popl       %ebx 
-xmodval:
+xmodval__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -6685,7 +6679,7 @@ exitloop__hla_812:
         addl       $12, %esp 
         popl       %ecx 
         popl       %edi 
-xshlval:
+xshlval__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -6721,7 +6715,7 @@ exitloop__hla_815:
         addl       $12, %esp 
         popl       %ecx 
         popl       %edi 
-xshrval:
+xshrval__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -6776,7 +6770,7 @@ setRight__hla_818:
 bmux__hla_820:
         popl       %edi 
         popl       %esi 
-xbigmaxUns:
+xbigmaxUns__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -6831,7 +6825,7 @@ setRight__hla_822:
 bmux__hla_824:
         popl       %edi 
         popl       %esi 
-xbigmaxInt:
+xbigmaxInt__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -6886,7 +6880,7 @@ setRight__hla_826:
 bmux__hla_828:
         popl       %edi 
         popl       %esi 
-xbigminUns:
+xbigminUns__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -6941,7 +6935,7 @@ setRight__hla_830:
 bmux__hla_832:
         popl       %edi 
         popl       %esi 
-xbigminInt:
+xbigminInt__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -6975,7 +6969,6 @@ false__hla_836:
         incl       %edi 
         movb       $0, (%edi) 
         ret
-xNumToStr__hla_834:
 
 /* procedure UnsToStr */
 
@@ -6991,7 +6984,7 @@ UnsToStr:
         popl       %esi 
         popl       %edi 
         popl       %edx 
-xUnsToStr:
+xUnsToStr__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -7027,7 +7020,7 @@ false__hla_839:
         popl       %esi 
         popl       %edi 
         popl       %edx 
-xIntToStr:
+xIntToStr__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -7083,7 +7076,7 @@ Overflow__hla_842:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $8286 
+        pushl      $8293 
 
         pushl      $str__hla_844 
 
@@ -7091,7 +7084,6 @@ Overflow__hla_842:
         movl       %ebx, %esp 
         popl       %ebx 
         ret
-xMulReslt10__hla_841:
 
 /* procedure DecStrToInt */
 
@@ -7154,7 +7146,7 @@ AllDone__hla_848:
         popl       %edx 
         popl       %ecx 
         popl       %ebx 
-xDecStrToInt:
+xDecStrToInt__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -7186,7 +7178,7 @@ ForEachDigit__hla_851:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $8286 
+        pushl      $8293 
 
         pushl      $str__hla_852 
 
@@ -7237,7 +7229,7 @@ start__hla_850:
 
 AllDone__hla_853:
         popl       %ebx 
-xBinStrToInt:
+xBinStrToInt__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -7278,7 +7270,7 @@ repeat__hla_858:
         subl       $28, %esp 
         andl       $-16, %esp 
         pushl      $str__hla_522 
-        pushl      $8286 
+        pushl      $8293 
 
         pushl      $str__hla_860 
 
@@ -7336,7 +7328,7 @@ start__hla_855:
 AllDone__hla_861:
         popl       %ecx 
         popl       %ebx 
-xHexStrToInt:
+xHexStrToInt__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -7351,7 +7343,7 @@ real80to64:
         fstpl      (%eax) 
         movl       $0, 8(%eax) 
         movl       $0, 12(%eax) 
-xreal80to64:
+xreal80to64__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -7367,7 +7359,7 @@ real80to32:
         movl       $0, 4(%eax) 
         movl       $0, 8(%eax) 
         movl       $0, 12(%eax) 
-xreal80to32:
+xreal80to32__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -7378,10 +7370,10 @@ unsf80:
         pushl      %ebp 
         movl       %esp, %ebp 
         mov        8(%ebp), %eax 
-        fildl      (%eax) 
+        fildll     (%eax) 
         mov        12(%ebp), %eax 
         fstpt      (%eax) 
-xunsf80:
+xunsf80__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -7395,10 +7387,10 @@ f80int:
         fstcw      -4(%ebp) 
         fldcw      fcw__hla_866 
         fldt       8(%ebp) 
-        mov        20(%ebp), %eax 
-        fistpl     (%eax) 
+        mov        24(%ebp), %eax 
+        fistpll    (%eax) 
         fldcw      -4(%ebp) 
-xf80int:
+xf80int__hla_:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
@@ -7409,13 +7401,12 @@ fadd80:
         pushl      %ebp 
         movl       %esp, %ebp 
         fldt       12(%ebp) 
-        fldt       24(%ebp) 
+        fldt       28(%ebp) 
         faddp      %st(0), %st(1) 
         mov        8(%ebp), %eax 
         fstpt      (%eax) 
         popl       %ebp 
         ret
-xfadd80:
 
 /* procedure fsub80 */
 
@@ -7423,13 +7414,12 @@ fsub80:
         pushl      %ebp 
         movl       %esp, %ebp 
         fldt       12(%ebp) 
-        fldt       24(%ebp) 
+        fldt       28(%ebp) 
         fsubrp     %st(0), %st(1) 
         mov        8(%ebp), %eax 
         fstpt      (%eax) 
         popl       %ebp 
         ret
-xfsub80:
 
 /* procedure fmul80 */
 
@@ -7437,13 +7427,12 @@ fmul80:
         pushl      %ebp 
         movl       %esp, %ebp 
         fldt       12(%ebp) 
-        fldt       24(%ebp) 
+        fldt       28(%ebp) 
         fmulp      %st(0), %st(1) 
         mov        8(%ebp), %eax 
         fstpt      (%eax) 
         popl       %ebp 
         ret
-xfmul80:
 
 /* procedure fdiv80 */
 
@@ -7451,13 +7440,12 @@ fdiv80:
         pushl      %ebp 
         movl       %esp, %ebp 
         fldt       12(%ebp) 
-        fldt       24(%ebp) 
+        fldt       28(%ebp) 
         fdivrp     %st(0), %st(1) 
         mov        8(%ebp), %eax 
         fstpt      (%eax) 
         popl       %ebp 
         ret
-xfdiv80:
 
 /* procedure fneg80 */
 
@@ -7470,7 +7458,6 @@ fneg80:
         fstpt      (%eax) 
         popl       %ebp 
         ret
-xfneg80:
 
 /* procedure fabs80 */
 
@@ -7483,7 +7470,6 @@ fabs80:
         fstpt      (%eax) 
         popl       %ebp 
         ret
-xfabs80:
 
 /* procedure fmax80 */
 
@@ -7491,13 +7477,13 @@ fmax80:
         pushl      %ebp 
         movl       %esp, %ebp 
         fldt       12(%ebp) 
-        fldt       24(%ebp) 
+        fldt       28(%ebp) 
         fcom       %st(1) 
         fstsw      %ax 
         sahf
         mov        8(%ebp), %eax 
         jb         false__hla_874
-        fstpt      24(%ebp) 
+        fstpt      28(%ebp) 
         fstpt      (%eax) 
         jmp        endif__hla_874
 false__hla_874:
@@ -7506,7 +7492,6 @@ false__hla_874:
 endif__hla_874:
         popl       %ebp 
         ret
-xfmax80:
 
 /* procedure fmin80 */
 
@@ -7514,13 +7499,13 @@ fmin80:
         pushl      %ebp 
         movl       %esp, %ebp 
         fldt       12(%ebp) 
-        fldt       24(%ebp) 
+        fldt       28(%ebp) 
         fcom       %st(1) 
         fstsw      %ax 
         sahf
         mov        8(%ebp), %eax 
         jnb        false__hla_876
-        fstpt      24(%ebp) 
+        fstpt      28(%ebp) 
         fstpt      (%eax) 
         jmp        endif__hla_876
 false__hla_876:
@@ -7529,14 +7514,13 @@ false__hla_876:
 endif__hla_876:
         popl       %ebp 
         ret
-xfmin80:
 
 /* procedure feq80 */
 
 feq80:
         pushl      %ebp 
         movl       %esp, %ebp 
-        fldt       20(%ebp) 
+        fldt       24(%ebp) 
         fldt       8(%ebp) 
         fcompp     
         fstsw      %ax 
@@ -7545,14 +7529,13 @@ feq80:
         setz       %al 
         popl       %ebp 
         ret
-xfeq80:
 
 /* procedure fne80 */
 
 fne80:
         pushl      %ebp 
         movl       %esp, %ebp 
-        fldt       20(%ebp) 
+        fldt       24(%ebp) 
         fldt       8(%ebp) 
         fcompp     
         fstsw      %ax 
@@ -7561,14 +7544,13 @@ fne80:
         setnz      %al 
         popl       %ebp 
         ret
-xfne80:
 
 /* procedure flt80 */
 
 flt80:
         pushl      %ebp 
         movl       %esp, %ebp 
-        fldt       20(%ebp) 
+        fldt       24(%ebp) 
         fldt       8(%ebp) 
         fcompp     
         fstsw      %ax 
@@ -7577,14 +7559,13 @@ flt80:
         setb       %al 
         popl       %ebp 
         ret
-xflt80:
 
 /* procedure fle80 */
 
 fle80:
         pushl      %ebp 
         movl       %esp, %ebp 
-        fldt       20(%ebp) 
+        fldt       24(%ebp) 
         fldt       8(%ebp) 
         fcompp     
         fstsw      %ax 
@@ -7593,14 +7574,13 @@ fle80:
         setbe      %al 
         popl       %ebp 
         ret
-xfle80:
 
 /* procedure fgt80 */
 
 fgt80:
         pushl      %ebp 
         movl       %esp, %ebp 
-        fldt       20(%ebp) 
+        fldt       24(%ebp) 
         fldt       8(%ebp) 
         fcompp     
         fstsw      %ax 
@@ -7609,14 +7589,13 @@ fgt80:
         setnbe     %al 
         popl       %ebp 
         ret
-xfgt80:
 
 /* procedure fge80 */
 
 fge80:
         pushl      %ebp 
         movl       %esp, %ebp 
-        fldt       20(%ebp) 
+        fldt       24(%ebp) 
         fldt       8(%ebp) 
         fcompp     
         fstsw      %ax 
@@ -7625,7 +7604,6 @@ fge80:
         setnb      %al 
         popl       %ebp 
         ret
-xfge80:
 
 /* procedure ceil80 */
 
@@ -7681,7 +7659,6 @@ endif__hla_886:
         fldcw      fcwSave__hla_884 
         popl       %ebp 
         ret
-xceil80:
 
 /* procedure floor80 */
 
@@ -7719,7 +7696,6 @@ endif__hla_895:
         fldcw      fcwSave__hla_893 
         popl       %ebp 
         ret
-xfloor80:
 
 /* procedure cos80 */
 
@@ -7732,7 +7708,6 @@ cos80:
         fstpt      (%eax) 
         popl       %ebp 
         ret
-xcos80:
 
 /* procedure sin80 */
 
@@ -7745,7 +7720,6 @@ sin80:
         fstpt      (%eax) 
         popl       %ebp 
         ret
-xsin80:
 
 /* procedure tan80 */
 
@@ -7759,7 +7733,6 @@ tan80:
         fstpt      (%eax) 
         popl       %ebp 
         ret
-xtan80:
 
 /* procedure log80 */
 
@@ -7775,7 +7748,6 @@ log80:
         fstpt      (%eax) 
         popl       %ebp 
         ret
-xlog80:
 
 /* procedure log1080 */
 
@@ -7791,7 +7763,6 @@ log1080:
         fstpt      (%eax) 
         popl       %ebp 
         ret
-xlog1080:
 
 /* procedure sqrt80 */
 
@@ -7804,7 +7775,6 @@ sqrt80:
         fstpt      (%eax) 
         popl       %ebp 
         ret
-xsqrt80:
 
 /* procedure exp80 */
 
@@ -7819,7 +7789,7 @@ exp80:
         fld        %st(0) 
         frndint
         fxch
-        fsubr      %st(1), %st(0) 
+        fsub       %st(1), %st(0) 
         f2xm1
         fld1
         faddp      %st(0), %st(1) 
@@ -7831,7 +7801,6 @@ exp80:
         fldcw      SaveCW__hla_905 
         popl       %ebp 
         ret
-xexp80:
 
 /* procedure DigitsToRightOfDecPt__hla_910 */
 
@@ -7861,7 +7830,6 @@ exitloop__hla_912:
 
 EndDigits__hla_913:
         ret
-xDigitsToRightOfDecPt__hla_910:
 
 /* procedure atold */
 
@@ -8253,7 +8221,6 @@ ExitAtold__hla_960:
         movl       %ebp, %esp 
         popl       %ebp 
         ret
-xatold:
 
 /* procedure htoa__hla_962 */
 
@@ -8269,7 +8236,6 @@ htoa__hla_962:
         stosb
         popl       %eax 
         ret
-xhtoa__hla_962:
 
 /* procedure FPDigits__hla_964 */
 
@@ -8397,7 +8363,6 @@ exitloop__hla_989:
 endif__hla_972:
         movl       %edx, %eax 
         ret
-xFPDigits__hla_964:
 
 /* procedure e80Str */
 
@@ -8480,7 +8445,6 @@ endif__hla_995:
         popfl
         popl       %ebp 
         ret
-xe80Str:
 
 
 

@@ -1225,6 +1225,21 @@ extern void Emit_Vdq_Wq_m
 	int isXmm 
 );
 
+extern void Emit_Vdq_Wd_r
+( 
+	enum Vdq_Wq_instrs instr, 
+	int src, 
+	int dest, 
+	int isXmm 
+);
+extern void Emit_Vdq_Wd_m
+( 
+	enum Vdq_Wq_instrs instr, 
+	struct adrsYYS *adrs, 
+	int reg, 
+	int isXmm 
+);
+
 extern void Emit_Pq_Qq_r
 ( 
 	enum Pq_Qq_instrs instr, 
