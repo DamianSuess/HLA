@@ -1698,7 +1698,7 @@ SetReferenced( struct SymNode *sym  )
 _begin( SetReferenced )
 
 	_if( sym != NULL )
-	
+		
 		_if( sym->IsReferenced != NULL) 
 		
 			sym->IsReferenced->ForceRef = 1;
