@@ -6714,7 +6714,7 @@ SeeIfInUnit:
 /*
 ** TypeID: DefinedID
 **
-** This production doesn't use any inheirited attributes
+** This production doesn't use any inherited attributes
 **
 ** This production uses the following synthesized attributes:
 **
@@ -7101,7 +7101,7 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7111,7 +7111,7 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7120,7 +7120,7 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7129,7 +7129,7 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7138,7 +7138,7 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7147,7 +7147,7 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7156,7 +7156,7 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7165,7 +7165,7 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 		;
@@ -7176,7 +7176,7 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7185,7 +7185,7 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7194,7 +7194,7 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7203,7 +7203,7 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7212,7 +7212,7 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7221,7 +7221,7 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7230,7 +7230,7 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7239,7 +7239,7 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 		;
@@ -7251,7 +7251,7 @@ DefinedID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7261,7 +7261,7 @@ DefinedID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 		;
@@ -7275,7 +7275,7 @@ DefinedConstID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7284,7 +7284,7 @@ DefinedConstID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 		;
@@ -7301,7 +7301,6 @@ AnyStaticID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7310,7 +7309,6 @@ AnyStaticID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
 				_here;
 			}
 		;
@@ -7372,7 +7370,7 @@ AnyID:
 		{
 			_here;
 			$<idStr>$ = hlastrdup2( $<s>1->TrueName );
-			SetReferenced( $<s>1 );
+//			SetReferenced( $<s>1 );
 			_here;
 		}
 
@@ -7380,7 +7378,7 @@ AnyID:
 		{
 			_here;
 			$<idStr>$ = hlastrdup2( $<s>1->TrueName );
-			SetReferenced( $<s>1 );
+//			SetReferenced( $<s>1 );
 			_here;
 		}
 	;
@@ -7392,7 +7390,7 @@ AnyLabelID:
 			_here;
 			assert( $<s>1 != NULL );
 			$<s>$ = $<s>1;
-			SetReferenced( $<s>1 );
+//			SetReferenced( $<s>1 );
 			_here;
 		}
 		
@@ -7401,7 +7399,7 @@ AnyLabelID:
 			_here;
 			assert( $<s>1 != NULL );
 			$<s>$ = $<s>1;
-			SetReferenced( $<s>1 );
+//			SetReferenced( $<s>1 );
 			_here;
 		}
 	;
@@ -7470,7 +7468,7 @@ NonConstLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7480,7 +7478,7 @@ NonConstLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7489,7 +7487,7 @@ NonConstLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7498,7 +7496,7 @@ NonConstLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7507,7 +7505,7 @@ NonConstLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7516,7 +7514,7 @@ NonConstLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7525,7 +7523,7 @@ NonConstLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-				SetReferenced( $<s>1 );
+//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -39206,7 +39204,7 @@ OneOrMoreParms:
 		ParmTypeID		/* $4 */
 		{
 			int CurParmSize;
-
+			
 			assert( $<idStr>2 != NULL );
 			assert( $<s>4 != NULL );
 			
@@ -56961,7 +56959,21 @@ ReadOnlyDef:
 			_here;
 			_if( $<options.NoStorage>7 )
 
-				EmitTypedLabel( $<s>1->StaticName, tDWord );
+				_if( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
+
+					EmitTypedLabel( $<s>1->StaticName, tDWord );
+					
+				_else
+
+					ErrorNear
+					( 
+						"Duplicate symbol definition",
+						$<s>1->TrueName,
+						__LINE__,
+						__FILE__
+					);
+
+				_endif
 
 			_else
 
@@ -57010,7 +57022,21 @@ ReadOnlyDef:
 
 			_if( $<options.NoStorage>8 )
 
-				EmitTypedLabel( $<s>1->StaticName, tDWord );
+				_if( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
+
+					EmitTypedLabel( $<s>1->StaticName, tDWord );
+
+				_else
+
+					ErrorNear
+					( 
+						"Duplicate symbol definition",
+						$<s>1->TrueName,
+						__LINE__,
+						__FILE__
+					);
+
+				_endif
 
 			_else
 
@@ -59084,6 +59110,7 @@ StaticLabelIDs:
 		{
 			_here;
 			$<s>$ = $<s>1;
+			SetReferenced( $<s>1 );
 			_here;
 		}
 		
@@ -59474,7 +59501,7 @@ ConstExpr:
 			** appropriate information to the calling code.
 			*/
 
-			SetReferenced( $<s>1 );
+//			SetReferenced( $<s>1 );
 			_if
 			( 
 					$<s>1->pType == tString 
@@ -97471,14 +97498,12 @@ NotMemoryID:
 		{
 			_here;
 			$<idStr>$ = $<s>1->TrueName;
-			SetReferenced( $<s>1 );
 		}
 
 	|	LocalLabelID
 		{
 			_here;
 			$<idStr>$ = $<s>1->TrueName;
-			SetReferenced( $<s>1 );
 		}
 
 	|	LocalID
@@ -97496,28 +97521,24 @@ NotMemoryID:
 
 			_endif
 			$<idStr>$ = $<s>1->TrueName;
-			SetReferenced( $<s>1 );
 		}
 
 	|	NonLocalConstID
 		{
 			_here;
 			$<idStr>$ = $<s>1->TrueName;
-			SetReferenced( $<s>1 );
 		}
 
 	|	NonLocalLabelID
 		{
 			_here;
 			$<idStr>$ = $<s>1->TrueName;
-			SetReferenced( $<s>1 );
 		}
 
 	|	NonLocalID
 		{
 			_here;
 			$<idStr>$ = $<s>1->TrueName;
-			SetReferenced( $<s>1 );
 		}
 	;
 
@@ -98375,7 +98396,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = malloc( sizeof( struct SymNode ));
+			s = (struct	SymNode	*) malloc( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98466,7 +98487,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98558,7 +98579,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98654,7 +98675,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98725,7 +98746,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98797,7 +98818,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98871,7 +98892,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98946,7 +98967,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -102712,9 +102733,9 @@ _begin( main )
 	** (if they are present).
 	*/
 
-	hlainc = getenv( "hlainc" );
-	hlaauxinc = getenv( "hlaauxinc" );
-	outPath = getenv( "hlatmp" );
+	hlainc = (char *) getenv( "hlainc" );
+	hlaauxinc = (char *) getenv( "hlaauxinc" );
+	outPath = (char *) getenv( "hlatmp" );
 	_if( outPath == NULL )
 	
 		outPath = "";
