@@ -17,12 +17,12 @@ SYM=symbol.h
 #DB=-v -y -M
 CARGS= /GF /TC
 
-hla:  vsvars hlaparse.exe hla.exe 
+hla:  hlaparse.exe hla.exe 
+	build
+	
+release: hla.exe hlaparse2.exe
 	build
 
-vsvars:
-	vsvars32
-	
 hla.exe: hla.obj 
 	link hla.obj
 	copy hla.exe ..\..\executables 
@@ -39,8 +39,20 @@ hlaparse.exe: hlaparse.obj lex.yy.obj symbol.obj hlautils.obj \
 	copy hlaparse.exe ..\..\executables
 	copy hlaparse.exe ..\..
 
+hlaparse2.exe: hlaparse2.obj lex.yy.obj symbol.obj hlautils.obj \
+				output.obj oututils.obj coerce.obj funcs.obj  \
+				hlaasm.obj hlabe.obj
+	link @hla.bcc
+	build
+	copy hlaparse.exe ..\..\executables
+	copy hlaparse.exe ..\..
+
 hlaparse.obj: hlaparse.c $(SYM) $(RATC) $(CMN) $(ENM) $(DBG) $(OUT)
 	 cl $(CARGS) $(INC) $(LIBR) -c hlaparse.c
+
+
+hlaparse2.obj: hlaparse.c $(SYM) $(RATC) $(CMN) $(ENM) $(DBG) $(OUT)
+	 cl $(CARGS) /O2 /Ox $(INC) $(LIBR) -c hlaparse.c
 
 
 hlaasm.obj: hladev\hlaasm.hla
