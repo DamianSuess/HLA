@@ -2766,6 +2766,53 @@ _end( lookupin )
 
 
 
+/*******************************************************/
+/*                                                     */
+/* lookupthis                                          */
+/*                                                     */
+/* Looks up a symbol in a class' symbol table without  */
+/* recursively checking any symbols outside the class. */
+/* This function gets called to look up symbols that   */
+/* immediately follow "this."                          */
+/*                                                     */
+/*******************************************************/
+
+
+struct SymNode*
+lookupthis( char *src, struct SymNode *table )
+_begin( lookupin )
+
+	struct	SymNode	*SaveSymTable;
+	struct	SymNode	*SaveThis;
+	struct	SymNode	*result;
+	struct	SymNode *saveCurNS;
+
+
+	SaveSymTable	= SymbolTable;
+	SaveThis 		= ThisPtr;
+	SymbolTable		= table;
+	ThisPtr			= NULL;
+	saveCurNS 		= currentNS;
+	currentNS 		= NULL;
+	result 			= lookup( src, 1 );
+	SymbolTable		= SaveSymTable;
+	ThisPtr			= SaveThis;
+	currentNS		= saveCurNS;
+	_return result;
+
+_end( lookupin )
+
+
+
+
+
+
+
+
+
+
+
+
 /********************************************************************************************************/
 /*                                                                                                      */
 /* ClassifyLookup-                                                                                      */
@@ -4874,7 +4921,7 @@ _begin( DumpSym )
 							fprintf
 							( 
 								MsgOut, 
-								" (ID=%s%d%s%s%s)", 
+								" (ID=%s%s%s%s)", 
 								SymbolTable->StaticName,
 								_ifx( SymbolTable->IsExternal, " X", "" ),
 								_ifx

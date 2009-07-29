@@ -642,6 +642,7 @@ extern struct SymNode*	lookup( char *, int );
 extern struct SymNode*	NSlookup( char *, int, struct SymNode* );
 extern struct SymNode*	ClassifyLookup( char *, struct SymNode *table );
 extern struct SymNode*	lookupin( char *, struct SymNode *table );
+extern struct SymNode*	lookupthis( char *, struct SymNode *table );
 
 extern void				DumpSym( struct SymNode *SymbolTable, int indent );
 extern void 			initSymbolTable( void );

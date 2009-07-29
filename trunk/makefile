@@ -1,8 +1,8 @@
-# make				-- generates HLA compiler
-# make version		-- updates HLA version number
-# make lib			-- Builds the HLA Standard Library
-# make clean		-- deletes unnecessary OBJ and EXE files.
-# make cln			-- Cleans up the compiler only.
+# nmake				-- generates HLA compiler
+# nmake version		-- updates HLA version number
+# nmake lib			-- Builds the HLA Standard Library
+# nmake clean		-- deletes unnecessary OBJ and EXE files.
+# nmake cln			-- Cleans up the compiler only.
 
 INC=
 LIBR=
@@ -45,16 +45,16 @@ hlaparse.obj: hlaparse.c $(SYM) $(RATC) $(CMN) $(ENM) $(DBG) $(OUT)
 
 hlaasm.obj: hladev\hlaasm.hla
 	cd hladev
-	make hlaasm.masm
-	make hlaasm.gas
-	make hlaasm.gasx
+	nmake hlaasm.masm
+	nmake hlaasm.gas
+	nmake hlaasm.gasx
 	cd ..
 
 hlabe.obj: hladev\hlabe.hla
 	cd hladev
-	make hlabe.masm
-	make hlabe.gas
-	make hlabe.gasx
+	nmake hlabe.masm
+	nmake hlabe.gas
+	nmake hlabe.gasx
 	cd ..
 
 	____
@@ -123,7 +123,7 @@ clean:
 	delete hlaparse.output
 	delete tmp\*
 	cd hladev
-	make clean
+	nmake clean
 	cd ..
 
 

@@ -5947,14 +5947,6 @@ Decls:	/* Empty */
 			currentNS = $<ru.saveCurNS>2; 
 		}
 		
-//	|	Decls 
-//		saveCurNS 
-//		segmentTkn 
-//		Segments 
-//		{ 
-//			currentNS = $<ru.saveCurNS>2; 
-//		}
-		
 	|	Decls 
 		saveCurNS 
 		procs 
@@ -5963,16 +5955,6 @@ Decls:	/* Empty */
 			currentNS = $<ru.saveCurNS>2; 
 		}
 	
- /*
-	|	Decls 
-		saveCurNS 
-		macros 
-		optionalSemicolon 
-		{
-			currentNS = $<ru.saveCurNS>2; 
-		}
- */
-		
 	|	Decls 
 		saveCurNS 
 		NameSpace 
@@ -21738,7 +21720,7 @@ procs:		procedureTkn		/* $1 */
 				** the proc.BaseClass field).
 				*/
 				
-				ThisPtr = $<s>2->u.proc.BaseClass; 
+				ThisPtr = $<s>2->u.proc.BaseClass;
 
 				/*
 				** If the proc.Forward field contains NULL, then
@@ -42652,7 +42634,7 @@ TypeDef:
 
 			/*
 			** Okay, create the class symbol table entry
-			** and attach the fields symbol table to that entry.
+			** and attach the field's symbol table to that entry.
 			*/
 
 
@@ -103721,18 +103703,6 @@ _begin( main )
 				
 				s = SegmentList;
 				assert( s == NULL );
-	//				_while( s != NULL )
-	//
-	//					SetSeg( s->name, dataname, dataname );
-	//					fprintf
-	//					(
-	//						linkOut,
-	//						"-section:%s,RW\n",
-	//						dataname
-	//					);
-	//					s = s->next;
-	//
-	//				_endwhile
 				fprintf
 				(
 					linkOut,
@@ -103771,6 +103741,7 @@ _begin( main )
 	
 	// Copy all the data to one buffer (mainly for HLA Back Engine
 	// compilation):
+	
 	
 	_begin( outputBuffer )
 	
@@ -103826,15 +103797,19 @@ _begin( main )
 		
 			#if( defined( windows_c ) )
 			
-				hlabe_compile
-				(
-					FileName,
-					AsmName, 
-					buffer.base, 
-					buffer.base + buffer.offset,
-					objt_pecoff_c,
-					Verbose 
-				);
+				_if( yyerrCount == 0 ) 
+			
+					hlabe_compile
+					(
+						FileName,
+						AsmName, 
+						buffer.base, 
+						buffer.base + buffer.offset,
+						objt_pecoff_c,
+						Verbose 
+					);
+					
+				_endif
 			
 				
 			#else

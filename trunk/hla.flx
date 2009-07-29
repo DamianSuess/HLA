@@ -8926,6 +8926,7 @@ _zstring		zstring
 
                         int             Token;
                         struct  SymNode *SaveSym;
+                        struct  SymNode *s;
                         struct  SymNode *symbol;
                         char            msg[ 256 ];
 
@@ -8938,8 +8939,8 @@ _zstring		zstring
                         */
 
                         _here;
-                        symbol = lookupin( yytext+1, CurSymTbl->Fields );
 
+                        symbol = lookupthis( yytext+1, CurSymTbl->Fields );
                         BEGIN 0;
                         _if( symbol != NULL )
 
