@@ -117,6 +117,7 @@ version:
 	version
 
 clean:
+	delete *.manifest
 	delete *.exe
 	delete *.obj
 	delete *.asm
