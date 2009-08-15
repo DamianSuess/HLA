@@ -76,7 +76,7 @@ FILE *MsgOut;
 	#define unixOS
 	enum	OSChoice		targetOS 	= linux_os;
 	enum	OSChoice		hostOS	 	= linux_os;
-	enum	AsmChoice		SourceFmt 	= gas;
+	enum	AsmChoice		SourceFmt 	= hlabe;
 	enum	gasChoice		gasSyntax	= stdGas;
 	enum	ObjFormat		ObjFmt 		= elf;
 	enum	LinkerChoice	linker 		= ld;
@@ -95,7 +95,7 @@ FILE *MsgOut;
 	#define unixOS
 	enum	OSChoice		targetOS 	= freeBSD_os;
 	enum	OSChoice		hostOS	 	= freeBSD_os;
-	enum	AsmChoice		SourceFmt 	= gas;
+	enum	AsmChoice		SourceFmt 	= hlabe;
 	enum	gasChoice		gasSyntax	= stdGas;
 	enum	ObjFormat		ObjFmt 		= elf;
 	enum	LinkerChoice	linker 		= ld;
@@ -444,7 +444,6 @@ _begin( Help )
 		"  -st         Compile to TASM source files only.\n"
 		"  -sg         Compile to GAS source files only.\n"
 		"  -sx         Compile to GAS source files for Mac OSX only.\n"
-		"  -code1st    Emit machine instructions before data in code segment.\n"
 		"  -main:xxxx  Use 'xxxx' as the name of the HLA main program.\n"
 		"\n"
 	);
@@ -463,10 +462,6 @@ _begin( Help )
 		"  -cx       Compile/assemble to object using GAS (Mac only).\n"
 		"  -co       Compile/assemble to object using HLABE (Win32).\n"
 		"\n"
-		"  -o:omf    Produce OMF files (for Windows).\n"
-		"  -o:coff   Produce win32 COFF files (for Windows).\n"
-		"  -o:elf    Produce ELF files (for Linux).\n"
-		"\n"
 		"  -axxxxx   Pass xxxxx as command line parameter to assembler.\n"
 		
 	);
@@ -484,10 +479,10 @@ _begin( Help )
 		"  -xx       Compile/assemble/link to object using GAS (Mac only).\n"
 		"  -xo       Compile/assemble/link to object using HLABE (Win32).\n"
 		"\n"
-		"  -win32    Generate code for Win32 OS.\n"
-		"  -linux    Generate code for Linux OS.\n"
-		"  -freebsd  Generate code for FreeBSD OS.\n"
-		"  -macos    Generate code for Mac OSX.\n"
+		"  -win32    Generate COFF file for Win32 OS.\n"
+		"  -linux    Generate ELF file for Linux OS.\n"
+		"  -freebsd  Generate ELF file for FreeBSD OS.\n"
+		"  -macos    Generate Mach-o file for Mac OSX.\n"
 		"\n"
 	);
 	PressReturnToContinue();	
@@ -550,7 +545,7 @@ _begin( Help )
 			"                         subdirectory.\n"
 			"\n"
 			"  hlatmp=<path>        Sets path to directory to hold temp "
-			                      "files (optional)\n"
+			                                              "files (optional)\n"
 								   
 		#elif defined( UnixOS ) // Is Linux/BSD/MacOS, use Unix-friendly path:
 			
@@ -564,37 +559,18 @@ _begin( Help )
 								   
 		#endif
 			"\n"
-		"  hlaasmopt=<options>  Passes the specified command-line options on to the\n"
-		"                         underlying assembler.\n"
-			"\n"
-		"  hlalinkopt=<options> Passes the specified command-line options on to the\n"
-		"                         underlying linker.\n"
-	);
-	PressReturnToContinue();	
-	fprintf
-	(
-		MsgOut,
-		"More HLA Environment Variables:\n\n"
-		
-		"hla=<asm>      Sets default assembler behavior\n"
-		"                 <asm>:\n"
-		"                    hla-  uses internal version of FASM\n"
-		"                    ohla- uses internal HLA Back Engine\n"
-		"                    fhla- uses FASM as the back-end assembler\n"
-		"                    nhla- uses NASM as the back-end assembler\n"
-		"                   Windows Only:\n"
-		"                    mhla- uses MASM as the back-end assembler\n"
-		"                    thla- uses TASM as the back-end assembler\n"
-		"                   Linux Only:\n"
-		"                    ghla- uses GAS as the back-end assembler\n"
-		"\n"
-		"hlalink=<lnkr> Sets default linker behavior\n"
-		"                 <lnkr>:\n"
-		"                   Windows Only:\n"
-		"                    mslink- use Microsoft's link.exe linker\n"
-		"                    polink- use the Pelles C polink.exe linker\n"
-		"                   Linux Only:\n"
-		"                    ld- use the FSF/GNU ld linker\n"
+		    "  hlaasmopt=<options>  Passes the specified command-line options\n"
+		    "                         on to the underlying assembler.\n"
+		    	"\n"
+		    "  hlalinkopt=<options> Passes the specified command-line options\n"
+		    "                         on to theunderlying linker.\n"
+		    "  hlalink   =<lnkr> Sets default linker behavior\n"
+		    "                    <lnkr>:\n"
+		    "                      Windows Only:\n"
+		    "                       mslink- use Microsoft's link.exe linker\n"
+		    "                       polink- use the Pelles C polink.exe linker\n"
+		    "                      Linux Only:\n"
+		    "                       ld- use the FSF/GNU ld linker\n"
 		
 	);
 
@@ -833,7 +809,6 @@ _begin( doCmdLine)
 	char 	*pgmName;
 	int		nameLen;
 	char	*namePosn;
-	char	*hlaName;
 	char	*linkerName;
 	
 	
@@ -854,7 +829,7 @@ _begin( doCmdLine)
 				gasSyntax	= stdGas;
 				ObjFmt 		= coff;
 				linker 		= polink;
-				Internal 	= 0;
+				Internal 	= 1;
 				
 			_elseif( _streq( ucArg, "LINUX" ))
 			
@@ -863,7 +838,7 @@ _begin( doCmdLine)
 				gasSyntax	= stdGas;
 				ObjFmt 		= elf;
 				linker 		= ld;
-				Internal 	= 0;
+				Internal 	= 1;
 				
 			_elseif( _streq( ucArg, "FREEBSD" ))
 			
@@ -872,7 +847,7 @@ _begin( doCmdLine)
 				gasSyntax	= stdGas;
 				ObjFmt 		= elf;
 				linker 		= ld;
-				Internal 	= 0;
+				Internal 	= 1;
 				
 			_elseif( _streq( ucArg, "MACOS" ))
 			
@@ -889,30 +864,6 @@ _begin( doCmdLine)
 								
 	_endfor
 	
-	// Second, check the HLA environment variable. Default it to "HLA" if
-	// it doesn't exist or if it is assigned an unknown value.
-	
-	hlaName = getenv( "hla" );
-	_if( hlaName == NULL )
-	
-		hlaName = "HLA";	// Default to HLA.
-		
-	_endif
-	hlaName = strupr( strdup( hlaName ));
-	_if
-	(
-			_strne( hlaName, "MHLA" )
-		&&	_strne( hlaName, "THLA" )
-		&&	_strne( hlaName, "FHLA" )
-		&&	_strne( hlaName, "GHLA" )
-		&&	_strne( hlaName, "OHLA" )
-		&&	_strne( hlaName, "NHLA" )
-	)
-	
-		free( hlaName );
-		hlaName = strdup( "HLA" );
-		
-	_endif
 	
 	// Now, check the HLALINK environment variable.
 	
@@ -928,12 +879,6 @@ _begin( doCmdLine)
 
 			_else
 			
-				fprintf
-				(
-					MsgOut,
-					"'hlalink' environment variable is set to 'mslink', "
-					"defaulting to ld\n"
-				);
 				linker = ld;
 				free( linkerName );
 				linkerName = NULL;
@@ -948,12 +893,6 @@ _begin( doCmdLine)
 
 			_else
 			
-				fprintf
-				(
-					MsgOut,
-					"'hlalink' environment variable is set to 'polink', "
-					"defaulting to ld\n"
-				);
 				linker = ld;
 				free( linkerName );
 				linkerName = NULL;
@@ -968,13 +907,6 @@ _begin( doCmdLine)
 				
 			_else
 			
-				fprintf
-				(
-					MsgOut,
-					"'hlalink' environment variable is set to 'ld' under " 
-					"Windows,\n"
-					"using default linker instead\n"
-				);
 				free( linkerName );
 				linkerName = NULL;
 				
@@ -994,44 +926,6 @@ _begin( doCmdLine)
 	_endif			
 	
 	
-	// Get the program name and set the default language level as follows:
-	//
-	//	If name is		Default level is
-	//	----------		----------------
-	//    HLA			High Level (default case)
-	//	  MLA			Medium Level
-	//	  LLA			Low Level
-	//	  VLLA			Very Low Level
-	//
-	//	  MHLA			High Level (default case)
-	//	  THLA			High Level (default case)
-	//	  FHLA			High Level (default case)
-	//	  NHLA			High Level (default case)
-	//    GHLA			High Level (default case)
-	//
-	// Of course, this can be overridden by the "-level=?" command-line parameter.
-	//
-	// The executable filename can also determine which back-end
-	// assembler HLAPARSE will use.  This is set as follows:
-	//
-	//	If name is		Default back-end is
-	//	----------		-------------------
-	//    HLA			Determined by HLA environment variable
-	//	  MLA			Determined by HLA environment variable
-	//	  LLA			Determined by HLA environment variable
-	//	  VLLA			Determined by HLA environment variable
-	//	  MHLA			MASM
-	//	  THLA			TASM
-	//	  FHLA			FASM
-	//    GHLA			GAS
-	//    OHLA          HLABE, producing object-code output.
-	//
-	// The back-end assembler designation can be overridden with the
-	// "-s*" command-line option, though this will only produce a source
-	// file that has to be manually assembled.
-	//
-	//
-	//
 	// Skip over any path prefix appearing in the name:
 	
 	namePosn = strrchr( argv[0], '/' );
@@ -1050,128 +944,8 @@ _begin( doCmdLine)
 		
 	_endif
 	
-	nameLen = strlen( namePosn );
-	pgmName = malloc( nameLen + 1 );
-	strcpy( pgmName, namePosn );
-	strupr( pgmName );
-	_if( strncmp( pgmName, "MLA", 3 ) == 0 )
+	level = high_level;
 	
-		level = medium_level;
-		
-	_elseif( strncmp( pgmName, "VLLA", 4 ) == 0 )
-	
-		level = machine_level;
-	
-	_elseif( strncmp( pgmName, "LLA", 3 ) == 0 )
-	
-		level = low_level;
-		
-	_else // Not a level-specific name, check for back-end asm name
-		
-		level = high_level;
-		_if( strncmp( pgmName, "HLA", 3 ) == 0 )
-		
-			// If the program name is "HLA", then either
-			// use the HLA environment variable value or
-			// use the default mode.
-			
-			free( pgmName );
-			pgmName = strdup( hlaName );
-			_if( _streq( pgmName, "HLA" ))
-			
-				// If the environment name is "HLA" (or defaults to this)
-				// then we use the statically-defined defaults.
-								
-			_elseif( _streq( pgmName, "OHLA" ))
-			
-				// If the environment name is "OHLA" (internal HLABE back-end)
-				// then we use the internal version of HLABE to produce an 
-				// OBJ file.
-				
-				_if( targetOS == windows_os )
-				
-					SourceFmt = hlabe;
-					Internal = 1;
-					ObjFmt = coff;
-					_if( linkerName == NULL )
-					
-						linker = polink;
-						
-					_endif
-					
-				_endif
-				
-			_endif
-			
-		_endif
-		_if( strncmp( pgmName, "MHLA", 4 ) == 0 )
-		
-			SourceFmt = masm;
-			ObjFmt = coff;
-			Internal = 0;
-			_if( linkerName == NULL )
-			
-				linker = mslink;
-				
-			_endif
-			
-		_elseif( strncmp( pgmName, "THLA", 4 ) == 0 )
-		
-			SourceFmt = tasm;
-			ObjFmt = omf;
-			Internal = 0;
-			_if( linkerName == NULL )
-			
-				linker = mslink;
-				
-			_endif
-			
-		_elseif( strncmp( pgmName, "FHLA", 4 ) == 0 )
-		
-			SourceFmt = fasm;
-			ObjFmt = coff;
-			Internal = 0;
-			_if( linkerName == NULL )
-			
-				linker = polink;
-				
-			_endif
-			
-		_elseif( strncmp( pgmName, "NHLA", 4 ) == 0 )
-		
-			SourceFmt = nasm;
-			ObjFmt = coff;
-			Internal = 0;
-			_if( linkerName == NULL )
-			
-				linker = polink;
-				
-			_endif
-			
-		_elseif( strncmp( pgmName, "GHLA", 4 ) == 0 )
-		
-			SourceFmt = gas;
-			ObjFmt = elf;
-			linker = ld;
-			Internal = 0;
-			
-		_elseif( strncmp( pgmName, "OHLA", 4 ) == 0 )
-		
-			SourceFmt = hlabe;
-			Internal = 1;
-			ObjFmt = coff;
-			_if( linkerName == NULL )
-			
-				linker = polink;
-				
-			_endif
-			
-			
-		_endif
-		
-	_endif
-	free( hlaName );
-	free( pgmName );
 	
 	
 	// Grab all the command line arguments from the command line
@@ -1340,21 +1114,39 @@ _begin( doCmdLine)
 				SourceOnly = 0;		// Mutually exclusive with -Sx
 				SourceFmt = hlabe;
 				Internal = 1;
-				_if( targetOS == windows_os )
+				_switch( targetOS )
 				
-					ObjFmt = coff;
 				
-				_else
+					_case( windows_os )
 				
-					printf( "-co option is valid only under Windows\n" );
-					Usage();
-					_return 1;
+						ObjFmt = coff;
+						
+					_endcase
 				
-				_endif
+					_case( linux_os )
 				
-			_elseif( _streq( ucArg, "CODE1ST" ))
-			
-				codeFirst = 1;
+						ObjFmt = elf;
+						
+					_endcase
+				
+					_case( freeBSD_os )
+				
+						ObjFmt = elf;
+						
+					_endcase
+					
+					_case( macOS_os )
+					
+					_endcase
+				
+					_default
+				
+						printf( "Internal HLA error (-co option, unknown OS)\n" );
+						Usage();
+						_return 1;
+				
+				_endswitch
+				
 				
 
 			// -XF  selects "compile and assemble to object" (no link)
@@ -1368,6 +1160,9 @@ _begin( doCmdLine)
 			//
 			// -XG  selects "compile and assemble to object" (no link)
 			//        using GAS.
+			//
+			// -XX  selects "compile and assemble to object" (no link)
+			//        using GAS under Mac OSX.
 			//
 			// -XO  selects "compile and assemble to coff object" (no link)
 			//        using the internal HLA Back Engine.
@@ -1388,10 +1183,16 @@ _begin( doCmdLine)
 						
 					_endif
 				
-				_else
+				_elseif( targetOS == linux_os || targetOS == freeBSD_os )
 				
 					ObjFmt = elf;
 					linker = ld;
+					
+				_else
+				
+					printf( "-xf option is not valid for this OS\n" );
+					Usage();
+					_return 1;
 					
 				_endif
 				
@@ -1400,65 +1201,117 @@ _begin( doCmdLine)
 			
 				// Compile-only, no linking to executable
 				
-				CompileOnly = 0;
-				SourceOnly = 0;
-				SourceFmt = masm;
-				ObjFmt = coff;
-				Internal = 0;
-				_if( linkerName == NULL )
+				_if( targetOS == windows_os )
+
+					CompileOnly = 0;
+					SourceOnly = 0;
+					SourceFmt = masm;
+					ObjFmt = coff;
+					Internal = 0;
+					_if( linkerName == NULL )
+					
+						linker = mslink;
+						
+					_endif
 				
-					linker = mslink;
+				_else
+				
+					printf( "-xm option is not valid for this OS\n" );
+					Usage();
+					_return 1;
 					
 				_endif
+					
 
 			_elseif( _streq( ucArg, "XN" ))
 			
 				// Compile-only, no linking to executable
 				
-				CompileOnly = 0;
-				SourceOnly = 0;
-				SourceFmt = nasm;
-				ObjFmt = coff;
-				Internal = 0;
-				_if( linkerName == NULL )
+				_if( targetOS == windows_os )
+
+					CompileOnly = 0;
+					SourceOnly = 0;
+					SourceFmt = nasm;
+					ObjFmt = coff;
+					Internal = 0;
+					_if( linkerName == NULL )
+					
+						linker = polink;
+						
+					_endif
+					
+				_else
 				
-					linker = polink;
+					printf( "-xn option is not valid for this OS\n" );
+					Usage();
+					_return 1;
 					
 				_endif
 
 			_elseif( _streq( ucArg, "XT" ))
 			
-				CompileOnly = 0;
-				SourceOnly = 0;
-				SourceFmt = tasm;
-				Internal = 0;
-				ObjFmt = omf;
-				_if( linkerName == NULL )
+				_if( targetOS == windows_os )
+
+					CompileOnly = 0;
+					SourceOnly = 0;
+					SourceFmt = tasm;
+					Internal = 0;
+					ObjFmt = omf;
+					_if( linkerName == NULL )
+					
+						linker = mslink;
+						
+					_endif
+					
+				_else
 				
-					linker = mslink;
+					printf( "-xt option is not valid for this OS\n" );
+					Usage();
+					_return 1;
 					
 				_endif
 				
 
 			_elseif( _streq( ucArg, "XG" ))
 			
-				CompileOnly = 0;
-				SourceOnly = 0;
-				SourceFmt = gas;
-				gasSyntax = stdGas;
-				ObjFmt = elf;
-				linker = ld;
-				Internal = 0;
+				_if( targetOS == linux_os || targetOS == freeBSD_os )
+
+					CompileOnly = 0;
+					SourceOnly = 0;
+					SourceFmt = gas;
+					gasSyntax = stdGas;
+					ObjFmt = elf;
+					linker = ld;
+					Internal = 0;
+					
+				_else
+				
+					printf( "-xg option is not valid for this OS\n" );
+					Usage();
+					_return 1;
+					
+				_endif
+				
 
 			_elseif( _streq( ucArg, "XX" ))
 			
-				CompileOnly = 0;
-				SourceOnly = 0;
-				SourceFmt = gas;
-				gasSyntax = macGas;
-				ObjFmt = macho;
-				linker = ld;
-				Internal = 0;
+				_if( targetOS == windows_os )
+
+					CompileOnly = 0;
+					SourceOnly = 0;
+					SourceFmt = gas;
+					gasSyntax = macGas;
+					ObjFmt = macho;
+					linker = ld;
+					Internal = 0;
+					
+				_else
+				
+					printf( "-xx option is not valid for this OS\n" );
+					Usage();
+					_return 1;
+					
+				_endif
 
 			_elseif( _streq( ucArg, "XO" ))
 			
@@ -1466,7 +1319,7 @@ _begin( doCmdLine)
 				SourceOnly = 0;
 				SourceFmt = hlabe;
 				Internal = 1;
-				_if( targetOS == windows_os )
+				_if( targetOS != macOS_os )
 				
 					ObjFmt = coff;
 					_if( linkerName == NULL )
@@ -1477,7 +1330,7 @@ _begin( doCmdLine)
 					
 				_else
 				
-					printf( "-xo option is valid only under Windows\n" );
+					printf( "-xo option is invalid only under Mac OSX\n" );
 					Usage();
 					_return 1;
 				
@@ -1560,29 +1413,7 @@ _begin( doCmdLine)
 				
 			_elseif( _streq( ucArg, "MSLINK" ))
 
-				linker = mslink;				
-				
-				
-			// The following options select the object code output format:
-			// (OMF, COFF/Win32, ELF/Linux/FreeBSD, MACHO/Mac):
-			
-			_elseif( _streq( ucArg, "O:OMF" ))
-
-				ObjFmt = omf;
-				Internal = 0;
-
-			_elseif( _streq( ucArg, "O:COFF" ))
-
-				ObjFmt = coff;
-
-			_elseif( _streq( ucArg, "O:ELF" ))
-
-				ObjFmt = elf;
-
-			_elseif( _streq( ucArg, "O:MACHO" ))
-
-				ObjFmt = macho;
-
+				linker = mslink;
 
 				
 
@@ -2084,13 +1915,14 @@ _begin( doCmdLine)
 		
 		// If the current command line argument doesn't begin with "-"
 		// then assume it is some sort of file name.  Filenames should take
-		// one of five different forms:
+		// one of several different forms:
 		//
 		//	name		HLA source file with default ".HLA" suffix.
 		//	name.hla	HLA source file.
 		//	name.asm	MASM source file.
 		//	name.rc		Resource file.
 		//	name.obj	Object code file.
+		//	name.o		Object code file.
 		//	name.res	Compiled resource file.
 		//	name.lib	Library file.
 		//
@@ -2798,7 +2630,6 @@ _begin( main )
 					SourceFmt == masm
 				||	SourceFmt == tasm
 				||	SourceFmt == nasm
-				||	SourceFmt == hlabe
 			)
 		&&	!SourceOnly
 		&&	targetOS != windows_os
@@ -2809,7 +2640,7 @@ _begin( main )
 			MsgOut,
 			"\n"
 			"***********************************************************************\n"
-			"Warning: MASM/TASM/NASM/HLABE assembly is only available under Windows.\n"
+			"Warning: MASM/TASM/NASM assembly is only available under Windows.\n"
 			"***********************************************************************\n"
 			"\n"
 		);
@@ -2908,25 +2739,25 @@ _begin( main )
 			_ifx( SourceOnly, "-sXX active\n", "" ),
 			_ifx
 			(
-				SourceFmt == masm,
-				"MASM output\n",
+				Internal,
+				"OBJ output using HLA Back Engine\n",
 				_ifx
 				(
-					SourceFmt == tasm,
-					"TASM output\n",
+					SourceFmt == masm,
+					"MASM output\n",
 					_ifx
 					(
-						SourceFmt == gas,
-						_ifx
-						( 
-							gasSyntax == macGas, 
-							"GAS output for Mac OSX\n", 
-							"GAS output\n"
-						),
+						SourceFmt == tasm,
+						"TASM output\n",
 						_ifx
 						(
-							Internal,
-							"OBJ output using HLA Back Engine\n",
+							SourceFmt == gas,
+							_ifx
+							( 
+								gasSyntax == macGas, 
+								"GAS output for Mac OSX\n", 
+								"GAS output\n"
+							),
 							_ifx
 							(
 								SourceFmt == fasm,
@@ -3120,7 +2951,7 @@ _begin( main )
 			sprintf
 			(
 				hlaCmdLn,
-				"hlaparse -%s %s %s %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s\"%s\"",
+				"hlaparse -%s %s %s %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s\"%s\"",
 				_ifx( targetOS == windows_os, "WIN32",
 					_ifx( targetOS == linux_os, "LINUX",
 						_ifx( targetOS == freeBSD_os, "FREEBSD",
@@ -3145,42 +2976,43 @@ _begin( main )
 				_ifx( sourceOutput, "-source ", "" ),
 				_ifx
 				( 
-					SourceFmt == masm, 
-					"-sm ",
+					Internal,
+					"",
 					_ifx
-					(
-						SourceFmt == tasm,
-						"-st ", 
+					( 
+						SourceFmt == masm, 
+						"-sm ",
 						_ifx
-						( 
-							SourceFmt == gas, 
-							_ifx( gasSyntax == macGas, "-sx ", "-sg "), 
+						(
+							SourceFmt == tasm,
+							"-st ", 
 							_ifx
-							(
-								SourceFmt == fasm,
-								"-sf ",
+							( 
+								SourceFmt == gas, 
+								_ifx( gasSyntax == macGas, "-sx ", "-sg "), 
 								_ifx
 								(
-									SourceFmt == nasm,
-									"-sn ",
+									SourceFmt == fasm,
+									"-sf ",
 									_ifx
 									(
-										SourceFmt == hla,
-										"-sh ",
-										""
+										SourceFmt == nasm,
+										"-sn ",
+										_ifx
+										(
+											SourceFmt == hla,
+											"-sh ",
+											""
+										)
 									)
 								)
 							)
 						)
 					)
 				),
-				_ifx( codeFirst, "-code1st ", "" ),
 				_ifx( mainName != NULL, "-main:", "" ),
 				_ifx( mainName != NULL, mainName, "" ),
 				_ifx( mainName != NULL, " ", "" ),
-				_ifx( Internal, "-c", "" ),
-				_ifx( Internal, objStrs[ ObjFmt ], "" ),
-				_ifx( Internal, " ", "" ),
 				_ifx( objPath != NULL && strlen( objPath ) > 0, "-obj:\"", "" ),
 				_ifx( objPath != NULL && strlen( objPath ) > 0, objPath, "" ),
 				_ifx( objPath != NULL && strlen( objPath ) > 0, "\" ", "" ),

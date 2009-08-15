@@ -1,5 +1,6 @@
 
-all: hlaasm.masm hlaasm.gas hlaasm.gasx 
+all:	hlaasm.masm hlaasm.gas hlaasm.gasx /
+		hlabe.linux.gas hlabe.freeBSD.gas hlabe.gasx hlabe.masm 
 
 hlaasm.masm:	
 	hla -sourcemode -sm hlaasm.hla
@@ -19,19 +20,23 @@ hlaasm.gasx:
 	
 	
 hlabe.masm: hlabe.hla hlabe.hhf
-	hla -sourcemode -sm hlabe
+	hla -sourcemode -sm -DWINDOWS hlabe
 	copy hlabe.asm ..\hlabe.masm
 	ml -c -coff -Cp hlabe.asm
 	copy hlabe.obj ..\hlabe.obj
 	
 	
-hlabe.gas: hlabe.hla hlabe.hhf
-	hla -sourcemode -sg hlabe
-	copy hlabe.asm ..\hlabe.gas
+hlabe.linux.gas: hlabe.hla hlabe.hhf
+	hla -sourcemode -sg -DUNIX -linux hlabe
+	copy hlabe.asm ..\hlabe.linux.gas
+	
+hlabe.freeBSD.gas: hlabe.hla hlabe.hhf
+	hla -sourcemode -sg -DUNIX -freebsd hlabe
+	copy hlabe.asm ..\hlabe.freeBSD.gas
 	
 	
 hlabe.gasx: hlabe.hla hlabe.hhf
-	hla -sourcemode -sx hlabe
+	hla -sourcemode -sx -DMACOS hlabe
 	copy hlabe.asm ..\hlabe.gasx
 	
 	

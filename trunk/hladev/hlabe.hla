@@ -2,36 +2,40 @@
 //
 //	Backend for HLA that produces an object code file.
 
-unit hlabeUnit;
+unit hlabeUnit;																  
 ?@nodisplay := true;
 ?@noalignstack := true;
 
-?runFromHLA := true;	// Set to true if calling from an HLA program.
+?runFromHLA := false;	// Set to true if calling from an HLA program.
 
 #includeOnce( "stdlib.hhf" )
 #includeOnce( "hlabe.hhf" )
 
-#includeOnce( "w.hhf" )
 
 label QuitMain; @external( "QuitMain__hla_" );
 
 const
 	coffSymEBX		:text := "(type w.IMAGE_SYMBOL [ebx])";
+	elfSymEBX		:text := "(type Elf32_Sym [ebx])";
 	 
 type
-	pRelocations	:pointer to byte; //w.IMAGE_RELOCATION;
-	pSym			:pointer to byte; //w.IMAGE_SYMBOL;
+	pRelocations	:pointer to byte; //w.IMAGE_RELOCATION or Elf32_Rel;
+	pSym			:pointer to byte; //w.IMAGE_SYMBOL/Elf32_sym;
 	pByte			:pointer to byte;
 	
 static
     align( 4 );
-	COFFsyms			:pSym;
-	numCOFFsyms			:uns32;
-	coffSymSize			:dword;
+	COFFsyms		:pSym;
+	numCOFFsyms		:uns32;
+	coffSymSize		:dword;
 	
-	stringTable			:pByte;
-	strTblOffset		:dword;
-	strTblSize			:uns32;
+	ELFsyms			:pSym;
+	numELFsyms		:uns32;
+	elfSymSize		:dword;
+	
+	stringTable		:pByte;
+	strTblOffset	:dword;
+	strTblSize		:uns32;
 
 	codeSize		:dword;
 	numCodeRelocs	:dword;
@@ -46,100 +50,95 @@ static
 	verboseDebug	:boolean	:= verbose_c;
 	
 
-// The following procs are needed because we're compiling a unit that
-// believes it's a standalone HLA program:
+#if( !runFromHLA )
 
-	
-procedure HardwareException__hla_;			@external;
-procedure HWexcept__hla_;					@external;
+	// The following procs are needed because we're compiling a unit that
+	// believes it's a standalone HLA program:
 
-procedure HWexcept__hla_;
-begin HWexcept__hla_; 
-	
-	jmp HardwareException__hla_;
-	
-end HWexcept__hla_;
- 
+		
+	#if( @defined( WINDOWS ) )
 
-procedure DefaultExceptionHandler__hla_;	@external;
-procedure DfltExHndlr__hla_;				@external;
-	
-procedure DfltExHndlr__hla_;
-begin DfltExHndlr__hla_;
-	
-	jmp DefaultExceptionHandler__hla_;
-	
-end DfltExHndlr__hla_; 
+		procedure HardwareException; 		@external( "HardwareException__hla_" );
+		procedure HWexcept; 				@external( "HWexcept__hla_" );
+		procedure HardwareException__hla_; 	@external;
+		procedure HWexcept__hla_;			@external;
 
-
-
-// These are declarations for procedures that exist in the HLA
-// standard library, but are "shrouded" in the sense that there
-// aren't corresponding declarations in the stdlib.hhf file (these
-// routines generally get called by HLA generated code, and nothing
-// else; however, as we have to simulate "HLA generated code" here,
-// we have to manually provide these declarations):
-
-procedure BuildExcepts; @external("BuildExcepts__hla_");
-procedure HardwareException; @external( "HardwareException__hla_" );
-procedure DefaultExceptionHandler; @external( "DefaultExceptionHandler__hla_" );
-
- 
-// The following are forward/external declarations for procedures
-// that are normally created by the HLA compiler when you write
-// a "main program." As we are not using an HLA main program here,
-// we have to manually create these procedures.
-
-procedure HWexcept; @external( "HWexcept__hla_" );
-procedure DfltExHndlr; @external( "DfltExHndlr__hla_" );
-
-
-
-static
-	#if( !os.win32 )
-	
-		ExceptionPtr		:dword;	@external( "ExceptionPtr__hla_" );
+		procedure HWexcept__hla_;
+		begin HWexcept__hla_; 
+			
+			jmp HardwareException__hla_;
+			
+		end HWexcept__hla_;
+			
 		
 	#endif
-	
-	align(4);
-	saveESP				:dword;
-	MainPgmVMT			:dword := &QuitMain;
-	
-	#if( !runFromHLA )
-		MainPgmCoroutine	:dword[5]; @external( "MainPgmCoroutine__hla_" );
+	 
+
+	procedure DefaultExceptionHandler;			
+			@external( "DefaultExceptionHandler__hla_" );
+			
+	procedure DefaultExceptionHandler__hla_;	@external;
+	procedure DfltExHndlr__hla_;				@external;
+	procedure DfltExHndlr; 						@external( "DfltExHndlr__hla_" );
+		
+	procedure DfltExHndlr__hla_;
+	begin DfltExHndlr__hla_;
+		
+		jmp DefaultExceptionHandler__hla_;
+		
+	end DfltExHndlr__hla_; 
+
+
+	#if( @defined( UNIX ) )
+
+	    procedure excepts_install_signals;		@external;
+		procedure InstallSignals__hla_;			@external;
+		procedure InstallSignals__hla_;
+		begin InstallSignals__hla_;
+		end InstallSignals__hla_;
+		 
 	#endif
-	MainPgmCoroutine	:dword;		@nostorage;
-						 dword		&MainPgmVMT, 0, 0;
-	SaveSEHPointer		:dword := 0;
-						 dword	0, 0;
-	
 
- 
-// Implementation of procedures normally emitted by the HLA compiler
-// for a "program" (versus a unit). We need these to support exception
-// handling in this module.
+	// These are declarations for procedures that exist in the HLA
+	// standard library, but are "shrouded" in the sense that there
+	// aren't corresponding declarations in the stdlib.hhf file (these
+	// routines generally get called by HLA generated code, and nothing
+	// else; however, as we have to simulate "HLA generated code" here,
+	// we have to manually provide these declarations):
 
-#if( !runFromHLA )
-procedure HWexcept;
-var
-_begin( HWexcept );
+	procedure BuildExcepts; @external("BuildExcepts__hla_");
 
-	jmp HardwareException;
+	 
+	// The following are forward/external declarations for procedures
+	// that are normally created by the HLA compiler when you write
+	// a "main program." As we are not using an HLA main program here,
+	// we have to manually create these procedures.
 
-_end( HWexcept );
 
- 
 
-procedure DfltExHndlr;
-var
-_begin( DfltExHndlr );
 
-	jmp DefaultExceptionHandler;
+	static
+		#if( !@defined( WINDOWS ) )
+		
+			ExceptionPtr		:dword;	@external( "ExceptionPtr__hla_" );
+			
+		#endif
+		
+		align(4);
+		MainPgmVMT			:dword := &QuitMain;
+		
+		MainPgmCoroutine	:dword;		@nostorage;
+							 dword		&MainPgmVMT, 0, 0;
+		SaveSEHPointer		:dword := 0;
+							 dword	0, 0;
+		
 
-_end( DfltExHndlr );
-#endif
+	 
 
+#endif // !runFromHLA
+
+static
+		saveESP				:dword;
 
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -220,6 +219,7 @@ _end( printLineNumberChain );
 // .v							BSS section
 // .w	<wlist>					Word data
 // .x	lbl						External symbol
+// .y							READONLY/CONST section
 // .z							End of source
 //
 // :lbl				Defines label at current program counter location.
@@ -276,13 +276,13 @@ _end( printLineNumberChain );
 // necessarily a sequence of individual NOP instructions), 
 // and will do a reserve storage operation in the BSS section.
 //
-// .c, .s, .v
+// .c, .s, .v, .y
 //
-//	These three statements begin (or continue) a code (.c), data/static (.s), 
-// BSS (.v) section in the program. Note that multiple instances of each section
-// statement may appear within a single source file. When multiple instances
-// of a given section in the source file exist, HLABE will combine the different
-// instances into a single sectin.
+//	These four statements begin (or continue) a code (.c), readonly/const (.y),
+// data/static (.s), BSS (.v) section in the program. Note that multiple 
+// instances of each section statement may appear within a single source file. 
+// When multiple instances of a given section in the source file exist, 
+// HLABE will combine the different instances into a single section.
 //
 // Within a section, order of data/code is strictly maintained, but if multiple
 // section declarations for the same section appear in a source file, there is
@@ -435,11 +435,11 @@ _end( printLineNumberChain );
 
 _proc( lexer )
 ( 
-			start_source	:dword; 
-			end_src 		:dword; 
-	result	codeListHead	:tokenList_t;
-	result	dataListHead	:tokenList_t;
-	result	bssListHead		:tokenList_t
+			start_source		:dword; 
+			end_src 			:dword; 
+	result	codeListHead		:tokenList_t;
+	result	dataListHead		:tokenList_t;
+	result	bssListHead			:tokenList_t
 );
 const
 	bbx			:text := "(type byte [ebx])";
@@ -458,11 +458,11 @@ static
     // Make tknListTail static so we can globally access it within
 	// lexer support functions. 
 	
-	tknListTail	    :dword;
-	lastTailPtr     :dword;
-	codeListTail    :dword;
-	dataListTail    :dword;
-	bssListTail     :dword;
+	tknListTail	    	:dword;
+	lastTailPtr     	:dword;
+	codeListTail    	:dword;
+	dataListTail    	:dword;
+	bssListTail     	:dword;
 	
 	// end_source never changes in lexer, so make it static so we can
 	// globally access it within lexer support functions.
@@ -1855,6 +1855,7 @@ _begin( lexer );
 	mov( &codeListTail, lastTailPtr );
 	mov( code_c, currentSection );
 	
+	
 	// Create a new data list with at least one element (start_tkn):
 	
 	mem.alloc( @size( tokenStmt_t ));
@@ -1970,7 +1971,7 @@ _begin( lexer );
 					
 				
 
-				case( 'c' ) // Code section
+				case( 'c', 'y' ) // Code section
 				
 					// When switching to a new section, first emit
 					// a "dummy" statement so that we're guaranteed
@@ -2013,9 +2014,8 @@ _begin( lexer );
 				case( 'd' )	// Dword data
 				
 				
-					add( 1, ebx );						// skip ".w"
+					add( 1, ebx );						// skip ".d"
 					parseDwords( 0 );
-					
 					if( @nc ) then	// A byteStmt_t object.
 					
 					
@@ -2025,11 +2025,7 @@ _begin( lexer );
 							
 						mov( (type tokenStmt_t [eax]).prev, ecx );
 						assert( ecx <> NULL );
-						if
-						( 
-								(type tokenStmt_t [eax]).token = bytes_tkn
-							&&	(type tokenStmt_t [ecx]).token = bytes_tkn 
-						) then
+						if( (type tokenStmt_t [ecx]).token = bytes_tkn ) then
 						
 						    // If the previous entry in the list was a
 							// byteStmt_t statement, then coalesce the two
@@ -3115,14 +3111,14 @@ _end( lexer );
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// addSym-
+// addCOFFsym-
 //
 //	Adds a symbol to the COFF symbol table.
 //
 //	Returns:
 //		EAX-	Zero-based index into COFFsyms table where the symbol was placed.
 
-_proc( addSym )
+_proc( addCOFFsym )
 (
 		theName				:string;
 		theValue			:dword;
@@ -3133,7 +3129,7 @@ _proc( addSym )
 	var	auxSymbols			:w.IMAGE_SYMBOL
 );
 var
-_begin( addSym );
+_begin( addCOFFsym );
 
 	push( ebx );
 	push( ecx );
@@ -3266,7 +3262,118 @@ _begin( addSym );
 	pop( ebx );
 
 	
-_end( addSym );
+_end( addCOFFsym );
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// addELFsym-
+//
+//	Adds a symbol to the ELF symbol table.
+//
+//	Returns:
+//		EAX-	Zero-based index into ELFsyms table where the symbol was placed.
+
+_proc( addELFsym )
+(
+		theName				:string;
+		theValue			:Elf32_Addr;
+		theSize				:Elf32_Word;
+		bindingAndType		:byte;
+		sectionNumber		:word;
+		visibility			:byte
+);
+var
+_begin( addELFsym );
+
+	push( ebx );
+	push( ecx );
+	push( edx );
+	push( esi );
+	push( edi );
+	cld();
+	
+	
+	// See if we have room in the symbol table for the new symbol
+	// (and any aux symbols it requires):
+	
+	push( numELFsyms );	// Save for return result.
+	intmul( @size( Elf32_Sym ), numELFsyms, ebx );
+	if( ebx > elfSymSize ) then 
+	
+		// We've exceeded the size of the currently allocated
+		// ELF symbol table, so make a bigger one:
+		
+		shl( 1, elfSymSize );		// Double the size
+		mem.realloc( ELFsyms, elfSymSize );
+		mov( eax, ELFsyms );
+		
+	endif;
+	
+	// Compute pointer to next free symbol slot:
+	
+	add( ELFsyms, ebx );
+	
+	// We have to create a strings table entry and copy the name there:
+	 
+	mov( theName, esi );
+	str.length( esi );
+	mov( eax, ecx );
+	mov( strTblOffset, edx );
+	lea( eax, [edx+ecx+1] );	// New "end of string table" value.
+	mov( eax, strTblOffset );
+	
+	// See if there is room for the new string in the table.
+	
+	if( eax > strTblSize ) then
+	
+		// Must allocate more storage for the strings table:
+		
+		push( eax );
+		shl( 1, strTblSize );	// Double existing size
+		mem.realloc( stringTable, strTblSize );
+		mov( eax, stringTable );
+		pop( eax );
+		
+	endif;
+		
+	mov( edx, edi );
+	add( stringTable, edi );
+	rep.movsb();
+	
+	// Must zero-terminate the name in the strings table:
+	
+	mov( 0, (type byte [edi]));
+			
+	// Must have the offset into the string table in the symbol table entry:
+	
+	mov( edx, elfSymEBX.st_name );
+	
+	
+	// Okay, copy the remaining fields to the symbol table entry:
+	 
+	mov( theValue, eax );
+	mov( eax, elfSymEBX.st_value );
+	mov( theSize, eax );
+	mov( eax, elfSymEBX.st_size );
+	mov( bindingAndType, al );
+	mov( al, elfSymEBX.st_info );
+	mov( visibility, al );
+	and( %11, al );
+	mov( al, elfSymEBX.st_other );
+	mov( sectionNumber, ax );
+	mov( ax, elfSymEBX.st_shndx );
+	
+	
+	pop( eax );	// Retrieve symbol index for use as return result.
+	
+	pop( edi );
+	pop( esi );
+	pop( edx );
+	pop( ecx );
+	pop( ebx );
+
+	
+_end( addELFsym );
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -3302,34 +3409,36 @@ _proc( buildRaw )
 	relocations		:pRelocations;
 	numRelocs		:uns32;
 	rawInfo			:pByte;
-	curSection		:section_t 
-);
-const
-	rel32_t	:= w.IMAGE_REL_I386_REL32;
-	dir32_t := w.IMAGE_REL_I386_DIR32;
+	curSection		:section_t;
+	objType			:obj_t 
+);	@use eax;
 	
 var
 	relocIndex	:uns32;
 	
 _begin( buildRaw );
 
-	push( eax );
 	push( ebx );
 	push( ecx );
 	push( edx );
 	push( edi );
 	push( esi );
-	
-	// If we have 65,535 or more relocations, then the
-	// first relocation record contains the actual number
-	// of relocations.
-	
+
 	mov( 0, relocIndex );
 	mov( relocations, esi );
-	if( numRelocs >= $ffff ) then
 	
-		mov( 1, relocIndex );
-		add( @size( w.IMAGE_RELOCATION ), esi );
+	if( objType = pecoff_c ) then
+	
+		// If we have 65,535 or more relocations, then the
+		// first relocation record contains the actual number
+		// of relocations.
+		
+		if( numRelocs >= $ffff ) then
+		
+			mov( 1, relocIndex );
+			add( @size( w.IMAGE_RELOCATION ), esi );
+			
+		endif;
 		
 	endif;
 	
@@ -3353,8 +3462,7 @@ _begin( buildRaw );
 				dummy_tkn
 			)
 				// Ignore these tokens.
-				
-				
+							  
 			case( align_tkn )
 			
 				
@@ -3444,9 +3552,9 @@ _begin( buildRaw );
 						
 						
 					
-					else	// data_c
+					else	// readonly_c or data_c
 					
-						// In a data section, fill with zeros.
+						// In a readonly or data section, fill with zeros.
 						
 						xor( eax, eax );
 						rep.stosb();
@@ -3483,7 +3591,7 @@ _begin( buildRaw );
 				
 					lea( esi, (type byteStmt_t [ebx]).byteData );
 					rep.movsb();
-				
+									
 				endif;
 				pop( esi );
 				
@@ -3563,7 +3671,6 @@ _begin( buildRaw );
 			
 			case( rel2_tkn )	 
 			
-			
 				// For rel2_tkn instructions (jcxz) we
 				// need to emit the 2-byte opcode and the displacement:
 				
@@ -3611,13 +3718,37 @@ _begin( buildRaw );
 							||	dl <> curSection
 						) then
 						
-							mov( symEAX.coffSym, eax );
-							mov( eax, relocESI.SymbolTableIndex );
-							mov( tknEBX.instrOffset, eax );
-							add( 2, eax );
-							mov( eax, relocESI.VirtualAddress );
-							mov( w.IMAGE_REL_I386_REL32, relocESI.Type1 );
-							add( @size( w.IMAGE_RELOCATION ), esi );
+							if( objType = pecoff_c ) then
+							
+								mov( symEAX.symIndex, eax );
+								mov( eax, relocESI.SymbolTableIndex );
+								mov( tknEBX.instrOffset, eax );
+								add( 2, eax );
+								mov( eax, relocESI.VirtualAddress );
+								mov( w.IMAGE_REL_I386_REL32, relocESI.Type1 );
+								add( @size( w.IMAGE_RELOCATION ), esi );
+								
+							elseif( objType <= elfFreeBSD_c ) then
+							
+								mov( tknEBX.instrOffset, edx );
+								add( 2, edx );
+								mov( edx, relocElfESI.r_offset );
+								
+								mov( symEAX.symIndex, eax );
+								shl( 8, eax );
+								or( R_386_PC32, eax );
+								mov( eax, relocElfESI.r_info );
+								
+								add( @size( Elf32_Rel ), esi );
+							
+							else
+							
+								stderr.put
+								( 
+									"Object code type is not supported" nl
+								);
+								
+							endif;
 							
 							// Need to store offset field into the
 							// displacement rather than the disp field:
@@ -3660,7 +3791,6 @@ _begin( buildRaw );
 					// a relocation record for this guy.
 					
 					if( jmpEBX.symbol <> NULL ) then
-					
 						mov( jmpEBX.symbol, eax );
 						mov( tblEAX.Value, eax );
 						mov( symEAX.section, dl );
@@ -3671,19 +3801,49 @@ _begin( buildRaw );
 							||	dl <> curSection
 						) then
 						
-							mov( symEAX.coffSym, eax );
-							mov( eax, relocESI.SymbolTableIndex );
-							mov( tknEBX.instrOffset, eax );
-							add( 1, eax );
-							mov( eax, relocESI.VirtualAddress );
-							mov( w.IMAGE_REL_I386_REL32, relocESI.Type1 );
-							add( @size( w.IMAGE_RELOCATION ), esi );
+							if( objType = pecoff_c ) then
+						
+								mov( symEAX.symIndex, eax );
+								mov( eax, relocESI.SymbolTableIndex );
+								mov( tknEBX.instrOffset, eax );
+								add( 1, eax );
+								mov( eax, relocESI.VirtualAddress );
+								mov( w.IMAGE_REL_I386_REL32, relocESI.Type1 );
+								add( @size( w.IMAGE_RELOCATION ), esi );
+								
+								// Need to store offset field into the
+								// displacement rather than the disp field:
+								
+								mov( jmpEBX.offset, eax );
+								mov( eax, [edi-4] );
+								
+							elseif( objType <= elfFreeBSD_c ) then 
 							
-							// Need to store offset field into the
-							// displacement rather than the disp field:
+								mov( tknEBX.instrOffset, edx );
+								add( 1, edx );
+								mov( edx, relocElfESI.r_offset );
+								
+								mov( symEAX.symIndex, edx );
+								shl( 8, edx );
+								or( R_386_PC32, edx );
+								mov( edx, relocElfESI.r_info );
+								
+								add( @size( Elf32_Rel ), esi );
 							
-							mov( jmpEBX.offset, eax );
-							mov( eax, [edi-4] );
+								// Need to store offset field into the
+								// displacement rather than the disp field:
+								
+								mov( jmpEBX.offset, eax );
+								mov( eax, [edi-4] );
+							
+							else
+							
+								stderr.put
+								( 
+									"Object code type is not supported" nl
+								);
+								
+							endif;
 							
 						endif;
 						
@@ -3723,19 +3883,50 @@ _begin( buildRaw );
 						||	dl <> curSection
 					) then
 					
-						mov( symEAX.coffSym, eax );
-						mov( eax, relocESI.SymbolTableIndex );
-						mov( tknEBX.instrOffset, eax );
-						add( 1, eax );
-						mov( eax, relocESI.VirtualAddress );
-						mov( w.IMAGE_REL_I386_REL32, relocESI.Type1 );
-						add( @size( w.IMAGE_RELOCATION ), esi );
+						if( objType = pecoff_c ) then
+							
+							mov( symEAX.symIndex, eax );
+							mov( eax, relocESI.SymbolTableIndex );
+							mov( tknEBX.instrOffset, eax );
+							add( 1, eax );
+							mov( eax, relocESI.VirtualAddress );
+							mov( w.IMAGE_REL_I386_REL32, relocESI.Type1 );
+							add( @size( w.IMAGE_RELOCATION ), esi );
+							
+							// Need to store offset field into the
+							// displacement rather than the disp field:
+							
+							mov( rel4EBX.offset, eax );
+							mov( eax, [edi-4] );
 						
-						// Need to store offset field into the
-						// displacement rather than the disp field:
+						elseif( objType <= elfFreeBSD_c ) then
 						
-						mov( rel4EBX.offset, eax );
-						mov( eax, [edi-4] );
+							mov( tknEBX.instrOffset, edx );
+							add( 1, edx );
+							mov( edx, relocElfESI.r_offset );
+							
+							mov( symEAX.symIndex, eax );
+							shl( 8, eax );
+							or( R_386_32, eax );
+							mov( eax, relocElfESI.r_info );
+							
+							add( @size( Elf32_Rel ), esi );
+						
+							
+							// Need to store offset field into the
+							// displacement rather than the disp field:
+							
+							mov( rel4EBX.offset, eax );
+							mov( eax, [edi-4] );
+						
+						else
+						
+							stderr.put
+							( 
+								"Object code type is not supported" nl
+							);
+							
+						endif;
 						
 					endif;
 					
@@ -3743,7 +3934,7 @@ _begin( buildRaw );
 				
 				
 					 
-			case( reloc_tkn )	 
+			case( reloc_tkn ) 	 
 			
 				mov( (type relocStmt_t [ebx]).offset, eax );
 				stosd();
@@ -3753,15 +3944,39 @@ _begin( buildRaw );
 				
 				if( (type relocStmt_t [ebx]).symbol <> NULL ) then
 				
-					mov( (type relocStmt_t [ebx]).symbol, eax );
-					mov( tblEAX.Value, eax );
-					mov( symEAX.coffSym, eax );
-					mov( eax, relocESI.SymbolTableIndex );
-					mov( tknEBX.instrOffset, eax );
-					mov( eax, relocESI.VirtualAddress );
-					mov( w.IMAGE_REL_I386_DIR32, relocESI.Type1 );
-					add( @size( w.IMAGE_RELOCATION ), esi );
+					if( objType = pecoff_c ) then
+							
+						mov( (type relocStmt_t [ebx]).symbol, eax );
+						mov( tblEAX.Value, eax );
+						mov( symEAX.symIndex, eax );
+						mov( eax, relocESI.SymbolTableIndex );
+						mov( tknEBX.instrOffset, eax );
+						mov( eax, relocESI.VirtualAddress );
+						mov( w.IMAGE_REL_I386_DIR32, relocESI.Type1 );
+						add( @size( w.IMAGE_RELOCATION ), esi );
 						
+					elseif( objType <= elfFreeBSD_c ) then
+					
+						mov( tknEBX.instrOffset, edx );
+						mov( edx, relocElfESI.r_offset );
+						
+						mov( (type relocStmt_t [ebx]).symbol, eax );
+						mov( tblEAX.Value, eax );
+						mov( symEAX.symIndex, edx );
+						shl( 8, edx );
+						or( R_386_32, edx );
+						mov( edx, relocElfESI.r_info );
+						
+						add( @size( Elf32_Rel ), esi );
+					
+					else
+					
+						stderr.put
+						( 
+							"Object code type is not supported" nl
+						);
+						
+					endif;
 					
 				endif;
 		
@@ -3791,7 +4006,7 @@ _begin( buildRaw );
 					(type uns8 al),
 					nl 
 				);
-				raise( ex.InvalidArgument );
+				//raise( ex.InvalidArgument );
 				
 		endswitch;
 		mov( tknEBX.next, ebx );
@@ -3803,7 +4018,6 @@ _begin( buildRaw );
 	pop( edx );
 	pop( ecx );
 	pop( ebx );
-	pop( eax );
 	
 _end( buildRaw );  
 
@@ -5174,7 +5388,7 @@ _begin( generateCOFF );
 	mov( ax, CodeAuxSection.NumberOfRelocations );
 	mov( codeSize, eax );
 	mov( eax, CodeAuxSection.Length );
-	addSym
+	addCOFFsym
 	(
 		".text",
 		0,							// Offset
@@ -5201,7 +5415,7 @@ _begin( generateCOFF );
 	mov( ax, DataAuxSection.NumberOfRelocations );
 	mov( dataSize, eax );
 	mov( eax, DataAuxSection.Length );
-	addSym
+	addCOFFsym
 	(
 		".data",
 		0,							// Offset
@@ -5220,7 +5434,7 @@ _begin( generateCOFF );
 	
 	mov( bssSize, eax );
 	mov( eax, BssAuxSection.Length );
-	addSym
+	addCOFFsym
 	(
 		".bss",
 		0,							// Offset
@@ -5276,7 +5490,7 @@ _begin( generateCOFF );
 			
 		endif; 
 		
-		addSym
+		addCOFFsym
 		(
 			(type tableNode_t [edx]).id,
 			symEBX.offset,
@@ -5290,7 +5504,7 @@ _begin( generateCOFF );
 		// Save index to this COFF symbol table entry so
 		// we can quickly find it when generating all the reloc data.
 		
-		mov( eax, symEBX.coffSym );
+		mov( eax, symEBX.symIndex );
 			
 			
 	endfor;	
@@ -5400,7 +5614,7 @@ _begin( generateCOFF );
 	mov( 0, codeSectionHeader.PointerToLinenumbers );
 	mov( 0, codeSectionHeader.NumberOfLinenumbers );
 	
-	buildRaw( codeList, codeRelocations, numCodeRelocs, rawCode, code_c );  
+	buildRaw( codeList, codeRelocations, numCodeRelocs, rawCode, code_c, pecoff_c );  
 	
 
 
@@ -5466,7 +5680,7 @@ _begin( generateCOFF );
 	mov( 0, dataSectionHeader.PointerToLinenumbers );
 	mov( 0, dataSectionHeader.NumberOfLinenumbers );
 
-	buildRaw( dataList, dataRelocations, numDataRelocs, rawData, data_c );  
+	buildRaw( dataList, dataRelocations, numDataRelocs, rawData, data_c, pecoff_c );  
 
 	
 	
@@ -5732,6 +5946,685 @@ _end( generateCOFF );
 	
 ///////////////////////////////////////////////////////////////////////////////
 //
+// generateELF-
+//
+//	Generates an ELF file.
+
+_proc( generateELF )
+(
+	inputFilename	:string;
+	outputFilename	:string; 
+	codeList		:tokenList_t;
+	dataList		:tokenList_t;
+	bssList			:tokenList_t;
+	brand			:obj_t
+);
+
+const
+	sh_strtable_c		:= #0;
+	
+	sh_symtab_ofs_c		:= 1;
+	sh_symtab_c			:= ".symtab" #0;
+	
+	sh_strtab_ofs_c		:= sh_symtab_ofs_c + (@length(sh_symtab_c) + 1); 
+	sh_strtab_c			:= ".strtab" #0;
+	
+	sh_shstrtab_ofs_c	:= sh_strtab_ofs_c + (@length(sh_strtab_c) + 1);
+	sh_shstrtab_c		:= ".shstrtab" #0;
+	
+	sh_reltext_ofs_c	:= sh_shstrtab_ofs_c + (@length(sh_shstrtab_c) + 1);
+	sh_reltext_c		:= ".rel";
+	
+	sh_text_ofs_c		:= sh_reltext_ofs_c + @length(sh_reltext_c);
+	sh_text_c			:= ".text" #0;
+	
+	sh_reldata_ofs_c	:= sh_text_ofs_c + (@length(sh_text_c) + 1);
+	sh_reldata_c		:= ".rel";
+	
+	sh_data_ofs_c		:= sh_reldata_ofs_c + @length(sh_reldata_c);
+	sh_data_c			:= ".data" #0;
+	
+	sh_bss_ofs_c		:= sh_data_ofs_c + (@length(sh_data_c) + 1);
+	sh_bss				:= ".bss" #0;
+	
+	strTblLen_c			:= sh_bss_ofs_c + (@length(sh_bss) + 2);
+		
+		
+		
+var
+	ElfFile				:dword;
+	ELFsize				:dword;
+	fileHandle			:dword;
+	ElfFileHeader		:Elf32_Ehdr;
+	codeRelocations		:pRelocations;
+	dataRelocations		:pRelocations;
+	
+	rawCode				:pByte;
+	rawData				:pByte;
+	
+	
+static
+	sectionArray	:Elf32_Shdr[9] :=
+		[
+			// 0: NULL section:
+			
+			Elf32_Shdr:[ 0,0,0,0,0,0,0,0,0,0 ],
+			
+			// 1: .text Section:
+			
+			Elf32_Shdr:
+			[
+				sh_text_ofs_c,
+				SHT_PROGBITS,
+				SHF_ALLOC | SHF_EXECINSTR,
+				0,	// Address
+				0,	// Offset - TBD
+				0,	// Size   - TBD
+				0,	// Link
+				0,	// Info
+				4,	// Align
+				0	// entSize	
+			],
+			
+			// 2: .rel.text Section:
+			
+			Elf32_Shdr:
+			[
+				sh_reldata_ofs_c,
+				SHT_REL,
+				0,					// Flags
+				0,					// Address
+				0,					// Offset - TBD
+				0,					// Size   - TBD
+				7,					// Link - symtab section header (#7)
+				1,					// Info - text section header (#1)
+				4,					// Align
+				@size( Elf32_Rel )	// entSize	
+			],
+			
+			// 3: .data Section:
+			
+			Elf32_Shdr:
+			[
+				sh_data_ofs_c,
+				SHT_PROGBITS,
+				SHF_ALLOC | SHF_WRITE,
+				0,	// Address
+				0,	// Offset - TBD
+				0,	// Size   - TBD
+				0,	// Link
+				0,	// Info
+				4,	// Align
+				0	// entSize	
+			],
+			
+			// 4: .rel.data Section:
+			
+			Elf32_Shdr:
+			[
+				sh_reldata_ofs_c,
+				SHT_REL,
+				0,					// Flags
+				0,					// Address
+				0,					// Offset - TBD
+				0,					// Size   - TBD
+				7,					// Link - symtab section header (#7)
+				1,					// Info - text section header (#1)
+				4,					// Align
+				@size( Elf32_Rel )	// entSize	
+			],
+			
+			// 5: .bss Section:
+			
+			Elf32_Shdr:
+			[
+				sh_bss_ofs_c,
+				SHT_NOBITS,
+				SHF_ALLOC | SHF_WRITE,
+				0,	// Address
+				0,	// Offset - TBD
+				0,	// Size   - TBD
+				0,	// Link
+				0,	// Info
+				4,	// Align
+				0	// entSize	
+			],
+			
+			// 6: .shstrtab Section:
+			
+			Elf32_Shdr:
+			[
+				sh_shstrtab_ofs_c,
+				SHT_STRTAB,
+				0,				// Flags
+				0,				// Address
+				0,				// Offset - TBD
+				strTblLen_c,	// Size
+				0,				// Link
+				0,				// Info
+				1,				// Align
+				0				// entSize	
+			],
+			
+			// 7: .symtab Section:
+			
+			Elf32_Shdr:
+			[
+				sh_symtab_ofs_c,
+				SHT_SYMTAB,
+				0,					// Flags
+				0,					// Address
+				0,					// Offset	- TBD
+				0,					// Size		- TBD
+				0,					// Link
+				0,					// Info
+				4,					// Align
+				@size(Elf32_Sym)	// entSize	
+			],
+			
+			// 8: .strtab Section:
+			
+			Elf32_Shdr:
+			[
+				sh_strtab_ofs_c,
+				SHT_STRTAB,
+				0,	// Flags
+				0,	// Address
+				0,	// Offset	- TBD
+				0,	// Size		- TBD
+				0,	// Link
+				0,	// Info
+				1,	// Align
+				0	// entSize	
+			]
+		];
+	
+readonly
+	sh_strtable	:byte; @nostorage;
+		byte	#0;
+		byte	sh_strtable_c,	#0;
+		byte	sh_symtab_c,	#0;
+		byte	sh_strtab_c,	#0;
+		byte	sh_shstrtab_c,	#0;
+		byte	sh_reltext_c;
+		byte	sh_text_c,		#0;
+		byte	sh_reldata_c;
+		byte	sh_data_c,		#0;
+		byte	sh_bss,			#0;
+		byte	#0;
+		
+	sectionMap	:dword[4] := 
+			[ 
+				0,	// Undefined section
+				1,	// code/text section
+				3,	// data section
+				5	// bss section
+			];
+				 
+		
+_begin( generateELF );
+
+	push( eax );
+	push( ebx );
+	push( ecx );
+	push( edx );
+	push( esi ); 
+	push( edi );
+	
+	if( verboseDebug ) then
+	
+		stdout.put
+		(
+			"generateELF:" nl 
+			"Input filename:  ", inputFilename, nl 
+			"Output filename: ", outputFilename, nl 
+		);
+		
+	endif;
+	
+	// Initial strings table size will be 64K
+	
+	mov( 65536, strTblSize );
+	mem.alloc( 65536 );
+	mov( eax, stringTable );
+	mov( 4, strTblOffset );
+	
+	// Initial symbol table size will be 4096 symbols
+	
+	mem.alloc( 4096 * @size( Elf32_Sym ));
+	mov( eax, ELFsyms );
+	mov( eax, ebx );
+	mov( 4096 * @size( Elf32_Sym ), elfSymSize );
+	mov( 0, numELFsyms );
+	
+	
+	
+	
+	// Copy all the symbols from the generic symbol table to
+	// the ELF symbol table:
+	
+	foreach symbolTable.item() do
+	
+		mov( eax, edx );
+		mov( (type tableNode_t [edx]).Value, ebx );
+		
+		// Map generic section number to ELF section numbers:
+		
+		movzx( symEBX.section, ecx );
+		mov( sectionMap[ ecx*4 ], ecx );
+		
+		// Get the offset value for this symbol:
+		
+		mov( symEBX.offset, edi );
+		
+		
+		test( isExtern_c, symEBX.flags );
+		if( @nz ) then
+		
+			// External symbols have storage class
+			// STB_GLOBAL, a section number
+			// of zero, and an offset of zero.
+			
+			mov( (STB_GLOBAL << 4) | STT_NOTYPE, al );
+			xor( ecx, ecx );
+			xor( edi, edi );
+			
+		else
+		
+			test( isPublic_c, symEBX.flags );
+			if( @nz ) then
+			
+				// Public symbols have storage class
+				// STB_GLOBAL and a section
+				// number that is not zero.
+				
+				mov( (STB_GLOBAL << 4) | STT_NOTYPE, al );
+				
+				
+			else	// Standard symbol
+			
+				mov( (STB_LOCAL << 4) | STT_NOTYPE, al );
+				
+			endif;
+			
+		endif; 
+		
+		addELFsym
+		(
+			(type tableNode_t [edx]).id,
+			edi,
+			0,			// Size -- no known size
+			al,			// Binding << 4 | Type.
+			cx,			// Section number
+			STV_DEFAULT	// Visibility
+		);
+		
+		// Save index to this ELF symbol table entry so
+		// we can quickly find it when generating all the reloc data.
+		
+		mov( eax, symEBX.symIndex );
+			
+			
+	endfor;	
+	
+	
+	
+	// Fill in the ELF file header info:
+	
+	cld();
+	lea( edi, ElfFileHeader );
+	mov( @size( ElfFileHeader ), ecx );
+	mov( 0, al );
+	rep.stosb();
+	
+	mov( ET_REL, ElfFileHeader.e_type );
+	mov( EM_386, ElfFileHeader.e_machine );
+	mov( EV_CURRENT, ElfFileHeader.e_version );
+	mov( 0, ElfFileHeader.e_entry );		// Temporary assignment
+	mov( 0, ElfFileHeader.e_phoff );		// Program header offset (none)
+	
+	// Fill in ElfFileHeader.e_shoff later
+	
+	mov( 0, ElfFileHeader.e_flags );
+	mov( @size( ElfFileHeader ), ElfFileHeader.e_ehsize );
+	mov( 0, ElfFileHeader.e_phentsize );	// No program header, so size=0
+	mov( 0, ElfFileHeader.e_phnum );		// No program header, so cnt=0
+	mov( @size( Elf32_Shdr ), ElfFileHeader.e_shentsize );
+	
+	// 9 sections:
+	//
+	//	0	:null
+	//	1	:.text
+	//	2	:.rel.text
+	//	3	:.data
+	//	4	:.rel.data
+	//	5	:.bss
+	//	6	:.shstrtab
+	//	7	:.symtab
+	//	8	:.strtab
+	
+	mov( 9, ElfFileHeader.e_shnum );
+	
+	
+	// shstrtab is section number 6:
+	
+	mov( 6, ElfFileHeader.e_shstrndx );
+	
+	
+	// Fill in the magic data:
+	
+	lea( ebx, ElfFileHeader.e_ident );
+	mov( ELFMAG0, (type byte [ebx+EI_MAG0]));
+	mov( ELFMAG1, (type byte [ebx+EI_MAG1]));
+	mov( ELFMAG2, (type byte [ebx+EI_MAG2]));
+	mov( ELFMAG3, (type byte [ebx+EI_MAG3]));
+	mov( ELFCLASS32, (type byte [ebx+EI_CLASS]));
+	mov( ELFDATA2LSB, (type byte [ebx+EI_DATA]));
+	mov( EV_CURRENT, (type byte [ebx+EI_VERSION]));
+	
+	if( brand = elfLinux_c ) then
+	
+		mov( ELFOSABI_LINUX, (type byte [ebx+EI_OSABI]));
+		
+	elseif( brand = elfFreeBSD_c ) then
+	
+		mov( ELFOSABI_FREEBSD, (type byte [ebx+EI_OSABI]));
+	
+	else
+	
+		stderr.put( "Unknown ELF format specified!" nl );
+		mov( 0, (type byte [ebx+EI_OSABI]));
+		
+	endif;
+	
+		
+	// Okay, time to build the actual ELF file and write it to disk.
+	// Begin by computing the size of the ELF file.
+	//
+	// Here's the ELF file layout this program produces:
+	//
+	//                                   Size
+	// +------------------------------+
+	// |  ELF File Header             |    Elf32_Ehdr
+	// +------------------------------+
+	// |  Raw Code                    |    codeSize
+	// +------------------------------+
+	// |  Raw Data                    |    dataSize
+	// +------------------------------+
+	// |  sh_strtable                 |    strTblLen_c
+	// +------------------------------+
+	// |  0: NULL Section Header      |    Elf32_Shdr
+	// +------------------------------+
+	// |  1: .text Section Header     |    Elf32_Shdr
+	// +------------------------------+
+	// |  2: .rel.text Section Header |    Elf32_Shdr
+	// +------------------------------+
+	// |  3: .data Section Header     |    Elf32_Shdr
+	// +------------------------------+
+	// |  4: .rel.data Section Header |    Elf32_Shdr
+	// +------------------------------+
+	// |  5: .bss Section Header      |    Elf32_Shdr
+	// +------------------------------+
+	// |  6: .shstrtab Section Header |    Elf32_Shdr
+	// +------------------------------+
+	// |  7: .symtab Section Header   |    Elf32_Shdr
+	// +------------------------------+
+	// |  8: .strtab Section Header   |    Elf32_Shdr
+	// +------------------------------+
+	// |  ELF Symbol Table            |    numELFsyms * Elf32_Sym
+	// +------------------------------+
+	// |  ELF Strings Table           |    strTblOffset
+	// +------------------------------+
+	// |  Code Relocations            |    numCodeRelocs * Elf32_Rel
+	// +------------------------------+
+	// |  Data Relocations            |    numDataRelocs * Elf32_Rel
+	// +------------------------------+
+	
+	
+	// Okay, compute the size of the object file and allocate storage
+	// to hold the whole thing:
+	
+	mov( @size( Elf32_Ehdr ), ecx );
+	
+	
+	// Add in the size of the code section and fill in the size field of
+	// the code/text section header. While we're at it, build the code section.
+	
+	add( 3, ecx );				// Align the code section on a 4-byte
+	and( $FFFF_FFFc, ecx );		// boundary.
+
+	intmul( @size(Elf32_Rel), numCodeRelocs, eax );
+	mem.alloc( eax );
+	mov( eax, codeRelocations ); 
+
+	mov( codeSize, eax );
+	mov( ecx, sectionArray.sh_offset[ 1 * @size(Elf32_Shdr)] );
+	mov( eax, sectionArray.sh_size[ 1 * @size(Elf32_Shdr)] );
+	add( eax, ecx );
+	mem.alloc( eax );
+	mov( eax, rawCode );
+	
+	buildRaw( codeList, codeRelocations, numCodeRelocs, rawCode, code_c, brand );  
+	
+	
+	// Add in the size of the data section, and fill it appropriate sizes
+	// and offsets in the data section header. While we're at it, build the
+	// data section.
+	
+	add( 3, ecx );				// Align the data section on a 4-byte boundary
+	and( $FFFF_FFFc, ecx );
+
+	intmul( @size(Elf32_Rel), numDataRelocs, eax );
+	mem.alloc( eax );
+	mov( eax, dataRelocations ); 
+
+	mov( ecx, sectionArray.sh_offset[ 3 * @size(Elf32_Shdr)] );	// Set data offset
+	mov( dataSize, eax );
+	mov( eax, sectionArray.sh_size[ 3 * @size(Elf32_Shdr)] );
+	add( eax, ecx );
+	
+	mem.alloc( eax );
+	mov( eax, rawData );
+	buildRaw( dataList, dataRelocations, numDataRelocs, rawData, data_c, brand );  
+	
+	
+	// Now ECX contains the offset to the section header string table.
+	
+	add( 3, ecx );				// Align the section header string table
+	and( $FFFF_FFFc, ecx );		//   on a 4-byte boundary
+	add( strTblLen_c, ecx );
+	
+	
+	// Note: currently ECX contains the offset of the start of the
+	// section header table. So let's store this value into the
+	// ELF file header:
+	
+	add( 3, ecx );				// Dword-align the section headers
+	and( $FFFF_FFFc, ecx );
+	mov( ecx, ElfFileHeader.e_shoff );
+	
+	
+	// Add in the size of the section headers:
+	
+	add(  9*@size(Elf32_Shdr), ecx );
+	add( 3, ecx );				// Dword-align the symbol table
+	and( $FFFF_FFFc, ecx );		// This is basically a no-operation.
+	
+	// The symbol table immediately follows the section header, so store
+	// the file offset of the symbol table into the offset field of the
+	// symtab section header:
+	
+	mov( ecx, sectionArray.sh_offset[ 7 * @size(Elf32_Shdr)] );
+	
+	// Get the size of the symbol table and store that away, and add it to
+	// our current object file length:
+	
+	intmul( @size( Elf32_Sym ), numELFsyms, eax );
+	mov( eax, sectionArray.sh_size[ 7 * @size(Elf32_Shdr)] );
+	add( eax, ecx );
+	add( 3, ecx );				// Dword-align the strings
+	and( $FFFF_FFFc, ecx );		// This is basically a no-operation.
+	
+	// ECX now has the offset to the ELF Strings table. Store that
+	// away into the ELF symbol table section header, store away
+	// the size of the symbol table into the section header, and then
+	// add the size to our object file size:
+	
+	mov( strTblOffset, eax );
+	mov( ecx, sectionArray.sh_offset[ 8 * @size(Elf32_Shdr)] );
+	mov( eax, sectionArray.sh_size[ 8 * @size(Elf32_Shdr)] );
+	add( eax, ecx );
+	
+	// ECX now has the offset to the Code Relocations table.
+	// Save away that offset, compute the size and save that,
+	// and then update the running object file size.
+	
+	add( 3, ecx );				// Dword-align the Code Relocations data
+	and( $FFFF_FFFc, ecx );
+
+	mov( ecx, sectionArray.sh_offset[ 2 * @size(Elf32_Shdr)] );
+	intmul( @size( Elf32_Rel ), numCodeRelocs, eax );
+	mov( eax, sectionArray.sh_size[ 2 * @size(Elf32_Shdr)] );
+	add( eax, ecx );
+	
+	// ECX now has the offset to the Data Relocations table.
+	// Save away that offset, compute the size and save that,
+	// and then update the running object file size.
+	
+	add( 3, ecx );				// Dword-align the Data Relocations data
+	and( $FFFF_FFFc, ecx );
+
+	mov( ecx, sectionArray.sh_offset[ 4 * @size(Elf32_Shdr)] );
+	intmul( @size( Elf32_Rel ), numDataRelocs, eax );
+	mov( eax, sectionArray.sh_size[ 4 * @size(Elf32_Shdr)] );
+	add( eax, ecx );
+
+
+	////////////////////////////////////////////////////////////////////////////
+	//
+	// ECX now contains the object file size.
+	// Allocate storage for the ELF file, copy the data to the
+	// ELF file, and then save the ELF file to disk.
+	
+	mov( ecx, ELFsize );
+	mem.zalloc( ecx );
+	mov( eax, ElfFile );
+	
+	cld();
+	mov( eax, edi );
+	lea( esi, ElfFileHeader );
+	mov( @size( ElfFileHeader ), ecx );
+	rep.movsb();
+	
+	// Align the code section on a 16-byte boundary in the ELF file:
+	
+	add( 3, edi );
+	and( $FFFF_FFFc, edi );
+	
+	// Copy the raw code to the ELF file:
+	
+	mov( rawCode, esi );
+	mov( codeSize, ecx );
+	rep.movsb();
+	
+	// Align the data section on a 16-byte boundary.
+	
+	add( 3, edi );
+	and( $FFFF_FFFc, edi );
+	
+	// Copy the raw data to the ELF file:
+	
+	mov( rawData, esi );
+	mov( dataSize, ecx );
+	rep.movsb();
+	
+	// Move the section header string table to the ELF file:
+	
+	add( 3, edi );
+	and( $FFFF_FFFc, edi );
+	
+	lea( esi, sh_strtable );
+	mov( strTblLen_c, ecx );
+	rep.movsb();
+		
+	
+	// Align the section header array on a dword boundary.
+	
+	add( 3, edi );
+	and( $FFFF_FFFC, edi );
+	
+	// Copy the section headers to the ELF file:
+	
+	lea( esi, sectionArray );
+	mov( @size( sectionArray ), ecx );
+	rep.movsb();
+	
+	// Align the symbol table on a dword boundary.
+	
+	add( 3, edi );
+	and( $FFFF_FFFC, edi );
+	
+	// Copy the ELF Symbol Table to the file:
+	
+	mov( ELFsyms, esi );
+	intmul( @size( Elf32_Sym ), numELFsyms, ecx );
+	rep.movsb();
+	
+	// Align the strings table on a dword boundary.
+	
+	add( 3, edi );
+	and( $FFFF_FFFC, edi );
+	
+	// Copy the ELF string data to the strings section:
+	
+	mov( stringTable, esi );
+	mov( strTblOffset, ecx );
+	rep.movsb();
+	
+	// Align the code relocations on a dword boundary.
+	
+	add( 3, edi );
+	and( $FFFF_FFFC, edi );
+	
+	// Copy the code relocations to the ELF file:
+	
+	mov( codeRelocations, esi );
+	intmul( @size( Elf32_Rel ), numCodeRelocs, eax );
+	rep.movsb();
+	
+	
+	// Align the data relocations on a dword boundary.
+	
+	add( 3, edi );
+	and( $FFFF_FFFC, edi );
+	
+	// Copy the data relocations to the ELF file:
+	
+	mov( dataRelocations, esi );
+	intmul( @size( Elf32_Rel ), numDataRelocs, eax );
+	rep.movsb();	
+
+	// Okay, write the ELF file to disk:	
+	
+	fileio.openNew( outputFilename );
+	mov( eax, fileHandle );
+	fileio.write( fileHandle, val ElfFile, ELFsize );
+	fileio.close( fileHandle );
+	
+		
+	pop( edi );
+	pop( esi );
+	pop( edx );
+	pop( ecx );
+	pop( ebx );
+	pop( eax );
+		
+_end( generateELF );
+
+
+	
+///////////////////////////////////////////////////////////////////////////////
+//
 // compileCOFF-
 //
 //	Compiles and HLABE source file to a PE/COFF object file.
@@ -5809,28 +6702,77 @@ _end( compileCOFF );
 
 procedure compileELF
 ( 
-			inputFilename	:string;
-			outputFilename	:string; 
-			start_source	:dword; 
-			end_source		:dword;
-			brand			:byte;
-			verbose			:boolean; 
-	result	codeList		:tokenList_t;
-	result	dataList		:tokenList_t;
-	result	bssList	    	:tokenList_t
+		inputFilename	:string;
+		outputFilename	:string; 
+		start_source	:dword; 
+		end_source		:dword;
+		brand			:obj_t;
+		verbose			:boolean; 
+	var	codeListPtr		:tokenList_t;
+	var	dataListPtr		:tokenList_t;
+	var	bssListPtr	    :tokenList_t
 );
-begin compileELF;
+var
+	codeList	:tokenList_t;
+	dataList	:tokenList_t;
+	bssList	    :tokenList_t;
+	
+	dummySymbol	:symbol_t;
 
+_begin( compileELF );
+
+	push( ebx );
+	mov( codeListPtr, ebx );
+	mov( [ebx], eax );
+	mov( eax, codeList );
+	
+	mov( dataListPtr, ebx );
+	mov( [ebx], eax );
+	mov( eax, dataList );
+	
+	mov( bssListPtr, ebx );
+	mov( [ebx], eax );
+	mov( eax, bssList );
+	
+	
+	// Convert the ".asm" file to the internal representation that
+	// the code generator uses:
+	
 	lexer( start_source, end_source, codeList, dataList, bssList );
+	
+	// Compute branch (and other) displacements and detect various
+	// errors (like undefined symbols, branch out of range, and so on):
+	
 	optimizeDisps( codeList, dataList, bssList, verbose );
-	mov( true, eax );
-	stderr.put
+	
+	// Now generate the ELF file:
+	
+	generateELF
 	( 
-		"ELF output is not yet supported by HLABE -- compile failed" nl 
+		inputFilename, 
+		outputFilename, 
+		codeList, 
+		dataList, 
+		bssList, 
+		brand 
 	);
+	
+	mov( codeListPtr, ebx );
+	mov( codeList, eax );
+	mov( eax, [ebx] );
+	
+	mov( dataListPtr, ebx );
+	mov( dataList, eax );
+	mov( eax, [ebx] );
+	
+	mov( bssListPtr, ebx );
+	mov( bssList, eax );
+	mov( eax, [ebx] );
+
+	//mov( true, eax );
 	xor( eax, eax );
 	
-end compileELF;
+_end( compileELF );
 
 
 
@@ -5847,14 +6789,14 @@ procedure compileMACHO
 			start_source	:dword; 
 			end_source		:dword;
 			verbose			:boolean; 
-	result	codeList		:tokenList_t;
-	result	dataList		:tokenList_t;
-	result	bssList	    	:tokenList_t
+	result	codeListPtr		:tokenList_t;
+	result	dataListPtr		:tokenList_t;
+	result	bssListPtr	    :tokenList_t
 );
 begin compileMACHO;
 
-	lexer( start_source, end_source, codeList, dataList, bssList );
-	optimizeDisps( codeList, dataList, bssList, verbose );
+	lexer( start_source, end_source, codeListPtr, dataListPtr, bssListPtr );
+	optimizeDisps( codeListPtr, dataListPtr, bssListPtr, verbose );
 	mov( true, eax );
 	stderr.put
 	( 
@@ -5898,24 +6840,28 @@ _begin( compile );
 	push( edi );
 	mov( esp, saveESP );
 	
-	// Upon entry into any HLA code that needs exception support,
-	// we have to set up the structured exception handling record
-	// for HLA.
-	//
-	// Save away the current structured exception handling pointer:
+	#if( !runFromHLA )
 	
-	#if( os.win32 )
-	
-		xor( ebx, ebx );
-		fseg:mov( [ebx], eax );		// Get the exception pointer
+		// Upon entry into any HLA code that needs exception support,
+		// we have to set up the structured exception handling record
+		// for HLA.
+		//
+		// Save away the current structured exception handling pointer:
 		
-	#else
-	
-		mov( ExceptionPtr, eax );	// Exception pointer in non-Windows OSes
+		#if( @defined( WINDOWS ) )
+		
+			xor( ebx, ebx );
+			fseg:mov( [ebx], eax );		// Get the exception pointer
+			
+		#else
+		
+			mov( ExceptionPtr, eax );	// Exception pointer in non-Windows OSes
+			
+		#endif
+		mov( eax, SaveSEHPointer );
+		call BuildExcepts;
 		
 	#endif
-	mov( eax, SaveSEHPointer );
-	call BuildExcepts;
 	
 	// Add "(", ")", '+', and '-' to the legal delimiters for numeric values:
 	
@@ -5974,7 +6920,7 @@ _begin( compile );
 					outputFilename, 
 				    start_source, 
 					end_source,
-					brandNone,
+					elf_c,
 					verbose, 
 					codeList, 
 					dataList, 
@@ -5989,7 +6935,7 @@ _begin( compile );
 					outputFilename, 
 				    start_source, 
 					end_source,
-					brandLinux,
+					elfLinux_c,
 					verbose, 
 					codeList, 
 					dataList, 
@@ -6004,7 +6950,7 @@ _begin( compile );
 					outputFilename, 
 				    start_source, 
 					end_source,
-					brandFreeBSD,
+					elfFreeBSD_c,
 					verbose, 
 					codeList, 
 					dataList, 
@@ -6108,42 +7054,48 @@ _begin( compile );
 	endif;
 	
 	
+	#if( !runFromHLA )
 	
 	
-	jmp Exit_compile_hlabe;
-	
-	// HLA main programs provide a "QuitMain" external label that
-	// exception handling code can call when the exception causes the
-	// program to abort. This label immediately terminates program
-	// execution. As we are not writing an HLA main program, the HLA
-	// compiler does not provide this code for us, we have to supply
-	// it manually. This particular exit code returns '1' in EAX to
-	// denote a compilation error.
+			jmp Exit_compile_hlabe;
+			
+			// HLA main programs provide a "QuitMain" external label that
+			// exception handling code can call when the exception causes the
+			// program to abort. This label immediately terminates program
+			// execution. As we are not writing an HLA main program, the HLA
+			// compiler does not provide this code for us, we have to supply
+			// it manually. This particular exit code returns '1' in EAX to
+			// denote a compilation error.
 
-QuitMain::
-	mov( 1, eax );
+		QuitMain::
+			mov( 1, eax );
 
 
 
-	// Exit from the compile_PECOFF function.
-	
-Exit_compile_hlabe:
+			// Exit from the compile_PECOFF function.
+			
+		Exit_compile_hlabe:
+		
+	#endif
 	 
 	
 	mov( saveESP, esp );
 	push( eax );		// save compiler return code.
+	#if( !runFromHLA )
 	
-	// Restore the Structured Exception Handler pointer we saved upon entry:
-	
-	mov( SaveSEHPointer, eax );
-	#if( os.win32 )
-	
-		xor( ebx, ebx );
-		fseg:mov( eax, [ebx] );		// Restore the exception pointer
+		// Restore the Structured Exception Handler pointer we saved upon entry:
 		
-	#else
-	
-		mov( eax, ExceptionPtr );	// Exception pointer in non-Windows OSes
+		mov( SaveSEHPointer, eax );
+		#if( @defined( WINDOWS ) )
+		
+			xor( ebx, ebx );
+			fseg:mov( eax, [ebx] );		// Restore the exception pointer
+			
+		#else
+		
+			mov( eax, ExceptionPtr );	// Exception pointer in non-Windows OSes
+			
+		#endif
 		
 	#endif
 	
@@ -6172,6 +7124,24 @@ _end( compile );
 
 
 // C-Callable version of the function above:
+
+
+procedure _hlabe_compile
+(
+		inputFilename	:zstring;
+		outputFilename	:zstring; 
+		start_source	:dword; 
+		end_source		:dword;
+		objType			:obj_t;
+		verbose			:boolean
+);		@noframe; @nodisplay;
+begin _hlabe_compile;
+
+	// Create an alias that falls through to the
+	// code below, in order to handle name mangling
+	// across operating systems.
+	
+end _hlabe_compile;
 
 procedure hlabe_compile
 (

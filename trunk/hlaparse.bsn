@@ -69,7 +69,6 @@ c** Override default RatC _name definition
 	enum OSChoice targetOS = linux_os;
 #elif defined( freeBSD_c )
 	enum OSChoice targetOS = freeBSD_os;
-//	enum OSChoice hostOS   = freeBSD_os;
 #elif defined( macOS_c )
 	enum OSChoice targetOS = macOS_os;
 #endif 
@@ -774,10 +773,6 @@ enum	gasChoice	gasSyntax = stdGas;
 
 int	useHLABE = 0;
 
-// objFmt determines whether FASM would output COFF (0) or ELF (1)
-// object code.
-
-int objFmt = 0;
 
 // sourceOutput is zero for hexadecimal instruction encoding output,
 // one for source code instruction output.
@@ -792,7 +787,7 @@ int sourceOutput = 0;	// Default is hex opcode output.
 int			OptimizeStrings = 1;
 
 
-// Moved here from hlautils because this is going away soon.
+// Moved here from hlautils.
 
 static char*
 getFileStr( int startPosn )
@@ -102558,16 +102553,13 @@ _begin( Usage )
 		"  -sf      Produce FASM compatible ASM output file.\n"
 		"  -sn      Produce NASM compatible ASM output file.\n"
 		"  -source  Produce instruction translation (rather than hex output)\n"
-		"  -ccoff   Produce COFF OBJ file using internal HLA Back Engine.\n"
 		"  -obj:XX  Output path for coff/elf object files.\n"
-		"  -win32   Generate code for Win32 OS.\n"
-		"  -linux   Generate code for Linux OS.\n"
-		"  -freebsd Generate code for freeBSD OS.\n"
-		"  -macos   Generate code for Mac OSX.\n"
+		"  -win32   Generate COFF file for Win32 OS.\n"
+		"  -linux   Generate ELF file for Linux OS.\n"
+		"  -freebsd Generate ELF file for freeBSD OS.\n"
+		"  -macos   Generate Mach-o file for Mac OSX.\n"
 		"  -sym     Dump symbol table after compile.\n"
-		"  -code1st Emit code before readonly data in output file\n"
-		"  -test    Send diagnostic info to stdout rather than stderr (This\n"
-		"            option is intended for HLA test/debug purposes).\n"
+		"  -test    Send diagnostic info to stdout rather than stderr\n"
 		"  -v       Verbose compile.\n"
 		"  -?       Display this help message.\n\n"
 		"  -level=high     Full HLA language (default)\n"
@@ -102717,6 +102709,11 @@ _begin( main )
 
 	hlainc = (char *) getenv( "hlainc" );
 	hlaauxinc = (char *) getenv( "hlaauxinc" );
+	_if( hlaauxinc == NULL )
+	
+		hlaauxinc = "";
+		
+	_endif
 	outPath = (char *) getenv( "hlatmp" );
 	_if( outPath == NULL )
 	
@@ -102748,29 +102745,26 @@ _begin( main )
 	**	-source			Source code (instructions) output rather than hex values.
 	**	-thread			Create thread-safe code and set @thread to true.
 	**	-sh				Source output in pseudo-HLA format.
-	**	-sm				Source output in MASM format (default).
+	**	-sm				Source output in MASM format.
 	**	-st				Source output in TASM format.
 	**  -sf				Source output in FASM format.
 	**  -sn				Source output in NASM format.
 	**	-sg				Source output in GAS format.
 	**	-sx				Source output in Mac OSX GAS format.
-	**	-win32			Generate code for Win32 OS.
-	**	-linux			Generate code for Linux OS.
-	**	-freebsd		Generate code for freeBSD OS.
-	**	-macos			Generate code for Mac OSX.
-	**	-ccoff			Object output in COFF form (using HLA Back Engine).
+	**	-win32			Generate COFF code for Win32 OS.
+	**	-linux			Generate ELF code for Linux OS.
+	**	-freebsd		Generate ELF code for freeBSD OS.
+	**	-macos			Generate Mach-o code for Mac OSX.
 	**	-d<sym>			Define a symbol.
 	**	-sym			Dump the symbol table.
 	**	-v				Verbose output
-	**	-t				Send error output to stdout rather than stderr
 	**  -p<path>    	Path for temporary files (must have trailing backslash)
-	**	-obj<path>		Path for object file output (internal FASM).
+	**	-obj<path>		Path for object file output (internal HLA back engine).
 	**  -level=high		Enable full HLA language (default)
 	**	-level=medium	Medium-level assembly (no HLL control constructs)
 	**	-level=low		Low-level assembly (no HL procedure calls/code gen)
 	**	-level=machine	Machine instrs only (no exception HLL constructs)
 	**  -main:<name>	Name of main program in HLA code.
-	**	-code1st        Emit code segment before data in output file.
 	**  -license        Display license information
 	**	-test			Send output to stdout rather than stderr.
 	**	-?				Help
@@ -102789,16 +102783,22 @@ _begin( main )
 			_if( _streq( option, "-WIN32" ))
 			
 				targetOS = windows_os;
+				assembler = hlabe;
+				useHLABE = 1;
 				_break;
 				
 			_elseif( _streq( option, "-LINUX" ))
 			
 				targetOS = linux_os;
+				assembler = hlabe;
+				useHLABE = 1;
 				_break;
 				
 			_elseif( _streq( option, "-FREEBSD" ))
 			
 				targetOS = freeBSD_os;
+				assembler = hlabe;
+				useHLABE = 1;
 				_break;
 				
 			_elseif( _streq( option, "-MACOS" ))
@@ -102945,49 +102945,45 @@ _begin( main )
 
 				// Default, assembler is MASM
 
-				assembler = masm;
+				assembler 	= masm;
+				useHLABE	= 0;
 
 			_elseif( _streq( option, "-SM" ) )
 
 				// Explicit, assembler is MASM
 
-				assembler = masm;
+				assembler 	= masm;
+				useHLABE	= 0;
 
 			_elseif( _streq( option, "-SH" ) )
 
 				// Explicit, assembler is pseudo-HLA
 
-				assembler = hla;
+				assembler	= hla;
+				useHLABE	= 0;
 
 			_elseif( _streq( option, "-ST" ) )
 
 				// Explicit, assembler is TASM
 
-				assembler = tasm;
+				assembler 	= tasm;
+				useHLABE	= 0;
 
 
 			_elseif( _streq( option, "-SN" ) )
 
 				// Explicit, assembler is NASM
 
-				assembler = nasm;
+				assembler 	= nasm;
+				useHLABE	= 0;
 
 
 			_elseif( _streq( option, "-SF" ) )
 
 				// Explicit, assembler is FASM
 
-				assembler = fasm;
-				_if( targetOS == windows_os )
-				
-					objFmt = 0;
-					
-				_else
-				
-					objFmt = 1;
-					
-				_endif
-				
+				assembler 	= fasm;				
+				useHLABE	= 0;
 				
 
 
@@ -102995,46 +102991,22 @@ _begin( main )
 
 				// Explicit, assembler is Gas
 
-				assembler = gas;
-				gasSyntax = stdGas;
+				assembler 	= gas;
+				gasSyntax 	= stdGas;
+				useHLABE	= 0;
 				
 			_elseif( _streq( option, "-SX" ) )
 
 				// Explicit, assembler is Gas for Mac OSX
 
-				assembler = gas;
-				gasSyntax = macGas;
-				
-			_elseif( _streq( option, "-CCOFF" ))
-			
-				// If  the -c command line option is given,
-				// then use the internal HLA back engine
-				// to compile to an OBJ file.
-				
-				_if( targetOS == windows_os )
-				 
-					assembler = hlabe;
-					useHLABE = 1;
-					objFmt = 0;
-					
-				_else
-				
-					yyerror
-					( 
-						"COFF object output is available only under Windows" 
-					);
-					assembler = gas;
-					useHLABE = 0;
-					objFmt = 0;
-					
-				_endif
-				
+				assembler 	= gas;
+				gasSyntax 	= macGas;				
+				useHLABE	= 0;
 				
 			_elseif( _streq( option, "-HLABE" ))
 			
 				assembler = hlabe;
 				useHLABE = 0;		// We want source output
-				objFmt = 0;
 				testMode = 0;
 				sourceOutput = 0;
 
@@ -103082,10 +103054,6 @@ _begin( main )
 			_elseif( _streq( option, "-LEVEL=MACHINE" ) )
 
 				langLevel = machine_level;
-
-			_elseif( _streq( option, "-CODE1ST" ) )
-
-				codeFirst = 1;
 
 			// Check for VERBOSE option
 
@@ -103239,13 +103207,13 @@ _begin( main )
 			"Output Path: \"%s\"\n"
 			"hlainc Path: \"%s\"\n"
 			"hlaauxinc Path: \"%s\"\n"
-			"Compiler running under %s OS\n"
+			"Compiler generating code for %s OS\n"
 			"Back-end assembler: %s%s\n"
 			"Language Level: %s\n"
 			"\n",
 			VersionInformation,
 			_ifx( DumpSymbols, "-sym active\n", "" ),
-			_ifx( MsgOut == stdout, "-t active\n", "" ),
+			_ifx( MsgOut == stdout, "-test active\n", "" ),
 			SourceFile,
 			outPath,
 			hlainc,
@@ -103772,6 +103740,10 @@ _begin( main )
 		
 			asmPrintf( "\t\tend\n" );
 			
+		_elseif( assembler == hlabe )
+		
+			asmPuts( "\n" hlabe_end "\n" );
+				
 		_endif
 		asmPrintf( "\n" );	
 
@@ -103795,10 +103767,11 @@ _begin( main )
 			
 		_else
 		
-			#if( defined( windows_c ) )
 			
-				_if( yyerrCount == 0 ) 
-			
+			_if( yyerrCount == 0 ) 
+		
+				_if( targetOS == windows_os )
+				 
 					hlabe_compile
 					(
 						FileName,
@@ -103809,21 +103782,63 @@ _begin( main )
 						Verbose 
 					);
 					
+				_elseif( targetOS == linux_os )
+				 
+					hlabe_compile
+					(
+						FileName,
+						AsmName, 
+						buffer.base, 
+						buffer.base + buffer.offset,
+						objt_elfLinux_c,
+						Verbose 
+					);
+					
+				
+				_elseif( targetOS == freeBSD_os )
+				 
+					hlabe_compile
+					(
+						FileName,
+						AsmName, 
+						buffer.base, 
+						buffer.base + buffer.offset,
+						objt_elfFreeBSD_c,
+						Verbose 
+					);
+					
+				
+				_elseif( targetOS == macOS_os )
+				
+					fprintf
+					( 
+						MsgOut, 
+						"HLAPARSE does not support direct object "
+						"output under MAC OS X\n" 
+					);
+					_return 1;
+//					hlabe_compile
+//					(
+//						FileName,
+//						AsmName, 
+//						buffer.base, 
+//						buffer.base + buffer.offset,
+//						objt_macho_c,
+//						Verbose 
+//					);
+
+				_else
+				
+					fprintf
+					( 
+						MsgOut, 
+						"Unknown target OS (internal HLAPARSE error)\n" 
+					);
+					_return 1;
+					
 				_endif
-			
 				
-			#else
-			
-				yyerror
-				( 
-					"Object output is available only under Windows" 
-				);
-				assembler = gas;
-				useHLABE = 0;
-				objFmt = 0;
-				
-			#endif
-			
+			_endif			
 		
 		_endif
 		free2( vss buffer.base );

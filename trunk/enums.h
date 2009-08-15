@@ -272,6 +272,7 @@ enum OSChoice
 #define	hlabe_bss		".v "
 #define hlabe_word		".w "
 #define hlabe_external	".x "
+#define hlabe_readonly	".y "	
 #define hlabe_end		".z "	
 
 /*--------------------------------------------------------------**
