@@ -12,9 +12,13 @@ hla: hla.o
 hla.o: hla.c ratc.h debug.h
 	gcc -static -static-libgcc -DfreeBSD_c -O2 -c hla.c
 
-hlaparse: hlaparse.o lex.yy.o symbol.o hlautils.o output.o oututils.o coerce.o funcs.o  hlaasm.o
-	gcc -static -static-libgcc -o hlaparse hlaparse.o lex.yy.o \
-						symbol.o hlautils.o output.o oututils.o coerce.o funcs.o hlaasm.o
+hlaparse:	hlaparse.o lex.yy.o symbol.o hlautils.o output.o oututils.o coerce.o \
+			funcs.o  hlaasm.o hlabe.freeBSD.o
+			
+	gcc -static -static-libgcc -o hlaparse hlaparse.o lex.yy.o					\
+						symbol.o hlautils.o output.o oututils.o					\
+						coerce.o funcs.o hlaasm.o hlabe.freeBSD.o 				\
+						/usr/hla/hlalib/hlalib.a
 
 hlaparse.o: hlaparse.c symbol.h ratc.h common.h enums.h debug.h output.h
 	 gcc -DfreeBSD_c -c -O2 -o hlaparse.o hlaparse.c
@@ -47,6 +51,9 @@ funcs.o: funcs.c symbol.h common.h ratc.h debug.h enums.h
 	
 hlaasm.o:hlaasm.gas
 	as -o hlaasm.o hlaasm.gas
+	
+hlabe.freeBSD.o:hlabe.freeBSD.gas
+	as -o hlabe.freeBSD.o hlabe.freeBSD.gas
 
 	
 

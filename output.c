@@ -559,7 +559,6 @@ static outputBuf *outStack[256];
 static int	outStk2[ 256 ][ 5 ];
 static int	outSP = 0;
 		
-int	codeFirst = 0;		// Controls emission of code vs. data.
 
 
 
@@ -1193,7 +1192,15 @@ _begin( EmitDotText )
 		
 		_case( hlabe )
 		
-			asmPuts( hlabe_code "\n" );
+			_if( readonlySection )
+			
+				asmPuts( hlabe_readonly "\n" );
+				
+			_else
+			
+				asmPuts( hlabe_code "\n" );
+				
+			_endif
 			
 		_endcase			
 		
@@ -1222,23 +1229,12 @@ _begin( EmitDotText )
 		
 		_case( fasm )
 		
-			_if( targetOS == windows_os )
+			asmPuts
+			( 
+				"\n\n"
+				"  section '.text' code readable executable align 16\n\n"
+			);
 				
-				asmPuts
-				( 
-					"\n\n"
-					"  section '.text' code readable executable align 16\n\n"
-				);
-				
-			_else
-			
-				asmPuts
-				( 
-					"\n\n"
-					"  section '.text' executable align 16\n\n"
-				);
-				
-			_endif
 			
 		_endcase
 		
@@ -1259,6 +1255,9 @@ _begin( EmitDotText )
 	_endswitch
 		
 _end( EmitDotText )
+
+
+
 
 
 
@@ -1305,24 +1304,12 @@ _begin( EmitDotData )
 		
 		_case( fasm )
 		
-			_if( targetOS == windows_os )
-			
-				asmPuts
-				(
-					"\n\n" 
-					"  section '.data' data readable writeable align 16\n\n"
-				);
+			asmPuts
+			(
+				"\n\n" 
+				"  section '.data' data readable writeable align 16\n\n"
+			);
 				
-			_else
-			
-				asmPuts
-				( 
-					"\n\n" 
-					"  section '.data' writeable align 16\n\n"
-				);
-				
-			_endif
-			
 		_endcase
 		
 		_case( tasm )
@@ -21468,23 +21455,6 @@ _begin( BeginMain )
 			_endif
 			endDseg();
 			
-		_elseif( assembler == fasm && targetOS == linux_os )
-		
-		 	startDseg();
-			asmPuts
-			(
-				"\n" 
-				" section '.data' writeable align 16\n"
-				" global _envp" sympost "\n"
-				" global _argc" sympost "\n"
-				" global _argv" sympost "\n"
-				"_argc" sympost " dd 0\n"
-				"_argv" sympost " dd 0\n"
-				"_envp" sympost " dd 0\n"
-				"\n"
-			);
-			endDseg();
-			
 		_elseif( assembler == hlabe )
 		
 			startDseg();
@@ -21492,6 +21462,8 @@ _begin( BeginMain )
 			(
 				"\n" 
 				hlabe_static "\n"
+				hlabe_public "__progname" sympost "\n"
+				hlabe_public "environ" sympost "\n"
 				hlabe_public "_envp" sympost "\n"
 				hlabe_public "_argc" sympost "\n"
 				hlabe_public "_argv" sympost "\n"
@@ -21499,7 +21471,10 @@ _begin( BeginMain )
 				hlabe_dword "$0\n"
 				":_argv" sympost "\n"
 				hlabe_dword "$0\n"
+				"environ:\n"
 				":_envp" sympost "\n"
+				hlabe_dword "$0\n"
+				"__progname" sympost "\n"
 				hlabe_dword "$0\n"
 				"\n"
 			);
@@ -21952,11 +21927,6 @@ _begin( EndMain )
 	_endif
 	EmitExit();
 	EndProc( "_HLAMain" );
-	_if( assembler == hlabe )
-	
-		asmPuts( "\n" hlabe_end "\n" );
-		
-	_endif
 
 _end( EndMain )
 
@@ -24055,25 +24025,18 @@ _begin( EmitSegments )
 	asmBuf = dest;
 
 	
-	_if( codeFirst )
-	
-		EmitDotText( 0 );
-		asmCpy( codeBuf.base, codeBuf.offset );
-		asmCpy( constBuf.base, constBuf.offset );
-		asmCpy( roBuf.base, roBuf.offset );
-		asmPuts( "\n\n" );	
-		EmitDataSegments( dest );
-		
-	_else
-	
-		EmitDataSegments( dest );
-		EmitDotText( 0 );
-		asmCpy( constBuf.base, constBuf.offset );
-		asmCpy( roBuf.base, roBuf.offset );
-		asmCpy( codeBuf.base, codeBuf.offset );
-	
-	_endif		
+	EmitDotText( 0 );
+	asmCpy( codeBuf.base, codeBuf.offset );
 	asmPuts( "\n\n" );	
+		
+	EmitDotText( 1 );
+	asmCpy( constBuf.base, constBuf.offset );
+	asmCpy( roBuf.base, roBuf.offset );
+	asmPuts( "\n\n" );	
+
+	EmitDataSegments( dest );
+	asmPuts( "\n\n" );	
+	
 	asmBuf = save;	
 
 _end( EmitSegments )

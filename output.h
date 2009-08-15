@@ -15,9 +15,7 @@
 extern enum AsmChoice	assembler;
 extern enum gasChoice	gasSyntax;
 extern int 				OptimizeStrings;
-extern int 				objFmt;
 extern int 				sourceOutput;
-extern int				codeFirst;
 
 
 extern void asmPuts( char *s );
