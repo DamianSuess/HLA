@@ -21471,10 +21471,10 @@ _begin( BeginMain )
 				hlabe_dword "$0\n"
 				":_argv" sympost "\n"
 				hlabe_dword "$0\n"
-				"environ:\n"
+				":environ\n"
 				":_envp" sympost "\n"
 				hlabe_dword "$0\n"
-				"__progname" sympost "\n"
+				":__progname" sympost "\n"
 				hlabe_dword "$0\n"
 				"\n"
 			);
