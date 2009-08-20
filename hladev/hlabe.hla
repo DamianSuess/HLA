@@ -3297,10 +3297,9 @@ _begin( addELFsym );
 	// (and any aux symbols it requires):
 	
 	intmul( @size( Elf32_Sym ), numELFsyms, ebx );
-	if( ebx > elfSymSize ) then 
-	
-		#print( "TODO: realloc is still not working. This fails if we must realloc" )
-		
+	lea( eax, [ebx+@size(Elf32_Sym)] );
+	if( eax > elfSymSize ) then 
+			
 		// We've exceeded the size of the currently allocated
 		// ELF symbol table, so make a bigger one:
 		
