@@ -21730,6 +21730,17 @@ _begin( BeginMain )
 	
 		EmitImmExtern( "_HLA_SETMAINPGMCOROUTINEPTR", tLabel );
 		EmitCallLabel( "_HLA_SETMAINPGMCOROUTINEPTR" );
+		
+
+		// Try statements and the like need these external declarations:
+			
+		_if( targetOS != windows_os ) 
+			
+			EmitImmExtern( "_HLA_PUSH_EXCEPTIONPTR", tLabel );
+			EmitImmExtern( "_HLA_SET_EXCEPTIONPTR", tLabel );
+			EmitImmExtern( "_HLA_GET_EXCEPTIONPTREBP", tLabel );
+			
+		_endif
 	
 	_endif
 	

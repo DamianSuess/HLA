@@ -352,11 +352,7 @@ _begin( PressReturnToContinue )
 	
 		fprintf( MsgOut, "\nPress the enter key to continue:" );
 		fgets( dummy, 8, stdin );
-		_for( i=0, i < 100, ++i )
-		
-			fprintf( MsgOut, "\n" );
-			
-		_endfor
+		fprintf( MsgOut, "\n" );
 
 	_endif
 	
@@ -433,7 +429,7 @@ _begin( Help )
 	fprintf
 	(
 		MsgOut,
-		"Source Output Control:\n"
+		"Source Output Control and Compiler/Back-end output control:\n"
 		"\n"
 		"  -sourcemode Compile to source instructions (rather than hex opcodes)\n"
 		"  -s          Compile to .ASM files only (using default ASM syntax).\n"
@@ -446,13 +442,6 @@ _begin( Help )
 		"  -sx         Compile to GAS source files for Mac OSX only.\n"
 		"  -main:xxxx  Use 'xxxx' as the name of the HLA main program.\n"
 		"\n"
-	);
-	PressReturnToContinue();	
-	fprintf
-	(
-		MsgOut,	
-		"HLAPARSE Compiler/Back-end Assembler Output Control:\n"
-		"\n"
 		"  -c        Compile and assemble to object file only.\n"
 		"  -cf       Compile and assemble to object file only (using FASM).\n"
 		"  -cn       Compile and assemble to object file only (using NASM).\n"
@@ -462,7 +451,6 @@ _begin( Help )
 		"  -cx       Compile/assemble to object using GAS (Mac only).\n"
 		"  -co       Compile/assemble to object using HLABE (Win32).\n"
 		"\n"
-		"  -axxxxx   Pass xxxxx as command line parameter to assembler.\n"
 		
 	);
 	PressReturnToContinue();	
@@ -489,8 +477,9 @@ _begin( Help )
 	fprintf
 	(
 		MsgOut,
-		"Linker Control:\n"
+		"Assembler and Linker Control:\n"
 		"\n"
+		"  -axxxxx   Pass xxxxx as command line parameter to assembler.\n"
 		"  -lxxxxx   Pass xxxxx as command line parameter to linker.\n"
 		"  -e:name   Executable output filename "
 							"(appends \".exe\" under Windows).\n"
@@ -526,11 +515,7 @@ _begin( Help )
 		"\n"
 	    "  -lib:path Library path (used to overide HLALIB "
 					 "environment variable).\n"
-	);
-	PressReturnToContinue();	
-	fprintf
-	(
-		MsgOut,
+		"\n"
 		"HLA Environment Variables:\n\n"
 		
 		#ifdef windows_c
@@ -541,11 +526,12 @@ _begin( Help )
 			"  hlainc=<path>        Sets path to HLA include subdirectory\n"
 			"                         (e.g., c:\\hla\\include)\n"
 			"\n"
-			"  hlaauxinc=<path>     Sets path to HLA app-specific include\n"
-			"                         subdirectory.\n"
-			"\n"
 			"  hlatmp=<path>        Sets path to directory to hold temp "
 			                                              "files (optional)\n"
+		    "  hlalink   =<lnkr> Sets default linker behavior\n"
+		    "                    <lnkr>:\n"
+		    "                       mslink- use Microsoft's link.exe linker\n"
+		    "                       polink- use the Pelles C polink.exe linker\n"
 								   
 		#elif defined( UnixOS ) // Is Linux/BSD/MacOS, use Unix-friendly path:
 			
@@ -559,18 +545,14 @@ _begin( Help )
 								   
 		#endif
 			"\n"
+			"  hlaauxinc=<path>     Sets path to HLA app-specific include\n"
+			"                         subdirectory.\n"
+			"\n"
 		    "  hlaasmopt=<options>  Passes the specified command-line options\n"
 		    "                         on to the underlying assembler.\n"
 		    	"\n"
 		    "  hlalinkopt=<options> Passes the specified command-line options\n"
 		    "                         on to theunderlying linker.\n"
-		    "  hlalink   =<lnkr> Sets default linker behavior\n"
-		    "                    <lnkr>:\n"
-		    "                      Windows Only:\n"
-		    "                       mslink- use Microsoft's link.exe linker\n"
-		    "                       polink- use the Pelles C polink.exe linker\n"
-		    "                      Linux Only:\n"
-		    "                       ld- use the FSF/GNU ld linker\n"
 		
 	);
 
@@ -1516,26 +1498,28 @@ _begin( doCmdLine)
 				// If the user did not tack ".OBJ" onto the end of the
 				// executable filename, do that here. (only under Windows)
 			
-				_if
-				(		targetOS == windows_os 
-					&&
-						(
-								strlen( BinName ) < 4 
-							||	stricmp
-								(
-									BinName + strlen( BinName ) - 4,
-									".OBJ"
-								) != 0
-						)
-				)
+				_if( targetOS == windows_os )
+				
+				 
+					_if
+					(
+							strlen( BinName ) < 4 
+						||	stricmp
+							(
+								BinName + strlen( BinName ) - 4,
+								".OBJ"
+							) != 0
+					)
 
-					char *NewBinName;
+						char *NewBinName;
 
-					NewBinName = malloc( strlen( BinName ) + 5 );
-					assert( NewBinName != NULL );
-					strcpy( NewBinName, BinName );
-					strcat( NewBinName, ".obj" );
-					BinName = NewBinName;
+						NewBinName = malloc( strlen( BinName ) + 5 );
+						assert( NewBinName != NULL );
+						strcpy( NewBinName, BinName );
+						strcat( NewBinName, ".obj" );
+						BinName = NewBinName;
+						
+					_endif
 
 				// Under *nix, see if the user didn't put ".o" on the
 				// end of the filename:
@@ -2570,6 +2554,7 @@ _begin( main )
 			ObjFmt == elf
 		&& 	SourceFmt != gas 
 		&&	SourceFmt != fasm 
+		&&	SourceFmt != hlabe 
 		&&	!SourceOnly
 	)
 	
@@ -2669,6 +2654,22 @@ _begin( main )
 		CompileOnly = 0;
 		
 	_endif
+	
+	_if( SourceFmt != hlabe && BinName != NULL )
+	
+		fprintf
+		(
+			MsgOut,
+			"\n"
+			"*************************************************************\n"
+			"Warning: -b:<name> option is only available when using HLABE.\n"
+			"*************************************************************\n"
+			"\n"
+		);
+		BinName = NULL;
+		
+	_endif
+	
 	 
 
 
@@ -2951,7 +2952,7 @@ _begin( main )
 			sprintf
 			(
 				hlaCmdLn,
-				"hlaparse -%s %s %s %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s\"%s\"",
+				"hlaparse -%s %s %s %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s\"%s\"",
 				_ifx( targetOS == windows_os, "WIN32",
 					_ifx( targetOS == linux_os, "LINUX",
 						_ifx( targetOS == freeBSD_os, "FREEBSD",
@@ -3010,6 +3011,9 @@ _begin( main )
 						)
 					)
 				),
+				_ifx( BinName != NULL, "-b:", "" ),
+				_ifx( BinName != NULL, BinName, "" ),				
+				_ifx( BinName != NULL, " ", "" ),				
 				_ifx( mainName != NULL, "-main:", "" ),
 				_ifx( mainName != NULL, mainName, "" ),
 				_ifx( mainName != NULL, " ", "" ),
@@ -3030,7 +3034,7 @@ _begin( main )
 					"[%s]\n\n"
 					"----------------------\n",
 					HlaName,
-					AsmName,
+					_ifx( BinName != NULL, BinName, AsmName),
 					hlaCmdLn
 				);
 
