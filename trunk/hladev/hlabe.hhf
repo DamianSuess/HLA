@@ -289,6 +289,8 @@ type
 		elfFreeBSD_c,
 		macho_c
 	};
+	?minElf_c := elf_c;
+	?maxElf_c := elfFreeBSD_c;
 	
 	
 	// Data type for a symbol table entry:

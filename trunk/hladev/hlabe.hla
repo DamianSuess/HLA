@@ -3299,6 +3299,8 @@ _begin( addELFsym );
 	intmul( @size( Elf32_Sym ), numELFsyms, ebx );
 	if( ebx > elfSymSize ) then 
 	
+		#print( "TODO: realloc is still not working. This fails if we must realloc" )
+		
 		// We've exceeded the size of the currently allocated
 		// ELF symbol table, so make a bigger one:
 		
@@ -3737,7 +3739,6 @@ _begin( buildRaw );
 								mov( edx, relocElfESI.r_offset );
 								
 								mov( symEAX.symIndex, eax );
-								add( 1, eax );	// Because ELF syms are 1-based
 								shl( 8, eax );
 								or( R_386_PC32, eax );
 								mov( eax, relocElfESI.r_info );
@@ -3794,6 +3795,7 @@ _begin( buildRaw );
 					// a relocation record for this guy.
 					
 					if( jmpEBX.symbol <> NULL ) then
+					
 						mov( jmpEBX.symbol, eax );
 						mov( tblEAX.Value, eax );
 						mov( symEAX.section, dl );
@@ -3827,17 +3829,15 @@ _begin( buildRaw );
 								mov( edx, relocElfESI.r_offset );
 								
 								mov( symEAX.symIndex, edx );
-								add( 1, edx );	// Because ELF syms are 1-based
 								shl( 8, edx );
 								or( R_386_PC32, edx );
 								mov( edx, relocElfESI.r_info );
 								
 								add( @size( Elf32_Rel ), esi );
 							
-								// Need to store offset field into the
-								// displacement rather than the disp field:
+								// ELF needs this magic value here:
 								
-								mov( jmpEBX.offset, eax );
+								mov( $FFFF_FFFC, eax );
 								mov( eax, [edi-4] );
 							
 							else
@@ -3862,6 +3862,7 @@ _begin( buildRaw );
 					 
 			case( rel4_tkn )	 
 			
+				// CALL instruction.
 				// 1-byte opcode + 4-byte displacement:
 				
 				mov( rel4EBX.opcode, al );
@@ -3910,18 +3911,16 @@ _begin( buildRaw );
 							mov( edx, relocElfESI.r_offset );
 							
 							mov( symEAX.symIndex, eax );
-							add( 1, eax );	// Because ELF syms are 1-based
 							shl( 8, eax );
-							or( R_386_32, eax );
+							or( R_386_PC32, eax );
 							mov( eax, relocElfESI.r_info );
 							
 							add( @size( Elf32_Rel ), esi );
 						
 							
-							// Need to store offset field into the
-							// displacement rather than the disp field:
+							// ELF needs this magic value here:
 							
-							mov( rel4EBX.offset, eax );
+							mov( $FFFF_FFFC, eax );
 							mov( eax, [edi-4] );
 						
 						else
@@ -3968,10 +3967,12 @@ _begin( buildRaw );
 						mov( (type relocStmt_t [ebx]).symbol, eax );
 						mov( tblEAX.Value, eax );
 						mov( symEAX.symIndex, edx );
-						add( 1, edx );	// Because ELF syms are 1-based
 						shl( 8, edx );
 						or( R_386_32, edx );
 						mov( edx, relocElfESI.r_info );
+						
+						mov( symEAX.offset, edx );
+						stdout.put( "sym:", symEAX.id, " symEAX offset=", edx, nl ); 
 						
 						add( @size( Elf32_Rel ), esi );
 					
@@ -6087,8 +6088,8 @@ static
 				0,					// Address
 				0,					// Offset	- TBD
 				0,					// Size		- TBD
-				0,					// Link
-				0,					// Info
+				3,					// Link -- Strings section header index
+				0,					// Info -- Number of local symbols (TBD)
 				4,					// Align
 				@size(Elf32_Sym)	// entSize	
 			];
@@ -6348,23 +6349,26 @@ _begin( generateELF );
 	
 	// Construct the ELF symbol table and the ELF strings table.
 	//	 
-	// Initial strings table size will be 64K
+	// Initial strings table size will be 256K
 	
-	mov( 65536, strTblSize );
-	mem.zalloc( 65536 );
+	mov( 256*1024, strTblSize );
+	mem.zalloc( 256*1024 );
 	mov( eax, stringTable );
 	mov( 1, strTblOffset );
 	
-	// Initial symbol table size will be 4096 symbols
+	// Initial symbol table size will be 65536 symbols
 	
-	mem.zalloc( 4096 * @size( Elf32_Sym ));
+	mem.zalloc( 65536 * @size( Elf32_Sym ));
 	mov( eax, ELFsyms );
 	mov( eax, ebx );
-	mov( 4096 * @size( Elf32_Sym ), elfSymSize );
+	mov( 65536 * @size( Elf32_Sym ), elfSymSize );
 	mov( 0, numELFsyms );
 	
 	// Copy all the symbols from the generic symbol table to
-	// the ELF symbol table:
+	// the ELF symbol table.  We have to emit the local symbols
+	// first and then the global symbols.
+	//
+	// Emit the local symbols:
 	
 	foreach symbolTable.item() do
 	
@@ -6399,6 +6403,75 @@ _begin( generateELF );
 		
 		
 		test( isExtern_c, symEBX.flags );
+		if( @z ) then
+
+			test( isPublic_c, symEBX.flags );
+			if( @z ) then	// Standard symbol
+			
+				mov( (STB_LOCAL << 4) | STT_NOTYPE, al );
+				addELFsym
+				(
+					(type tableNode_t [edx]).id,
+					edi,
+					0,			// Size -- no known size
+					al,			// Binding << 4 | Type.
+					cx,			// Section number
+					STV_DEFAULT	// Visibility
+				);
+				
+				// Save index to this ELF symbol table entry so
+				// we can quickly find it when generating all the reloc data.
+				
+				mov( numELFsyms, eax );
+				mov( eax, symEBX.symIndex );
+				add( 1, numELFsyms );
+				
+			endif;
+			
+		endif; 
+		
+	endfor;
+	
+	// Symtab.Info must contain the number of local symbols (one greater than
+	// the index of the last local symbol):
+	
+	mov( numELFsyms, eax );
+	mov( eax, symtabSection.sh_info );	
+		 
+	// Emit the local symbols:
+	
+	foreach symbolTable.item() do
+	
+		mov( eax, edx );
+		mov( (type tableNode_t [edx]).Value, ebx );
+		
+		// Map generic section number to ELF section numbers:
+		
+		movzx( symEBX.section, ecx );
+		if( ecx = code_c ) then
+		
+			mov( shst_textIndex, ecx );
+		
+		elseif( ecx = data_c ) then
+		
+			mov( shst_dataIndex, ecx );
+	
+		elseif( ecx = bss_c ) then
+		
+			mov( shst_bssIndex, ecx );
+	
+		else	// Undefined section.
+		
+			xor( ecx, ecx );
+			
+		endif;
+		
+		
+		// Get the offset value for this symbol:
+		
+		mov( symEBX.offset, edi );
+
+		test( isExtern_c, symEBX.flags );
 		if( @nz ) then
 		
 			// External symbols have storage class
@@ -6421,14 +6494,13 @@ _begin( generateELF );
 				mov( (STB_GLOBAL << 4) | STT_NOTYPE, al );
 				
 				
-			else	// Standard symbol
+			else	// Standard (local) symbol
 			
-				mov( (STB_LOCAL << 4) | STT_NOTYPE, al );
+				continue;	// Already emitted local symbols.
 				
 			endif;
 			
 		endif; 
-		
 		addELFsym
 		(
 			(type tableNode_t [edx]).id,
@@ -6445,13 +6517,13 @@ _begin( generateELF );
 		mov( numELFsyms, eax );
 		mov( eax, symEBX.symIndex );
 		add( 1, numELFsyms );
-
-stdout.put( "sym: ", (type tableNode_t [edx]).id, " index=", numELFsyms, nl );
-			
+		
 	endfor;	
 		 
 	// stringTable[0]..stringTable[strTblOffset] is the string table segment
 	// ElfSyms[0]..ElfSyms[numELFsyms] is the symbol table data.
+	
+	
 	
 	
 	// If there is a code segment, generate the raw data for that code

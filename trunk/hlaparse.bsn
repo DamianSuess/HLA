@@ -285,6 +285,7 @@ char	*hlainc  	= NULL;	/* Path to HLA include directory.				*/
 char	*hlaauxinc  = NULL;	/* Path to app-specific include directory.		*/
 char 	*outPath 	= NULL;	/* hlatmp:Path prefix used for output files.	*/
 char	*objPath 	= NULL;	/* -obj:obj output path for object files.		*/
+char	*binName 	= NULL;	/* -b:obj output name for object files.			*/
 
 char	*hlaThreadSafe	= NULL;	/* '1' = thread-safe compilation.			*/
 
@@ -103024,6 +103025,10 @@ _begin( main )
 
 				objPath = hlastrdup2( &argv[ CurArg ][5] );
 
+			_elseif( strncmp( option, "-B:", 3) == 0 )
+
+				binName = hlastrdup2( &argv[ CurArg ][3] );
+
 			// Check for symbol table dump option:
 
 			_elseif( _streq( option, "-SYM" ) )
@@ -103443,7 +103448,15 @@ _begin( main )
 					
 				_endif
 				strcpy( name, objPath );
-				strcpy( name+len, baseName );
+				_if( binName != NULL )	// Use supplied "-b:name" output filename.
+				
+					strcpy( name+len, binName );
+					
+				_else	// no -b:name option, so use file's base name:
+				
+					strcpy( name+len, baseName );
+					
+				_endif
 				
 			_else
 			
@@ -103452,7 +103465,15 @@ _begin( main )
 				// file.
 				
 				strcpy( name, path );
-				strcat( name, baseName );
+				_if( binName != NULL )	// Use supplied "-b:name" output filename.
+				
+					strcat( name, binName );
+
+				_else	// no -b:name option, so use file's base name:
+
+					strcat( name, baseName );
+					
+				_endif
 				
 			_endif
 			
@@ -103466,28 +103487,32 @@ _begin( main )
 			// rather than a ".asm" file, put the appropriate suffix on
 			// the "AsmName":
 			
-			_switch( targetOS )
+			_if( binName == NULL ) 	// -b:name option assumes suffix is present
 			
-				_case( windows_os )
+				_switch( targetOS )
+				
+					_case( windows_os )
 
-					strcat( AsmName, ".obj" );
+						strcat( AsmName, ".obj" );
+						
+					_endcase
 					
-				_endcase
-				
-				_case( freeBSD_os )
-				_case( linux_os )
-				
-					strcat( AsmName, ".o" );
+					_case( freeBSD_os )
+					_case( linux_os )
 					
-				_endcase
-				
-				_case( macOS_os )
-				_default
+						strcat( AsmName, ".o" );
+						
+					_endcase
+					
+					_case( macOS_os )
+					_default
 
-					yyerror( "Target OS doesn't support the use of HLABE" );
-					strcat( AsmName, ".o" );
-					
-			_endswitch
+						yyerror( "Target OS doesn't support the use of HLABE" );
+						strcat( AsmName, ".o" );
+						
+				_endswitch
+				
+			_endif
 		
 			// Okay, the .link file needs to go in the temporary directory,
 			// not in the objPath directory:
