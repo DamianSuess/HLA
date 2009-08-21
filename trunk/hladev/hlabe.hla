@@ -6043,14 +6043,10 @@ var
 	relCodeOffset		:dword;
 	dataOffset			:dword;
 	relDataOffset		:dword;
+	bssOffset			:dword;
 	
-	shst_shstrtabIndex	:dword;
-	shst_symtabIndex	:dword;
-	shst_strtabIndex	:dword;
 	shst_textIndex		:dword;
-	shst_relTextIndex	:dword;
 	shst_dataIndex		:dword;
-	shst_relDataIndex	:dword;
 	shst_bssIndex		:dword;
 	
 	
@@ -6213,15 +6209,15 @@ _begin( generateELF );
 	//
 	// maximum of 9 sections:
 	//
-	//	0	:null		-- Always present
-	//	1	:.shstrtab	-- Always present
-	//	2	:.symtab	-- Always present
-	//	3	:.strtab	-- Always present
-	//	4	:.text		-- Not present if codeSize is zero
-	//	5	:.rel.text	-- Not present if codeSize or numCodeRelocs is zero
-	//	6	:.data		-- Not present if dataSize is zero
-	//	7	:.rel.data	-- Not present if dataSize or numDataRelocs is zero
-	//	8	:.bss		-- Not present if bssSize is zero	
+	//	0	:null		
+	//	1	:.shstrtab	
+	//	2	:.symtab	
+	//	3	:.strtab	
+	//	4	:.text		
+	//	5	:.rel.text	
+	//	6	:.data		
+	//	7	:.rel.data	
+	//	8	:.bss		
 	
 	// Construct the shstrtab data section.
 	// Begin by allocating the maximum amount of storage we'll need
@@ -6243,14 +6239,9 @@ _begin( generateELF );
 	
 	// Fill in the section header string table
 	
-	mov( 1, shst_shstrtabIndex );
-	mov( 2, shst_symtabIndex );
-	mov( 3, shst_strtabIndex );
-	mov( 0, shst_textIndex );
-	mov( 0, shst_relTextIndex );
-	mov( 0, shst_dataIndex );
-	mov( 0, shst_relDataIndex );
-	mov( 0, shst_bssIndex );
+	mov( 4, shst_textIndex );
+	mov( 6, shst_dataIndex );
+	mov( 8, shst_bssIndex );
 	
 	lea( edi, [eax+1] );			// Leave an empty string at offset 0.
 	mov( 1, shstrtabSection.sh_name );
@@ -6275,70 +6266,62 @@ _begin( generateELF );
 			@length( ".strtab" ) + 4,
 		ebx
 	); 
-	mov( 4, edx );
-	if( codeSize <> 0 ) then
 	
-		mov( ebx, textSection.sh_name );
-		add( @length( ".text" ) + 1, ebx );
-		
-		zstr.cpy( ".text", edi );
-		lea( edi, [edi+eax+1] );
-		mov( edx, shst_textIndex );
-		add( 1, edx );
-		if( numCodeRelocs <> 0 ) then
-		
-			mov( ebx, relTextSection.sh_name );
-			add( @length( ".rel.text" ) + 1, ebx );
-		
-			zstr.cpy( ".rel.text", edi );
-			lea( edi, [edi+eax+1] );
-			mov( edx, shst_relTextIndex );
-			add( 1, edx );
-		
-		endif;
+	// Set up the text section:
 	
-	endif; 
-	if( dataSize <> 0 ) then
+	mov( ebx, textSection.sh_name );
+	add( @length( ".text" ) + 1, ebx );
 	
-		mov( ebx, dataSection.sh_name );
-		add( @length( ".data" ) + 1, ebx );
-		
-		zstr.cpy( ".data", edi );
-		lea( edi, [edi+eax+1] );
-		mov( edx, shst_dataIndex );
-		add( 1, edx );
-		if( numDataRelocs <> 0 ) then
-		
-			mov( ebx, relDataSection.sh_name );
-			add( @length( ".rel.data" ) + 1, ebx );
-			
-			zstr.cpy( ".rel.data", edi );
-			lea( edi, [edi+eax+1] );
-			mov( edx, shst_relDataIndex );
-			add( 1, edx );
-		
-		endif;
+	zstr.cpy( ".text", edi );
+	lea( edi, [edi+eax+1] );
 	
-	endif; 
-	if( bssSize <> 0 ) then
+	// Set up the rel.text section:
 	
-		mov( ebx, bssSection.sh_name );
-		add( @length( ".bss" ) + 1, ebx );
+	
+	mov( ebx, relTextSection.sh_name );
+	add( @length( ".rel.text" ) + 1, ebx );
+
+	zstr.cpy( ".rel.text", edi );
+	lea( edi, [edi+eax+1] );
+	
+	
+	// Set up the data section:
+	
+	mov( ebx, dataSection.sh_name );
+	add( @length( ".data" ) + 1, ebx );
+	
+	zstr.cpy( ".data", edi );
+	lea( edi, [edi+eax+1] );
+	
+	
+	// Set up the rel.data section:
 		
-		zstr.cpy( ".bss", edi );
-		lea( edi, [edi+eax+1] );
-		mov( edx, shst_bssIndex );
-		add( 1, edx );
+		
+	mov( ebx, relDataSection.sh_name );
+	add( @length( ".rel.data" ) + 1, ebx );
 	
-	endif;
-	mov( edx, numSections );
+	zstr.cpy( ".rel.data", edi );
+	lea( edi, [edi+eax+1] );
+		
+	
+	// Set up the bss section:
+	
+	
+	mov( ebx, bssSection.sh_name );
+	add( @length( ".bss" ) + 1, ebx );
+	
+	zstr.cpy( ".bss", edi );
+	lea( edi, [edi+eax+1] );
+	
+	
+	
+	mov( 9, numSections );
 	mov( ebx, shstrtabSize );
 	
 	
-	// Compute the size of the section header table:
+	// Set the size of the section header table:
 	
-	intmul( @size( Elf32_Shdr ), edx, eax );
-	mov( eax, shSize );	
+	mov( @size( Elf32_Shdr )*9, shSize );	
 	
 		 
 	
@@ -6550,8 +6533,8 @@ _begin( generateELF );
 			rawCode, 
 			code_c, 
 			brand 
-		);  
-	
+		); 
+		
 	endif;
 	
 	// If there is a data section, allocate storage for it (and the data
@@ -6619,18 +6602,23 @@ _begin( generateELF );
 	
 	// Compute the offset of the optional code section:
 	 
-	if( shst_textIndex <> 0 ) then
+	if( codeSize <> 0 ) then
 	
 		mov( edx, codeOffset );
 		add( codeSize, edx );
 		add( 15, edx );
 		and( $FFFF_FFF0, edx );
 		
+	else	// No code, must point codeOffset at shstrtab
+	
+		mov( shstrTabOffset, eax );
+		mov( eax, codeOffset );
+		
 	endif;
 	
 	// Compute the offset of the optional code relocations section:
 	 
-	if( shst_relTextIndex <> 0 ) then
+	if( numCodeRelocs <> 0 ) then
 	
 		mov( edx, relCodeOffset );
 		intmul( @size( Elf32_Rel ), numCodeRelocs, eax );
@@ -6638,26 +6626,41 @@ _begin( generateELF );
 		add( 15, edx );
 		and( $FFFF_FFF0, edx );
 		
+	else	// No code relocations, must set relCodeOffset to shstrTabOffset
+	
+		mov( shstrTabOffset, eax );
+		mov( eax, relCodeOffset );
+		
 	endif;
 	
 	// Compute the offset of the optional data section:
 	 
-	if( shst_dataIndex <> 0 ) then
+	if( dataSize <> 0 ) then
 	
 		mov( edx, dataOffset );
 		add( dataSize, edx );
 		add( 15, edx );
 		and( $FFFF_FFF0, edx );
 		
+	else	// No data, must set dataOffset to shstrTabOffset
+	
+		mov( shstrTabOffset, eax );
+		mov( eax, dataOffset );
+		
 	endif;
 	
 	// Compute the offset of the optional data relocations section:
 	 
-	if( shst_relDataIndex <> 0 ) then
+	if( numDataRelocs <> 0 ) then
 	
 		mov( edx, relDataOffset );
 		intmul( @size( Elf32_Rel ), numDataRelocs, eax );
 		add( eax, edx );
+		
+	else	// No data relocations, must set relDataOffset to shstrTabOffset
+	
+		mov( shstrTabOffset, eax );
+		mov( eax, relDataOffset );
 		
 	endif;
 	
@@ -6667,6 +6670,17 @@ _begin( generateELF );
 	mem.zalloc( edx );
 	mov( eax, ElfFile );	
 	
+	
+	// If the bss section has no data, we must point the offset
+	// at shstrTabOffset, otherwise we leave it at zero.
+	 
+	mov( 0, bssOffset );
+	if( bssSize = 0 ) then
+		
+		mov( shstrTabOffset, eax );
+		mov( eax, bssOffset );
+		
+	endif;
 	
 	
 	
@@ -6785,6 +6799,8 @@ _begin( generateELF );
 	
 	mov( bssSize, eax );
 	mov( eax, bssSection.sh_size );
+	mov( bssOffset, eax );
+	mov( eax, bssSection.sh_offset );
 
 
 
@@ -6827,31 +6843,11 @@ _begin( generateELF );
 	cpySection( shstrtabSection );
 	cpySection( symtabSection );
 	cpySection( strtabSection );
-	if( shst_textIndex <> 0 ) then
-	
-		cpySection( textSection );
-		if( shst_relTextIndex <> 0 ) then
-	
-			cpySection( relTextSection );
-			
-		endif;
-		
-	endif;
-	if( shst_dataIndex <> 0 ) then
-	
-		cpySection( dataSection );
-		if( shst_relDataIndex <> 0 ) then
-	
-			cpySection( relDataSection );
-			
-		endif;
-		
-	endif;
-	if( shst_bssIndex <> 0 ) then
-	
-		cpySection( bssSection );
-		
-	endif;
+	cpySection( textSection );
+	cpySection( relTextSection );
+	cpySection( dataSection );
+	cpySection( relDataSection );
+	cpySection( bssSection );
 	
 	// Copy the section header strings table to the ELF file:
 	
