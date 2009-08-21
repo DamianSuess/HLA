@@ -3970,9 +3970,6 @@ _begin( buildRaw );
 						or( R_386_32, edx );
 						mov( edx, relocElfESI.r_info );
 						
-						mov( symEAX.offset, edx );
-						stdout.put( "sym:", symEAX.id, " symEAX offset=", edx, nl ); 
-						
 						add( @size( Elf32_Rel ), esi );
 					
 					else
@@ -6437,7 +6434,7 @@ _begin( generateELF );
 	mov( numELFsyms, eax );
 	mov( eax, symtabSection.sh_info );	
 		 
-	// Emit the local symbols:
+	// Emit the global symbols:
 	
 	foreach symbolTable.item() do
 	

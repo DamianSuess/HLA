@@ -21462,8 +21462,8 @@ _begin( BeginMain )
 			(
 				"\n" 
 				hlabe_static "\n"
-				hlabe_public "__progname" sympost "\n"
-				hlabe_public "environ" sympost "\n"
+				hlabe_public "__progname\n"
+				hlabe_public "environ\n"
 				hlabe_public "_envp" sympost "\n"
 				hlabe_public "_argc" sympost "\n"
 				hlabe_public "_argv" sympost "\n"
