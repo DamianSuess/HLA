@@ -2388,11 +2388,21 @@ _begin( SkeletalOutput )
 			
 			EmitImmExtern( ExceptionPtr, tDWord ); 
 			EmitImmExtern( "shortDfltExcept" sympost, tLabel ); 
+			
+	
+			// Try statements and the like need these external declarations:
+		
+			EmitImmExtern( "_HLA_PUSH_EXCEPTIONPTR", tLabel );
+			EmitImmExtern( "_HLA_SET_EXCEPTIONPTR", tLabel );
+			EmitImmExtern( "_HLA_GET_EXCEPTIONPTREBP", tLabel );
 		
 		_endif	
 		asmPuts( "\n\n\n" );
 		
 	_endif
+	
+	
+	
 	
 	// After emiting the skeletal output to the preamble buffer,
 	// set asmBuf to point at the codeBuf:
@@ -21720,18 +21730,7 @@ _begin( BeginMain )
 	
 		EmitImmExtern( "_HLA_SETMAINPGMCOROUTINEPTR", tLabel );
 		EmitCallLabel( "_HLA_SETMAINPGMCOROUTINEPTR" );
-		
 
-		// Try statements and the like need these external declarations:
-			
-		_if( targetOS != windows_os ) 
-			
-			EmitImmExtern( "_HLA_PUSH_EXCEPTIONPTR", tLabel );
-			EmitImmExtern( "_HLA_SET_EXCEPTIONPTR", tLabel );
-			EmitImmExtern( "_HLA_GET_EXCEPTIONPTREBP", tLabel );
-			
-		_endif
-	
 	_endif
 	
 	NewLn();
