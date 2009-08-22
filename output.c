@@ -21474,7 +21474,7 @@ _begin( BeginMain )
 				":environ\n"
 				":_envp" sympost "\n"
 				hlabe_dword "$0\n"
-				":__progname" sympost "\n"
+				":__progname\n"
 				hlabe_dword "$0\n"
 				"\n"
 			);
@@ -21524,16 +21524,6 @@ _begin( BeginMain )
 					mainName
 				);
 			
-			_elseif( assembler == fasm )
-			
-				asmPrintf
-				(
-					" public _%s\n" 
-					"_%s:\n",
-					mainName,
-					mainName
-				);
-				
 			_elseif( assembler == hlabe )
 			
 				asmPrintf

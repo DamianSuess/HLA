@@ -23,7 +23,7 @@ int main()
 	( 
 		g, 
 		"#define VersionInformation "
-		"\"Version 1.%d build %d (prototype)\"\n\n",
+		"\"Version 2.%d build %d (prototype)\"\n\n",
 		version,
 		build
 	);
