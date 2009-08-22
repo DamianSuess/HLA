@@ -6179,7 +6179,7 @@ static
 				0,					// Offset - TBD
 				0,					// Size   - TBD
 				2,					// Link - symtab section header
-				6,					// Info - data section header
+				5,					// Info - data section header
 				4,					// Align
 				@size( Elf32_Rel )	// entSize	
 			];
@@ -6223,8 +6223,8 @@ _begin( generateELF );
 	// Plus the following two optional sections which are present if there
 	// are any code or data relocations:
 	//		
-	//	6	:.rel.text	
-	//	7	:.rel.data	
+	//	7	:.rel.text	
+	//	8	:.rel.data	
 	
 	// Construct the shstrtab data section.
 	// Begin by allocating the maximum amount of storage we'll need
@@ -6237,10 +6237,10 @@ _begin( generateELF );
 		@length( ".symtab" )	+ 1 +
 		@length( ".strtab" )	+ 1 +
 		@length( ".text" )		+ 1 +
-		@length( ".rel.text" )	+ 1 +
 		@length( ".data" )		+ 1 +
-		@length( ".rel.data" )	+ 1 +
-		@length( ".bss" )		+ 1
+		@length( ".bss" )		+ 1 +
+		@length( ".rel.text" )	+ 1 +
+		@length( ".rel.data" )	+ 1
 	);
 	mov( eax, shstrtab );
 	
@@ -6655,14 +6655,14 @@ _begin( generateELF );
 	and( $FFFF_FFF0, eax );
 	mov( eax, strtabOffset );
 	
-	// Compute the offsets of the optional sections:
+	// Compute the offsets of the code, data, and bss sections:
 	
 	add( strTblOffset, eax );
 	mov( eax, edx );
 	add( 15, edx );
 	and( $FFFF_FFF0, edx );
 	
-	// Compute the offset of the optional code section:
+	// Compute the offset of the code section:
 	 
 	if( codeSize <> 0 ) then
 	
@@ -6678,19 +6678,7 @@ _begin( generateELF );
 		
 	endif;
 	
-	// Compute the offset of the optional code relocations section:
-	 
-	if( numCodeRelocs <> 0 ) then
-	
-		mov( edx, relCodeOffset );
-		intmul( @size( Elf32_Rel ), numCodeRelocs, eax );
-		add( eax, edx );
-		add( 15, edx );
-		and( $FFFF_FFF0, edx );
-				
-	endif;
-	
-	// Compute the offset of the optional data section:
+	// Compute the offset of the data section:
 	 
 	if( dataSize <> 0 ) then
 	
@@ -6704,6 +6692,18 @@ _begin( generateELF );
 		mov( shstrTabOffset, eax );
 		mov( eax, dataOffset );
 		
+	endif;
+	
+	// Compute the offset of the optional code relocations section:
+	 
+	if( numCodeRelocs <> 0 ) then
+	
+		mov( edx, relCodeOffset );
+		intmul( @size( Elf32_Rel ), numCodeRelocs, eax );
+		add( eax, edx );
+		add( 15, edx );
+		and( $FFFF_FFF0, edx );
+				
 	endif;
 	
 	// Compute the offset of the optional data relocations section:
@@ -6723,7 +6723,7 @@ _begin( generateELF );
 	mov( eax, ElfFile );	
 	
 	
-	// Set the bss section offset to shstrTabOffset.
+	// Set the bss section offset to shstrTabOffset (no associated section).
 	 
 	mov( shstrTabOffset, bssOffset );
 	
@@ -6903,10 +6903,18 @@ _begin( generateELF );
 	cpySection( symtabSection );
 	cpySection( strtabSection );
 	cpySection( textSection );
-	cpySection( relTextSection );
 	cpySection( dataSection );
-	cpySection( relDataSection );
 	cpySection( bssSection );
+	if( numCodeRelocs <> 0 ) then
+	
+		cpySection( relTextSection );
+		
+	endif;
+	if( numDataRelocs <> 0 ) then
+	
+		cpySection( relDataSection );
+		
+	endif;
 	
 	// Copy the section header strings table to the ELF file:
 	
@@ -6929,7 +6937,7 @@ _begin( generateELF );
 	mov( strTblOffset, ecx );
 	rep.movsb(); 	
 	
-	// Copy the code (and relocations) to the ELF file:
+	// Copy the code (if any) to the ELF file:
 	
 	if( codeSize <> 0 ) then
 	
@@ -6938,18 +6946,9 @@ _begin( generateELF );
 		mov( codeSize, ecx );
 		rep.movsb();
 		
-		if( numCodeRelocs <> 0 ) then
-		
-			align16();
-			mov( codeRelocations, esi );
-			intmul( @size( Elf32_Rel ), numCodeRelocs, ecx );
-			rep.movsb();
-			
-		endif;
-		
 	endif;
 	
-	// Copy the data (and relocations) to the ELF file:
+	// Copy the data (if any) to the ELF file:
 	
 	if( dataSize <> 0 ) then
 	
@@ -6958,16 +6957,30 @@ _begin( generateELF );
 		mov( dataSize, ecx );
 		rep.movsb();
 		
-		if( numDataRelocs <> 0 ) then
-		
-			align16();
-			mov( dataRelocations, esi );
-			intmul( @size( Elf32_Rel ), numDataRelocs, ecx );
-			rep.movsb();
-			
-		endif;
+	endif;
+	
+	// If there are any code relocations, copy them to the file:
+	
+	if( numCodeRelocs <> 0 ) then
+	
+		align16();
+		mov( codeRelocations, esi );
+		intmul( @size( Elf32_Rel ), numCodeRelocs, ecx );
+		rep.movsb();
 		
 	endif;
+		
+	// If there are any data relocations, copy them to the file:
+	
+	if( numDataRelocs <> 0 ) then
+	
+		align16();
+		mov( dataRelocations, esi );
+		intmul( @size( Elf32_Rel ), numDataRelocs, ecx );
+		rep.movsb();
+		
+	endif;
+		
 		
 	
 
