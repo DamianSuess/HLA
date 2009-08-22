@@ -16,6 +16,7 @@ label QuitMain; @external( "QuitMain__hla_" );
 
 const
 	coffSymEBX		:text := "(type w.IMAGE_SYMBOL [ebx])";
+	elfSymEAX		:text := "(type Elf32_Sym [eax])";
 	elfSymEBX		:text := "(type Elf32_Sym [ebx])";
 	 
 type
@@ -3313,37 +3314,43 @@ _begin( addELFsym );
 	
 	add( ELFsyms, ebx );
 	
-	// We have to create a strings table entry and copy the name there:
+	// We have to create a strings table entry and copy the name there.
+	// Note that NULL is passed as the name for .text, .data, and .bss
+	// section names.
 	 
+	xor( edx, edx );		// Use NULL as the symbol offset if theName=NULL.
 	mov( theName, esi );
-	str.length( esi );
-	mov( eax, ecx );
-	mov( strTblOffset, edx );
-	lea( eax, [edx+ecx+1] );	// New "end of string table" value.
-	mov( eax, strTblOffset );
+	if( esi <> NULL ) then
 	
-	// See if there is room for the new string in the table.
-	
-	if( eax > strTblSize ) then
-	
-		// Must allocate more storage for the strings table:
+		str.length( esi );
+		mov( eax, ecx );
+		mov( strTblOffset, edx );
+		lea( eax, [edx+ecx+1] );	// New "end of string table" value.
+		mov( eax, strTblOffset );
 		
-		push( eax );
-		shl( 1, strTblSize );	// Double existing size
-		mem.realloc( stringTable, strTblSize );
-		mov( eax, stringTable );
-		pop( eax );
+		// See if there is room for the new string in the table.
+		
+		if( eax > strTblSize ) then
+		
+			// Must allocate more storage for the strings table:
+			
+			shl( 1, strTblSize );	// Double existing size
+			mem.realloc( stringTable, strTblSize );
+			mov( eax, stringTable );
+			
+		endif;
+			
+		mov( edx, edi );
+		add( stringTable, edi );
+		rep.movsb();
+
+		// Must zero-terminate the name in the strings table:
+		
+		mov( 0, (type byte [edi]));
+			
 		
 	endif;
-		
-	mov( edx, edi );
-	add( stringTable, edi );
-	rep.movsb();
 	
-	// Must zero-terminate the name in the strings table:
-	
-	mov( 0, (type byte [edi]));
-			
 	// Must have the offset into the string table in the symbol table entry:
 	
 	mov( edx, elfSymEBX.st_name );
@@ -5959,6 +5966,8 @@ _end( generateCOFF );
 // +------------------------------+
 // |  ELF File Header             |    Elf32_Ehdr
 // +------------------------------+
+//  Section Header Table:
+// +------------------------------+
 // |  0: NULL Section Header      |    Elf32_Shdr
 // +------------------------------+
 // |  1: .shstrtab Section Header |    Elf32_Shdr
@@ -5967,18 +5976,15 @@ _end( generateCOFF );
 // +------------------------------+
 // |  3: .strtab Section Header   |    Elf32_Shdr
 // +------------------------------+
-//     The following section
-//     headers are optional
+// |  4: .text Section Header     |    Elf32_Shdr
 // +------------------------------+
-// |  x: .text Section Header     |    Elf32_Shdr
+// |  5: .data Section Header     |    Elf32_Shdr
 // +------------------------------+
-// |  x: .rel.text Section Header |    Elf32_Shdr
+// |  6: .bss Section Header      |    Elf32_Shdr
 // +------------------------------+
-// |  x: .data Section Header     |    Elf32_Shdr
+// |  x: .rel.text Section Header |    Elf32_Shdr (optional)
 // +------------------------------+
-// |  x: .rel.data Section Header |    Elf32_Shdr
-// +------------------------------+
-// |  x: .bss Section Header      |    Elf32_Shdr
+// |  x: .rel.data Section Header |    Elf32_Shdr (optional)
 // +------------------------------+
 //
 // +------------------------------+
@@ -6012,8 +6018,6 @@ _proc( generateELF )
 	brand			:obj_t
 );
 
-		
-		
 		
 var
 	numSections			:dword;
@@ -6117,22 +6121,6 @@ static
 				0	// entSize	
 			];
 	
-	relTextSection	:Elf32_Shdr :=
-			Elf32_Shdr:
-			[
-				0,					// ".rel.text" in string table -- TBD
-				SHT_REL,
-				0,					// Flags
-				0,					// Address
-				0,					// Offset - TBD
-				0,					// Size   - TBD
-				2,					// Link - symtab section header
-				4,					// Info - text section header
-				4,					// Align
-				@size( Elf32_Rel )	// entSize	
-			];
-			
-
 	dataSection		:Elf32_Shdr :=
 			Elf32_Shdr:
 			[
@@ -6146,22 +6134,6 @@ static
 				0,	// Info
 				4,	// Align
 				0	// entSize	
-			];
-			
-
-	relDataSection	:Elf32_Shdr :=			
-			Elf32_Shdr:
-			[
-				0,					// ".rel.data" in strings table -- TBD
-				SHT_REL,
-				0,					// Flags
-				0,					// Address
-				0,					// Offset - TBD
-				0,					// Size   - TBD
-				2,					// Link - symtab section header
-				1,					// Info - data section header (TBD)
-				4,					// Align
-				@size( Elf32_Rel )	// entSize	
 			];
 			
 
@@ -6179,6 +6151,39 @@ static
 				4,					// Align
 				0					// entSize	
 			];
+
+
+	relTextSection	:Elf32_Shdr :=
+			Elf32_Shdr:
+			[
+				0,					// ".rel.text" in string table -- TBD
+				SHT_REL,
+				0,					// Flags
+				0,					// Address
+				0,					// Offset - TBD
+				0,					// Size   - TBD
+				2,					// Link - symtab section header
+				4,					// Info - text section header
+				4,					// Align
+				@size( Elf32_Rel )	// entSize	
+			];
+			
+
+	relDataSection	:Elf32_Shdr :=			
+			Elf32_Shdr:
+			[
+				0,					// ".rel.data" in strings table -- TBD
+				SHT_REL,
+				0,					// Flags
+				0,					// Address
+				0,					// Offset - TBD
+				0,					// Size   - TBD
+				2,					// Link - symtab section header
+				6,					// Info - data section header
+				4,					// Align
+				@size( Elf32_Rel )	// entSize	
+			];
+			
 			
 	
 		
@@ -6205,19 +6210,21 @@ _begin( generateELF );
 	
 	
 	
-	// Compute the # of sections:
-	//
-	// maximum of 9 sections:
+	// There are at least sections:
 	//
 	//	0	:null		
 	//	1	:.shstrtab	
 	//	2	:.symtab	
 	//	3	:.strtab	
 	//	4	:.text		
-	//	5	:.rel.text	
-	//	6	:.data		
+	//	5	:.data		
+	//	6	:.bss
+	//
+	// Plus the following two optional sections which are present if there
+	// are any code or data relocations:
+	//		
+	//	6	:.rel.text	
 	//	7	:.rel.data	
-	//	8	:.bss		
 	
 	// Construct the shstrtab data section.
 	// Begin by allocating the maximum amount of storage we'll need
@@ -6240,8 +6247,8 @@ _begin( generateELF );
 	// Fill in the section header string table
 	
 	mov( 4, shst_textIndex );
-	mov( 6, shst_dataIndex );
-	mov( 8, shst_bssIndex );
+	mov( 5, shst_dataIndex );
+	mov( 6, shst_bssIndex );
 	
 	lea( edi, [eax+1] );			// Leave an empty string at offset 0.
 	mov( 1, shstrtabSection.sh_name );
@@ -6275,32 +6282,12 @@ _begin( generateELF );
 	zstr.cpy( ".text", edi );
 	lea( edi, [edi+eax+1] );
 	
-	// Set up the rel.text section:
-	
-	
-	mov( ebx, relTextSection.sh_name );
-	add( @length( ".rel.text" ) + 1, ebx );
-
-	zstr.cpy( ".rel.text", edi );
-	lea( edi, [edi+eax+1] );
-	
-	
 	// Set up the data section:
 	
 	mov( ebx, dataSection.sh_name );
 	add( @length( ".data" ) + 1, ebx );
 	
 	zstr.cpy( ".data", edi );
-	lea( edi, [edi+eax+1] );
-	
-	
-	// Set up the rel.data section:
-		
-		
-	mov( ebx, relDataSection.sh_name );
-	add( @length( ".rel.data" ) + 1, ebx );
-	
-	zstr.cpy( ".rel.data", edi );
 	lea( edi, [edi+eax+1] );
 		
 	
@@ -6315,13 +6302,51 @@ _begin( generateELF );
 	
 	
 	
-	mov( 9, numSections );
+	// Although the rel.text and rel.data sections are
+	// optional, we will always add their names to the
+	// section header string table (it's okay if there
+	// is extra data in the table, so we will put it 
+	// there just be consistent).
+	//
+	// Set up the rel.text section:
+	
+	mov( ebx, relTextSection.sh_name );
+	add( @length( ".rel.text" ) + 1, ebx );
+
+	zstr.cpy( ".rel.text", edi );
+	lea( edi, [edi+eax+1] );
+	
+	
+	// Set up the rel.data section:
+		
+		
+	mov( ebx, relDataSection.sh_name );
+	add( @length( ".rel.data" ) + 1, ebx );
+	
+	zstr.cpy( ".rel.data", edi );
+	lea( edi, [edi+eax+1] );
+	
+	
+	// Save the section header string table size:
+	
 	mov( ebx, shstrtabSize );
 	
 	
 	// Set the size of the section header table:
 	
-	mov( @size( Elf32_Shdr )*9, shSize );	
+	mov( 7, numSections );
+	if( numCodeRelocs <> 0 ) then
+	
+		add( 1, numSections );
+		
+	endif;
+	if( numDataRelocs <> 0 ) then
+	
+		add( 1, numSections );
+		
+	endif;
+	intmul( @size( Elf32_Shdr ), numSections, eax );
+	mov( eax, shSize );	
 	
 		 
 	
@@ -6341,12 +6366,49 @@ _begin( generateELF );
 	mov( eax, ELFsyms );
 	mov( eax, ebx );
 	mov( 65536 * @size( Elf32_Sym ), elfSymSize );
-	mov( 0, numELFsyms );
+	mov( 1, numELFsyms );	// Must have one dummy entry.
 	
 	// Copy all the symbols from the generic symbol table to
-	// the ELF symbol table.  We have to emit the local symbols
-	// first and then the global symbols.
-	//
+	// the ELF symbol table.  We have to emit the section
+	// names first, the local symbols second, and then the 
+	// global symbols last.
+	
+	// Emit the section names:
+	
+	addELFsym
+	(
+		NULL,						// This will be .text
+		0,
+		0,							// Size -- no known size
+		STT_SECTION,				// Binding << 4 | Type.
+		(type word shst_textIndex),	// Section number
+		STV_DEFAULT					// Visibility
+	);
+	add( 1, numELFsyms );
+	
+	addELFsym
+	(
+		NULL,						// This will be .data
+		0,
+		0,							// Size -- no known size
+		STT_SECTION,				// Binding << 4 | Type.
+		(type word shst_dataIndex),	// Section number
+		STV_DEFAULT					// Visibility
+	);
+	add( 1, numELFsyms );
+	
+	addELFsym
+	(
+		NULL,						// This will be .bss
+		0,
+		0,							// Size -- no known size
+		STT_SECTION,				// Binding << 4 | Type.
+		(type word shst_bssIndex),	// Section number
+		STV_DEFAULT					// Visibility
+	);
+	add( 1, numELFsyms );
+	
+	
 	// Emit the local symbols:
 	
 	foreach symbolTable.item() do
@@ -6387,15 +6449,14 @@ _begin( generateELF );
 			test( isPublic_c, symEBX.flags );
 			if( @z ) then	// Standard symbol
 			
-				mov( (STB_LOCAL << 4) | STT_NOTYPE, al );
 				addELFsym
 				(
-					(type tableNode_t [edx]).id,
-					edi,
-					0,			// Size -- no known size
-					al,			// Binding << 4 | Type.
-					cx,			// Section number
-					STV_DEFAULT	// Visibility
+					(type tableNode_t [edx]).id,	// Name
+					edi,							// Offset
+					0,								// Size -- no known size
+					(STB_LOCAL << 4) | STT_NOTYPE,	// Binding << 4 | Type.
+					cx,								// Section number
+					STV_DEFAULT						// Visibility
 				);
 				
 				// Save index to this ELF symbol table entry so
@@ -6508,10 +6569,10 @@ _begin( generateELF );
 	// If there is a code segment, generate the raw data for that code
 	// section and the corresponding code relocations:
 	
-	// Allocate storage for the raw code:
-	
 	mov( codeSize, eax );
 	if( eax <> 0 ) then
+	
+		// Allocate storage for the raw code:
 	
 		mem.alloc( eax );
 		mov( eax, rawCode );
@@ -6522,6 +6583,7 @@ _begin( generateELF );
 		add( @size(Elf32_Rel), eax );	// Just in case numCodeRelocs is 0.
 		mem.alloc( eax );
 		mov( eax, codeRelocations ); 
+
 
 		// Build the raw code and code relocations data:
 		
@@ -6540,10 +6602,10 @@ _begin( generateELF );
 	// If there is a data section, allocate storage for it (and the data
 	// relocations section, if there are any data relocations):
 	
-	// Allocate storage for the data, if any:
-	
 	mov( dataSize, eax );
 	if( eax <> 0 ) then
+	
+		// Allocate storage for the data, if any:
 	
 		mem.alloc( eax );
 		mov( eax, rawData );
@@ -6625,12 +6687,7 @@ _begin( generateELF );
 		add( eax, edx );
 		add( 15, edx );
 		and( $FFFF_FFF0, edx );
-		
-	else	// No code relocations, must set relCodeOffset to shstrTabOffset
-	
-		mov( shstrTabOffset, eax );
-		mov( eax, relCodeOffset );
-		
+				
 	endif;
 	
 	// Compute the offset of the optional data section:
@@ -6656,12 +6713,7 @@ _begin( generateELF );
 		mov( edx, relDataOffset );
 		intmul( @size( Elf32_Rel ), numDataRelocs, eax );
 		add( eax, edx );
-		
-	else	// No data relocations, must set relDataOffset to shstrTabOffset
-	
-		mov( shstrTabOffset, eax );
-		mov( eax, relDataOffset );
-		
+				
 	endif;
 	
 	// EDX now contains the ELF file size.
@@ -6671,16 +6723,9 @@ _begin( generateELF );
 	mov( eax, ElfFile );	
 	
 	
-	// If the bss section has no data, we must point the offset
-	// at shstrTabOffset, otherwise we leave it at zero.
+	// Set the bss section offset to shstrTabOffset.
 	 
-	mov( 0, bssOffset );
-	if( bssSize = 0 ) then
-		
-		mov( shstrTabOffset, eax );
-		mov( eax, bssOffset );
-		
-	endif;
+	mov( shstrTabOffset, bssOffset );
 	
 	
 	
@@ -6727,7 +6772,11 @@ _begin( generateELF );
 	
 	if( brand = elfLinux_c ) then
 	
-		mov( ELFOSABI_LINUX, (type byte [ebx+EI_OSABI]));
+		//mov( ELFOSABI_LINUX, (type byte [ebx+EI_OSABI]));
+		
+		// Linux puts zero in this byte, even though it should really be 3:
+		
+		mov( 0, (type byte [ebx+EI_OSABI]));
 		
 	elseif( brand = elfFreeBSD_c ) then
 	
@@ -6771,14 +6820,6 @@ _begin( generateELF );
 	mov( codeSize, eax );
 	mov( eax, textSection.sh_size );
 
-	// Finish the section header for the .rel.text section.
-	// (Link and Info are fixed and don't need to be assigned here):
-	
-	mov( relCodeOffset, eax );
-	mov( eax, relTextSection.sh_offset );
-	intmul( @size( Elf32_Rel ), numCodeRelocs, eax );
-	mov( eax, relTextSection.sh_size );
-	
 	// Finish the section header for the .data section:
 	
 	mov( dataOffset, eax );
@@ -6786,15 +6827,6 @@ _begin( generateELF );
 	mov( dataSize, eax );
 	mov( eax, dataSection.sh_size );
 
-	// Finish the section header for the .rel.data section.
-	
-	mov( relDataOffset, eax );
-	mov( eax, relDataSection.sh_offset );
-	intmul( @size( Elf32_Rel ), numDataRelocs, eax );
-	mov( eax, relDataSection.sh_size );
-	mov( shst_dataIndex, eax );
-	mov( eax, relDataSection.sh_info );
-	
 	// Finish the section header for the .bss section:
 	
 	mov( bssSize, eax );
@@ -6802,6 +6834,33 @@ _begin( generateELF );
 	mov( bssOffset, eax );
 	mov( eax, bssSection.sh_offset );
 
+	// Finish the section header for the .rel.text section.
+	// (Link and Info are fixed and don't need to be assigned here):
+	
+	if( numCodeRelocs <> 0 ) then
+	
+		mov( relCodeOffset, eax );
+		mov( eax, relTextSection.sh_offset );
+		intmul( @size( Elf32_Rel ), numCodeRelocs, eax );
+		mov( eax, relTextSection.sh_size );
+		mov( shst_textIndex, eax );
+		mov( eax, relTextSection.sh_info );
+		
+	endif;
+	
+	// Finish the section header for the .rel.data section.
+	
+	if( numDataRelocs <> 0 ) then
+	
+		mov( relDataOffset, eax );
+		mov( eax, relDataSection.sh_offset );
+		intmul( @size( Elf32_Rel ), numDataRelocs, eax );
+		mov( eax, relDataSection.sh_size );
+		mov( shst_dataIndex, eax );
+		mov( eax, relDataSection.sh_info );
+		
+	endif;
+	
 
 
 	////////////////////////////////////////////////////////////////////////////
