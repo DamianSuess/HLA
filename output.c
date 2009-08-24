@@ -2911,9 +2911,19 @@ _begin( EndProc )
 			
 		_endcase
 		
+		_case( hlabe )
+		
+			asmPrintf
+			(
+				".f %s\n"
+				"\n",
+				ProcName
+			);
+			
+		_endcase
+
 		_case( nasm )
 		_case( fasm )
-		_case( hlabe )
 		
 			asmPrintf
 			(

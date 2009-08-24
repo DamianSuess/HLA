@@ -301,8 +301,10 @@ type
 		id			:string;
 		symIndex	:uns32;				// index to symbol table entry
 		offset		:dword;
+		size		:uns32;
 		section		:section_t;
 		flags		:byte;
+		isFunc		:boolean;
 		align(4);
 			
 	endrecord;
@@ -315,6 +317,7 @@ type
 		bytes_tkn,				// Any absolute data
 		
 		label_tkn,				// :label definition
+		endfunc_tkn,			// .f label
 		
 		reloc_tkn,				// Relocatable expression
 		
@@ -352,6 +355,15 @@ type
 	// ":lbldef" creates this record:
 	
 	labelStmt_t	:record inherits( tokenStmt_t );
+	
+		symTabEntry	:tableNodePtr_t;
+		
+	endrecord;
+	
+	
+	// ".f label" creates this record:
+	
+	endFuncStmt_t	:record inherits( tokenStmt_t );
 	
 		symTabEntry	:tableNodePtr_t;
 		

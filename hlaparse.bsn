@@ -21,6 +21,7 @@
 #define YYINITDEPTH 16384
 #define YYMAXDEPTH 65536
 #define _STDLIB_H
+#define YYMALLOC malloc2
 
 #define MAX_PATH 1023
 
@@ -98394,7 +98395,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = (struct	SymNode	*) malloc( sizeof( struct SymNode ));
+			s = (struct	SymNode	*) malloc2( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98485,7 +98486,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc2( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98577,7 +98578,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc2( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98673,7 +98674,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc2( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98744,7 +98745,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc2( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98816,7 +98817,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc2( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98890,7 +98891,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc2( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 
@@ -98965,7 +98966,7 @@ SimpleMemoryVar:
 			// the TYPE field to Sym's type without affecting the original
 			// symbol's definition.
 			
-			s = (struct SymNode *) malloc( sizeof( struct SymNode ));
+			s = (struct SymNode *) malloc2( sizeof( struct SymNode ));
 			memcpy
 			( 
 				s, 

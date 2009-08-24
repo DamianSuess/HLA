@@ -207,6 +207,7 @@ _end( printLineNumberChain );
 // .c							Code section
 // .d	<dlist>					Dword data (includes relocatable)	
 // .e	l1, l2					Equate
+// .f	l						End of function
 // .l	<llist>					Lword data
 // .o	<string>				sOurce file name
 // .p	l						Public symbol
@@ -398,6 +399,11 @@ _end( printLineNumberChain );
 // possible (i.e., this is not a generalized macro facility).
 //
 //
+// .f lbl
+//
+//	Marks the end of a function. When generating ELF code, this will
+// change the symbol type (of the corresponding label) in the symbol
+// table and set the length of the function.
 //
 //
 // In addition to the above statements, an HLABE program may also contain
@@ -423,9 +429,6 @@ _end( printLineNumberChain );
 // should parse this information and display it if there is an error
 // compiling the statement (e.g., branch out of range).  Line numbers are always
 // unsigned decimal integers.
-//
-// The ".f" statement also requires the above comment so HLABE can emit an
-// appropriate error message if the value will not fit into a signed 8-bit value.
 //
 // Note that call and jmp statements only appear in a source file for
 // relative jumps and calls. Those that do indirect jumps or calls must be
@@ -2091,6 +2094,48 @@ _begin( lexer );
 					endif;
 			
 
+					
+				
+
+
+				case( 'f' )	// end Function statement
+				
+				    add( 1, ebx );			// Skip over ".f"
+				    skipSpaces2();
+					grabID( identifier );
+					symbolTable.getNode( identifier );
+					if( (type tableNode_t [eax]).Value <> NULL ) then
+					
+					    // Emit an ENDFUNCTION record. Used by
+						// ELF code emission to set the function's
+						// length and change the type to FUNC.
+						
+						mov( eax, edx );    // Save ptr to symbol table node.			
+						mem.alloc( @size( endFuncStmt_t ));
+						mov( endfunc_tkn, (type endFuncStmt_t [eax]).token ); 			
+						mov( edx, (type endFuncStmt_t [eax]).symTabEntry );
+						mov( tknListTail, ecx );
+						mov( ecx, (type endFuncStmt_t [eax]).prev );
+						mov( NULL, (type endFuncStmt_t [eax]).next );
+						mov( eax, (type tokenStmt_t [ecx]).next );
+						mov( eax, tknListTail );
+						
+												
+					else    // Symbol is not defined
+					
+					    stderr.put
+						( 
+						    "End Function symbol must be predefined "
+							"at line ",
+							lineNumber, 
+							nl 
+						);
+						raise( ex.InvalidArgument );
+						
+					endif;
+                    skipToEoln();
+
+
 				case( 'l' )	// Lword data
 				
 					add( 1, ebx );						// skip ".w"
@@ -2595,6 +2640,8 @@ _begin( lexer );
 				mov( edx, symEAX.id );
 				mov( currentSection, dl );
 				mov( dl, symEAX.section );
+				mov( false, symEAX.isFunc ); 			
+				mov( 0, symEAX.size ); 			
 				
 				mov( ecx, eax );
 				
@@ -2637,6 +2684,8 @@ _begin( lexer );
 				
 				mov( currentSection, dl );
 				mov( dl, (type symbol_t [ecx]).section );
+				mov( false, (type symbol_t [ecx]).isFunc ); 			
+				mov( 0, (type symbol_t [ecx]).size ); 			
 						
 				
 				
@@ -4109,6 +4158,7 @@ var
 						start_tkn,
 						public_tkn,
 						extern_tkn,
+						endfunc_tkn,
 						dummy_tkn
 					)
 					
@@ -4166,7 +4216,7 @@ var
 						mov( ecx, symEAX.offset );
 						mov( currentSection, dl );
 						mov( dl, symEAX.section );
-						
+
 						
 						
 					case( reserve_tkn )
@@ -4482,6 +4532,7 @@ var
 						start_tkn,
 						public_tkn,
 						extern_tkn,
+						endfunc_tkn,
 						label_tkn
 					)
 						// Ignore these tokens.
@@ -4822,6 +4873,24 @@ var
 					)
 						// Ignore these tokens on the cleanup pass.
 							
+							
+					case( endfunc_tkn )
+					
+						mov( (type endFuncStmt_t [ebx]).symTabEntry, edx );
+						mov( (type tableNode_t [edx]).Value, eax );
+						
+						// Tell the ELF code generator that this is a
+						// function:
+						
+						mov( true, symEAX.isFunc );
+						
+						// Compute the size of the function:
+						
+						mov( (type endFuncStmt_t [ebx]).instrOffset, ecx );
+						sub( symEAX.offset, ecx );
+						mov( ecx, symEAX.size );
+						
+					
 					case( label_tkn )	 
 					
 						// For labels, make sure they are defined
@@ -6449,15 +6518,31 @@ _begin( generateELF );
 			test( isPublic_c, symEBX.flags );
 			if( @z ) then	// Standard symbol
 			
-				addELFsym
-				(
-					(type tableNode_t [edx]).id,	// Name
-					edi,							// Offset
-					0,								// Size -- no known size
-					(STB_LOCAL << 4) | STT_NOTYPE,	// Binding << 4 | Type.
-					cx,								// Section number
-					STV_DEFAULT						// Visibility
-				);
+				if( symEBX.isFunc ) then
+				
+					addELFsym
+					(
+						(type tableNode_t [edx]).id,	// Name
+						edi,							// Offset
+						symEBX.size,					// Size
+						(STB_LOCAL << 4) | STT_FUNC,	// Binding << 4 | Type.
+						cx,								// Section number
+						STV_DEFAULT						// Visibility
+					);
+
+				else
+				
+					addELFsym
+					(
+						(type tableNode_t [edx]).id,	// Name
+						edi,							// Offset
+						0,								// Size -- no known size
+						(STB_LOCAL << 4) | STT_NOTYPE,	// Binding << 4 | Type.
+						cx,								// Section number
+						STV_DEFAULT						// Visibility
+					);
+					
+				endif;
 				
 				// Save index to this ELF symbol table entry so
 				// we can quickly find it when generating all the reloc data.
@@ -6507,10 +6592,10 @@ _begin( generateELF );
 		endif;
 		
 		
+		push( esi );
+		
 		// Get the offset value for this symbol:
 		
-		mov( symEBX.offset, edi );
-
 		test( isExtern_c, symEBX.flags );
 		if( @nz ) then
 		
@@ -6518,7 +6603,15 @@ _begin( generateELF );
 			// STB_GLOBAL, a section number
 			// of zero, and an offset of zero.
 			
-			mov( (STB_GLOBAL << 4) | STT_NOTYPE, al );
+			if( symEBX.isFunc ) then
+			
+				mov( (STB_GLOBAL << 4) | STT_FUNC, al );
+				
+			else
+			
+				mov( (STB_GLOBAL << 4) | STT_NOTYPE, al );
+				
+			endif;
 			xor( ecx, ecx );
 			xor( edi, edi );
 			
@@ -6543,12 +6636,12 @@ _begin( generateELF );
 		endif; 
 		addELFsym
 		(
-			(type tableNode_t [edx]).id,
-			edi,
-			0,			// Size -- no known size
-			al,			// Binding << 4 | Type.
-			cx,			// Section number
-			STV_DEFAULT	// Visibility
+			(type tableNode_t [edx]).id,	// Name
+			edi,							// Offset
+			symEBX.size,					// Size
+			al,								// Binding << 4 | Type.
+			cx,								// Section number
+			STV_DEFAULT						// Visibility
 		);
 		
 		// Save index to this ELF symbol table entry so
