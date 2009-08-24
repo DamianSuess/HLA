@@ -2255,35 +2255,20 @@ _begin( SkeletalOutput )
 		
 		_case( fasm )
 			
-			_if( targetOS == windows_os )
 							  
-				asmPrintf
-				( 
-					"; Assembly code emitted by HLA compiler\n"
-					"; %s\n"
-					"; HLA compiler written by Randall Hyde\n"
-					"; FASM compatible output\n"
-					"\n"
-					"  format MS COFF\n"
-					"\n"
-					"ExceptionPtr" sympost " equ fs:0\n",
-					VersionInformation
-				);
+			asmPrintf
+			( 
+				"; Assembly code emitted by HLA compiler\n"
+				"; %s\n"
+				"; HLA compiler written by Randall Hyde\n"
+				"; FASM compatible output\n"
+				"\n"
+				"  format MS COFF\n"
+				"\n"
+				"ExceptionPtr" sympost " equ fs:0\n",
+				VersionInformation
+			);
 				
-			_else
-			
-				asmPrintf
-				( 
-					"; Assembly code emitted by HLA compiler\n"
-					"; %s\n"
-					"; HLA compiler written by Randall Hyde\n"
-					"; FASM compatible output\n"
-					"\n"
-					"  format ELF\n",
-					VersionInformation
-				);
-			
-			_endif
 			asmPuts
 			(
 				"\n"
@@ -2386,15 +2371,32 @@ _begin( SkeletalOutput )
 			// For Linux/BSD/MacOS, we need an external declaration for
 			// the ExceptionPtr$ variable:
 			
-			EmitImmExtern( ExceptionPtr, tDWord ); 
-			EmitImmExtern( "shortDfltExcept" sympost, tLabel ); 
+			EmitImmExtern( "shortDfltExcept" sympost, tLabel );
+			
+			_if( need_ExceptionPtr )
+			
+				EmitImmExtern( ExceptionPtr, tDWord ); 
+			
+			_endif 
 			
 	
 			// Try statements and the like need these external declarations:
 		
-			EmitImmExtern( "_HLA_PUSH_EXCEPTIONPTR", tLabel );
-			EmitImmExtern( "_HLA_SET_EXCEPTIONPTR", tLabel );
-			EmitImmExtern( "_HLA_GET_EXCEPTIONPTREBP", tLabel );
+			_if( need_HLA_PUSH_EXCEPTIONPTR )
+			
+				EmitImmExtern( "_HLA_PUSH_EXCEPTIONPTR", tLabel );
+				
+			_endif
+			_if( need_HLA_SET_EXCEPTIONPTR )
+			
+				EmitImmExtern( "_HLA_SET_EXCEPTIONPTR", tLabel );
+				
+			_endif
+			_if( need_HLA_GET_EXCEPTIONPTREBP )
+			
+				EmitImmExtern( "_HLA_GET_EXCEPTIONPTREBP", tLabel );
+				
+			_endif
 		
 		_endif	
 		asmPuts( "\n\n\n" );

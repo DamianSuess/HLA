@@ -398,6 +398,18 @@ int fastLookup	  = 0;
 int	parmLookup = 0;
 
 
+/*
+** Variables that track the need for calls to the push_exceptionptr,
+** Set_exceptionptr, and _HLA_GET_EXCEPTIONPTREBP function calls and
+** usage of the ExceptionPtr variable (for external emission).
+*/
+
+int	need_ExceptionPtr				= 0;
+int	need_HLA_PUSH_EXCEPTIONPTR		= 0;
+int	need_HLA_SET_EXCEPTIONPTR		= 0; 
+int	need_HLA_GET_EXCEPTIONPTREBP	= 0; 
+
+
 
 /*
 ** SegmentList- Points at a list of strings containing
@@ -90951,11 +90963,13 @@ StartTry:
 				_if( threadSafe )
 				
 					EmitCallLabel( "_HLA_GET_EXCEPTIONPTREBP" );
+					need_HLA_GET_EXCEPTIONPTREBP = 1;
 				
 				_else
 				
 					initLbl( &adrs, ExceptionPtr, 0 );
 					EmitMov_m_r( &adrs, reg_ebp, 4 );
+					need_ExceptionPtr = 1;
 					
 				_endif
 				
@@ -90990,6 +91004,8 @@ StartTry:
 					push_r( reg_eax );
 					EmitCallLabel( "_HLA_SET_EXCEPTIONPTR" );
 					pop_r( reg_eax );
+					need_HLA_PUSH_EXCEPTIONPTR = 1;
+					need_HLA_SET_EXCEPTIONPTR  = 1;
 				
 				_else
 				
@@ -90997,6 +91013,7 @@ StartTry:
 					initLbl( &adrs, ExceptionPtr, 0 );
 					push_mem( &adrs, 4 );
 					EmitMov_r_m( reg_esp, &adrs, 4 );
+					need_ExceptionPtr = 1;
 					
 				_endif 			
 
@@ -91032,6 +91049,8 @@ PopExcepts:
 					EmitGeneric_c_r( add_instr, 8, reg_esp );
 					pop_r( reg_ebp );
 					EmitGeneric_c_r( add_instr, 4, reg_esp );
+					need_HLA_GET_EXCEPTIONPTREBP = 1;
+					need_HLA_SET_EXCEPTIONPTR    = 1;
 					
 				_else
 				
@@ -91041,6 +91060,7 @@ PopExcepts:
 					EmitGeneric_c_r( add_instr, 8, reg_esp );
 					pop_r( reg_ebp );
 					EmitGeneric_c_r( add_instr, 4, reg_esp );
+					need_ExceptionPtr = 1;
 					
 				_endif
 
