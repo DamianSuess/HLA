@@ -2372,31 +2372,26 @@ _begin( SkeletalOutput )
 			// the ExceptionPtr$ variable:
 			
 			EmitImmExtern( "shortDfltExcept" sympost, tLabel );
-			
-			_if( need_ExceptionPtr )
-			
-				EmitImmExtern( ExceptionPtr, tDWord ); 
-			
-			_endif 
+			EmitImmExtern( ExceptionPtr, tDWord ); 
 			
 	
 			// Try statements and the like need these external declarations:
 		
-			_if( need_HLA_PUSH_EXCEPTIONPTR )
+//			_if( need_HLA_PUSH_EXCEPTIONPTR )
 			
 				EmitImmExtern( "_HLA_PUSH_EXCEPTIONPTR", tLabel );
 				
-			_endif
-			_if( need_HLA_SET_EXCEPTIONPTR )
+//			_endif
+//			_if( need_HLA_SET_EXCEPTIONPTR )
 			
 				EmitImmExtern( "_HLA_SET_EXCEPTIONPTR", tLabel );
 				
-			_endif
-			_if( need_HLA_GET_EXCEPTIONPTREBP )
+//			_endif
+//			_if( need_HLA_GET_EXCEPTIONPTREBP )
 			
 				EmitImmExtern( "_HLA_GET_EXCEPTIONPTREBP", tLabel );
 				
-			_endif
+//			_endif
 		
 		_endif	
 		asmPuts( "\n\n\n" );
@@ -21480,26 +21475,48 @@ _begin( BeginMain )
 		_elseif( assembler == hlabe )
 		
 			startDseg();
-			asmPuts
-			(
-				"\n" 
-				hlabe_static "\n"
-				hlabe_public "__progname\n"
-				hlabe_public "environ\n"
-				hlabe_public "_envp" sympost "\n"
-				hlabe_public "_argc" sympost "\n"
-				hlabe_public "_argv" sympost "\n"
-				":_argc" sympost "\n"
-				hlabe_dword "$0\n"
-				":_argv" sympost "\n"
-				hlabe_dword "$0\n"
-				":environ\n"
-				":_envp" sympost "\n"
-				hlabe_dword "$0\n"
-				":__progname\n"
-				hlabe_dword "$0\n"
-				"\n"
-			);
+			_if( targetOS == freeBSD_os )
+			
+				asmPuts
+				(
+					"\n" 
+					hlabe_static "\n"
+					hlabe_public "__progname\n"
+					hlabe_public "environ\n"
+					hlabe_public "_envp" sympost "\n"
+					hlabe_public "_argc" sympost "\n"
+					hlabe_public "_argv" sympost "\n"
+					":_argc" sympost "\n"
+					hlabe_dword "$0\n"
+					":_argv" sympost "\n"
+					hlabe_dword "$0\n"
+					":environ\n"
+					":_envp" sympost "\n"
+					hlabe_dword "$0\n"
+					":__progname\n"
+					hlabe_dword "$0\n"
+					"\n"
+				);
+				
+			_else
+			
+				asmPuts
+				(
+					"\n" 
+					hlabe_static "\n"
+					hlabe_public "_envp" sympost "\n"
+					hlabe_public "_argc" sympost "\n"
+					hlabe_public "_argv" sympost "\n"
+					":_argc" sympost "\n"
+					hlabe_dword "$0\n"
+					":_argv" sympost "\n"
+					hlabe_dword "$0\n"
+					":_envp" sympost "\n"
+					hlabe_dword "$0\n"
+					"\n"
+				);
+				
+			_endif
 			endDseg();
 			
 		_else
