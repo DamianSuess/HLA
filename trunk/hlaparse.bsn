@@ -103584,7 +103584,6 @@ _begin( main )
 			strcat( LinkName , ".link" );
 			
 		_endif
-		
 	}
 
 

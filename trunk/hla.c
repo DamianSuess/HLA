@@ -151,6 +151,17 @@ FILE *MsgOut;
 	
 #endif
 
+
+// MAX_PATH is defined under Windows only, define it for other OSes:
+
+#ifndef MAX_PATH
+
+	#define MAX_PATH 1024
+	
+#endif
+
+
+
 // sourceOutput -
 //	Controls whether the output is a (mostly) human-readable text
 // file (1) or just a bunch of hexadecimal values encoding the instructions (0).
@@ -395,9 +406,8 @@ _begin( Help )
 
 	char inputline[32];
 
-	fprintf
+	printf
 	(
-		MsgOut,
 		"Usage: hla options filename(s)\n"
 		"\n"
 		"HLA (High Level Assembler - %s back end, %s linker)\n"
@@ -425,10 +435,9 @@ _begin( Help )
 		linkStrs[ linker ],
 		VersionInformation
 	);
-	PressReturnToContinue();	
-	fprintf
+	printf
 	(
-		MsgOut,
+		"\n\n"
 		"Source Output Control and Compiler/Back-end output control:\n"
 		"\n"
 		"  -sourcemode Compile to source instructions (rather than hex opcodes)\n"
@@ -453,10 +462,8 @@ _begin( Help )
 		"\n"
 		
 	);
-	PressReturnToContinue();	
-	fprintf
+	printf
 	(
-		MsgOut,
 		"Executable Output Control:\n"
 		"\n"
 		"  -xf       Compile/assemble/link to executable (using FASM).\n"
@@ -472,11 +479,15 @@ _begin( Help )
 		"  -freebsd  Generate ELF file for FreeBSD OS.\n"
 		"  -macos    Generate Mach-o file for Mac OSX.\n"
 		"\n"
+		"  -fasm     Use FASM as back-end assembler.\n"
+		"  -masm     Use MASM as back-end assembler.\n"
+		"  -gas      Use GAS (Linux/BSD) as back-end assembler.\n"
+		"  -gasx     Use GAS (Mac OS X) as back-end assembler.\n"
+		"  -nasm     Use NASM as back-end assembler.\n"
+		"  -tasm     Use TASM as back-end assembler.\n"
 	);
-	PressReturnToContinue();	
-	fprintf
+	printf
 	(
-		MsgOut,
 		"Assembler and Linker Control:\n"
 		"\n"
 		"  -axxxxx   Pass xxxxx as command line parameter to assembler.\n"
@@ -495,10 +506,8 @@ _begin( Help )
 		#endif
 			
 	);
-	PressReturnToContinue();	
-	fprintf
+	printf
 	(
-		MsgOut,
 		"Temporary file control and assembly control:\n"
 		"\n"
 		"  -p:path   Use <path> as the working directory for temporary files.\n"
@@ -1165,11 +1174,6 @@ _begin( doCmdLine)
 						
 					_endif
 				
-				_elseif( targetOS == linux_os || targetOS == freeBSD_os )
-				
-					ObjFmt = elf;
-					linker = ld;
-					
 				_else
 				
 					printf( "-xf option is not valid for this OS\n" );
@@ -1313,6 +1317,108 @@ _begin( doCmdLine)
 				_else
 				
 					printf( "-xo option is invalid only under Mac OSX\n" );
+					Usage();
+					_return 1;
+				
+				_endif
+
+			
+			// Handle -FASM, -GAS, -GASX, -MASM, -NASM, and -TASM here:
+			
+			_elseif( _streq( ucArg, "FASM" ))
+			
+				SourceFmt = fasm;
+				_if( targetOS != windows_os && !SourceOnly )
+				
+					printf
+					( 
+						"-FASM option is valid only with -s or under Windows\n" 
+					);
+					Usage();
+					_return 1;
+				
+				_endif
+
+			
+			_elseif( _streq( ucArg, "GAS" ))
+			
+				SourceFmt = gas;
+				gasSyntax = stdGas;
+				_if
+				( 
+						(!targetOS == linux_os || targetOS == freeBSD_os )
+					&&	!SourceOnly 
+				)
+				
+					printf
+					( 
+						"-GAS option is valid only with -s or under Linux/FreeBSD\n" 
+					);
+					Usage();
+					_return 1;
+				
+				_endif
+
+			
+			_elseif( _streq( ucArg, "GASX" ))
+			
+				SourceFmt = gas;
+				gasSyntax = macGas;
+				_if
+				( 
+						(!targetOS == linux_os || targetOS == freeBSD_os )
+					&&	!SourceOnly 
+				)
+				
+					printf
+					( 
+						"-GAS option is valid only with -s or under Linux/FreeBSD\n" 
+					);
+					Usage();
+					_return 1;
+				
+				_endif
+
+			
+			_elseif( _streq( ucArg, "MASM" ))
+			
+				SourceFmt = masm;
+				_if( targetOS != windows_os && !SourceOnly )
+				
+					printf
+					( 
+						"-MASM option is valid only with -s or under Windows\n" 
+					);
+					Usage();
+					_return 1;
+				
+				_endif
+
+			
+			_elseif( _streq( ucArg, "NASM" ))
+			
+				SourceFmt = nasm;
+				_if( targetOS != windows_os && !SourceOnly )
+				
+					printf
+					( 
+						"-NASM option is valid only with -s or under Windows\n" 
+					);
+					Usage();
+					_return 1;
+				
+				_endif
+
+			
+			_elseif( _streq( ucArg, "TASM" ))
+			
+				SourceFmt = tasm;
+				_if( targetOS != windows_os && !SourceOnly )
+				
+					printf
+					( 
+						"-TASM option is valid only with -s or under Windows\n" 
+					);
 					Usage();
 					_return 1;
 				
@@ -1916,150 +2022,34 @@ _begin( doCmdLine)
 		
 
 		_else
-
-			#if defined( windows_c )
 			
-				int				appendPos;
-				int				pathLen;
-				int	 			length;
-				int  			sufxPosn;
-				enum sfx 		suffix;
-				WIN32_FIND_DATA	wfd;
-				HANDLE			wcIterator;
-				char			*pPath;
-				char			baseFileName[ MAX_PATH+1 ];
-				char			pathName[ MAX_PATH+1 ];
+			int	 		length;
+			int  		sufxPosn;
+			enum sfx 	suffix;
+			char		baseFileName[ MAX_PATH+16 ];
 
-				// The first step is to extract the path to the
-				// file because FindFirst* won't return the full path.
-				
-				pPath = strrchr( argv[ CurArg ], '\\' );
-				_if( pPath == NULL )
-				
-					pPath = strrchr( argv[ CurArg ], '/' );
-					
-				_endif
-				pathLen = 0;
-				appendPos = 0;
-				_if( pPath != NULL )
-				
-					pathLen = pPath - argv[ CurArg ];
-					pathLen = _ifx(pathLen < MAX_PATH, pathLen, MAX_PATH );
-					strncpy( pathName, argv[ CurArg ], pathLen );
-					appendPos = pathLen + 1;
-					
-				_endif 
-				pathName[ pathLen ] = '\0';
-				
-				
-				// Now, tack on a ".hla" if the filename does
-				// not have a recognized suffix:
-				
-				strcpy( baseFileName, argv[ CurArg ] );
-				suffix = getSuffix( baseFileName );
-				_if( suffix == null_c )
-				
-					strncat( baseFileName, ".hla", MAX_PATH );
-					baseFileName[ MAX_PATH ] = '\0';
-					suffix = hla_c;
-					
-				_endif
-				
-				// Handle wildcards here:
-				
-				wcIterator = FindFirstFile( baseFileName, &wfd );
-				_if( wcIterator != INVALID_HANDLE_VALUE )
-				
-					_do
-				
-						// Get the filename and create a set of filenames
-						// for all the various programs from it.
+			// Get the filename and create a set of filenames
+			// for all the various programs from it.
 
-						suffix = getSuffix( wfd.cFileName );
-						Suffixes[ FileCnt ] = suffix;
-						
-						length = strlen( wfd.cFileName );
-						sufxPosn = length - sfxLens[ suffix ];
-						_if( (sufxPosn + pathLen + 2) > MAX_PATH )
-						
-							fprintf
-							( 
-								stderr, 
-								"Path too long, assembly terminated: '%s/%s'\n",
-								pathName,
-								wfd.cFileName
-							);
-							exit(1);
-							
-						_endif
-								
-						FileList[ FileCnt ] = malloc( pathLen + sufxPosn + 2 );
-						assert( FileList[ FileCnt ] != NULL );
-						_if( pathLen != 0 )
-						
-							memcpy( FileList[ FileCnt ], pathName, pathLen );
-							FileList[ FileCnt][pathLen ] = DIR_SEP_CHAR;
-							
-						_endif
-						memcpy
-						( 
-							&FileList[ FileCnt][appendPos ], 
-							wfd.cFileName, 
-							sufxPosn 
-						);
-						FileList[ FileCnt ][ sufxPosn + appendPos ] = '\0';	
-						++FileCnt;
-
-					_until( !FindNextFile( wcIterator, &wfd ));
-					FindClose( wcIterator );
-					
-				_else
-				
-					// If we didn't find the file, it might be a library
-					// file whose path is specified by the LIB environment
-					// variable. Just pass the name along as-is without
-					// wildcard expansion.
-					
-					length = strlen( baseFileName );
-					sufxPosn = length - sfxLens[ suffix ];
-					Suffixes[ FileCnt ] = suffix;
-					FileList[ FileCnt ] = malloc( sufxPosn + 1 );
-					assert( FileList[ FileCnt ] != NULL );
-					strncpy
-					( 
-						FileList[ FileCnt ], 
-						baseFileName, 
-						sufxPosn 
-					);
-					FileList[ FileCnt ][ sufxPosn ] = '\0';	
-					++FileCnt;
-					
-					
-				_endif
-					
-				
-			#else
+			strcpy( baseFileName, argv[ CurArg ] );
+			suffix = getSuffix( baseFileName );
+			_if( suffix == null_c )
 			
-				int	 length;
-				int  sufxPosn;
-				enum sfx suffix;
-
-				// Get the filename and create a set of filenames
-				// for all the various programs from it.
-
-				suffix = getSuffix( argv[ CurArg ] );
-				Suffixes[ FileCnt ] = suffix;
+				strncat( baseFileName, ".hla", MAX_PATH );
+				baseFileName[ MAX_PATH ] = '\0';
+				suffix = hla_c;
 				
-				length = strlen( argv[ CurArg ] );
-				sufxPosn = length - sfxLens[ suffix ];
-				FileList[ FileCnt ] = malloc( sufxPosn + 1 );
-				assert( FileList[ FileCnt ] != NULL );
-				strncpy( FileList[ FileCnt ], argv[ CurArg ], sufxPosn );
-				FileList[ FileCnt ][ sufxPosn ] = '\0';	
-				++FileCnt;
+			_endif					
+			Suffixes[ FileCnt ] = suffix;
 			
-			#endif
-		 
+			length = strlen( baseFileName );
+			sufxPosn = length - sfxLens[ suffix ];
+			FileList[ FileCnt ] = malloc( sufxPosn + 1 );
+			assert( FileList[ FileCnt ] != NULL );
+			strncpy( FileList[ FileCnt ], baseFileName, sufxPosn );
+			FileList[ FileCnt ][ sufxPosn ] = '\0';	
+			++FileCnt;
+			
 		_endif
 		++CurArg;
 
@@ -2654,22 +2644,7 @@ _begin( main )
 		CompileOnly = 0;
 		
 	_endif
-	
-	_if( SourceFmt != hlabe && BinName != NULL )
-	
-		fprintf
-		(
-			MsgOut,
-			"\n"
-			"*************************************************************\n"
-			"Warning: -b:<name> option is only available when using HLABE.\n"
-			"*************************************************************\n"
-			"\n"
-		);
-		BinName = NULL;
 		
-	_endif
-	
 	 
 
 
@@ -3154,8 +3129,18 @@ _begin( main )
 			_endif
 			strcat( AsmName, ".asm" );		
 			_if( Suffixes[ HlaFile ] == asm_c )
+			
+				int len;
 
-				_if( objPath != NULL && *objPath != '\0' )
+				_if( BinName != NULL )
+				
+					strcpy( ObjName, objPath );
+					strcat( ObjName, DIR_SEP_STR );
+					strcpy( ObjName, BinName );
+					free( FileList[ HlaFile ] );
+					FileList[ HlaFile ] = strdup( ObjName );
+				
+				_elseif( objPath != NULL && *objPath != '\0' )
 				
 					strcpy( ObjName, objPath );
 					strcat( ObjName, DIR_SEP_STR );
@@ -3180,7 +3165,16 @@ _begin( main )
 				
 					_case( windows_os )
 				
-						strcat( ObjName, ".obj" );
+						len = strlen( ObjName );
+						_if
+						( 
+								len > 4
+							&&	stricmp( ObjName + len - 4, ".obj" ) != 0
+						)
+						
+							strcat( ObjName, ".obj" );
+							
+						_endif
 						
 					_endcase
 					
@@ -3189,13 +3183,22 @@ _begin( main )
 					_case( macOS_os )
 
 						strcat( ObjName, ".o" );
+						len = strlen( ObjName );
+						_if
+						( 
+								len > 2
+							&&	ObjName[len-2] != '.'
+							&&	ObjName[len-1] != 'o'
+						)
+						
+							strcat( ObjName, ".o" );
+							
+						_endif
 						
 					_endcase
 					
-					_default
-					
-						// Probably ought to issue a warning here...
-						
+					_default	// Probably ought to issue a warning here...
+
 						strcat( ObjName, ".o" );
 						
 				_endswitch

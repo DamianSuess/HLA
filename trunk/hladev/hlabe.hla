@@ -3518,6 +3518,7 @@ _begin( buildRaw );
 				public_tkn,
 				extern_tkn,
 				label_tkn,
+				endfunc_tkn,
 				dummy_tkn
 			)
 				// Ignore these tokens.
@@ -4886,9 +4887,9 @@ var
 						
 						// Compute the size of the function:
 						
-						mov( (type endFuncStmt_t [ebx]).instrOffset, ecx );
-						sub( symEAX.offset, ecx );
-						mov( ecx, symEAX.size );
+						mov( ecx, edx );
+						sub( symEAX.offset, edx );
+						mov( edx, symEAX.size );
 						
 					
 					case( label_tkn )	 
@@ -6483,7 +6484,7 @@ _begin( generateELF );
 	foreach symbolTable.item() do
 	
 		mov( eax, edx );
-		mov( (type tableNode_t [edx]).Value, ebx );
+		mov( (type tableNode_t [eax]).Value, ebx );
 		
 		// Map generic section number to ELF section numbers:
 		
@@ -6516,7 +6517,7 @@ _begin( generateELF );
 		if( @z ) then
 
 			test( isPublic_c, symEBX.flags );
-			if( @z ) then	// Standard symbol
+			if( @z ) then	// Local symbol
 			
 				if( symEBX.isFunc ) then
 				
@@ -6568,7 +6569,7 @@ _begin( generateELF );
 	foreach symbolTable.item() do
 	
 		mov( eax, edx );
-		mov( (type tableNode_t [edx]).Value, ebx );
+		mov( (type tableNode_t [eax]).Value, ebx );
 		
 		// Map generic section number to ELF section numbers:
 		
@@ -6591,10 +6592,12 @@ _begin( generateELF );
 			
 		endif;
 		
-		
-		push( esi );
+				
 		
 		// Get the offset value for this symbol:
+		
+		mov( symEBX.offset, edi );
+		
 		
 		test( isExtern_c, symEBX.flags );
 		if( @nz ) then
@@ -6624,8 +6627,16 @@ _begin( generateELF );
 				// STB_GLOBAL and a section
 				// number that is not zero.
 				
-				mov( (STB_GLOBAL << 4) | STT_NOTYPE, al );
+				if( symEBX.isFunc ) then
 				
+					mov( (STB_GLOBAL << 4) | STT_FUNC, al );
+					
+				else
+				
+					mov( (STB_GLOBAL << 4) | STT_NOTYPE, al );
+					
+				endif;
+								
 				
 			else	// Standard (local) symbol
 			
