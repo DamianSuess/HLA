@@ -12202,7 +12202,7 @@ _begin( ProcessID )
     _returnif( symbol->SymClass == cStatic ) 
         NonLocalStaticID;
     _returnif( symbol->SymClass == cProc ) 
-        NonLocalProcID;
+		NonLocalProcID;
     _returnif( symbol->SymClass == cIterator ) 
         NonLocalIterID;
     _returnif( symbol->SymClass == cClassProc ) 
