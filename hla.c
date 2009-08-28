@@ -80,7 +80,7 @@ FILE *MsgOut;
 	enum	gasChoice		gasSyntax	= stdGas;
 	enum	ObjFormat		ObjFmt 		= elf;
 	enum	LinkerChoice	linker 		= ld;
-			int				Internal 	= 0;
+			int				Internal 	= 1;
 			char			*OSName		= "Linux";
 			char			fileSep		= '/';
 			char			*fileSepStr	= "/";
@@ -99,7 +99,7 @@ FILE *MsgOut;
 	enum	gasChoice		gasSyntax	= stdGas;
 	enum	ObjFormat		ObjFmt 		= elf;
 	enum	LinkerChoice	linker 		= ld;
-			int				Internal 	= 0;
+			int				Internal 	= 1;
 			char			*OSName		= "FreeBSD";
 			char			fileSep		= '/';
 			char			*fileSepStr	= "/";
@@ -179,6 +179,10 @@ int threadSafe = 0;
 int		MLResult;			// Return result from the assembler (ML.EXE)
 int		CurMLResult;
 char	CmdLine[8192];		// We'll buffer the command line we build here.
+char	lclArgs[1024];
+char	*lclArgv[256];		// Holds the actual set of command-line parameters
+int		lclArgc;			// Holds the number of items in lclArgv.
+char	*curArg;			// Used to process asmOptions string.
 int		TotalErrors = 0;	// Used to abort compilation if there are errors
 int		IgnoreErrors = 0;	// Used for testing HLA output.
 int		codeFirst = 0;		// Determines if code is emitted before ReadOnly data.
@@ -440,51 +444,26 @@ _begin( Help )
 		"\n\n"
 		"Source Output Control and Compiler/Back-end output control:\n"
 		"\n"
-		"  -sourcemode Compile to source instructions (rather than hex opcodes)\n"
-		"  -s          Compile to .ASM files only (using default ASM syntax).\n"
-		"  -sh         Compile to pseudo-HLA source file. (implies sourcemode).\n"
-		"  -sm         Compile to MASM source files only.\n"
-		"  -sf         Compile to FASM source files only.\n"
-		"  -sn         Compile to NASM source files only.\n"
-		"  -st         Compile to TASM source files only.\n"
-		"  -sg         Compile to GAS source files only.\n"
-		"  -sx         Compile to GAS source files for Mac OSX only.\n"
+		"  -sourcemode Compile to source instructions (rather than hex opcodes).\n"
+		"  -source     Synonym to -sourcemode.\n"
+		"  -s          Compile to .ASM files only.\n"
 		"  -main:xxxx  Use 'xxxx' as the name of the HLA main program.\n"
 		"\n"
 		"  -c        Compile and assemble to object file only.\n"
-		"  -cf       Compile and assemble to object file only (using FASM).\n"
-		"  -cn       Compile and assemble to object file only (using NASM).\n"
-		"  -cm       Compile/assemble to object using MASM (Windows only).\n"
-		"  -ct       Compile/assemble to object using TASM (Windows only).\n"
-		"  -cg       Compile/assemble to object using GAS (Linux/FreeBSD only).\n"
-		"  -cx       Compile/assemble to object using GAS (Mac only).\n"
-		"  -co       Compile/assemble to object using HLABE (Win32).\n"
 		"\n"
-		
-	);
-	printf
-	(
+		"  -fasm     Use FASM as back-end assembler.\n"
+		"  -masm     Use MASM as back-end assembler.\n"
+		"  -gas      Use GAS (Linux/BSD syntax) as back-end assembler.\n"
+		"  -gasx     Use GAS (Mac OS X syntax) as back-end assembler.\n"
+		"  -nasm     Use NASM as back-end assembler.\n"
+		"  -tasm     Use TASM as back-end assembler.\n"
+		"\n"
 		"Executable Output Control:\n"
-		"\n"
-		"  -xf       Compile/assemble/link to executable (using FASM).\n"
-		"  -xn       Compile/assemble/link to executable (using NASM).\n"
-		"  -xm       Compile/assemble/link to object using MASM (Windows only).\n"
-		"  -xt       Compile/assemble/link to object using TASM (Windows only).\n"
-		"  -xg       Compile/assemble/link to object using GAS (Linux/FreeBSD only).\n"
-		"  -xx       Compile/assemble/link to object using GAS (Mac only).\n"
-		"  -xo       Compile/assemble/link to object using HLABE (Win32).\n"
 		"\n"
 		"  -win32    Generate COFF file for Win32 OS.\n"
 		"  -linux    Generate ELF file for Linux OS.\n"
 		"  -freebsd  Generate ELF file for FreeBSD OS.\n"
 		"  -macos    Generate Mach-o file for Mac OSX.\n"
-		"\n"
-		"  -fasm     Use FASM as back-end assembler.\n"
-		"  -masm     Use MASM as back-end assembler.\n"
-		"  -gas      Use GAS (Linux/BSD) as back-end assembler.\n"
-		"  -gasx     Use GAS (Mac OS X) as back-end assembler.\n"
-		"  -nasm     Use NASM as back-end assembler.\n"
-		"  -tasm     Use TASM as back-end assembler.\n"
 	);
 	printf
 	(
@@ -556,6 +535,9 @@ _begin( Help )
 			"\n"
 			"  hlaauxinc=<path>     Sets path to HLA app-specific include\n"
 			"                         subdirectory.\n"
+			"\n"
+		    "  hlaopt=<options>     Uses the specified command-line options\n"
+		    "                         as default.\n"
 			"\n"
 		    "  hlaasmopt=<options>  Passes the specified command-line options\n"
 		    "                         on to the underlying assembler.\n"
@@ -825,7 +807,7 @@ _begin( doCmdLine)
 			_elseif( _streq( ucArg, "LINUX" ))
 			
 				targetOS 	= linux_os;
-				SourceFmt	= gas;
+				SourceFmt	= hlabe;
 				gasSyntax	= stdGas;
 				ObjFmt 		= elf;
 				linker 		= ld;
@@ -834,7 +816,7 @@ _begin( doCmdLine)
 			_elseif( _streq( ucArg, "FREEBSD" ))
 			
 				targetOS 	= freeBSD_os;
-				SourceFmt	= gas;
+				SourceFmt	= hlabe;
 				gasSyntax	= stdGas;
 				ObjFmt 		= elf;
 				linker 		= ld;
@@ -1000,334 +982,30 @@ _begin( doCmdLine)
 				strcat( AsmOpts, " " );
 
 			// -C   selects "compile and assemble to object" (no link)
-			//        using the default assembler.
-			//
-			// -CF  selects "compile and assemble to object" (no link)
-			//        using FASM.
-			//
-			// -CM  selects "compile and assemble to object" (no link)
-			//        using MASM.
-			//
-			// -CN  selects "compile and assemble to object" (no link)
-			//        using NASM.
-			//
-			// -CT  selects "compile and assemble to object" (no link)
-			//        using TASM.
-			//
-			// -CG  selects "compile and assemble to object" (no link)
-			//        using GAS.
-			//
-			// -CO  selects "compile and assemble to coff object" (no link)
-			//        using the internal HLA Back Engine.
 
 			_elseif( _streq( ucArg, "C" ))
 			
 				// Compile-only, no linking to executable
 				
 				CompileOnly = 1;
-				SourceOnly = 0;		// Mutually exclusive with -Sx
+				SourceOnly = 0;		// Mutually exclusive with -Sx				
+				
+			// -S selects "assembly output only" (no assemble, no link)
 
-			_elseif( _streq( ucArg, "CF" ))
-			
-				// Compile-only, no linking to executable
-				
-				CompileOnly = 1;
-				SourceOnly = 0;		// Mutually exclusive with -Sx
-				SourceFmt = fasm;
-				Internal = 0;
-				_if( targetOS == windows_os )
-				
-					ObjFmt = coff;
-				
-				_else
-				
-					ObjFmt = elf;
-					
-				_endif
-				
+			_elseif( _streq( ucArg, "S" ))
 
-			_elseif( _streq( ucArg, "CM" ))
-			
-				// Compile-only, no linking to executable
-				
-				CompileOnly = 1;
-				SourceOnly = 0;		// Mutually exclusive with -Sx
-				SourceFmt = masm;
-				Internal = 0;
-
-			_elseif( _streq( ucArg, "CN" ))
-			
-				// Compile-only, no linking to executable
-				
-				CompileOnly = 1;
-				SourceOnly = 0;		// Mutually exclusive with -Sx
-				SourceFmt = nasm;
-				Internal = 0;
-
-			_elseif( _streq( ucArg, "CT" ))
-			
-				// Compile-only, no linking to executable
-				
-				CompileOnly = 1;
-				SourceOnly = 0;		// Mutually exclusive with -Sx
-				SourceFmt = tasm;
-				Internal = 0;
-				ObjFmt = omf;
-				
-
-			_elseif( _streq( ucArg, "CG" ))
-			
-				// Compile-only, no linking to executable
-				
-				CompileOnly = 1;
-				SourceOnly = 0;		// Mutually exclusive with -Sx
-				SourceFmt = gas;
-				gasSyntax = stdGas;
-				Internal = 0;
-				ObjFmt = elf;
-
-			_elseif( _streq( ucArg, "CX" ))
-			
-				// Compile-only, no linking to executable
-				
-				CompileOnly = 1;
-				SourceOnly = 0;		// Mutually exclusive with -Sx
-				SourceFmt = gas;
-				gasSyntax = macGas;
-				Internal = 0;
-				ObjFmt = macho;
-
-			_elseif( _streq( ucArg, "CO" ))
-			
-				// Compile-only, no linking to executable
-				
-				CompileOnly = 1;
-				SourceOnly = 0;		// Mutually exclusive with -Sx
-				SourceFmt = hlabe;
-				Internal = 1;
-				_switch( targetOS )
-				
-				
-					_case( windows_os )
-				
-						ObjFmt = coff;
-						
-					_endcase
-				
-					_case( linux_os )
-				
-						ObjFmt = elf;
-						
-					_endcase
-				
-					_case( freeBSD_os )
-				
-						ObjFmt = elf;
-						
-					_endcase
-					
-					_case( macOS_os )
-					
-					_endcase
-				
-					_default
-				
-						printf( "Internal HLA error (-co option, unknown OS)\n" );
-						Usage();
-						_return 1;
-				
-				_endswitch
-				
-				
-
-			// -XF  selects "compile and assemble to object" (no link)
-			//        using FASM.
-			//
-			// -XM  selects "compile and assemble to object" (no link)
-			//        using MASM.
-			//
-			// -XT  selects "compile and assemble to object" (no link)
-			//        using TASM.
-			//
-			// -XG  selects "compile and assemble to object" (no link)
-			//        using GAS.
-			//
-			// -XX  selects "compile and assemble to object" (no link)
-			//        using GAS under Mac OSX.
-			//
-			// -XO  selects "compile and assemble to coff object" (no link)
-			//        using the internal HLA Back Engine.
-			
-
-			_elseif( _streq( ucArg, "XF" ))
-			
+				SourceOnly = 1;
 				CompileOnly = 0;
-				SourceOnly = 0;
-				SourceFmt = fasm;
 				Internal = 0;
-				_if( targetOS == windows_os )
-				
-					ObjFmt = coff;
-					_if( linkerName == NULL )
-					
-						linker = polink;
-						
-					_endif
-				
-				_else
-				
-					printf( "-xf option is not valid for this OS\n" );
-					Usage();
-					_return 1;
-					
-				_endif
-				
 
-			_elseif( _streq( ucArg, "XM" ))
-			
-				// Compile-only, no linking to executable
-				
-				_if( targetOS == windows_os )
-
-					CompileOnly = 0;
-					SourceOnly = 0;
-					SourceFmt = masm;
-					ObjFmt = coff;
-					Internal = 0;
-					_if( linkerName == NULL )
-					
-						linker = mslink;
-						
-					_endif
-				
-				_else
-				
-					printf( "-xm option is not valid for this OS\n" );
-					Usage();
-					_return 1;
-					
-				_endif
-					
-
-			_elseif( _streq( ucArg, "XN" ))
-			
-				// Compile-only, no linking to executable
-				
-				_if( targetOS == windows_os )
-
-					CompileOnly = 0;
-					SourceOnly = 0;
-					SourceFmt = nasm;
-					ObjFmt = coff;
-					Internal = 0;
-					_if( linkerName == NULL )
-					
-						linker = polink;
-						
-					_endif
-					
-				_else
-				
-					printf( "-xn option is not valid for this OS\n" );
-					Usage();
-					_return 1;
-					
-				_endif
-
-			_elseif( _streq( ucArg, "XT" ))
-			
-				_if( targetOS == windows_os )
-
-					CompileOnly = 0;
-					SourceOnly = 0;
-					SourceFmt = tasm;
-					Internal = 0;
-					ObjFmt = omf;
-					_if( linkerName == NULL )
-					
-						linker = mslink;
-						
-					_endif
-					
-				_else
-				
-					printf( "-xt option is not valid for this OS\n" );
-					Usage();
-					_return 1;
-					
-				_endif
-				
-
-			_elseif( _streq( ucArg, "XG" ))
-			
-				_if( targetOS == linux_os || targetOS == freeBSD_os )
-
-					CompileOnly = 0;
-					SourceOnly = 0;
-					SourceFmt = gas;
-					gasSyntax = stdGas;
-					ObjFmt = elf;
-					linker = ld;
-					Internal = 0;
-					
-				_else
-				
-					printf( "-xg option is not valid for this OS\n" );
-					Usage();
-					_return 1;
-					
-				_endif
-				
-
-			_elseif( _streq( ucArg, "XX" ))
-			
-				_if( targetOS == windows_os )
-
-					CompileOnly = 0;
-					SourceOnly = 0;
-					SourceFmt = gas;
-					gasSyntax = macGas;
-					ObjFmt = macho;
-					linker = ld;
-					Internal = 0;
-					
-				_else
-				
-					printf( "-xx option is not valid for this OS\n" );
-					Usage();
-					_return 1;
-					
-				_endif
-
-			_elseif( _streq( ucArg, "XO" ))
-			
-				CompileOnly = 0;
-				SourceOnly = 0;
-				SourceFmt = hlabe;
-				Internal = 1;
-				_if( targetOS != macOS_os )
-				
-					ObjFmt = coff;
-					_if( linkerName == NULL )
-					
-						linker = polink;
-						
-					_endif
-					
-				_else
-				
-					printf( "-xo option is invalid only under Mac OSX\n" );
-					Usage();
-					_return 1;
-				
-				_endif
 
 			
-			// Handle -FASM, -GAS, -GASX, -MASM, -NASM, and -TASM here:
+			// Handle -FASM, -GAS, -GASX, -HLABE -MASM, -NASM, and -TASM here:
 			
 			_elseif( _streq( ucArg, "FASM" ))
 			
-				SourceFmt = fasm;
+				SourceFmt 	= fasm;
+				Internal 	= 0;
 				_if( targetOS != windows_os && !SourceOnly )
 				
 					printf
@@ -1342,8 +1020,9 @@ _begin( doCmdLine)
 			
 			_elseif( _streq( ucArg, "GAS" ))
 			
-				SourceFmt = gas;
-				gasSyntax = stdGas;
+				SourceFmt 	= gas;
+				gasSyntax 	= stdGas;
+				Internal	= 0;
 				_if
 				( 
 						(!targetOS == linux_os || targetOS == freeBSD_os )
@@ -1362,8 +1041,9 @@ _begin( doCmdLine)
 			
 			_elseif( _streq( ucArg, "GASX" ))
 			
-				SourceFmt = gas;
-				gasSyntax = macGas;
+				SourceFmt 	= gas;
+				gasSyntax 	= macGas;
+				Internal	= 0;
 				_if
 				( 
 						(!targetOS == linux_os || targetOS == freeBSD_os )
@@ -1382,7 +1062,8 @@ _begin( doCmdLine)
 			
 			_elseif( _streq( ucArg, "MASM" ))
 			
-				SourceFmt = masm;
+				SourceFmt 	= masm;
+				Internal	= 0;
 				_if( targetOS != windows_os && !SourceOnly )
 				
 					printf
@@ -1395,9 +1076,26 @@ _begin( doCmdLine)
 				_endif
 
 			
+			_elseif( _streq( ucArg, "HLABE" ))
+			
+				SourceFmt 	= hlabe;
+				Internal 	= 1;
+				_if( targetOS == macOS_os && !SourceOnly )
+				
+					printf
+					( 
+						"-HLABE option is not currently valid under Mac OSX\n" 
+					);
+					Usage();
+					_return 1;
+				
+				_endif
+
+			
 			_elseif( _streq( ucArg, "NASM" ))
 			
-				SourceFmt = nasm;
+				SourceFmt 	= nasm;
+				Internal	= 0;
 				_if( targetOS != windows_os && !SourceOnly )
 				
 					printf
@@ -1412,7 +1110,8 @@ _begin( doCmdLine)
 			
 			_elseif( _streq( ucArg, "TASM" ))
 			
-				SourceFmt = tasm;
+				SourceFmt 	= tasm;
+				Internal	= 0;
 				_if( targetOS != windows_os && !SourceOnly )
 				
 					printf
@@ -1425,70 +1124,17 @@ _begin( doCmdLine)
 				_endif
 
 			
-			// -S selects "assembly output only" (no assemble, no link)
-			// -SM, -SG, -ST, -SF selects a particular assembler.
+			// -Sourcemode/-source tell HLAPARSE to emit instruction
+			// mnemonics rather than byte opcodes.
 			
 			_elseif( _streq( ucArg, "SOURCEMODE" ))
 			
 				sourceOutput = 1;
 				
-			_elseif( _streq( ucArg, "S" ))
-
-				SourceOnly = 1;
-				CompileOnly = 0;
-				Internal = 0;
-
-			_elseif( _streq( ucArg, "SH" ))
-
-				SourceFmt = hla;		// pseudo-HLA source output
-				SourceOnly = 1;
-				sourceOutput = 1;		// Implied by -SH		
-				CompileOnly = 0;
-				Internal = 0;
+			_elseif( _streq( ucArg, "SOURCE" ))
 			
-			_elseif( _streq( ucArg, "SF" ))
-
-				SourceFmt = fasm;		// FASM source output
-				SourceOnly = 1;		
-				CompileOnly = 0;
-				Internal = 0;
-			
-			_elseif( _streq( ucArg, "SM" ))
-
-				SourceFmt = masm;		// MASM source output
-				SourceOnly = 1;		
-				CompileOnly = 0;
-				Internal = 0;
-
-			_elseif( _streq( ucArg, "SN" ))
-
-				SourceFmt = nasm;		// NASM source output
-				SourceOnly = 1;		
-				CompileOnly = 0;
-				Internal = 0;
-
-			_elseif( _streq( ucArg, "ST" ))
-
-				SourceFmt = tasm;		// TASM source output
-				SourceOnly = 1;
-				CompileOnly = 0;
-				Internal = 0;
+				sourceOutput = 1;
 				
-			_elseif( _streq( ucArg, "SG" ))
-
-				SourceFmt = gas;		// GNU's as source output
-				gasSyntax = stdGas;
-				SourceOnly = 1;
-				CompileOnly = 0;
-				Internal = 0;
-				
-			_elseif( _streq( ucArg, "SX" ))
-
-				SourceFmt = gas;		// Mac/GNU's as source output
-				gasSyntax = macGas;		// Use Mac OSX Gas syntax
-				SourceOnly = 1;
-				CompileOnly = 0;
-				Internal = 0;
 				
 			// Check for one of the command-line parameters that
 			// specify which linker to use:
@@ -1651,9 +1297,8 @@ _begin( doCmdLine)
 				_endif
 			
 
-			// The 'X' option is really only for Windows, it lets the user 
-			// select the executable filename without concatenating an
-			// ".exe" to the end of the name:
+			// The 'X' option lets the user select the executable filename
+			// without concatenating an ".exe" to the end of the name:
 
 
 			_elseif( strncmp( ucArg, "X:", 2 ) == 0 )
@@ -2251,12 +1896,14 @@ int
 main( int argc, char *argv[] )
 _begin( main )
 
+	int		i;
 	int		pathLen;
 	int		rtnVal;
 	char	*envVar;
 	char	*libVar;
 	char	*linkerOptions;
 	char	*backEndAsmOptions;
+	char	*asmOptions;
 	char	*testHLAlib;
 	char	*testHLAinc;
 	char	*envResult;
@@ -2293,25 +1940,15 @@ _begin( main )
 
 	_endif
 
+	// If the hlaopt, hlaasmopt, or hlalinkopt environment variables exist,
+	// grab their values; else use empty strings for them.
 	
-	// Process the command-line parameters:
+	asmOptions = getenv( "hlaopt" );
+	_if( asmOptions == NULL )
 	
-	rtnVal = doCmdLine( argc, argv );
-	_if( rtnVal != 0 )
-	
-		_return rtnVal;
+		asmOptions = "";
 		
 	_endif
-	
-	// See if the "hlathreadsafe" environment variable is set to one.
-	
-	hlaThreadSafe = getenv( "hlathreadsafe" );
-	threadSafe = 
-			threadSafe 
-		||	((hlaThreadSafe != NULL) && _streq( hlaThreadSafe, "1" ));
-	
-	// If the hlaasm or hlalink environment variables exist, grab their values
-	// for use by the back-end assembler and linker.
 	
 	backEndAsmOptions = getenv( "hlaasmopt" );
 	_if( backEndAsmOptions == NULL )
@@ -2326,6 +1963,45 @@ _begin( main )
 		linkerOptions = "";
 		
 	_endif
+	
+	
+
+	// Build up the lclArgv array that we will pass on to doCmdLine.
+	// This will consist of all the argv elements prepended with
+	// the text from the hlaopt environment variable.
+	
+	strcpy( lclArgs, asmOptions );
+	lclArgv[0] = argv[0];
+	curArg = strtok( lclArgs, " ,<>|\t" );
+	lclArgc = 1;
+	_while( curArg != NULL )
+	
+		lclArgv[ lclArgc++ ] = strdup( curArg );
+		curArg = strtok( NULL, " ,<>|\t" );
+	
+	_endwhile
+	_for( i=1, i<argc, ++i )
+	
+		lclArgv[ lclArgc++ ] = strdup( argv[ i ] );
+		
+	_endfor
+	
+	// Process the command-line parameters:
+	
+	rtnVal = doCmdLine( lclArgc, lclArgv );
+	_if( rtnVal != 0 )
+	
+		_return rtnVal;
+		
+	_endif
+	
+	// See if the "hlathreadsafe" environment variable is set to one.
+	
+	hlaThreadSafe = getenv( "hlathreadsafe" );
+	threadSafe = 
+			threadSafe 
+		||	((hlaThreadSafe != NULL) && _streq( hlaThreadSafe, "1" ));
+	
 	
 	
 	// If the path to the hlalib file is specified by the hlalib environment
@@ -2543,7 +2219,6 @@ _begin( main )
 	( 
 			ObjFmt == elf
 		&& 	SourceFmt != gas 
-		&&	SourceFmt != fasm 
 		&&	SourceFmt != hlabe 
 		&&	!SourceOnly
 	)
@@ -2552,12 +2227,12 @@ _begin( main )
 		(
 			MsgOut,
 			"\n"
-			"*************************************************************\n"
-			"Warning: ELF output is only available when using GAS or FASM.\n"
-			"*************************************************************\n"
+			"**************************************************************\n"
+			"Warning: ELF output is only available when using GAS or HLABE.\n"
+			"**************************************************************\n"
 			"\n"
 		);
-		_if( SourceFmt == masm )
+		_if( SourceFmt == masm || SourceFmt == fasm || SourceFmt == nasm )
 		
 			ObjFmt = coff;
 			
@@ -2574,55 +2249,29 @@ _begin( main )
 	_if
 	( 
 			ObjFmt == macho
-		&& 	SourceFmt != gas 
-		&&	!SourceOnly
-	)
-	
-		fprintf
-		(
-			MsgOut,
-			"\n"
-			"*******************************************************\n"
-			"Warning: MACHO output is only available when using GAS.\n"
-			"*******************************************************\n"
-			"\n"
-		);
-		_if( SourceFmt == masm )
-		
-			ObjFmt = coff;
-			
-		_elseif( SourceFmt == tasm )
-		
-			ObjFmt = omf;
-			
-		_endif
-		
-	_endif
-	
-	_if
-	(
-			(
-					SourceFmt == masm
-				||	SourceFmt == tasm
-				||	SourceFmt == nasm
+		&& 	(
+					SourceFmt != gas 
+				||	gasSyntax != macGas
 			)
 		&&	!SourceOnly
-		&&	targetOS != windows_os
 	)
 	
 		fprintf
 		(
 			MsgOut,
 			"\n"
-			"***********************************************************************\n"
-			"Warning: MASM/TASM/NASM assembly is only available under Windows.\n"
-			"***********************************************************************\n"
+			"********************************************************\n"
+			"Warning: MACHO output is only available when using GASX.\n"
+			"********************************************************\n"
 			"\n"
 		);
-		SourceOnly = 1;
-		CompileOnly = 0;
+		SourceFmt 	= gas;
+		gasSyntax 	= macGas;
+		Internal	= 0;
 		
 	_endif
+	
+	
 	
 	_if
 	(
@@ -2640,13 +2289,29 @@ _begin( main )
 			"*************************************************************\n"
 			"\n"
 		);
-		SourceOnly = 1;
+		SourceOnly	= 1;
 		CompileOnly = 0;
+		Internal	= 0;
 		
 	_endif
 		
-	 
 
+	_if( SourceFmt == hlabe && !Internal || Internal && SourceFmt != hlabe )
+	
+		fprintf
+		(
+			MsgOut,
+			"\n"
+			"*************************************************************\n"
+			"Warning: Inconsistent HLABE settings (Internal HLA problem).\n"
+			"*************************************************************\n"
+			"\n"
+		);
+		Internal 	= 1;
+		SourceFmt	= hlabe;
+		
+	_endif
+		
 
 
 	
@@ -2712,7 +2377,7 @@ _begin( main )
 
 			_ifx( MapFile, "-M (mapfile) active\n", "" ),
 			_ifx( threadSafe, "-thread active\n", "" ),
-			_ifx( SourceOnly, "-sXX active\n", "" ),
+			_ifx( SourceOnly, "-s active\n", "" ),
 			_ifx
 			(
 				Internal,
@@ -2742,7 +2407,12 @@ _begin( main )
 								(
 									SourceFmt == nasm,
 									"NASM output\n",
-									"??? assembler output (?)\n"
+									_ifx
+									(
+										SourceFmt == hlabe,
+										"Object code output using HLABE\n",
+										"??? assembler output (?)\n"
+									)
 								)
 							)
 						)
@@ -3093,13 +2763,34 @@ _begin( main )
 	
 
 	_returnif( TotalErrors != 0 ) !IgnoreErrors;
-	_returnif( SourceOnly ) 0;
-	
-	// If the targetOS is not equal to the host OS, then stop
+
+	// Bail if doing a "assemble to source only" compilation;
+	// if the targetOS is not equal to the host OS, then stop
 	// at this point because it doesn't make sense to try and
 	// compile the .asm files on the host OS.
+
+	_if( SourceOnly || hostOS != targetOS ) 
 	
-	_returnif( hostOS != targetOS ) 0;
+		_if( Verbose )
+		
+			printf
+			( 
+				"\n"
+				"==========================================\n"
+				"    HLA"
+					#ifdef windows_c
+				  	   ".EXE"
+					#endif
+					       " Compilation to Source Complete\n"
+				"==========================================\n"
+			);
+			
+		_endif
+		_return 0;
+		
+	_endif
+	
+	
 
 
 	// For each of the ".asm" files, produce an object file.
@@ -3168,8 +2859,8 @@ _begin( main )
 						len = strlen( ObjName );
 						_if
 						( 
-								len > 4
-							&&	stricmp( ObjName + len - 4, ".obj" ) != 0
+								len < 4
+							||	stricmp( ObjName + len - 4, ".obj" ) != 0
 						)
 						
 							strcat( ObjName, ".obj" );
@@ -3182,13 +2873,14 @@ _begin( main )
 					_case( freeBSD_os )
 					_case( macOS_os )
 
-						strcat( ObjName, ".o" );
 						len = strlen( ObjName );
 						_if
 						( 
-								len > 2
-							&&	ObjName[len-2] != '.'
-							&&	ObjName[len-1] != 'o'
+								len < 2
+							||	(
+										ObjName[len-2] != '.'
+									&&	ObjName[len-1] != 'o'
+								)
 						)
 						
 							strcat( ObjName, ".o" );
@@ -3531,6 +3223,22 @@ _begin( main )
 
 	_if( CompileOnly ) 
 	
+		_if( Verbose )
+		
+			printf
+			( 
+				"\n"
+				"===============================================\n"
+				"    HLA"
+					#ifdef windows_c
+				  	   ".EXE"
+					#endif
+					       " Compilation to object code Complete\n"
+				"===============================================\n"
+			);
+			
+		_endif
+
 		// At some point, consider adding the code to delete
 		// the leftover .asm and .inc files here.  I'm too
 		// chicken to do this just yet because I've not thought
@@ -3860,6 +3568,22 @@ _begin( main )
 		_endif
 	}		
 	#endif
+	_if( Verbose )
+	
+		printf
+		( 
+			"\n"
+			"========================================\n"
+			"    HLA"
+				#ifdef windows_c
+			  	   ".EXE"
+				#endif
+				       " Compilation Complete\n"
+			"========================================\n"
+		);
+		
+	_endif
+	
 	_return 0;
 
 _end( main )

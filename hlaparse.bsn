@@ -76234,6 +76234,7 @@ SingleStmt:
 		NonLocalProcID
 		CallParameters
 		{
+		
 			call_proc( $<s>1 );
 			SetReferenced( $<s>1 );
 			$<returns>$ = hlastrdup2( $<s>1->u.proc.returns );
@@ -103593,7 +103594,7 @@ _begin( main )
 		fprintf
 		(
 			MsgOut,
-			"Compiling \"%s\" to \"%s\"\n",
+			"Assembling \"%s\" to \"%s\"\n",
 			FileName,
 			AsmName
 		);
@@ -103623,7 +103624,7 @@ _begin( main )
 		fprintf
 		(
 			MsgOut,
-			"Compilation complete, %d lines",
+			"HLAPARSE assembly complete, %d lines",
 			TotalLines
 		);
 		#if defined( windows_c ) || defined( linux_c )
@@ -103632,7 +103633,7 @@ _begin( main )
 			milliseconds = 
 					CompileTime.millitm - CompileTimeStart.millitm
 				+	(CompileTime.time - CompileTimeStart.time) * 1000.0
-				+	1.0; // To prevent a division by zero.
+				+	0.1; // To prevent a division by zero.
 				
 			LinesPerSecond = (double)((TotalLines * 1000.0)/milliseconds);
 			fprintf

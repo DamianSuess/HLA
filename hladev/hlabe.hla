@@ -1887,7 +1887,7 @@ _begin( lexer );
 	
 		// On each line, remove any leading spaces:
 		
-		mov( ebx, start_stmt );
+		mov( ebx, start_stmt );		
 		dec( ebx );
 		skipSpcs:
 			inc( ebx );
@@ -6644,7 +6644,7 @@ _begin( generateELF );
 				
 			endif;
 			
-		endif; 
+		endif;
 		addELFsym
 		(
 			(type tableNode_t [edx]).id,	// Name
