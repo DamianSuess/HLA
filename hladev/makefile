@@ -36,7 +36,7 @@ hlabe.freeBSD.gas: hlabe.hla hlabe.hhf
 	
 	
 hlabe.gasx: hlabe.hla hlabe.hhf
-	hla -sourcemode -sx -DMACOS hlabe
+	hla -sourcemode -sx -DUNIX -macos hlabe
 	copy hlabe.asm ..\hlabe.gasx
 	
 	
