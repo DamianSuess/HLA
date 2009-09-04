@@ -105,16 +105,9 @@ funcs.obj: funcs.c $(SYM) $(CMN) $(RATC) $(DBG) $(ENM) $(AH)
 
 version:
 	delete hla.exe
-	delete mhla.exe
-	delete fhla.exe
-	delete thla.exe
-	delete ohla.exe
-	delete ghla.exe
 	delete hlaparse.exe
 	delete *.obj
-	delete *.obj
-	delete hla.exe
-	delete hlaparse.exe
+	delete *.o
 	version
 
 clean:
