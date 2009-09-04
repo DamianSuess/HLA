@@ -444,11 +444,8 @@ _begin( Help )
 		"\n\n"
 		"Source Output Control and Compiler/Back-end output control:\n"
 		"\n"
-		"  -sourcemode Compile to source instructions (rather than hex opcodes).\n"
-		"  -source     Synonym to -sourcemode.\n"
-		"  -s          Compile to .ASM files only.\n"
-		"  -main:xxxx  Use 'xxxx' as the name of the HLA main program.\n"
-		"\n"
+		"  -source   Compile to source instructions (rather than hex opcodes).\n"
+		"  -s        Compile to .ASM files only.\n"
 		"  -c        Compile and assemble to object file only.\n"
 		"\n"
 		"  -fasm     Use FASM as back-end assembler.\n"
@@ -457,6 +454,8 @@ _begin( Help )
 		"  -gasx     Use GAS (Mac OS X syntax) as back-end assembler.\n"
 		"  -nasm     Use NASM as back-end assembler.\n"
 		"  -tasm     Use TASM as back-end assembler.\n"
+		"  -hla      Emit Pseudo-HLA syntax\n"
+		"  -hlabe    Emit human-readable HLABE source code (implies -source).\n"
 		"\n"
 		"Executable Output Control:\n"
 		"\n"
@@ -469,13 +468,13 @@ _begin( Help )
 	(
 		"Assembler and Linker Control:\n"
 		"\n"
-		"  -axxxxx   Pass xxxxx as command line parameter to assembler.\n"
-		"  -lxxxxx   Pass xxxxx as command line parameter to linker.\n"
-		"  -e:name   Executable output filename "
-							"(appends \".exe\" under Windows).\n"
-		"  -x:name   "
-			"Executable output filename (does not append \".exe\").\n"
-		"  -b:name   Binary object file output filename.\n"
+		"  -axxxxx     Pass xxxxx as command line parameter to assembler.\n"
+		"  -lxxxxx     Pass xxxxx as command line parameter to linker.\n"
+		"  -e:name     Executable output filename (appends \".exe\" under Windows).\n"
+		"  -x:name     Executable output filename (does not append \".exe\").\n"
+		"  -b:name     Binary object file output filename.\n"
+		"  -main:xxxx  Use 'xxxx' as the name of the HLA main program.\n"
+		"\n"
 		"\n"
 		#ifdef windows_c
 			"  -m        Create a map file during link\n"
@@ -1076,10 +1075,19 @@ _begin( doCmdLine)
 				_endif
 
 			
+			_elseif( _streq( ucArg, "HLA" ))
+			
+				SourceFmt 	= hla;
+				SourceOnly	= 1;
+				CompileOnly = 0;
+				Internal	= 0;
+
+			
 			_elseif( _streq( ucArg, "HLABE" ))
 			
 				SourceFmt 	= hlabe;
-				Internal 	= 1;
+				SourceOnly	= 1;
+				Internal 	= 0;
 				_if( targetOS == macOS_os && !SourceOnly )
 				
 					printf
@@ -2296,7 +2304,7 @@ _begin( main )
 	_endif
 		
 
-	_if( SourceFmt == hlabe && !Internal || Internal && SourceFmt != hlabe )
+	_if( Internal && SourceFmt != hlabe )
 	
 		fprintf
 		(
@@ -2311,6 +2319,23 @@ _begin( main )
 		SourceFmt	= hlabe;
 		
 	_endif
+	
+	_if( SourceOnly && BinName != NULL )
+	
+		fprintf
+		(
+			MsgOut,
+			"\n"
+			"*************************************************************\n"
+			"Warning: -b:xxxx option invalid if -source active.\n"
+			"*************************************************************\n"
+			"\n"
+		);
+		BinName = NULL;
+		
+	_endif
+		
+
 		
 
 
@@ -2380,7 +2405,7 @@ _begin( main )
 			_ifx( SourceOnly, "-s active\n", "" ),
 			_ifx
 			(
-				Internal,
+				(Internal || SourceFmt == hlabe) && !SourceOnly,
 				"OBJ output using HLA Back Engine\n",
 				_ifx
 				(
@@ -2409,8 +2434,8 @@ _begin( main )
 									"NASM output\n",
 									_ifx
 									(
-										SourceFmt == hlabe,
-										"Object code output using HLABE\n",
+										(Internal || SourceFmt == hlabe) && SourceOnly,
+										"HLABE assembly language output\n",
 										"??? assembler output (?)\n"
 									)
 								)
@@ -2556,7 +2581,7 @@ _begin( main )
 			// external assembler (i.e., it does not apply when using
 			// the internal HLA Back Engine).
 			
-			_if( !Internal )
+			_if( !Internal || SourceOnly )
 			
 				_if( tempPath != NULL && *tempPath != '\0' )
 				
@@ -2622,7 +2647,7 @@ _begin( main )
 				_ifx( sourceOutput, "-source ", "" ),
 				_ifx
 				( 
-					Internal,
+					Internal && !SourceOnly,
 					"",
 					_ifx
 					( 
@@ -2648,7 +2673,16 @@ _begin( main )
 										(
 											SourceFmt == hla,
 											"-sh ",
-											""
+											_ifx
+											(
+													(
+															SourceFmt == hlabe 
+														||	Internal
+													)
+												&&	SourceOnly,
+												"-hlabe ",
+												""
+											)
 										)
 									)
 								)

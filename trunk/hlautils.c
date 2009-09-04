@@ -973,6 +973,12 @@ _begin( CheckLegalOptions )
 
 		_endif
 
+		_if( options & specified_nostorage )
+
+			yyerror( "Nostorage option is illegal here" );
+
+		_endif
+
 	_endif
 
 _end( CheckLegalOptions )

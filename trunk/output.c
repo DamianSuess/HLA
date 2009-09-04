@@ -1606,10 +1606,6 @@ _begin( MakeAdrsStr )
 	assert( adrs != NULL );
 	assert( assembler < numAssemblers );
 	
-	// Should never call this guy for object code output:
-	
-	assert( assembler != hlabe );
-	
 	/*
 	** Grand Kludge!
 	**
@@ -1687,6 +1683,7 @@ _begin( MakeAdrsStr )
 	
 		_switch( assembler )
 		
+			_case( hlabe )
 			_case( hla )
 			
 				sprintf( dispAdrs, "@pointer(%d)", adrs->Disp );
@@ -1743,6 +1740,7 @@ _begin( MakeAdrsStr )
 	needBracket = needNdx;
 	_switch( assembler )
 	
+		_case( hlabe )
 		_case( hla )
 		_case( masm )
 		
@@ -2097,7 +2095,6 @@ _begin( EmitOffset )
 	int 	offs;
 	
 	assert( offset != NULL );
-	assert( assembler != hla );	// This function is for object-code only!
 	
 	_if( assembler == hlabe )
 	
@@ -24054,17 +24051,40 @@ _begin( EmitSegments )
 	asmBuf = dest;
 
 	
-	EmitDotText( 0 );
-	asmCpy( codeBuf.base, codeBuf.offset );
-	asmPuts( "\n\n" );	
+	_if( assembler == hla ) 
+	
+		// Emit data followed by code for HLA syntax output:
 		
-	EmitDotText( 1 );
-	asmCpy( constBuf.base, constBuf.offset );
-	asmCpy( roBuf.base, roBuf.offset );
-	asmPuts( "\n\n" );	
+		EmitDataSegments( dest );
+		asmPuts( "\n\n" );
+	
+		EmitDotText( 1 );
+		asmCpy( constBuf.base, constBuf.offset );
+		asmCpy( roBuf.base, roBuf.offset );
+		asmPuts( "\n\n" );	
 
-	EmitDataSegments( dest );
-	asmPuts( "\n\n" );	
+		EmitDotText( 0 );
+		asmCpy( codeBuf.base, codeBuf.offset );
+		asmPuts( "\n\n" );	
+			
+
+	_else
+	
+		// Emit code followed by data for all other assemblers:
+		
+		EmitDotText( 0 );
+		asmCpy( codeBuf.base, codeBuf.offset );
+		asmPuts( "\n\n" );	
+			
+		EmitDotText( 1 );
+		asmCpy( constBuf.base, constBuf.offset );
+		asmCpy( roBuf.base, roBuf.offset );
+		asmPuts( "\n\n" );	
+
+		EmitDataSegments( dest );
+		asmPuts( "\n\n" );
+		
+	_endif	
 	
 	asmBuf = save;	
 
@@ -26399,6 +26419,13 @@ _begin( PushActualValue )
 			// If it's a byte parameter that we're passing along
 			// as a parameter to the current call, then just push
 			// the whole dword:
+			
+			push_mem( actual, 4 );
+			
+		_elseif( actual->SymClass == cVar && actual->Disp <= -4 )
+			
+			// If it's a byte local variable and the offset is less than
+			// -4, then  it's safe to push the whole dword:
 			
 			push_mem( actual, 4 );
 			

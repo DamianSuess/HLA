@@ -11825,18 +11825,7 @@ RecDef:
 			}
 			OptionalParms	/* $7  */ 
 			Semicolon		/* $8  */
-			{				/* $9  */
-
-				/*
-				** Must restore before ProtoOptions
-				*/
-
-				--CurLexLevel;				
-				CurOffset = $<v.u.intval>4;
-				CurOffsetDir = $<v.u.unsval>5;
-			}
-			VarOptions		/* $10 */
-			ProtoOptions	/* $11 */
+			Options			/* $9  */
 			 
 			/*
 			** Initialize the pointer to the end of the parameters
@@ -11845,11 +11834,26 @@ RecDef:
 			** local variable declarations.  
 			*/
 			 
-			{				/* $12 */
+			{				/* $10 */
 				struct	SymNode *saveST;
 				struct	SymNode *s;
 
 				_here;
+				--CurLexLevel;				
+				CurOffset = $<v.u.intval>4;
+				CurOffsetDir = $<v.u.unsval>5;
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>9,
+						specified_returns
+					|	specified_use
+					|	specified_pascal
+					|	specified_stdcall
+					|	specified_cdecl
+					|	specified_alignment 
+					|	specified_nostorage 
+				);
+				
 				saveST = SymbolTable;
 				s =
 					InsertSym
@@ -11872,9 +11876,9 @@ RecDef:
 					
 				s->u.proc.parms = saveST;
 				s->u.proc.Locals = NULL;
-				s->u.proc.returns = $<options.returns>11;
-				s->u.proc.use = $<options.use>11;
-				s->u.proc.cs = $<options.CallingSequence>11;
+				s->u.proc.returns = $<options.returns>9;
+				s->u.proc.use = $<options.use>9;
+				s->u.proc.cs = $<options.CallingSequence>9;
 				
 				// Remove the dummy type we just created from the record:
 				
@@ -11891,12 +11895,12 @@ RecDef:
 				$<s>6->Type = s;
 				$<s>6->u.proc.parms = saveST;
 				$<s>6->u.proc.Locals = NULL;
-				$<s>6->u.proc.returns = $<options.returns>11;
-				$<s>6->u.proc.use = $<options.use>11;
-				$<s>6->u.proc.cs = $<options.CallingSequence>11;
+				$<s>6->u.proc.returns = $<options.returns>9;
+				$<s>6->u.proc.use = $<options.use>9;
+				$<s>6->u.proc.cs = $<options.CallingSequence>9;
 				SymbolTable = $<s>6;
 				
-				_if( !$<options.NoStorage>10 )
+				_if( !$<options.NoStorage>9 )
 				
 					CurOffset += 4 * CurOffsetDir;
 					
@@ -11944,8 +11948,13 @@ RecDef:
 				
 		}
 		Semicolon		/* $8 */
-		VarOptions		/* $9 */
+		Options			/* $9 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+					specified_nostorage
+			);
 			_if( !$<options.NoStorage>9 )
 			
 				CurOffset += 4 * CurOffsetDir;
@@ -12026,12 +12035,17 @@ RecDef:
 
 			}
 			Semicolon			/* $7 */
-			VarOptions			/* $8 */
+			Options				/* $8 */
 			{
 				/*
 				** If processing records, unions, parameters, etc.
 				*/
 
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>8,
+						specified_nostorage 
+				);
 				_if( !$<options.NoStorage>8 )
 				
 					CurOffset += 4 * CurOffsetDir;
@@ -12087,8 +12101,13 @@ RecDef:
 
 			}
 			Semicolon			/* $7 */
-			VarOptions			/* $8 */
+			Options				/* $8 */
 			{
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>8,
+						specified_nostorage 
+				);
 				_if( !$<options.NoStorage>8 )
 
 					CurOffset += 4 * CurOffsetDir;
@@ -12207,8 +12226,13 @@ RecDef:
 
 			}
 			Semicolon			/* $5 */
-			VarOptions			/* $6 */
+			Options				/* $6 */
 			{
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>6,
+						specified_nostorage 
+				);
 				_if( !$<options.NoStorage>6 )
 					
 					CurOffset += $<s>3->ObjectSize * CurOffsetDir;
@@ -12458,8 +12482,13 @@ RecDef:
 				_endif
 			}
 			Semicolon			/* $8 */
-			VarOptions			/* $9 */
+			Options				/* $9 */
 			{
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>9,
+						specified_nostorage 
+				);
 				_if( !$<options.NoStorage>9 )
 				
 					CurOffset += $<i>7 * CurOffsetDir;
@@ -17680,11 +17709,6 @@ procDcls:
 /* Note, however, that this code adjusts lex levels and   */
 /* sets up other compiler variables needed by HLA.        */
 /*                                                        */
-/* Note: The current implementation is incomplete.        */
-/* Procedures will be completed at a later date.          */
-/* This code exists primarily to test out symbol table    */
-/* routines.                                              */
-/*                                                        */
 /**********************************************************/
 
 
@@ -17757,6 +17781,21 @@ procs:
 				_here;
 
 
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>9,
+						specified_returns
+					|	specified_use
+					|	specified_noframe 
+					|	specified_nodisplay 
+					|	specified_noalignstk 
+					|	specified_noenter 
+					|	specified_noleave
+					|	specified_pascal
+					|	specified_stdcall
+					|	specified_cdecl
+					|	specified_alignment 
+				);
 				
 				/*
 				** Patch the local symbol table entry's proc.parms
@@ -18465,6 +18504,52 @@ procs:
 	;
 	
 
+	
+	
+newProcs:	
+		UndefinedID		/* $1 */
+		Colon			/* $2 */
+		forwardTkn		/* $3 */
+		Lparen			/* $4 */
+		UndefinedID		/* $5 */
+		Rparen			/* $6 */
+		Semicolon		/* $7 */
+		{				/* $8 */
+
+			union YYSTYPE v;
+
+			_here;
+			assert( $<idStr>1 != NULL );
+			assert( $<idStr>5 != NULL );
+
+			v.v.u.strval = $<idStr>1;
+			InsertSym
+			( 
+				$<idStr>5, 
+				&text_ste,
+				tText, 
+				cConstant, 
+				0,				/* arity 			*/
+				NULL,			/* NumDimensions	*/
+				0, 				/* NumElements		*/
+				YYS &v,
+				4,				/* ObjectSize		*/
+				0,
+				NULL,
+				NULL,			/* Base				*/
+				NULL,			/* Fields			*/
+				0				/* FieldCnt			*/ 
+			);
+
+			/*
+			** "Prime" fastLookup for the next identifier we encounter:
+			*/
+			
+			fastLookup = 1;
+			_here;
+		}
+	;
+
 			 
 
 colonProcedure:
@@ -18517,13 +18602,12 @@ newProcs:
 			*/
 
 			OptionalParms 	/* $7 v.u.unsval= #bytes of parameters		*/
-			Empty			/* $8 dummy, to keep options at $9		    */
 
 			/*
-			** Process the optional returns, nonest, and noframe clauses.
+			** Process the optional returns, noframe, etc., clauses.
 			*/
 
-			newProcOptionsSemicolon	/* $9 */
+			newProcOptionsSemicolon	/* $8 */
 
 			
 			/*
@@ -18534,7 +18618,7 @@ newProcs:
 			** Set up the procedure's "returns" value.  
 			*/
 			 
-			{				/* $10 */
+			{				/* $9 */
 
 				int 					*dimension;
 				struct SymNode 			value;
@@ -18544,6 +18628,21 @@ newProcs:
 
 				_here;
 
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>8,
+						specified_returns
+					|	specified_use
+					|	specified_noframe 
+					|	specified_nodisplay 
+					|	specified_noalignstk 
+					|	specified_noenter 
+					|	specified_noleave
+					|	specified_pascal
+					|	specified_stdcall
+					|	specified_cdecl
+					|	specified_alignment 
+				);
 
 				
 				/*
@@ -18556,8 +18655,8 @@ newProcs:
 				*/
 
 				$<en.s>6->u.proc.parms->u.proc.parms = SymbolTable;
-				$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>9;
-				$<en.s>6->u.proc.parms->u.proc.use = $<options.use>9;
+				$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>8;
+				$<en.s>6->u.proc.parms->u.proc.use = $<options.use>8;
 
 
 				/*
@@ -18567,11 +18666,11 @@ newProcs:
 
 				$<en.s>6->u.proc.parms = SymbolTable;
 				CurOffsetDir = -1;
-				$<en.s>6->u.proc.returns = $<options.returns>9;
-				$<en.s>6->u.proc.use = $<options.use>9;
+				$<en.s>6->u.proc.returns = $<options.returns>8;
+				$<en.s>6->u.proc.use = $<options.use>8;
 				
 				CurOffset = StartLclOffs;
-				_if( $<options.UseDisplay>9 )
+				_if( $<options.UseDisplay>8 )
 
 					CurOffset -= 4;
 
@@ -18641,7 +18740,7 @@ newProcs:
 				** frame generation.
 				*/
 				
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					p = malloc2( sizeof( struct contextListType ));
 					p->Next = contextList;
@@ -18656,7 +18755,7 @@ newProcs:
 					p->StaticName = hlastrdup2( exitname );
 					p->LexLevel = CurLexLevel;
 					p->IsProc = 1;
-					p->HasDisplay = $<options.UseDisplay>9;
+					p->HasDisplay = $<options.UseDisplay>8;
 					p->SizeParms = $<v.u.unsval>7;
 					contextList = p;
 
@@ -18666,11 +18765,11 @@ newProcs:
 				// go in and swap all the offsets on the parameters:
 
 
-				$<en.s>6->u.proc.cs = $<options.CallingSequence>9;
+				$<en.s>6->u.proc.cs = $<options.CallingSequence>8;
 				_if
 				(
-						$<options.CallingSequence>9 == stdcall_cs
-					||	$<options.CallingSequence>9 == cdecl_cs
+						$<options.CallingSequence>8 == stdcall_cs
+					||	$<options.CallingSequence>8 == cdecl_cs
 				)
 
 					struct	SymNode	*fixParms;
@@ -18703,7 +18802,7 @@ newProcs:
 			** Process this procedure's declarations here.
 			*/
 
-			Declarations	/* $11 */
+			Declarations	/* $10 */
 			
 			
 			/*
@@ -18711,11 +18810,11 @@ newProcs:
 			** to make sure it matches the procedure name.
 			*/
 			 
-			beginTkn 		/* $12 */
-			AnyID 			/* $13 */
-			Semicolon		/* $14 */
+			beginTkn 		/* $11 */
+			AnyID 			/* $12 */
+			Semicolon		/* $13 */
 
-			{				/* $15 */
+			{				/* $14 */
 
 				int						HadPassByValRes;
 				int 					RoundedOffset;
@@ -18732,7 +18831,7 @@ newProcs:
 				** storage for these.
 				*/
 
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					HadPassByValRes = 0;
 					s = $<en.s>6->u.proc.parms;
@@ -18860,7 +18959,7 @@ newProcs:
 				** of the local variable count.
 				*/
 
-				_if( $<options.UseDisplay>9 )
+				_if( $<options.UseDisplay>8 )
 
 					RoundedOffset = RoundedOffset - ( CurLexLevel + 1 )*4;
 
@@ -18906,13 +19005,13 @@ newProcs:
 				*/
 
 				startCseg();
-				_if( $<options.Alignment>9 != 1 )
+				_if( $<options.Alignment>8 != 1 )
 
-					EmitAlign( $<options.Alignment>9 );
+					EmitAlign( $<options.Alignment>8 );
 
 				_endif
 				StartProc( $<en.s>6->StaticName ); 
-				_if( $<options.UseFrame>9 && !$<options.UseDisplay>9 )
+				_if( $<options.UseFrame>8 && !$<options.UseDisplay>8 )
 
 
 					/*
@@ -18920,19 +19019,19 @@ newProcs:
 					** standard entry sequence.
 					*/
 
-					StdEntry( RoundedOffset, $<options.NoEnter>9 );
+					StdEntry( RoundedOffset, $<options.NoEnter>8 );
 
 					/*
 					** Align the stack on a dword boundary.
 					*/
 
-					_if( AlwaysAlignStk && $<options.AlignStk>9 )
+					_if( AlwaysAlignStk && $<options.AlignStk>8 )
 
 						AlignStack();
 
 					_endif
 
-				_elseif( $<options.UseFrame>9 )
+				_elseif( $<options.UseFrame>8 )
 
 					/*
 					** We've got to construct the display.
@@ -18942,14 +19041,14 @@ newProcs:
 					( 
 						CurLexLevel, 
 						RoundedOffset,
-						$<options.NoEnter>9 
+						$<options.NoEnter>8 
 					);
 
 					/*
 					** Align the stack on a dword boundary.
 					*/
 
-					_if( AlwaysAlignStk && $<options.AlignStk>9 )
+					_if( AlwaysAlignStk && $<options.AlignStk>8 )
 
 						AlignStack();
 
@@ -18978,16 +19077,16 @@ newProcs:
 				** variables.
 				*/
 
-				_if( $<options.UseFrame>9 && HadPassByValRes )
+				_if( $<options.UseFrame>8 && HadPassByValRes )
 
 					CopyValResParms( $<en.s>6 );
 
 				_endif
 
 
-				assert( $<idStr>13 != NULL );
+				assert( $<idStr>12 != NULL );
 
-				_if( _strne( $<idStr>2, $<idStr>13 ))
+				_if( _strne( $<idStr>2, $<idStr>12 ))
 
 					char msg[ 256 ];
 
@@ -18996,7 +19095,7 @@ newProcs:
 						msg,
 						"Identifier <<%s>> after 'begin' must match "
 						"procedure name <<%s>>",
-						$<idStr>13,
+						$<idStr>12,
 						$<idStr>2
 					);
 
@@ -19019,7 +19118,7 @@ newProcs:
 				CheckPtrs();
 
 				CurrentContext = $<en.s>6;
-				free2( vss $<idStr>13 );
+				free2( vss $<idStr>12 );
 
 
 				/*
@@ -19033,7 +19132,7 @@ newProcs:
 
 				
 				$<s>$ = lookup( "_finalize_", 1 );
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 				
 					s=$<s>$->Next;
 					InvisibleCode = NULL;
@@ -19066,7 +19165,7 @@ newProcs:
 			** Process the statements in the procedure.
 			*/
 
-			Stmts			/* $16 */
+			Stmts			/* $15 */
 
 
 			/*
@@ -19084,16 +19183,16 @@ newProcs:
 			**
 			*/
 			 
-			endTkn 			/* $17 */
-			AnyID 			/* $18 */
-			Semicolon		/* $19 */
-			{				/* $20 */
+			endTkn 			/* $16 */
+			AnyID 			/* $17 */
+			Semicolon		/* $18 */
+			{				/* $19 */
 
 
 				_here;
-				assert( $<idStr>18 != NULL );
+				assert( $<idStr>17 != NULL );
 
-				_if( _strne( $<idStr>2, $<idStr>18 ))
+				_if( _strne( $<idStr>2, $<idStr>17 ))
 
 					char msg[ 256 ];
 
@@ -19102,7 +19201,7 @@ newProcs:
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"procedure name <<%s>>",
-						$<idStr>18,
+						$<idStr>17,
 						$<idStr>2
 					);
 
@@ -19115,7 +19214,7 @@ newProcs:
 				*/
 
 				PushBackStr( "end" );
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					char lbl[256];
 					
@@ -19132,8 +19231,8 @@ newProcs:
 					InvisibleCode = NULL;
 					_if
 					( 
-							$<s>15->pType != tString 
-						&&	$<s>15->pType != tZString 
+							$<s>14->pType != tString 
+						&&	$<s>14->pType != tZString 
 					)
 
 						WarnNear
@@ -19142,11 +19241,11 @@ newProcs:
 							"_finalize_"
 						);
 
-					_elseif( strlen( $<s>15->u.strval ) != 0 )
+					_elseif( strlen( $<s>14->u.strval ) != 0 )
 
-						InvisibleCode = $<s>15->u.strval;
+						InvisibleCode = $<s>14->u.strval;
 						PushBackStr( "\xF3" );
-						PushBackStr( $<s>15->u.strval );
+						PushBackStr( $<s>14->u.strval );
 
 					_endif
 					
@@ -19154,8 +19253,8 @@ newProcs:
 				_here;
 
 			}
-			Stmts		/* $21 */
-			endTkn		/* $22 Faked by PushBackStr above	*/
+			Stmts		/* $20 */
+			endTkn		/* $21 Faked by PushBackStr above	*/
 			{			/* $22 */
 
 
@@ -19171,7 +19270,7 @@ newProcs:
 				** copy the data back to the caller at this point.
 				*/
 
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					StoreValResParms( $<en.s>6 );
 
@@ -19216,19 +19315,19 @@ newProcs:
 				** file to complete this procedure.
 				*/
 
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					StdExit
 					( 
 						$<v.u.unsval>7, 
 						$<en.s>6->u.proc.cs == cdecl_cs,
-						$<options.NoLeave>9 
+						$<options.NoLeave>8 
 					);
 
 				_endif
 				EndProc( $<en.s>6->StaticName );
 				endCseg();
-				free2( vss $<idStr>18 );
+				free2( vss $<idStr>17 );
 				
 				currentNS = $<en.cns>6;
 
@@ -19238,7 +19337,7 @@ newProcs:
 				** Remove the current context from the context stack.
 				*/
 				
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					assert( contextList != NULL );
 					cNode = contextList;
@@ -19331,9 +19430,10 @@ newProcs:
 				struct contextListType	*p;
 				char					exitname[ 256 ];
 				union YYSTYPE			dummy;
-
+				
+				short					CallingSequence;
+				
 				_here;
-
 				_if( $<s>3->pType != tProcptr )
 				
 					char msg[256];
@@ -19357,7 +19457,44 @@ newProcs:
 					|	specified_alignment 
 					|	specified_noenter 
 					|	specified_noleave
+					|	specified_use
+					|	specified_returns
+					|	specified_stdcall
+					|	specified_pascal
+					|	specified_cdecl
 				);
+				
+				_if( $<options.SpecifiedOptions>9 & specified_stdcall )
+				
+					CallingSequence = stdcall_cs;
+					
+				_elseif( $<options.SpecifiedOptions>9 & specified_cdecl )
+				
+					CallingSequence = cdecl_cs;
+					
+				_elseif( $<options.SpecifiedOptions>9 & specified_pascal )
+				
+					CallingSequence = pascal_cs;
+					
+				_else
+				
+					CallingSequence = $<s>3->u.proc.cs;
+					_if( $<s>3->u.proc.cs == stdcall_cs )
+					
+						$<options.SpecifiedOptions>9 |= specified_stdcall;
+						$<options.CallingSequence>9 = stdcall_cs;	
+					
+					_elseif( $<s>3->u.proc.cs == cdecl_cs )
+					
+						$<options.SpecifiedOptions>9 |= specified_cdecl;	
+						$<options.CallingSequence>9 = cdecl_cs;
+						
+					_endif	
+				
+				_endif
+				$<en.s>8->u.proc.parms->u.proc.cs = CallingSequence;
+				
+				
 
 				
 				/*
@@ -19372,20 +19509,33 @@ newProcs:
 				copyProcPtrParms( $<s>3 );
 
 				$<en.s>8->u.proc.parms->u.proc.parms = SymbolTable;
-				$<en.s>8->u.proc.parms->u.proc.returns = $<s>3->u.proc.returns;
-				$<en.s>8->u.proc.parms->u.proc.use = $<s>3->u.proc.use;
+				_if( $<options.SpecifiedOptions>9 & specified_returns )
+				
+					$<en.s>8->u.proc.parms->u.proc.returns = $<options.returns>9;
+					$<en.s>8->u.proc.returns =	$<options.returns>9;
+
+				_else
+				
+					$<en.s>8->u.proc.parms->u.proc.returns = 
+												$<s>3->u.proc.returns;
+					$<en.s>8->u.proc.returns =	$<s>3->u.proc.returns;
+				
+				_endif
+				_if( $<options.SpecifiedOptions>9 & specified_use )
+				
+					$<en.s>8->u.proc.parms->u.proc.use = $<options.use>9;
+					$<en.s>8->u.proc.use = $<options.use>9;
+
+				_else
+				
+					$<en.s>8->u.proc.parms->u.proc.use = $<s>3->u.proc.use;
+					$<en.s>8->u.proc.use = $<s>3->u.proc.use;
+				
+				_endif
 				$<en.s>8->u.proc.ParmSize = $<s>3->u.proc.ParmSize;
-
-
-				/*
-				** Okay, now set up the pointers for the main
-				** symbol table entry.
-				*/
-
+				$<en.s>8->u.proc.parms->u.proc.ParmSize = $<s>3->u.proc.ParmSize;
 				$<en.s>8->u.proc.parms = SymbolTable;
 				CurOffsetDir = -1;
-				$<en.s>8->u.proc.returns = $<s>3->u.proc.returns;
-				$<en.s>8->u.proc.use = $<s>3->u.proc.use;
 				
 				CurOffset = StartLclOffs;
 				_if( $<options.UseDisplay>9 )
@@ -19483,12 +19633,8 @@ newProcs:
 				// go in and swap all the offsets on the parameters:
 
 
-				$<en.s>8->u.proc.cs = $<options.CallingSequence>9;
-				_if
-				(
-						$<options.CallingSequence>9 == stdcall_cs
-					||	$<options.CallingSequence>9 == cdecl_cs
-				)
+				$<en.s>8->u.proc.cs = CallingSequence;
+				_if( CallingSequence == stdcall_cs || CallingSequence == cdecl_cs )
 
 					struct	SymNode	*fixParms;
 					int			  	offset;
@@ -20034,6 +20180,7 @@ newProcs:
 				*/
 
 				_if( $<options.UseFrame>9 )
+				
 
 					StdExit
 					( 
@@ -20155,10 +20302,13 @@ procs:
 			CheckLegalOptions
 			( 
 				$<options.SpecifiedOptions>9,
-				specified_noframe | specified_nodisplay |
-				specified_noalignstk | specified_alignment |
-				specified_noenter | specified_noleave |
-				specified_use
+					specified_noframe 
+				|	specified_nodisplay 
+				|	specified_noalignstk 
+				|	specified_alignment 
+				|	specified_noenter 
+				|	specified_noleave 
+				|	specified_use
 			);
 
 
@@ -20937,13 +21087,12 @@ newProcs:
 		*/
 
 		OptionalParms 	/* $7 v.u.unsval= #bytes of parameters	*/
-		Empty			/* $8 */
 
 		/*
 		** Process the optional returns, nonest, and noframe clauses.
 		*/
 
-		newProcOptionsSemicolon	/* $9  */
+		newProcOptionsSemicolon	/* $8  */
 
 		
 		/*
@@ -20954,7 +21103,7 @@ newProcs:
 		** Set up the procedure's "returns" value.  
 		*/
 		 
-		{					/* $10 */
+		{					/* $9 */
 
 			int 			*dimension;
 			struct SymNode 	value;
@@ -20966,11 +21115,14 @@ newProcs:
 
 			CheckLegalOptions
 			( 
-				$<options.SpecifiedOptions>9,
-				specified_noframe | specified_nodisplay |
-				specified_noalignstk | specified_alignment |
-				specified_noenter | specified_noleave |
-				specified_use
+				$<options.SpecifiedOptions>8,
+					specified_noframe 
+				|	specified_nodisplay 
+				|	specified_noalignstk 
+				|	specified_alignment 
+				|	specified_noenter 
+				|	specified_noleave 
+				|	specified_use
 			);
 
 
@@ -20985,8 +21137,8 @@ newProcs:
 
 
 			$<en.s>6->u.proc.parms->u.proc.parms = SymbolTable;
-			$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>9;
-			$<en.s>6->u.proc.parms->u.proc.use = $<options.use>9;
+			$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>8;
+			$<en.s>6->u.proc.parms->u.proc.use = $<options.use>8;
 
 			/*
 			** Okay, now set up the pointers for the main
@@ -20995,8 +21147,8 @@ newProcs:
 
 			$<en.s>6->u.proc.parms = SymbolTable;
 			CurOffsetDir = -1;
-			$<en.s>6->u.proc.returns = $<options.returns>9;
-			$<en.s>6->u.proc.use = $<options.use>9;
+			$<en.s>6->u.proc.returns = $<options.returns>8;
+			$<en.s>6->u.proc.use = $<options.use>8;
 			CurOffset = StartLclOffs;
 
 			// Iterators always use the pascal calling sequence:
@@ -21037,7 +21189,7 @@ newProcs:
 			SymbolTable->u.proc.parms = &true_ste;
 
 
-			_if( $<options.UseDisplay>9 )
+			_if( $<options.UseDisplay>8 )
 
 				CurOffset -= 4;
 
@@ -21106,7 +21258,7 @@ newProcs:
 			** statements.
 			*/
 			
-			_if( $<options.UseFrame>9 )
+			_if( $<options.UseFrame>8 )
 
 				p = malloc2( sizeof( struct contextListType ));
 				p->Next = contextList;
@@ -21116,7 +21268,7 @@ newProcs:
 				p->StaticName = hlastrdup2( exitname );
 				p->LexLevel = CurLexLevel;
 				p->IsProc = 1;
-				p->HasDisplay = $<options.UseDisplay>9;
+				p->HasDisplay = $<options.UseDisplay>8;
 				p->SizeParms = $<v.u.unsval>7;
 				contextList = p;
 
@@ -21130,7 +21282,7 @@ newProcs:
 		** Process this procedure's declarations here.
 		*/
 
-		Declarations	/* $11 */
+		Declarations	/* $10 */
 		
 		
 		/*
@@ -21138,11 +21290,11 @@ newProcs:
 		** to make sure it matches the procedure name.
 		*/
 		 
-		beginTkn 		/* $12 */
-		AnyID 			/* $13 */
-		Semicolon		/* $14 */
+		beginTkn 		/* $11 */
+		AnyID 			/* $12 */
+		Semicolon		/* $13 */
 
-		{				/* $15 */
+		{				/* $14 */
 
 			int 			RoundedOffset;
 			struct	SymNode	value;
@@ -21162,7 +21314,7 @@ newProcs:
 			** storage for these.
 			*/
 			
-			_if( $<options.UseFrame>9 )
+			_if( $<options.UseFrame>8 )
 
 				HadPassByValRes = 0;
 				s = $<en.s>6->u.proc.parms;
@@ -21292,7 +21444,7 @@ newProcs:
 			** of the local variable count.
 			*/
 
-			_if( $<options.UseDisplay>9 )
+			_if( $<options.UseDisplay>8 )
 
 				RoundedOffset = RoundedOffset - ( CurLexLevel + 1 )*4;
 
@@ -21339,13 +21491,13 @@ newProcs:
 
 
 			startCseg();
-			_if( $<options.Alignment>9 != 1 )
+			_if( $<options.Alignment>8 != 1 )
 
-				EmitAlign( $<options.Alignment>9 ); 
+				EmitAlign( $<options.Alignment>8 ); 
 
 			_endif
 			StartProc( $<en.s>6->StaticName );
-			_if( $<options.UseFrame>9 && !$<options.UseDisplay>9 )
+			_if( $<options.UseFrame>8 && !$<options.UseDisplay>8 )
 
 
 				/*
@@ -21353,19 +21505,19 @@ newProcs:
 				** standard entry sequence.
 				*/
 
-				StdEntry( RoundedOffset, $<options.NoEnter>9 );
+				StdEntry( RoundedOffset, $<options.NoEnter>8 );
 
 				/*
 				** Align the stack on a dword boundary.
 				*/
 
-				_if( AlwaysAlignStk  && $<options.AlignStk>9 )
+				_if( AlwaysAlignStk  && $<options.AlignStk>8 )
 
 					AlignStack();
 
 				_endif
 
-			_elseif( $<options.UseFrame>9 )
+			_elseif( $<options.UseFrame>8 )
 
 				/*
 				** We've got to construct the display.
@@ -21375,14 +21527,14 @@ newProcs:
 				( 
 					CurLexLevel, 
 					RoundedOffset,
-					$<options.NoEnter>9 
+					$<options.NoEnter>8 
 				);
 
 				/*
 				** Align the stack on a dword boundary.
 				*/
 
-				_if( AlwaysAlignStk && $<options.AlignStk>9 )
+				_if( AlwaysAlignStk && $<options.AlignStk>8 )
 
 					AlignStack();
 
@@ -21411,7 +21563,7 @@ newProcs:
 			** variables.
 			*/
 
-			_if( $<options.UseFrame>9 && HadPassByValRes )
+			_if( $<options.UseFrame>8 && HadPassByValRes )
 
 				CopyValResParms( $<en.s>6 );
 
@@ -21422,9 +21574,9 @@ newProcs:
 
 
 
-			assert( $<idStr>13 != NULL );
+			assert( $<idStr>12 != NULL );
 
-			_if( _strne( $<idStr>2, $<idStr>13 ))
+			_if( _strne( $<idStr>2, $<idStr>12 ))
 
 				char msg[ 256 ];
 
@@ -21433,7 +21585,7 @@ newProcs:
 					msg,
 					"Identifier <<%s>> after 'begin' must match "
 					"iterator name <<%s>>",
-					$<idStr>13,
+					$<idStr>12,
 					$<idStr>2
 				);
 
@@ -21456,7 +21608,7 @@ newProcs:
 			CheckPtrs();
 
 			CurrentContext = $<en.s>6;
-			free2( vss $<idStr>13 );
+			free2( vss $<idStr>12 );
 
 			/*
 			** Emit the text associated with the _initialize_ string
@@ -21470,7 +21622,7 @@ newProcs:
 			
 			$<s>$ = lookup( "_finalize_", 1 );
 			assert( $<s>$ != NULL );
-			_if( $<options.UseFrame>9 )
+			_if( $<options.UseFrame>8 )
 			
 				s=$<s>$->Next;
 				InvisibleCode = NULL;
@@ -21504,7 +21656,7 @@ newProcs:
 		** Process the statements in the iterator.
 		*/
 
-		Stmts			/* $16 */
+		Stmts			/* $15 */
 
 
 		/*
@@ -21522,15 +21674,15 @@ newProcs:
 		**
 		*/
 		 
-		endTkn 			/* $17 */
-		AnyID 			/* $18 */
-		Semicolon		/* $19 */
-		{				/* $20 */
+		endTkn 			/* $16 */
+		AnyID 			/* $17 */
+		Semicolon		/* $18 */
+		{				/* $19 */
 
 			_here;
-			assert( $<idStr>18 != NULL );
+			assert( $<idStr>17 != NULL );
 
-			_if( _strne( $<idStr>2, $<idStr>18 ))
+			_if( _strne( $<idStr>2, $<idStr>17 ))
 
 				char msg[ 256 ];
 
@@ -21539,7 +21691,7 @@ newProcs:
 					msg,
 					"Identifier <<%s>> after 'end' must match "
 					"iterator name <<%s>>",
-					$<idStr>18,
+					$<idStr>17,
 					$<idStr>2
 				);
 
@@ -21553,7 +21705,7 @@ newProcs:
 			*/
 
 			PushBackStr( "end" );
-			_if( $<options.UseFrame>9 )
+			_if( $<options.UseFrame>8 )
 
 				char lbl[256];
 				
@@ -21567,8 +21719,8 @@ newProcs:
 				InvisibleCode = NULL;
 				_if
 				( 
-						$<s>15->pType != tString 
-					&&	$<s>15->pType != tZString 
+						$<s>14->pType != tString 
+					&&	$<s>14->pType != tZString 
 				)
 
 					WarnNear
@@ -21577,19 +21729,19 @@ newProcs:
 						"_finalize_"
 					);
 
-				_elseif( strlen( $<s>15->u.strval ) != 0 )
+				_elseif( strlen( $<s>14->u.strval ) != 0 )
 
-					InvisibleCode = $<s>15->u.strval;
+					InvisibleCode = $<s>14->u.strval;
 					PushBackStr( "\xF3" );
-					PushBackStr( $<s>15->u.strval );
+					PushBackStr( $<s>14->u.strval );
 
 				_endif
 				
 			_endif
 
 		}
-		Stmts		/* $21 */
-		endTkn		/* $22 Faked by PushBackStr above	*/
+		Stmts		/* $20 */
+		endTkn		/* $21 Faked by PushBackStr above	*/
 		{			/* $22 */
 
 			struct contextListType	*cNode;
@@ -21604,7 +21756,7 @@ newProcs:
 			** copy the data back to the caller at this point.
 			*/
 
-			_if( $<options.UseFrame>9 )
+			_if( $<options.UseFrame>8 )
 
 				StoreValResParms( $<en.s>6 );
 
@@ -21651,14 +21803,14 @@ newProcs:
 			** file to complete this iterator.
 			*/
 
-			_if( $<options.UseFrame>9 )
+			_if( $<options.UseFrame>8 )
 
 				IteratorExit( $<v.u.unsval>7 ); 
 
 			_endif
 			EndProc( $<en.s>6->StaticName ); 
 			endCseg();
-			free2( vss $<idStr>18 );
+			free2( vss $<idStr>17 );
 
 
 			/*
@@ -21672,7 +21824,7 @@ newProcs:
 			** Remove the current context from the context stack.
 			*/
 			
-			_if( $<options.UseFrame>9 )
+			_if( $<options.UseFrame>8 )
 
 				assert( contextList != NULL );
 				cNode = contextList;
@@ -21839,6 +21991,21 @@ procs:		procedureTkn		/* $1 */
 				char					exitname[ 256 ];
 
 				_here;
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>11,
+						specified_returns
+					|	specified_use
+					|	specified_noframe 
+					|	specified_nodisplay 
+					|	specified_noalignstk 
+					|	specified_noenter 
+					|	specified_noleave
+					|	specified_pascal
+					|	specified_stdcall
+					|	specified_cdecl
+					|	specified_alignment 
+				);
 				CurrentContext = $<s>2;
 				_if( _strne( $<options.returns>11, "" ))
 
@@ -22645,6 +22812,21 @@ newProcs:	ClassProcID			/* $1  */
 				char					exitname[ 256 ];
 
 				_here;
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>11,
+						specified_returns
+					|	specified_use
+					|	specified_noframe 
+					|	specified_nodisplay 
+					|	specified_noalignstk 
+					|	specified_noenter 
+					|	specified_noleave
+					|	specified_pascal
+					|	specified_stdcall
+					|	specified_cdecl
+					|	specified_alignment 
+				);
 				CurrentContext = $<s>1;
 				_if( _strne( $<options.returns>11, "" ))
 
@@ -23451,6 +23633,21 @@ procs:		methodTkn			/* $1 */
 				char					exitname[ 256 ];
 
 				_here;
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>11,
+						specified_returns
+					|	specified_use
+					|	specified_noframe 
+					|	specified_nodisplay 
+					|	specified_noalignstk 
+					|	specified_noenter 
+					|	specified_noleave
+					|	specified_pascal
+					|	specified_stdcall
+					|	specified_cdecl
+					|	specified_alignment 
+				);
 				CurrentContext = $<s>2;
 
 				$<s>$ = $<s>9; /* Required by FixSymbols */
@@ -24249,6 +24446,21 @@ newProcs:	ClassMethodID	    /* $1  */
 				char					exitname[ 256 ];
 
 				_here;
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>11,
+						specified_returns
+					|	specified_use
+					|	specified_noframe 
+					|	specified_nodisplay 
+					|	specified_noalignstk 
+					|	specified_noenter 
+					|	specified_noleave
+					|	specified_pascal
+					|	specified_stdcall
+					|	specified_cdecl
+					|	specified_alignment 
+				);
 				CurrentContext = $<s>1;
 
 				$<s>$ = $<s>10; /* Required by FixSymbols */
@@ -25083,6 +25295,21 @@ procs:
 			char					exitname[ 256 ];
 
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>11,
+					specified_returns
+				|	specified_use
+				|	specified_noframe 
+				|	specified_nodisplay 
+				|	specified_noalignstk 
+				|	specified_noenter 
+				|	specified_noleave
+				|	specified_pascal
+				|	specified_stdcall
+				|	specified_cdecl
+				|	specified_alignment 
+			);
 			CurrentContext = $<s>2;
 
 			$<s>$ = $<s>9;  /* Required by FixSymbols and other code */
@@ -25902,24 +26129,38 @@ newProcs:
 
 			_here;
 		}
-		Empty					/* $10 */
-		newProcOptionsSemicolon	/* $11 */
-		{						/* $12 */
+		newProcOptionsSemicolon	/* $10 */
+		{						/* $11 */
 
 			int	 *dimension;
 			struct contextListType	*p;
 			char					exitname[ 256 ];
 
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>10,
+					specified_returns
+				|	specified_use
+				|	specified_noframe 
+				|	specified_nodisplay 
+				|	specified_noalignstk 
+				|	specified_noenter 
+				|	specified_noleave
+				|	specified_pascal
+				|	specified_stdcall
+				|	specified_cdecl
+				|	specified_alignment 
+			);
 			CurrentContext = $<s>2;
 
 			$<s>$ = $<s>9;  /* Required by FixSymbols and other code */
 
 
-			_if( _strne( $<options.returns>11, "" ))
+			_if( _strne( $<options.returns>10, "" ))
 
 				yyerror( "\"returns\" clause not allowed here" );
-				free2( vss $<options.returns>11 );
+				free2( vss $<options.returns>10 );
 
 			_endif
 
@@ -25927,7 +26168,7 @@ newProcs:
 			** Insert an entry for the display, if necessary.
 			*/
 
-			_if( $<options.UseDisplay>11 )
+			_if( $<options.UseDisplay>10 )
 
 				CurOffset -= ( CurLexLevel + 1 ) * 4;
 				dimension = malloc2( sizeof( int ));
@@ -25960,7 +26201,7 @@ newProcs:
 			** statements.
 			*/
 			
-			_if( $<options.UseFrame>11 )
+			_if( $<options.UseFrame>10 )
 
 				p = malloc2( sizeof( struct contextListType ));
 				p->Next = contextList;
@@ -25970,7 +26211,7 @@ newProcs:
 				p->StaticName = hlastrdup2( exitname );
 				p->LexLevel = CurLexLevel;
 				p->IsProc = 1;
-				p->HasDisplay = $<options.UseDisplay>11;
+				p->HasDisplay = $<options.UseDisplay>10;
 				p->SizeParms = $<s>2->u.proc.ParmSize;
 				contextList = p;
 
@@ -25985,16 +26226,16 @@ newProcs:
 		** item in the local symbols list in the attribute.
 		*/
 
-		FixSymbols			/* $13 */
+		FixSymbols			/* $12 */
 		
-		saveCurNS			/* $14 */
+		saveCurNS			/* $13 */
 		 
 		 
 		/*
 		** Process this method's declarations here.
 		*/
 
-		Declarations		/* $15 */
+		Declarations		/* $14 */
 		
 		
 		/*
@@ -26002,10 +26243,10 @@ newProcs:
 		** to make sure it matches the method name.
 		*/
 		 
-		beginTkn 			/* $16 */
-		AnyID				/* $17 */
-		Semicolon			/* $18 */
-		{					/* $19 */
+		beginTkn 			/* $15 */
+		AnyID				/* $16 */
+		Semicolon			/* $17 */
+		{					/* $18 */
 
 			struct SymNode *CurSym;
 			int				RoundedOffset;
@@ -26023,7 +26264,7 @@ newProcs:
 			** storage for these.
 			*/
 
-			_if( $<options.UseFrame>11 )
+			_if( $<options.UseFrame>10 )
 
 				HadPassByValRes = 0;
 				s = $<s>2->u.proc.parms;
@@ -26151,7 +26392,7 @@ newProcs:
 			** the # of bytes of local variables.
 			*/
 
-			_if( $<options.UseDisplay>11 )
+			_if( $<options.UseDisplay>10 )
 
 				RoundedOffset = RoundedOffset - ( CurLexLevel + 1 )*4;
 
@@ -26203,13 +26444,13 @@ newProcs:
 
 			_endif
 			startCseg();
-			_if( $<options.Alignment>11 != 1 )
+			_if( $<options.Alignment>10 != 1 )
 
-				EmitAlign( $<options.Alignment>11 );
+				EmitAlign( $<options.Alignment>10 );
 
 			_endif
 			StartProc( $<s>2->StaticName );
-			_if( $<options.UseFrame>11 && !$<options.UseDisplay>11 )
+			_if( $<options.UseFrame>10 && !$<options.UseDisplay>10 )
 
 
 				/*
@@ -26217,19 +26458,19 @@ newProcs:
 				** standard entry sequence.
 				*/
 
-				StdEntry( RoundedOffset, $<options.NoEnter>11 );
+				StdEntry( RoundedOffset, $<options.NoEnter>10 );
 
 				/*
 				** Align the stack on a dword boundary.
 				*/
 
-				_if( AlwaysAlignStk && $<options.AlignStk>11 )
+				_if( AlwaysAlignStk && $<options.AlignStk>10 )
 
 					AlignStack();
 
 				_endif
 
-			_elseif( $<options.UseFrame>11 )
+			_elseif( $<options.UseFrame>10 )
 
 				/*
 				** We've got to construct the display.
@@ -26239,14 +26480,14 @@ newProcs:
 				( 
 					CurLexLevel, 
 					RoundedOffset,
-					$<options.NoEnter>11 
+					$<options.NoEnter>10 
 				);
 
 				/*
 				** Align the stack on a dword boundary.
 				*/
 
-				_if( AlwaysAlignStk && $<options.AlignStk>11 )
+				_if( AlwaysAlignStk && $<options.AlignStk>10 )
 
 					AlignStack();
 
@@ -26266,7 +26507,7 @@ newProcs:
 			** variables.
 			*/
 
-			_if( $<options.UseFrame>11 && HadPassByValRes )
+			_if( $<options.UseFrame>10 && HadPassByValRes )
 
 				CopyValResParms( $<s>2 );
 
@@ -26276,9 +26517,9 @@ newProcs:
 
 
 
-			assert( $<idStr>17 != NULL );
+			assert( $<idStr>16 != NULL );
 
-			_if( _strne( $<s>2->TrueName, $<idStr>17 ))
+			_if( _strne( $<s>2->TrueName, $<idStr>16 ))
 
 				char msg[ 256 ];
 
@@ -26287,7 +26528,7 @@ newProcs:
 					msg,
 					"Identifier <<%s>> after 'begin' must match "
 					"iterator name <<%s>>",
-					$<idStr>17,
+					$<idStr>16,
 					$<s>2->TrueName
 				);
 
@@ -26310,7 +26551,7 @@ newProcs:
 			*/
 
 		
-			CheckForwardDecls( $<s>12 );
+			CheckForwardDecls( $<s>11 );
 
 			/*
 			** Check to make sure all pointer forward references have
@@ -26319,7 +26560,7 @@ newProcs:
 
 			CheckPtrs();
 
-			free2( vss $<idStr>17 );
+			free2( vss $<idStr>16 );
 
 			/*
 			** Emit the text associated with the _initialize_ string
@@ -26367,7 +26608,7 @@ newProcs:
 		** Process the statements in the iterator.
 		*/
 
-		Stmts			/* $20 */
+		Stmts			/* $19 */
 
 
 		/*
@@ -26385,15 +26626,15 @@ newProcs:
 		**
 		*/
 		 
-		endTkn 			/* $21 */
-		AnyID			/* $22 */
-		Semicolon		/* $23 */
-		{				/* $24 */
+		endTkn 			/* $20 */
+		AnyID			/* $21 */
+		Semicolon		/* $22 */
+		{				/* $23 */
 
 			_here;
-			assert( $<idStr>22 != NULL );
+			assert( $<idStr>21 != NULL );
 
-			_if( _strne( $<s>2->TrueName, $<idStr>22 ))
+			_if( _strne( $<s>2->TrueName, $<idStr>21 ))
 
 				char msg[ 256 ];
 
@@ -26402,7 +26643,7 @@ newProcs:
 					msg,
 					"Identifier <<%s>> after 'end' must match "
 					"iterator name <<%s>>",
-					$<idStr>22,
+					$<idStr>21,
 					$<s>2->TrueName
 				);
 
@@ -26416,7 +26657,7 @@ newProcs:
 			*/
 
 			PushBackStr( "end" );
-			_if( $<options.UseFrame>11 )
+			_if( $<options.UseFrame>10 )
 
 				char lbl[256];
 				
@@ -26431,8 +26672,8 @@ newProcs:
 				InvisibleCode = NULL;
 				_if
 				( 
-						$<s>19->pType != tString 
-					&&	$<s>19->pType != tZString 
+						$<s>18->pType != tString 
+					&&	$<s>18->pType != tZString 
 				)
 
 					WarnNear
@@ -26441,20 +26682,20 @@ newProcs:
 						"_finalize_"
 					);
 
-				_elseif( strlen( $<s>19->u.strval ) != 0 )
+				_elseif( strlen( $<s>18->u.strval ) != 0 )
 
-					InvisibleCode = $<s>19->u.strval;
+					InvisibleCode = $<s>18->u.strval;
 					PushBackStr( "\xF3" );
-					PushBackStr( $<s>19->u.strval );
+					PushBackStr( $<s>18->u.strval );
 
 				_endif
 			
 			_endif
 
 		}
-		Stmts		/* $25 */
-		endTkn		/* $26 Faked by PushBackStr above	*/
-		{			/* $27 */
+		Stmts		/* $24 */
+		endTkn		/* $25 Faked by PushBackStr above	*/
+		{			/* $26 */
 
 			struct contextListType	*cNode;
 			struct SymNode			*s;
@@ -26470,7 +26711,7 @@ newProcs:
 			** copy the data back to the caller at this point.
 			*/
 
-			_if( $<options.UseFrame>11 )
+			_if( $<options.UseFrame>10 )
 
 					StoreValResParms( $<s>2 );
 
@@ -26489,8 +26730,8 @@ newProcs:
 			*/
 
 			$<s>2->u.proc.Locals = SymbolTable;
-			$<s>13->Next = NULL;
-			SymbolTable = $<s>12;
+			$<s>12->Next = NULL;
+			SymbolTable = $<s>11;
 
 			/*
 			** See if there are any outstanding undefined static
@@ -26506,7 +26747,7 @@ newProcs:
 			** file to complete this method.
 			*/
 
-			_if( $<options.UseFrame>11 )
+			_if( $<options.UseFrame>10 )
 
 				IteratorExit( $<s>2->u.proc.ParmSize ); 
 
@@ -26522,14 +26763,14 @@ newProcs:
 
 			CheckFwdRef();
 
-			free2( vss $<idStr>22 );
+			free2( vss $<idStr>21 );
 
 
 			/*
 			** Restore currentNS value:
 			*/
 			
-			currentNS = $<ru.saveCurNS>14;
+			currentNS = $<ru.saveCurNS>13;
 			
 			
 			
@@ -26539,7 +26780,7 @@ newProcs:
 			** Remove the current context from the context stack.
 			*/
 			
-			_if( $<options.UseFrame>11 )
+			_if( $<options.UseFrame>10 )
 
 				assert( contextList != NULL );
 				cNode = contextList;
@@ -26597,9 +26838,11 @@ procs:		procedureTkn		/* $1  */
 				CheckLegalOptions
 				( 
 					$<options.SpecifiedOptions>9,
-					specified_returns | specified_pascal |
-					specified_stdcall | specified_cdecl |
-					specified_use
+						specified_returns 
+					|	specified_pascal 
+					|	specified_stdcall 
+					|	specified_cdecl 
+					|	specified_use
 				);
 
 				CurOffset = $<v.u.unsval>3;
@@ -26801,22 +27044,23 @@ procs:		procedureTkn		/* $1  */
 	** Handle external procedure declarations here.
 	*/
 
-newProcs:	UndefinedID 		/* $1  */
-			colonProcedure		/* $2  */
-			SaveOffset 			/* $3  */
-			SaveDirection		/* $4  */
-			SaveContext 		/* $5  */
-			EnterName			/* $6  */
-			OptionalParms 		/* $7  */
-			Empty				/* $8  */
-			newProcOptions		/* $9  */
-			externalTkn 		/* $10 */
-			{ 					/* $11 */
 
-				$<idStr>$ = hlastrdup2( $<idStr>2 ); 
+
+newProcs:	UndefinedID 			/* $1  */
+			colonProcedure			/* $2  */
+			SaveOffset 				/* $3  */
+			SaveDirection			/* $4  */
+			SaveContext 			/* $5  */
+			EnterName				/* $6  */
+			OptionalParms 			/* $7  */
+			newProcOptionsSemicolon	/* $8  */
+			externalTkn 			/* $9 */
+			{ 						/* $10 */
+
+				$<idStr>$ = hlastrdup2( $<idStr>1 ); 
 			} 
-			OptionalExtName 	/* $12 */
-			Semicolon			/* $13 */
+			OptionalExtName 	/* $11 */
+			Semicolon			/* $12 */
 			{
 				struct SymNode	*ParmList;
 				struct SymNode	*localProcDcl;
@@ -26826,10 +27070,12 @@ newProcs:	UndefinedID 		/* $1  */
 				_here;
 				CheckLegalOptions
 				( 
-					$<options.SpecifiedOptions>9,
-					specified_returns | specified_pascal |
-					specified_stdcall | specified_cdecl |
-					specified_use
+					$<options.SpecifiedOptions>8,
+						specified_returns 
+					|	specified_pascal 
+					|	specified_stdcall 
+					|	specified_cdecl 
+					|	specified_use
 				);
 
 				CurOffset = $<v.u.unsval>3;
@@ -26860,10 +27106,10 @@ newProcs:	UndefinedID 		/* $1  */
 				*/
 
 				free2( vss localProcDcl->StaticName );
-				localProcDcl->StaticName = hlastrdup2( $<idStr>12 );
+				localProcDcl->StaticName = hlastrdup2( $<idStr>11 );
 
 				free2( vss $<en.s>6->StaticName );
-				$<en.s>6->StaticName = $<idStr>12;
+				$<en.s>6->StaticName = $<idStr>11;
 
 			
 				/*
@@ -26877,8 +27123,8 @@ newProcs:	UndefinedID 		/* $1  */
 				** Update this procedure's "returns" and "use" fields.
 				*/
 
-				$<en.s>6->u.proc.returns = $<options.returns>9;
-				$<en.s>6->u.proc.use = $<options.use>9;
+				$<en.s>6->u.proc.returns 		= $<options.returns>8;
+				$<en.s>6->u.proc.use 			= $<options.use>8;
 
 
 				/*
@@ -26890,8 +27136,8 @@ newProcs:	UndefinedID 		/* $1  */
 
 
 				localProcDcl->u.proc.parms = SymbolTable;
-				localProcDcl->u.proc.returns = $<options.returns>9;
-				localProcDcl->u.proc.use = $<options.use>9;
+				localProcDcl->u.proc.returns = $<options.returns>8;
+				localProcDcl->u.proc.use = $<options.use>8;
 
 
 
@@ -26948,7 +27194,7 @@ newProcs:	UndefinedID 		/* $1  */
 				** Store up the external definition for later emission:
 				*/
 
-				EmitTypedExtern( $<en.s>6, $<idStr>12, tLabel );
+				EmitTypedExtern( $<en.s>6, $<idStr>11, tLabel );
 
 				/*
 				** Remove this procedure's local symbols from
@@ -26976,7 +27222,8 @@ newProcs:	UndefinedID 		/* $1  */
 				// If the calling sequence reverses the parameters,
 				// go in and swap all the offsets on the parameters:
 
-				$<en.s>6->u.proc.cs = $<options.CallingSequence>9;
+				$<en.s>6->u.proc.cs = $<options.CallingSequence>8;
+				localProcDcl->u.proc.cs = $<options.CallingSequence>8;
 				_if
 				(
 						$<options.CallingSequence>9 == stdcall_cs
@@ -27013,7 +27260,7 @@ newProcs:	UndefinedID 		/* $1  */
 				*/
 				
 				currentNS = $<en.cns>6;
-				(void) $<idStr>11;	// Shut Up Bison				
+				(void) $<idStr>10;	// Shut Up Bison				
 				_here;
 			}
 	;
@@ -27028,17 +27275,17 @@ newProcs:	UndefinedID 		/* $1  */
 	** Handle external procedure declarations here.
 	*/
 
-newProcs:	UndefinedID 		/* $1  */
-			':'					/* $2  */
-			TypeID				/* $3  */
-			saveUID				/* $4  */
-			SaveOffset 			/* $5  */
-			SaveDirection		/* $6  */
-			SaveContext 		/* $7  */
-			EnterName			/* $8  */
-			Semicolon			/* $9  */
-			externalTkn 		/* $10 */
-			{ 					/* $11 */
+newProcs:	UndefinedID 			/* $1  */
+			':'						/* $2  */
+			TypeID					/* $3  */
+			saveUID					/* $4  */
+			SaveOffset 				/* $5  */
+			SaveDirection			/* $6  */
+			SaveContext 			/* $7  */
+			EnterName				/* $8  */
+			newProcOptionsSemicolon	/* $9  */
+			externalTkn 			/* $10 */
+			{ 						/* $11 */
 
 				$<idStr>$ = hlastrdup2( $<idStr>1 ); 
 			} 
@@ -27049,8 +27296,70 @@ newProcs:	UndefinedID 		/* $1  */
 				struct SymNode	*localProcDcl;
 				char			*CurrentType;
 				struct SymNode	value;
+				short			CallingSequence;
+				char			*use;
+				char			*returns;
 
 				_here;
+
+
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>9,
+						specified_returns 
+					|	specified_use
+					|	specified_pascal 
+					|	specified_stdcall 
+					|	specified_cdecl 
+				);
+				_if( $<options.SpecifiedOptions>9 & specified_use )
+				
+					use = $<options.use>9;
+					
+				_else
+				
+					use = $<s>3->u.proc.use;
+					
+				_endif
+				_if( $<options.SpecifiedOptions>9 & specified_returns )
+				
+					returns = $<options.returns>9;
+					
+				_else
+				
+					returns = $<s>3->u.proc.returns;
+					
+				_endif
+				_if( $<options.SpecifiedOptions>9 & specified_stdcall )
+				
+					CallingSequence = stdcall_cs;
+					
+				_elseif( $<options.SpecifiedOptions>9 & specified_cdecl )
+				
+					CallingSequence = cdecl_cs;
+					
+				_elseif( $<options.SpecifiedOptions>9 & specified_pascal )
+				
+					CallingSequence = pascal_cs;
+					
+				_else
+				
+					CallingSequence = $<s>3->u.proc.cs;
+					_if( $<s>3->u.proc.cs == stdcall_cs )
+					
+						$<options.SpecifiedOptions>9 |= specified_stdcall;
+						$<options.CallingSequence>9 = stdcall_cs;	
+					
+					_elseif( $<s>3->u.proc.cs == cdecl_cs )
+					
+						$<options.SpecifiedOptions>9 |= specified_cdecl;	
+						$<options.CallingSequence>9 = cdecl_cs;
+						
+					_endif	
+				
+				_endif
+				$<en.s>8->u.proc.parms->u.proc.cs = CallingSequence;
+				
 
 				CurOffset = $<v.u.unsval>5;
 				CurOffsetDir = $<v.u.unsval>6;
@@ -27080,12 +27389,13 @@ newProcs:	UndefinedID 		/* $1  */
 				
 				copyProcPtrParms( $<s>3 );
 				$<en.s>8->u.proc.parms->u.proc.parms = SymbolTable;
-				$<en.s>8->u.proc.parms->u.proc.returns = $<s>3->u.proc.returns;
-				$<en.s>8->u.proc.parms->u.proc.use = $<s>3->u.proc.use;
+				$<en.s>8->u.proc.parms->u.proc.returns = returns;
+				$<en.s>8->u.proc.parms->u.proc.use = use;
+				$<en.s>8->u.proc.parms->u.proc.ParmSize = $<s>3->u.proc.ParmSize;
 				$<en.s>8->u.proc.ParmSize = $<s>3->u.proc.ParmSize;
 				$<en.s>8->u.proc.parms = SymbolTable;
-				$<en.s>8->u.proc.returns = $<s>3->u.proc.returns;
-				$<en.s>8->u.proc.use = $<s>3->u.proc.use;
+				$<en.s>8->u.proc.returns = returns;
+				$<en.s>8->u.proc.use = use;
 				
 
 				/*
@@ -27180,11 +27490,11 @@ newProcs:	UndefinedID 		/* $1  */
 				// If the calling sequence reverses the parameters,
 				// go in and swap all the offsets on the parameters:
 
-				$<en.s>8->u.proc.cs = $<s>3->u.proc.cs;
+				$<en.s>8->u.proc.cs = CallingSequence;
 				_if
 				(
-						$<s>3->u.proc.cs == stdcall_cs
-					||	$<s>3->u.proc.cs == cdecl_cs
+						CallingSequence == stdcall_cs
+					||	CallingSequence == cdecl_cs
 				)
 
 					struct	SymNode	*fixParms;
@@ -27216,7 +27526,7 @@ newProcs:	UndefinedID 		/* $1  */
 				** Restore the currentNS value saved in EnterName:
 				*/
 				
-				currentNS = $<en.cns>6;
+				currentNS = $<en.cns>8;
 				(void) $<idStr>11;	// Shut Up Bison				
 				_here;
 			}
@@ -27420,33 +27730,33 @@ procs:		iteratorTkn 		/* $1  */
  ** Handle new external iterator definitions here.
  */
 
-newProcs:	UndefinedID 		/* $1  */
-			colonIterator		/* $2  */
-			SaveOffset 			/* $3  */
-			SaveDirection		/* $4  */
-			SaveContext 		/* $5  */
-			EnterIterName		/* $6  */
-			OptionalParms 		/* $7  */
-			Empty				/* $8  */
-			newProcOptions		/* $9  */
-			externalTkn 		/* $10 */
-			{ 					/* $11 */
+newProcs:	UndefinedID 			/* $1  */
+			colonIterator			/* $2  */
+			SaveOffset 				/* $3  */
+			SaveDirection			/* $4  */
+			SaveContext 			/* $5  */
+			EnterIterName			/* $6  */
+			OptionalParms 			/* $7  */
+			newProcOptionsSemicolon	/* $8  */
+			externalTkn 			/* $9  */
+			{ 						/* $10 */
 
 				$<idStr>$ = hlastrdup2( $<idStr>2 ); 
 			} 
-			OptionalExtName 	/* $12 */
-			Semicolon			/* $13 */
-			{					/* $14 */
+			OptionalExtName 	/* $11 */
+			Semicolon			/* $12 */
+			{					/* $13 */
 
 				struct SymNode	*ParmList;
 				char			*CurrentType;
 				struct SymNode	value;
+				char			*use;
 
 
 				_here;
 				CheckLegalOptions
 				( 
-					$<options.SpecifiedOptions>9,
+					$<options.SpecifiedOptions>8,
 					specified_use
 				);
 
@@ -27471,10 +27781,10 @@ newProcs:	UndefinedID 		/* $1  */
 				*/
 
 				free2( vss $<en.s>6->u.proc.parms->StaticName );
-				$<en.s>6->u.proc.parms->StaticName = hlastrdup2( $<idStr>12 );
+				$<en.s>6->u.proc.parms->StaticName = hlastrdup2( $<idStr>11 );
 
 				free2( vss $<en.s>6->StaticName );
-				$<en.s>6->StaticName = $<idStr>12;
+				$<en.s>6->StaticName = $<idStr>11;
 
 				/*
 				** Since this is an external declaration, mark it
@@ -27488,8 +27798,8 @@ newProcs:	UndefinedID 		/* $1  */
 				*/
 
 
-				$<en.s>6->u.proc.returns = $<options.returns>9;
-				$<en.s>6->u.proc.use = $<options.use>9;
+				$<en.s>6->u.proc.returns = $<options.returns>8;
+				$<en.s>6->u.proc.use = $<options.use>8;
 
 
 				/*
@@ -27501,8 +27811,8 @@ newProcs:	UndefinedID 		/* $1  */
 
 
 				$<en.s>6->u.proc.parms->u.proc.parms = SymbolTable;
-				$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>9;
-				$<en.s>6->u.proc.parms->u.proc.use = $<options.use>9;
+				$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>8;
+				$<en.s>6->u.proc.parms->u.proc.use = $<options.use>8;
 
 				// Iterators always use the pascal calling sequence:
 				
@@ -27565,7 +27875,7 @@ newProcs:	UndefinedID 		/* $1  */
 				** Queue up the external declaration for later emission.
 				*/
 
-				EmitTypedExtern( $<en.s>6, $<idStr>12, tLabel );
+				EmitTypedExtern( $<en.s>6, $<idStr>11, tLabel );
 
 
 				/*
@@ -27592,11 +27902,10 @@ newProcs:	UndefinedID 		/* $1  */
 				*/
 				
 				currentNS = $<en.cns>6;
-				(void) $<idStr>11;	// Shut up bison				
+				(void) $<idStr>10;	// Shut up bison				
 				_here;
 			}
 	;
-
 
 
 
@@ -27628,9 +27937,11 @@ procs:		procedureTkn		/* $1 */
 				CheckLegalOptions
 				( 
 					$<options.SpecifiedOptions>9,
-					specified_returns | specified_pascal |
-					specified_stdcall | specified_cdecl |
-					specified_use
+						specified_returns 
+					|	specified_pascal 
+					|	specified_stdcall 
+					|	specified_cdecl 
+					|	specified_use
 				);
 
 				$<en.s>6->u.proc.cs = $<options.CallingSequence>9;
@@ -27779,22 +28090,32 @@ procs:		procedureTkn		/* $1 */
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 			/*
 			** Handle new forward procedure declarations here.
 			*/
 
-newProcs:	UndefinedID 		/* $1 */
-			colonProcedure		/* $2 */
-			SaveOffset 			/* $3 */
-			SaveDirection		/* $4 */
-			SaveContext 		/* $5 */
-			EnterName			/* $6 */
-			OptionalParms 		/* $7 */
-			Empty				/* $8 For compatibility with old version*/
-			newProcOptions		/* $9 */
-			forwardTkn 			/* $10 */
-			Semicolon			/* $11 */
-			{					/* $12 */
+newProcs:	UndefinedID 			/* $1 */
+			colonProcedure			/* $2 */
+			SaveOffset 				/* $3 */
+			SaveDirection			/* $4 */
+			SaveContext 			/* $5 */
+			EnterName				/* $6 */
+			OptionalParms 			/* $7 */
+			newProcOptionsSemicolon	/* $8 */
+			forwardTkn 				/* $9  */
+			Semicolon				/* $10 */
+			{						/* $11 */
 
 				struct SymNode	*ParmList;
 				char			*CurrentType;
@@ -27804,20 +28125,22 @@ newProcs:	UndefinedID 		/* $1 */
 				_here;
 				CheckLegalOptions
 				( 
-					$<options.SpecifiedOptions>9,
-					specified_returns | specified_pascal |
-					specified_stdcall | specified_cdecl |
-					specified_use
+					$<options.SpecifiedOptions>8,
+						specified_returns 
+					|	specified_pascal 
+					|	specified_stdcall 
+					|	specified_cdecl 
+					|	specified_use
 				);
 
-				$<en.s>6->u.proc.cs = $<options.CallingSequence>9;
+				$<en.s>6->u.proc.cs = $<options.CallingSequence>8;
 
 				/*
 				** Set up the "returns" field for this procedure.
 				*/
 
-				$<en.s>6->u.proc.returns = $<options.returns>9;
-				$<en.s>6->u.proc.use = $<options.use>9;
+				$<en.s>6->u.proc.returns = $<options.returns>8;
+				$<en.s>6->u.proc.use = $<options.use>8;
 
 				/*
 				** Patch the local symbol table entry's proc.parms
@@ -27830,8 +28153,8 @@ newProcs:	UndefinedID 		/* $1 */
 				*/
 
 				$<en.s>6->u.proc.parms->u.proc.parms = SymbolTable;
-				$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>9;
-				$<en.s>6->u.proc.parms->u.proc.use = $<options.use>9;
+				$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>8;
+				$<en.s>6->u.proc.parms->u.proc.use = $<options.use>8;
 
 
 				/*
@@ -27960,18 +28283,18 @@ newProcs:	UndefinedID 		/* $1 */
 			** Handle new forward procedure declarations here.
 			*/
 
-newProcs:	UndefinedID 		/* $1  */
-			':'					/* $2  */
-			TypeID				/* $3  */
-			saveUID				/* $4  */
-			SaveOffset 			/* $5  */
-			SaveDirection		/* $6  */
-			SaveContext 		/* $7  */
-			EnterName			/* $8  */
-			Semicolon			/* $9  */
-			forwardTkn 			/* $10 */
-			Semicolon			/* $11 */
-			{					/* $12 */
+newProcs:	UndefinedID 			/* $1  */
+			':'						/* $2  */
+			TypeID					/* $3  */
+			saveUID					/* $4  */
+			SaveOffset 				/* $5  */
+			SaveDirection			/* $6  */
+			SaveContext 			/* $7  */
+			EnterName				/* $8  */
+			newProcOptionsSemicolon	/* $9  */
+			forwardTkn 				/* $10 */
+			Semicolon				/* $11 */
+			{						/* $12 */
 
 				struct SymNode	*ParmList;
 				char			*CurrentType;
@@ -27979,10 +28302,51 @@ newProcs:	UndefinedID 		/* $1  */
 				struct SymNode	value;
 
 				_here;
+				
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>9,
+						specified_use
+					|	specified_returns
+					|	specified_stdcall
+					|	specified_pascal
+					|	specified_cdecl
+				);
+				_if
+				( 
+						$<options.SpecifiedOptions>9 
+					&	(
+								specified_stdcall
+							|	specified_pascal
+							|	specified_cdecl
+						)
+				)
+				
+					$<en.s>8->u.proc.cs = $<options.CallingSequence>9;
 
-				$<en.s>8->u.proc.cs = $<s>3->u.proc.cs;
-				$<en.s>8->u.proc.use = $<s>3->u.proc.use;
-				$<en.s>8->u.proc.returns = $<s>3->u.proc.returns;
+				_else
+
+					$<en.s>8->u.proc.cs = $<s>3->u.proc.cs;
+					
+				_endif
+				_if( $<options.SpecifiedOptions>9 & specified_use )
+				
+					$<en.s>8->u.proc.use = $<options.use>9;
+				
+				_else
+				
+					$<en.s>8->u.proc.use = $<s>3->u.proc.use;
+					
+				_endif
+				_if( $<options.SpecifiedOptions>9 & specified_returns )
+				
+					$<en.s>8->u.proc.returns = $<options.returns>9;
+				
+				_else 
+				
+					$<en.s>8->u.proc.returns = $<s>3->u.proc.returns;
+					
+				_endif
 				
 
 				/*
@@ -27991,8 +28355,8 @@ newProcs:	UndefinedID 		/* $1  */
 
 				copyProcPtrParms( $<s>3 );
 				$<en.s>8->u.proc.parms->u.proc.parms = SymbolTable;
-				$<en.s>8->u.proc.parms->u.proc.returns = $<options.returns>9;
-				$<en.s>8->u.proc.parms->u.proc.use = $<options.use>9;
+				$<en.s>8->u.proc.parms->u.proc.returns = $<en.s>8->u.proc.returns;
+				$<en.s>8->u.proc.parms->u.proc.use = $<en.s>8->u.proc.use;
 
 
 				/*
@@ -28076,8 +28440,8 @@ newProcs:	UndefinedID 		/* $1  */
 
 				_if
 				(
-						$<s>3->u.proc.cs == stdcall_cs
-					||	$<s>3->u.proc.cs == cdecl_cs
+						$<en.s>8->u.proc.cs == stdcall_cs
+					||	$<en.s>8->u.proc.cs == cdecl_cs
 				)
 
 					struct	SymNode	*fixParms;
@@ -28267,18 +28631,17 @@ procs:		iteratorTkn			/* $1 */
  ** Handle new forward iterator declarations here.
  */
 
-newProcs:	UndefinedID 		/* $1 */
-			colonIterator		/* $2 */
-			SaveOffset 			/* $3 */
-			SaveDirection		/* $4 */
-			SaveContext 		/* $5 */
-			EnterIterName		/* $6 */
-			OptionalParms 		/* $7 */
-			Empty				/* $8 */
-			newProcOptions		/* $9 */
-			forwardTkn 			/* $10 */
-			Semicolon			/* $11 */
-			{					/* $12 */
+newProcs:	UndefinedID 			/* $1 */
+			colonIterator			/* $2 */
+			SaveOffset 				/* $3 */
+			SaveDirection			/* $4 */
+			SaveContext 			/* $5 */
+			EnterIterName			/* $6 */
+			OptionalParms 			/* $7 */
+			newProcOptionsSemicolon	/* $8 */
+			forwardTkn 				/* $9  */
+			Semicolon				/* $10 */
+			{						/* $11 */
 
 				struct SymNode	*ParmList;
 				char			*CurrentType;
@@ -28289,7 +28652,7 @@ newProcs:	UndefinedID 		/* $1 */
 
 				CheckLegalOptions
 				( 
-					$<options.SpecifiedOptions>9,
+					$<options.SpecifiedOptions>8,
 					specified_use
 				);
 				
@@ -28303,8 +28666,8 @@ newProcs:	UndefinedID 		/* $1 */
 				** Set up the "returns" field for this procedure.
 				*/
 
-				$<en.s>6->u.proc.returns = $<options.returns>9;
-				$<en.s>6->u.proc.use = $<options.use>9;
+				$<en.s>6->u.proc.returns = $<options.returns>8;
+				$<en.s>6->u.proc.use = $<options.use>8;
 
 				/*
 				** Patch the local symbol table entry's proc.parms
@@ -28315,8 +28678,8 @@ newProcs:	UndefinedID 		/* $1 */
 
 
 				$<en.s>6->u.proc.parms->u.proc.parms = SymbolTable;
-				$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>9;
-				$<en.s>6->u.proc.parms->u.proc.use = $<options.use>9;
+				$<en.s>6->u.proc.parms->u.proc.returns = $<options.returns>8;
+				$<en.s>6->u.proc.parms->u.proc.use = $<options.use>8;
 
 
 
@@ -28482,22 +28845,21 @@ colonProcedure2:
 
   
 newProcs:	
-		LocalProcID			/* $1  */ 
-		SaveOffset 			/* $2  */
-		SaveDirection 		/* $3  */
-		SaveContext 		/* $4  */
-		colonProcedure2		/* $5  */
-		MatchParms			/* $6  */
-		PatchLocals			/* $7  */
-		Empty				/* $8  */
-		newProcOptions		/* $9  */
-		externalTkn			/* $10 */
-		{					/* $11 */
+		LocalProcID				/* $1  */ 
+		SaveOffset 				/* $2  */
+		SaveDirection 			/* $3  */
+		SaveContext 			/* $4  */
+		colonProcedure2			/* $5  */
+		MatchParms				/* $6  */
+		PatchLocals				/* $7  */
+		newProcOptionsSemicolon	/* $8  */
+		externalTkn				/* $9  */
+		{						/* $10 */
 
 			$<idStr>$ = hlastrdup2( "" );
 		}
-		OptionalExtName		/* $12 */
-		Semicolon			/* $13 */
+		OptionalExtName		/* $11 */
+		Semicolon			/* $12 */
 		{
 			char msg[ 256 ];
 			
@@ -28510,7 +28872,7 @@ newProcs:
 			);
 				
 			yyerror( msg );
-			free2( vss $<idStr>12 );
+			free2( vss $<idStr>11 );
 
 			/*
 			** Undo the stuff done by PatchLocals.
@@ -28527,7 +28889,7 @@ newProcs:
 			*/
 			
 			currentNS = $<s>1;
-			(void)$<idStr>11; // Shut up bison
+			(void)$<idStr>10; // Shut up bison
 			_here;
 		}
 	;
@@ -28654,9 +29016,12 @@ procs:		procedureTkn		/* $1  */
 				CheckLegalOptions
 				( 
 					$<options.SpecifiedOptions>9,
-					specified_noframe | specified_nodisplay |
-					specified_noalignstk | specified_alignment |
-					specified_noenter | specified_noleave
+						specified_noframe 
+					|	specified_nodisplay 
+					|	specified_noalignstk 
+					|	specified_alignment 
+					|	specified_noenter 
+					|	specified_noleave
 				);
 
 				// Note: FixSymbols will patch this procedure's local symbol
@@ -29321,9 +29686,8 @@ newProcs:	LocalProcID				/* $1  */
 			colonProcedure2			/* $5  */
 			MatchParms				/* $6  */
 			PatchLocals				/* $7  */
-			Empty					/* $8  */
-			newProcOptionsSemicolon	/* $9  */
-			{						/* $10 */
+			newProcOptionsSemicolon	/* $8  */
+			{						/* $9 */
 
 				int						*dimension;
 				struct	SymNode			*s;
@@ -29334,10 +29698,13 @@ newProcs:	LocalProcID				/* $1  */
 				CurrentContext = $<s>5;
 				CheckLegalOptions
 				( 
-					$<options.SpecifiedOptions>9,
-					specified_noframe | specified_nodisplay |
-					specified_noalignstk | specified_alignment |
-					specified_noenter | specified_noleave
+					$<options.SpecifiedOptions>8,
+						specified_noframe 
+					|	specified_nodisplay 
+					|	specified_noalignstk 
+					|	specified_alignment 
+					|	specified_noenter 
+					|	specified_noleave
 				);
 
 				// Note: FixSymbols will patch this procedure's local symbol
@@ -29353,7 +29720,7 @@ newProcs:	LocalProcID				/* $1  */
 				*/
 
 				CurOffset = StartLclOffs;
-				_if( $<options.UseDisplay>9 )
+				_if( $<options.UseDisplay>8 )
 
 					CurOffset -= 4;
 					dimension = malloc2( sizeof( int ));
@@ -29386,7 +29753,7 @@ newProcs:	LocalProcID				/* $1  */
 				** statements.
 				*/
 				
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					p = malloc2( sizeof( struct contextListType ));
 					p->Next = contextList;
@@ -29396,7 +29763,7 @@ newProcs:	LocalProcID				/* $1  */
 					p->StaticName = hlastrdup2( exitname );
 					p->LexLevel = CurLexLevel;
 					p->IsProc = 1;
-					p->HasDisplay = $<options.UseDisplay>9;
+					p->HasDisplay = $<options.UseDisplay>8;
 					p->SizeParms = $<s>5->u.proc.ParmSize;
 					contextList = p;
 				
@@ -29410,15 +29777,15 @@ newProcs:	LocalProcID				/* $1  */
 			** item in the local symbols list in the attribute.
 			*/
 
-			FixSymbols			/* $11 */
+			FixSymbols			/* $10 */
 
-			saveCurNS			/* $12 */
+			saveCurNS			/* $11 */
 			 
 			/*
 			** Process this procedure's declarations here.
 			*/
 
-			Declarations		/* $13 */
+			Declarations		/* $12 */
 			
 			
 			/*
@@ -29426,10 +29793,10 @@ newProcs:	LocalProcID				/* $1  */
 			** to make sure it matches the procedure name.
 			*/
 			 
-			beginTkn 			/* $14 */
- 			AnyID				/* $15 */
-  			Semicolon			/* $16 */
- 			{					/* $17 */
+			beginTkn 			/* $13 */
+ 			AnyID				/* $14 */
+  			Semicolon			/* $15 */
+ 			{					/* $16 */
 
 
 				int				RoundedOffset;
@@ -29582,7 +29949,7 @@ newProcs:	LocalProcID				/* $1  */
 				** display from the number of local variables.
 				*/
 
-				_if( $<options.UseDisplay>9 )
+				_if( $<options.UseDisplay>8 )
 
 					RoundedOffset = RoundedOffset - ( CurLexLevel + 1 )*4;
 
@@ -29634,13 +30001,13 @@ newProcs:	LocalProcID				/* $1  */
 
 				_endif
 				startCseg();
-				_if( $<options.Alignment>9 != 1 )
+				_if( $<options.Alignment>8 != 1 )
 
-					EmitAlign( $<options.Alignment>9 );
+					EmitAlign( $<options.Alignment>8 );
 
 				_endif
 				StartProc( $<s>5->StaticName );
-				_if( $<options.UseFrame>9 && !$<options.UseDisplay>9 )
+				_if( $<options.UseFrame>8 && !$<options.UseDisplay>8 )
 
 
 					/*
@@ -29648,19 +30015,19 @@ newProcs:	LocalProcID				/* $1  */
 					** standard entry sequence.
 					*/
 
-					StdEntry( RoundedOffset, $<options.NoEnter>9 );
+					StdEntry( RoundedOffset, $<options.NoEnter>8 );
 
 					/*
 					** Align the stack on a dword boundary.
 					*/
 
-					_if( AlwaysAlignStk && $<options.AlignStk>9 )
+					_if( AlwaysAlignStk && $<options.AlignStk>8 )
 
 						AlignStack();
 
 					_endif
 
-				_elseif( $<options.UseFrame>9 )
+				_elseif( $<options.UseFrame>8 )
 
 					/*
 					** We've got to construct the display.
@@ -29670,14 +30037,14 @@ newProcs:	LocalProcID				/* $1  */
 					( 
 						CurLexLevel, 
 						RoundedOffset,
-						$<options.NoEnter>9 
+						$<options.NoEnter>8 
 					);
 
 					/*
 					** Align the stack on a dword boundary.
 					*/
 
-					_if( AlwaysAlignStk && $<options.AlignStk>9 )
+					_if( AlwaysAlignStk && $<options.AlignStk>8 )
 
 						AlignStack();
 
@@ -29696,7 +30063,7 @@ newProcs:	LocalProcID				/* $1  */
 				** variables.
 				*/
 
-				_if( $<options.UseFrame>9 && HadPassByValRes )
+				_if( $<options.UseFrame>8 && HadPassByValRes )
 
 					CopyValResParms( $<s>5 );
 
@@ -29706,9 +30073,9 @@ newProcs:	LocalProcID				/* $1  */
 
 
 
-				assert( $<idStr>15 != NULL );
+				assert( $<idStr>14 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>15 ))
+				_if( _strne( $<s>5->TrueName, $<idStr>14 ))
 
 					char msg[ 256 ];
 
@@ -29718,7 +30085,7 @@ newProcs:	LocalProcID				/* $1  */
 						"Identifier <<%s>> after 'begin' must match "
 						"procedure name <<%s>>",
 
-						$<idStr>15,
+						$<idStr>14,
 						$<s>5->TrueName
 					);
 
@@ -29731,7 +30098,7 @@ newProcs:	LocalProcID				/* $1  */
 				** have be defined prior to code emission.
 				*/
 
-				CheckForwardDecls( $<s>10 );
+				CheckForwardDecls( $<s>9 );
 
 				/*
 				** Check to make sure all pointer forward references have
@@ -29744,7 +30111,7 @@ newProcs:	LocalProcID				/* $1  */
 				** CurrentContext = $<s>5;
 				*/
 
-				free2( vss $<idStr>15 );
+				free2( vss $<idStr>14 );
 
 
 				/*
@@ -29759,7 +30126,7 @@ newProcs:	LocalProcID				/* $1  */
 				
 				$<s>$ = lookup( "_finalize_", 1 );
 				assert( $<s>$ != NULL );
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 				
 					s=$<s>$->Next;
 					InvisibleCode = NULL;
@@ -29793,7 +30160,7 @@ newProcs:	LocalProcID				/* $1  */
 			** Process the statements in the procedure.
 			*/
 
-			Stmts			/* $18 */
+			Stmts			/* $17 */
 
 
 			/*
@@ -29811,19 +30178,19 @@ newProcs:	LocalProcID				/* $1  */
 			**
 			*/
 			 
-			endTkn 			/* $19 */
-			AnyID			/* $20 */
-			Semicolon		/* $21 */
-			{				/* $22 */
+			endTkn 			/* $18 */
+			AnyID			/* $19 */
+			Semicolon		/* $20 */
+			{				/* $21 */
 
 				struct SymNode			*s;
 				struct SymNode			*d;
 
 
 				_here;
-				assert( $<idStr>20 != NULL );
+				assert( $<idStr>19 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>20 ))
+				_if( _strne( $<s>5->TrueName, $<idStr>19 ))
 
 					char msg[ 256 ];
 
@@ -29832,7 +30199,7 @@ newProcs:	LocalProcID				/* $1  */
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"procedure name <<%s>>",
-						$<idStr>20,
+						$<idStr>19,
 						$<s>5->TrueName
 					);
 
@@ -29846,7 +30213,7 @@ newProcs:	LocalProcID				/* $1  */
 				*/
 
 				PushBackStr( "end" );
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					char lbl[256];
 					
@@ -29861,8 +30228,8 @@ newProcs:	LocalProcID				/* $1  */
 					InvisibleCode = NULL;
 					_if
 					( 
-							$<s>17->pType != tString 
-						&&	$<s>17->pType != tZString 
+							$<s>16->pType != tString 
+						&&	$<s>16->pType != tZString 
 					)
 
 						WarnNear
@@ -29871,20 +30238,20 @@ newProcs:	LocalProcID				/* $1  */
 							"_finalize_"
 						);
 
-					_elseif( strlen( $<s>17->u.strval ) != 0 )
+					_elseif( strlen( $<s>16->u.strval ) != 0 )
 
-						InvisibleCode = $<s>17->u.strval;
+						InvisibleCode = $<s>16->u.strval;
 						PushBackStr( "\xF3" );
-						PushBackStr( $<s>17->u.strval );
+						PushBackStr( $<s>16->u.strval );
 
 					_endif
 					
 				_endif
 
 			}
-			Stmts		/* $23 */
-			endTkn		/* $24 Faked by PushBackStr above	*/
-			{			/* $25 */
+			Stmts		/* $22 */
+			endTkn		/* $23 Faked by PushBackStr above	*/
+			{			/* $24 */
 		
 				struct contextListType	*cNode;
 				struct SymNode			*s;
@@ -29897,7 +30264,7 @@ newProcs:	LocalProcID				/* $1  */
 				** copy the data back to the caller at this point.
 				*/
 
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					StoreValResParms( $<s>5 );
 
@@ -29916,7 +30283,7 @@ newProcs:	LocalProcID				/* $1  */
 				*/
 
 				$<s>5->u.proc.Locals = SymbolTable;
-				$<s>11->Next = NULL;
+				$<s>10->Next = NULL;
 				SymbolTable = $<s>7;
 
 				/*
@@ -29949,19 +30316,19 @@ newProcs:	LocalProcID				/* $1  */
 				** file to complete this procedure.
 				*/
 
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					StdExit
 					( 
 						$<s>5->u.proc.ParmSize, 
 						$<s>5->u.proc.cs == cdecl_cs,
-						$<options.NoLeave>9
+						$<options.NoLeave>8
 					);
 
 				_endif
 				EndProc( $<s>5->StaticName );
 				endCseg();
-				free2( vss $<idStr>20 );
+				free2( vss $<idStr>19 );
 
 				inProcedure = 0;
 
@@ -29969,7 +30336,7 @@ newProcs:	LocalProcID				/* $1  */
 				** Remove the current context from the context stack.
 				*/
 				
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					assert( contextList != NULL );
 					cNode = contextList;
@@ -29985,15 +30352,14 @@ newProcs:	LocalProcID				/* $1  */
 				** Restore currentNS
 				*/
 				
-				currentNS = $<ru.saveCurNS>12;
+				currentNS = $<ru.saveCurNS>11;
 				_here;
 			}
 	;
+	
 
 
-
-
-// MatchParms2-
+// MatchProcTypeID-
 //
 //	Parameters are specified by a TypeID. Make sure that TypeID is a procedure
 // type and that its parameter list matches the current set.
@@ -30001,7 +30367,7 @@ newProcs:	LocalProcID				/* $1  */
 //	Assumes the procedure ID being check is at $0. 
 
 
-MatchParms2:
+MatchProcTypeID:
 			TypeID				/* $1 */
 			{
 				struct	SymNode	*p;
@@ -30218,7 +30584,7 @@ newProcs:	LocalProcID				/* $1  */
 			SaveContext 			/* $4  */
 			':'						/* $5  */
 			{ $<s>$ = $<s>1; }		/* $6  */
-			MatchParms2				/* $7  */
+			MatchProcTypeID			/* $7  */
 			PatchLocals				/* $8  */
 			newProcOptionsSemicolon	/* $9  */
 			{						/* $10 */
@@ -30233,9 +30599,12 @@ newProcs:	LocalProcID				/* $1  */
 				CheckLegalOptions
 				( 
 					$<options.SpecifiedOptions>9,
-					specified_noframe | specified_nodisplay |
-					specified_noalignstk | specified_alignment |
-					specified_noenter | specified_noleave
+						specified_noframe 
+					|	specified_nodisplay 
+					|	specified_noalignstk 
+					|	specified_alignment 
+					|	specified_noenter 
+					|	specified_noleave
 				);
 
 				// Note: FixSymbols will patch this procedure's local symbol
@@ -30962,22 +31331,21 @@ colonIterator2:
 	;
   		 
 newProcs:	
-		LocalIterID			/* $1  */ 
-		SaveOffset 			/* $2  */
-		SaveDirection 		/* $3  */
-		SaveContext 		/* $4  */
-		colonIterator2 		/* $5  */
-		MatchParms			/* $6  */
-		PatchLclIter		/* $7  */
-		Empty				/* $8  */
-		newProcOptions		/* $9  */
-		externalTkn			/* $10 */
-		{					/* $11 */
+		LocalIterID				/* $1  */ 
+		SaveOffset 				/* $2  */
+		SaveDirection 			/* $3  */
+		SaveContext 			/* $4  */
+		colonIterator2 			/* $5  */
+		MatchParms				/* $6  */
+		PatchLclIter			/* $7  */
+		newProcOptionsSemicolon	/* $8  */
+		externalTkn				/* $9  */
+		{						/* $10 */
 
 			$<idStr>$ = hlastrdup2( "" );
 		}
-		OptionalExtName		/* $12 */
-		Semicolon			/* $13 */
+		OptionalExtName		/* $11 */
+		Semicolon			/* $12 */
 		{
 			char msg[ 256 ];
 			
@@ -30990,7 +31358,7 @@ newProcs:
 			);
 				
 			yyerror( msg );
-			free2( vss $<idStr>12 );
+			free2( vss $<idStr>11 );
 
 			/*
 			** Undo the stuff done by PatchLclIter.
@@ -31001,7 +31369,7 @@ newProcs:
 
 			SymbolTable = $<s>7;
 			--CurLexLevel;
-			(void) $<idStr>11;	// shut up bison
+			(void) $<idStr>10;	// shut up bison
 		}
 	;
 
@@ -31118,9 +31486,12 @@ procs:		iteratorTkn			/* $1  */
 				CheckLegalOptions
 				( 
 					$<options.SpecifiedOptions>9,
-					specified_noframe | specified_nodisplay |
-					specified_noalignstk | specified_alignment |
-					specified_noenter | specified_noleave
+						specified_noframe 
+					|	specified_nodisplay 
+					|	specified_noalignstk 
+					|	specified_alignment 
+					|	specified_noenter 
+					|	specified_noleave
 				);
 
 
@@ -31814,9 +32185,8 @@ newProcs:	LocalIterID				/* $1  */
 			colonIterator2 			/* $5  */
 			MatchParms				/* $6  */
 			PatchLclIter			/* $7  */
-			Empty					/* $8  */
-			newProcOptionsSemicolon	/* $9  */
-			{						/* $10 */
+			newProcOptionsSemicolon	/* $8  */
+			{						/* $9  */
 
 				char 					msg[ 256 ];
 				int						*dimension;
@@ -31828,10 +32198,13 @@ newProcs:	LocalIterID				/* $1  */
 				CurrentContext = $<s>5;
 				CheckLegalOptions
 				( 
-					$<options.SpecifiedOptions>9,
-					specified_noframe | specified_nodisplay |
-					specified_noalignstk | specified_alignment |
-					specified_noenter | specified_noleave
+					$<options.SpecifiedOptions>8,
+						specified_noframe 
+					|	specified_nodisplay 
+					|	specified_noalignstk 
+					|	specified_alignment 
+					|	specified_noenter 
+					|	specified_noleave
 				);
 
 
@@ -31882,7 +32255,7 @@ newProcs:	LocalIterID				/* $1  */
 				*/
 
 				CurOffset = StartLclOffs;
-				_if( $<options.UseDisplay>9 )
+				_if( $<options.UseDisplay>8 )
 
 					CurOffset -= 4;
 					dimension = malloc2( sizeof( int ));
@@ -31916,7 +32289,7 @@ newProcs:	LocalIterID				/* $1  */
 				** statements.
 				*/
 				
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					p = malloc2( sizeof( struct contextListType ));
 					p->Next = contextList;
@@ -31926,7 +32299,7 @@ newProcs:	LocalIterID				/* $1  */
 					p->StaticName = hlastrdup2( exitname );
 					p->LexLevel = CurLexLevel;
 					p->IsProc = 1;
-					p->HasDisplay = $<options.UseDisplay>9;
+					p->HasDisplay = $<options.UseDisplay>8;
 					p->SizeParms = $<s>5->u.proc.ParmSize;
 					contextList = p;
 
@@ -31942,15 +32315,15 @@ newProcs:	LocalIterID				/* $1  */
 			** item in the local symbols list in the attribute.
 			*/
 
-			FixSymbols			/* $11 */
+			FixSymbols			/* $10 */
 			 
-			saveCurNS			/* $12 */
+			saveCurNS			/* $11 */
 			
 			/*
 			** Process this procedure's declarations here.
 			*/
 
-			Declarations		/* $13 */
+			Declarations		/* $12 */
 			
 			
 			/*
@@ -31958,10 +32331,10 @@ newProcs:	LocalIterID				/* $1  */
 			** to make sure it matches the procedure name.
 			*/
 			 
-			beginTkn 			/* $14 */
- 			AnyID				/* $15 */
-  			Semicolon			/* $16 */
- 			{					/* $17 */
+			beginTkn 			/* $13 */
+ 			AnyID				/* $14 */
+  			Semicolon			/* $15 */
+ 			{					/* $16 */
 
 
 				int				RoundedOffset;
@@ -31980,7 +32353,7 @@ newProcs:	LocalIterID				/* $1  */
 				** storage for these.
 				*/
 
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					HadPassByValRes = 0;
 					s = $<s>5->u.proc.parms;
@@ -32111,7 +32484,7 @@ newProcs:	LocalIterID				/* $1  */
 				** display from the number of local variables.
 				*/
 
-				_if( $<options.UseDisplay>9 )
+				_if( $<options.UseDisplay>8 )
 
 					RoundedOffset = RoundedOffset - ( CurLexLevel + 1 )*4;
 
@@ -32163,13 +32536,13 @@ newProcs:	LocalIterID				/* $1  */
 
 				_endif
 				startCseg();
-				_if( $<options.Alignment>9 != 1 )
+				_if( $<options.Alignment>8 != 1 )
 
-					EmitAlign( $<options.Alignment>9 );
+					EmitAlign( $<options.Alignment>8 );
 
 				_endif
 				StartProc( $<s>5->StaticName );
-				_if( $<options.UseFrame>9 && !$<options.UseDisplay>9 )
+				_if( $<options.UseFrame>8 && !$<options.UseDisplay>8 )
 
 
 					/*
@@ -32177,19 +32550,19 @@ newProcs:	LocalIterID				/* $1  */
 					** standard entry sequence.
 					*/
 
-					StdEntry( RoundedOffset, $<options.NoEnter>9 );
+					StdEntry( RoundedOffset, $<options.NoEnter>8 );
 
 					/*
 					** Align the stack on a dword boundary.
 					*/
 
-					_if( AlwaysAlignStk && $<options.AlignStk>9 )
+					_if( AlwaysAlignStk && $<options.AlignStk>8 )
 
 						AlignStack();
 
 					_endif
 
-				_elseif( $<options.UseFrame>9 )
+				_elseif( $<options.UseFrame>8 )
 
 					/*
 					** We've got to construct the display.
@@ -32199,14 +32572,14 @@ newProcs:	LocalIterID				/* $1  */
 					( 
 						CurLexLevel, 
 						RoundedOffset,
-						$<options.NoEnter>9 
+						$<options.NoEnter>8 
 					);
 
 					/*
 					** Align the stack on a dword boundary.
 					*/
 
-					_if( AlwaysAlignStk && $<options.AlignStk>9 )
+					_if( AlwaysAlignStk && $<options.AlignStk>8 )
 
 						AlignStack();
 
@@ -32223,7 +32596,7 @@ newProcs:	LocalIterID				/* $1  */
 				** variables.
 				*/
 
-				_if( $<options.UseFrame>9 && HadPassByValRes )
+				_if( $<options.UseFrame>8 && HadPassByValRes )
 
 					CopyValResParms( $<s>5 );
 
@@ -32231,9 +32604,9 @@ newProcs:	LocalIterID				/* $1  */
 
 
 
-				assert( $<idStr>15 != NULL );
+				assert( $<idStr>14 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>15 ))
+				_if( _strne( $<s>5->TrueName, $<idStr>14 ))
 
 					char msg[ 256 ];
 
@@ -32242,7 +32615,7 @@ newProcs:	LocalIterID				/* $1  */
 						msg,
 						"Identifier <<%s>> after 'begin' must match "
 						"iterator name <<%s>>",
-						$<idStr>15,
+						$<idStr>14,
 						$<s>5->TrueName
 					);
 
@@ -32255,7 +32628,7 @@ newProcs:	LocalIterID				/* $1  */
 				** have be defined prior to code emission.
 				*/
 
-				CheckForwardDecls( $<s>10 );
+				CheckForwardDecls( $<s>9 );
 
 				/*
 				** Check to make sure all pointer forward references have
@@ -32264,7 +32637,7 @@ newProcs:	LocalIterID				/* $1  */
 
 				CheckPtrs();
 
-				free2( vss $<idStr>15 );
+				free2( vss $<idStr>14 );
 
 
 
@@ -32281,7 +32654,7 @@ newProcs:	LocalIterID				/* $1  */
 				
 				$<s>$ = lookup( "_finalize_", 1 );
 				assert( $<s>$ != NULL );
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 				
 					s=$<s>$->Next;
 					InvisibleCode = NULL;
@@ -32315,7 +32688,7 @@ newProcs:	LocalIterID				/* $1  */
 			** Process the statements in the procedure.
 			*/
 
-			Stmts			/* $18 */
+			Stmts			/* $17 */
 
 
 			/*
@@ -32333,16 +32706,16 @@ newProcs:	LocalIterID				/* $1  */
 			**
 			*/
 			 
-			endTkn 			/* $19 */
-			AnyID			/* $20 */
-			Semicolon		/* $21 */
-			{				/* $22 */
+			endTkn 			/* $18 */
+			AnyID			/* $19 */
+			Semicolon		/* $20 */
+			{				/* $21 */
 
 
 				_here;
-				assert( $<idStr>20 != NULL );
+				assert( $<idStr>19 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>20 ))
+				_if( _strne( $<s>5->TrueName, $<idStr>19 ))
 
 					char msg[ 256 ];
 
@@ -32351,7 +32724,7 @@ newProcs:	LocalIterID				/* $1  */
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"iteator name <<%s>>",
-						$<idStr>20,
+						$<idStr>19,
 						$<s>5->TrueName
 					);
 
@@ -32366,7 +32739,7 @@ newProcs:	LocalIterID				/* $1  */
 				*/
 
 				PushBackStr( "end" );
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					char lbl[256];
 					
@@ -32381,8 +32754,8 @@ newProcs:	LocalIterID				/* $1  */
 					InvisibleCode = NULL;
 					_if
 					(
-							$<s>17->pType != tString 
-						&&	$<s>17->pType != tZString 
+							$<s>16->pType != tString 
+						&&	$<s>16->pType != tZString 
 					)
 
 						WarnNear
@@ -32391,20 +32764,20 @@ newProcs:	LocalIterID				/* $1  */
 							"_finalize_"
 						);
 
-					_elseif( strlen( $<s>17->u.strval ) != 0 )
+					_elseif( strlen( $<s>16->u.strval ) != 0 )
 
-						InvisibleCode = $<s>17->u.strval;
+						InvisibleCode = $<s>16->u.strval;
 						PushBackStr( "\xF3" );
-						PushBackStr( $<s>17->u.strval );
+						PushBackStr( $<s>16->u.strval );
 
 					_endif
 					
 				_endif
 
 			}
-			Stmts		/* $23 */
-			endTkn		/* $24 Faked by PushBackStr above	*/
-			{			/* $25 */
+			Stmts		/* $22 */
+			endTkn		/* $23 Faked by PushBackStr above	*/
+			{			/* $24 */
 							 
 				struct contextListType	*cNode;
 				struct SymNode			*s;
@@ -32418,7 +32791,7 @@ newProcs:	LocalIterID				/* $1  */
 				** copy the data back to the caller at this point.
 				*/
 
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					StoreValResParms( $<s>5 );
 
@@ -32438,7 +32811,7 @@ newProcs:	LocalIterID				/* $1  */
 				*/
 
 				$<s>5->u.proc.Locals = SymbolTable;
-				$<s>11->Next = NULL;
+				$<s>10->Next = NULL;
 				SymbolTable = $<s>7;
 
 				/*
@@ -32471,14 +32844,14 @@ newProcs:	LocalIterID				/* $1  */
 				** file to complete this procedure.
 				*/
 
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					IteratorExit( $<s>5->u.proc.ParmSize ); 
 
 				_endif
 				EndProc( $<s>5->StaticName );
 				endCseg();
-				free2( vss $<idStr>20 );
+				free2( vss $<idStr>19 );
 
 				inIterator = 0;
 
@@ -32486,7 +32859,7 @@ newProcs:	LocalIterID				/* $1  */
 				** Remove the current context from the context stack.
 				*/
 				
-				_if( $<options.UseFrame>9 )
+				_if( $<options.UseFrame>8 )
 
 					assert( contextList != NULL );
 					cNode = contextList;
@@ -32501,7 +32874,7 @@ newProcs:	LocalIterID				/* $1  */
 				** Restore currentNS
 				*/
 				
-				currentNS = $<ru.saveCurNS>12;
+				currentNS = $<ru.saveCurNS>11;
 				
 				_here;
 			}
@@ -32792,7 +33165,7 @@ FwdMethod:
 		OptionalParms 	/* $8 */
 		Semicolon		/* $9 */
 		Options			/* $10 */
-		{				/* $13 */
+		{				/* $11 */
 
 			struct SymNode			*ParmList;
 			struct SymNode			*s;
@@ -32829,8 +33202,8 @@ FwdMethod:
 			CheckLegalOptions
 			( 
 				$<options.SpecifiedOptions>10,
-				specified_returns |
-				specified_use
+					specified_returns 
+				|	specified_use
 			);
 
 
@@ -32999,17 +33372,16 @@ colonMethod:
  */
 
 newClassProc:	
-		UndefinedID 			/* $1 */
-		colonMethod				/* $2 */
-		SaveOffset 				/* $3 */
-		SaveDirection			/* $4 */
-		SaveContext 			/* $5 */
+		UndefinedID 			/* $1  */
+		colonMethod				/* $2  */
+		SaveOffset 				/* $3  */
+		SaveDirection			/* $4  */
+		SaveContext 			/* $5  */
 		FMSaveLexLvl			/* $6 	Saves CurLexLevel here and sets it to $0 */
-		EnterName4				/* $7 */
-		OptionalParms 			/* $8 */
-		Empty					/* $9 */
-		newProcOptionsSemicolon	/* $10 */
-		{						/* $11 */
+		EnterName4				/* $7  */
+		OptionalParms 			/* $8  */
+		newProcOptionsSemicolon	/* $9  */
+		{						/* $10 */
 
 			struct SymNode			*ParmList;
 			struct SymNode			*s;
@@ -33040,12 +33412,12 @@ newClassProc:
 			** Enter the "returns" value into the symbol table.
 			*/
 			
-			$<en.s>7->u.proc.returns = $<options.returns>10;
-			$<en.s>7->u.proc.use = $<options.use>10;
+			$<en.s>7->u.proc.returns = $<options.returns>9;
+			$<en.s>7->u.proc.use = $<options.use>9;
 
 			CheckLegalOptions
 			( 
-				$<options.SpecifiedOptions>10,
+				$<options.SpecifiedOptions>9,
 				specified_returns |
 				specified_use
 			);
@@ -33069,8 +33441,8 @@ newClassProc:
 
 
 			$<en.s>7->u.proc.parms->u.proc.parms = SymbolTable;
-			$<en.s>7->u.proc.parms->u.proc.returns = $<options.returns>10;
-			$<en.s>7->u.proc.parms->u.proc.use = $<options.use>10;
+			$<en.s>7->u.proc.parms->u.proc.returns = $<options.returns>9;
+			$<en.s>7->u.proc.parms->u.proc.use = $<options.use>9;
 
 			/*
 			** Mark the end of the parameters in the symbol table.
@@ -33257,8 +33629,8 @@ FwdMethod:
 			CheckLegalOptions
 			( 
 				$<options.SpecifiedOptions>10,
-				specified_returns |
-				specified_use
+					specified_returns 
+				|	specified_use
 			);
 
 			/*
@@ -33433,19 +33805,18 @@ FwdMethod:
  */
 
 newClassProc:	
-		UndefinedID 				/* $2 */
-		colonMethod					/* $1 */
-		SaveOffset 					/* $3 */
-		SaveDirection				/* $4 */
-		SaveContext 				/* $5 */
-		FMSaveLexLvl				/* $6 	Save CurLexLevel, set it to $0 */
-		EnterName4					/* $7 */
-		OptionalParms 				/* $8 */
-		Empty						/* $9 */
-		newProcOptions				/* $10 */
-		abstractTkn					/* $11 */ 
-		Semicolon					/* $12 */
-		{							/* $13 */
+		UndefinedID 				/* $2  */
+		colonMethod					/* $1  */
+		SaveOffset 					/* $3  */
+		SaveDirection				/* $4  */
+		SaveContext 				/* $5  */
+		FMSaveLexLvl				/* $6  	Save CurLexLevel, set it to $0 */
+		EnterName4					/* $7  */
+		OptionalParms 				/* $8  */
+		newProcOptionsSemicolon		/* $9  */
+		abstractTkn					/* $10 */ 
+		Semicolon					/* $11 */
+		{							/* $12 */
 
 			struct SymNode			*ParmList;
 			struct SymNode			*s;
@@ -33473,8 +33844,8 @@ newClassProc:
 			** Enter the "returns" value into the symbol table.
 			*/
 			
-			$<en.s>7->u.proc.returns = $<options.returns>10;
-			$<en.s>7->u.proc.use = $<options.use>10;
+			$<en.s>7->u.proc.returns = $<options.returns>9;
+			$<en.s>7->u.proc.use = $<options.use>9;
 
 			// Methods always use the pascal calling sequence
 			
@@ -33483,9 +33854,9 @@ newClassProc:
 
 			CheckLegalOptions
 			( 
-				$<options.SpecifiedOptions>10,
-				specified_returns |
-				specified_use
+				$<options.SpecifiedOptions>9,
+					specified_returns 
+				|	specified_use
 			);
 
 			/*
@@ -33505,8 +33876,8 @@ newClassProc:
 
 
 			$<en.s>7->u.proc.parms->u.proc.parms = SymbolTable;
-			$<en.s>7->u.proc.parms->u.proc.returns = $<options.returns>10;
-			$<en.s>7->u.proc.parms->u.proc.use = $<options.use>10;
+			$<en.s>7->u.proc.parms->u.proc.returns = $<options.returns>9;
+			$<en.s>7->u.proc.parms->u.proc.use = $<options.use>9;
 
 			/*
 			** Mark the end of the parameters in the symbol table.
@@ -33994,7 +34365,7 @@ FwdMethod:
 
 newClassOverride:	
 		omID2		 	/* $1 */
-		Colon			/* $2 */
+		Semicolon		/* $2 */
 		externalTkn		/* $3 */
 		{				/* $4 */ 
 
@@ -34177,8 +34548,8 @@ FwdMethod:
 			CheckLegalOptions
 			( 
 				$<options.SpecifiedOptions>10,
-				specified_returns |
-				specified_use
+					specified_returns 
+				|	specified_use
 			);
 
 			/*
@@ -34351,18 +34722,17 @@ FwdMethod:
 
 
 newClassProc:	
-		UndefinedID 				/* $1 */
-		colonMethod					/* $2 */
-		SaveOffset 					/* $3 */
-		SaveDirection				/* $4 */
-		SaveContext 				/* $5 */
-		FMSaveLexLvl				/* $6 	Save CurLexLevel, set it to $0 */
-		EnterName4					/* $7 */
-		OptionalParms 				/* $8 */
-		Empty						/* $9 */
-		newProcOptions				/* $10 */
-		externalTkn					/* $11 */ 
-		{							/* $12 */ 
+		UndefinedID 				/* $1  */
+		colonMethod					/* $2  */
+		SaveOffset 					/* $3  */
+		SaveDirection				/* $4  */
+		SaveContext 				/* $5  */
+		FMSaveLexLvl				/* $6  	Save CurLexLevel, set it to $0 */
+		EnterName4					/* $7  */
+		OptionalParms 				/* $8  */
+		newProcOptionsSemicolon		/* $9  */
+		externalTkn					/* $10 */ 
+		{							/* $11 */ 
 
 			char DefaultName[ 256 ];
 
@@ -34380,9 +34750,9 @@ newClassProc:
 			strcat( DefaultName, $<idStr>2 );
 			$<idStr>$ = hlastrdup2( DefaultName ); 
 		} 
-		OptionalExtName				/* $13 */
-		Semicolon					/* $14 */ 
-		{							/* $15 */
+		OptionalExtName				/* $12 */
+		Semicolon					/* $13 */ 
+		{							/* $14 */
 
 			struct SymNode			*ParmList;
 			struct SymNode			*s;
@@ -34410,8 +34780,8 @@ newClassProc:
 			** Enter the "returns" value into the symbol table.
 			*/
 			
-			$<en.s>7->u.proc.returns = $<options.returns>10;
-			$<en.s>7->u.proc.use = $<options.use>10;
+			$<en.s>7->u.proc.returns = $<options.returns>9;
+			$<en.s>7->u.proc.use = $<options.use>9;
 
 			// Methods always use the pascal calling sequence
 			
@@ -34420,9 +34790,9 @@ newClassProc:
 
 			CheckLegalOptions
 			( 
-				$<options.SpecifiedOptions>10,
-				specified_returns |
-				specified_use
+				$<options.SpecifiedOptions>9,
+					specified_returns 
+				|	specified_use
 			);
 
 			/*
@@ -34442,8 +34812,8 @@ newClassProc:
 
 
 			$<en.s>7->u.proc.parms->u.proc.parms = SymbolTable;
-			$<en.s>7->u.proc.parms->u.proc.returns = $<options.returns>10;
-			$<en.s>7->u.proc.parms->u.proc.use = $<options.use>10;
+			$<en.s>7->u.proc.parms->u.proc.returns = $<options.returns>9;
+			$<en.s>7->u.proc.parms->u.proc.use = $<options.use>9;
 
 			/*
 			** Mark the end of the parameters in the symbol table.
@@ -34495,12 +34865,12 @@ newClassProc:
 			$<en.s>7->IsExternal = 1;
 
 			free2( vss $<en.s>7->StaticName );
-			$<en.s>7->StaticName = $<idStr>13;
+			$<en.s>7->StaticName = $<idStr>12;
 			sym = lookupin( $<en.s>7->TrueName, $<en.s>7->u.proc.parms );
 			_if( sym != NULL )
 
 				//free2( vss sym->StaticName ); not a unique ptr!
-				sym->StaticName = hlastrdup2( $<idStr>13 );
+				sym->StaticName = hlastrdup2( $<idStr>12 );
 
 			_endif
 
@@ -34585,7 +34955,7 @@ newClassProc:
 			*/
 			
 			currentNS = $<en.cns>7;
-			(void) $<idStr>12;	// shut up bison
+			(void) $<idStr>11;	// shut up bison
 			_here;
 		}
 	;
@@ -35382,7 +35752,7 @@ FwdMethod:
 
 newClassOverride:	
 		oiID2		 	/* $1 */
-		Colon			/* $2 */
+		Semicolon		/* $2 */
 		externalTkn		/* $3 */
 		{				/* $4 */ 
 
@@ -35754,18 +36124,18 @@ FwdMethod:
  */
 
 newClassProc:	
-		UndefinedID 	/* $1  */
-		colonIterator	/* $2  */
-		SaveOffset 		/* $3  */
-		SaveDirection	/* $4  */
-		SaveContext 	/* $5  */
-		FMSaveLexLvl	/* $6 	Saves CurLexLevel here and sets it to $0 */
-		EnterIterName4	/* $7  */
-		OptionalParms 	/* $8  */
-		Colon			/* $9  */
-		Empty			/* $10 */
-		externalTkn		/* $11 */ 
-		{				/* $12 */ 
+		UndefinedID 			/* $1  */
+		colonIterator			/* $2  */
+		SaveOffset 				/* $3  */
+		SaveDirection			/* $4  */
+		SaveContext 			/* $5  */
+		FMSaveLexLvl			/* $6 	Saves CurLexLevel here and sets it to $0 */
+		EnterIterName4			/* $7  */
+		OptionalParms 			/* $8  */
+		newProcOptionsSemicolon	/* $9  */
+		Empty					/* $10 */
+		externalTkn				/* $11 */ 
+		{						/* $12 */ 
 
 			char DefaultName[ 256 ];
 
@@ -35798,6 +36168,12 @@ newClassProc:
 
 
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+				specified_use
+			);
+
 			CurOffset = $<v.u.unsval>3;
 			CurOffsetDir = $<v.u.unsval>4;
 			
@@ -35819,7 +36195,7 @@ newClassProc:
 			*/
 			
 			$<en.s>7->u.proc.returns = hlastrdup2( "" );
-			$<en.s>7->u.proc.use = NULL;
+			$<en.s>7->u.proc.use = $<options.use>9;
 
 			// Iterators always use pascal calling sequence:
 			
@@ -36056,7 +36432,8 @@ ClassProc:
 			CheckLegalOptions
 			( 
 				$<options.SpecifiedOptions>10,
-				specified_returns | specified_use
+					specified_returns 
+				|	specified_use
 			);
 
 			/*
@@ -36227,9 +36604,8 @@ newClassProc:
 		FMSaveLexLvl			/* $6  */
 		EnterName4				/* $7  */
 		OptionalParms 			/* $8  */
-		Empty					/* $9  */
-		newProcOptionsSemicolon	/* $10 */
-		{						/* $11 */
+		newProcOptionsSemicolon	/* $9  */
+		{						/* $10 */
 
 			struct SymNode			*ParmList;
 			struct SymNode			*s;
@@ -36246,13 +36622,14 @@ newClassProc:
 			*/
 			
 
-			$<en.s>7->u.proc.returns = $<options.returns>10;
-			$<en.s>7->u.proc.use = $<options.use>10;
+			$<en.s>7->u.proc.returns = $<options.returns>9;
+			$<en.s>7->u.proc.use = $<options.use>9;
 
 			CheckLegalOptions
 			( 
-				$<options.SpecifiedOptions>10,
-				specified_returns | specified_use
+				$<options.SpecifiedOptions>9,
+					specified_returns 
+				|	specified_use
 			);
 
 			/*
@@ -36283,8 +36660,8 @@ newClassProc:
 
 
 			$<en.s>7->u.proc.parms->u.proc.parms = SymbolTable;
-			$<en.s>7->u.proc.parms->u.proc.returns = $<options.returns>10;
-			$<en.s>7->u.proc.parms->u.proc.use = $<options.use>10;
+			$<en.s>7->u.proc.parms->u.proc.returns = $<options.returns>9;
+			$<en.s>7->u.proc.parms->u.proc.use = $<options.use>9;
 			
 			$<en.s>7->u.proc.parms->u.proc.cs = pascal_cs;
 			$<en.s>7->u.proc.cs = pascal_cs;
@@ -36669,10 +37046,9 @@ newClassProc:
 		FMSaveLexLvl				/* $6  */
 		EnterName4					/* $7  */
 		OptionalParms 				/* $8  */
-		Empty						/* $9  */
-		newProcOptions				/* $10 */
-		externalTkn					/* $11 */ 
-		{							/* $12 */ 
+		newProcOptionsSemicolon		/* $9  */
+		externalTkn					/* $10 */ 
+		{							/* $11 */ 
 
 			char DefaultName[ 256 ];
 
@@ -36690,9 +37066,9 @@ newClassProc:
 			strcat( DefaultName, $<idStr>2 );
 			$<idStr>$ = hlastrdup2( DefaultName ); 
 		} 
-		OptionalExtName				/* $13 */
-		Semicolon					/* $14 */ 
-		{							/* $15 */
+		OptionalExtName				/* $12 */
+		Semicolon					/* $13 */ 
+		{							/* $14 */
 
 			struct SymNode			*ParmList;
 			struct SymNode			*s;
@@ -36710,8 +37086,8 @@ newClassProc:
 			** Enter the optional "returns" value into the symbol table.
 			*/
 
-			$<en.s>7->u.proc.returns = $<options.returns>10;
-			$<en.s>7->u.proc.use = $<options.use>10;
+			$<en.s>7->u.proc.returns = $<options.returns>9;
+			$<en.s>7->u.proc.use = $<options.use>9;
 			
 			
 			// Always use pascal calling sequence for class stuff:
@@ -36721,8 +37097,9 @@ newClassProc:
 
 			CheckLegalOptions
 			( 
-				$<options.SpecifiedOptions>10,
-				specified_returns
+				$<options.SpecifiedOptions>9,
+					specified_returns
+				|	specified_use
 			);
 
 			/*
@@ -36753,8 +37130,8 @@ newClassProc:
 
 
 			$<en.s>7->u.proc.parms->u.proc.parms = SymbolTable;
-			$<en.s>7->u.proc.parms->u.proc.returns = $<options.returns>10;
-			$<en.s>7->u.proc.parms->u.proc.use = $<options.use>10;
+			$<en.s>7->u.proc.parms->u.proc.returns = $<options.returns>9;
+			$<en.s>7->u.proc.parms->u.proc.use = $<options.use>9;
 			
 
 			/*
@@ -36808,12 +37185,12 @@ newClassProc:
 			$<en.s>7->IsExternal = 1;
 
 			free2( vss $<en.s>7->StaticName );
-			$<en.s>7->StaticName = $<idStr>13;
+			$<en.s>7->StaticName = $<idStr>12;
 			sym = lookupin( $<en.s>7->TrueName, $<en.s>7->u.proc.parms );
 			_if( sym != NULL )
 
 				//free2( vss sym->StaticName ); not a unique ptr!
-				sym->StaticName = hlastrdup2( $<idStr>13 );
+				sym->StaticName = hlastrdup2( $<idStr>12 );
 
 			_endif
 
@@ -36895,7 +37272,7 @@ newClassProc:
 			*/
 			
 			currentNS = $<en.cns>7;
-			(void) $<idStr>12;	//shut up bison
+			(void) $<idStr>11;	//shut up bison
 			_here;
 		}
 	;
@@ -37199,7 +37576,7 @@ ClassProc:
 newClassOverride:
 		ClassProcID 				/* $1 */
 		colonProcedure				/* $2 */ 
-		Colon						/* $3 */
+		Semicolon					/* $3 */
 		externalTkn					/* $4 */ 
 		{							/* $5 */ 
 
@@ -38022,202 +38399,49 @@ OptionalExtName:
 	;
 
 
+reg32use:
+		eaxTkn
+		{
+			$<idStr>$ = "eax";
+		}
+		
+	|	ebxTkn
+		{
+			$<idStr>$ = "ebx";
+		}
+		
+	|	ecxTkn
+		{
+			$<idStr>$ = "ecx";
+		}
+		
+	|	edxTkn
+		{
+			$<idStr>$ = "edx";
+		}
+		
+	|	esiTkn
+		{
+			$<idStr>$ = "esi";
+		}
+		
+	|	ediTkn
+		{
+			$<idStr>$ = "edi";
+		}
+	;		
+	
+	
 
  /*
  ** Handle options that are legal after a procedure
  ** variable (pointer) declaration.
  */
+ 
 
-ProtoOptions:
-		Empty
-		{
-			$<options.SpecifiedOptions>$ = 0;
-			$<options.returns>$ = hlastrdup2( "" );
-			$<options.use>$ = NULL;
-			$<options.SpecifiedOptions>$ = 0;
-			$<options.UseFrame>$ = FrameDefault;
-			$<options.UseDisplay>$ = DisplayDefault;
-			$<options.AlignStk>$ = AlignStackDefault;
-			$<options.Alignment>$ = AlignDefault;
-			$<options.NoEnter>$ = EnterDefault;
-			$<options.NoLeave>$ = LeaveDefault; 
-			$<options.CallingSequence>$ = pascal_cs;
-		}
 
-	|	ProtoOptions returnsTkn Lparen ConstOnlyExpr Rparen Semicolon
-		{
-			free2( vss $<options.returns>1 );
-			_if
-			( 
-					$<v.pType>4 != tString 
-				&&	$<v.pType>4 != tZString 
-			)
 
-				yyerror( "Expected string type for 'returns' value" );
-				$<options.returns>$ = hlastrdup2( "" );
 
-			_else
-
-				$<options.returns>$ = hlastrdup2( $<v.u.strval>4 );
-
-			_endif
-			FreeValue( YYS &$<v>4 );
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_returns;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-
-	|	ProtoOptions useTkn eaxTkn Semicolon
-		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.SpecifiedOptions>$ = 
-				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = "eax";
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-	
-
-	|	ProtoOptions useTkn ebxTkn Semicolon
-		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.SpecifiedOptions>$ = 
-				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = "ebx";
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-	
-
-	|	ProtoOptions useTkn ecxTkn Semicolon
-		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = "ecx";
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-	
-
-	|	ProtoOptions useTkn edxTkn Semicolon
-		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = "edx";
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-	
-
-	|	ProtoOptions useTkn esiTkn Semicolon
-		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = "esi";
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-	
-
-	|	ProtoOptions useTkn ediTkn Semicolon
-		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = "edi";
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-	
-
-	|	ProtoOptions pascalTkn Semicolon
-		{
-			$<options.CallingSequence>$ = pascal_cs;
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_pascal;
-
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-		}
-
-	|	ProtoOptions stdcallTkn Semicolon
-		{
-			$<options.CallingSequence>$ = stdcall_cs;
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_stdcall;
-
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-		}
-
-	|	ProtoOptions cdeclTkn Semicolon
-		{
-			$<options.CallingSequence>$ = cdecl_cs;
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_cdecl;
-
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-		}
-	;
 
 
  /*
@@ -38237,10 +38461,20 @@ Options:
 			$<options.NoEnter>$ = EnterDefault;
 			$<options.NoLeave>$ = LeaveDefault;
 			$<options.CallingSequence>$ = pascal_cs;
+			$<options.NoStorage>$ = 0;
+			$<options.IsVolatile>$ = 0;
 		}
+	;
 
-	|	Options returnsTkn Lparen ConstOnlyExpr Rparen Semicolon
+Options:
+		Options 
+		returnsTkn 
+		Lparen 
+		ConstOnlyExpr 
+		Rparen 
+		Semicolon
 		{
+			$<options>$ = $<options>1;
 			free2( vss $<options.returns>1 );
 			_if
 			( 
@@ -38261,352 +38495,199 @@ Options:
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_returns;
 
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
-		
-	|	Options useTkn eaxTkn Semicolon
+	;
+
+Options:
+		Options 
+		useTkn 
+		reg32use 
+		Semicolon
 		{
-			$<options.returns>$ = $<options.returns>1;
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = "eax";
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-	
+			$<options.use>$ = $<idStr>3;
+		}	
+	;
 
-	|	Options useTkn ebxTkn Semicolon
+Options:
+		Options 
+		noframeTkn 
+		Semicolon
 		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = "ebx";
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-	
-
-	|	Options useTkn ecxTkn Semicolon
-		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = "ecx";
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-	
-
-	|	Options useTkn edxTkn Semicolon
-		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = "edx";
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-	
-
-	|	Options useTkn esiTkn Semicolon
-		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = "esi";
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-	
-
-	|	Options useTkn ediTkn Semicolon
-		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.SpecifiedOptions>$ =
-				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = "edi";
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-		}
-	
-
-	|	Options noframeTkn Semicolon
-		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noframe;
 			$<options.UseFrame>$ = 0;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
+	;
 
-	|	Options frameTkn Semicolon
+Options:
+		Options 
+		frameTkn 
+		Semicolon
 		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noframe;
 			$<options.UseFrame>$ = 1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
+	;
 
-	|	Options nodisplayTkn Semicolon
+Options:
+		Options 
+		nodisplayTkn 
+		Semicolon
 		{
-
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_nodisplay;
-
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
 			$<options.UseDisplay>$ = 0;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
+	;
 
-	|	Options displayTkn Semicolon
+Options:
+		Options 
+		displayTkn 
+		Semicolon
 		{
-
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_nodisplay;
-
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
 			$<options.UseDisplay>$ = 1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
+	;
 
-	|	Options noalignstkTkn Semicolon
+Options:
+		Options 
+		noalignstkTkn 
+		Semicolon
 		{
-
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noalignstk;
-
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
 			$<options.AlignStk>$ = 0;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
+	;
 
-	|	Options alignstkTkn Semicolon
+Options:
+		Options 
+		alignstkTkn 
+		Semicolon
 		{
-
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noalignstk;
-
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
 			$<options.AlignStk>$ = 1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
+	;
 
-	|	Options noenterTkn Semicolon
+Options:
+		Options 
+		noenterTkn 
+		Semicolon
 		{
-
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noenter;
-
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
 			$<options.NoEnter>$ = 1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
+	;
 
-	|	Options useenterTkn Semicolon
+Options:
+		Options 
+		useenterTkn 
+		Semicolon
 		{
-
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noenter;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
 			$<options.NoEnter>$ = 0;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
+	;
 
-	|	Options noleaveTkn Semicolon
+Options:
+		Options 
+		noleaveTkn 
+			Semicolon
 		{
-
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noleave;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
 			$<options.NoLeave>$ = 1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
+	;
 
-	|	Options useleaveTkn Semicolon
+Options:
+		Options 
+		useleaveTkn 
+		Semicolon
 		{
-
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noleave;
-
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
 			$<options.NoLeave>$ = 0;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
+	;
 
-	|	Options pascalTkn Semicolon
+Options:
+		Options 
+		pascalTkn 
+		Semicolon
 		{
-
+			$<options>$ = $<options>1;
 			$<options.CallingSequence>$ = pascal_cs;
 
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_pascal;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
 		}
+	;
 
-	|	Options stdcallTkn Semicolon
+Options:
+		Options 
+		stdcallTkn 
+		Semicolon
 		{
-
+			$<options>$ = $<options>1;
 			$<options.CallingSequence>$ = stdcall_cs;
 
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_stdcall;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
 		}
+	;
 
-	|	Options cdeclTkn Semicolon
+Options:
+		Options 
+		cdeclTkn 
+		Semicolon
 		{
 
+			$<options>$ = $<options>1;
 			$<options.CallingSequence>$ = cdecl_cs;
 
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_cdecl;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
 		}
+	;
 
-	|	Options		/* $1 */
-		alignTkn	/* $2 */
-		Lparen		/* $3 */
-		ConstExpr	/* $4 */
-		Rparen		/* $5 */
-		Semicolon	/* $6 */
-		{			/* $7 */
+Options:
+		Options			/* $1 */
+		alignprocTkn	/* $2 */
+		Lparen			/* $3 */
+		ConstExpr		/* $4 */
+		Rparen			/* $5 */
+		Semicolon		/* $6 */
+		{				/* $7 */
 
-
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ = 
 				$<options.SpecifiedOptions>$ | specified_alignment;
-
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
 
 			_if( IsNumber( $<v.pType>4 ) && numBits( YYS &$<v>4) <= 32 )
 
@@ -38643,90 +38724,72 @@ Options:
 		}
 	;
 
-
-
-useRegTkn:
-		eaxTkn
+Options:
+		Options 
+		nostorageTkn
 		{
-			$<idStr>$ = "eax";
-		}
-	
-	|	ebxTkn
-		{
-			$<idStr>$ = "ebx";
-		}
-	
-	|	ecxTkn
-		{
-			$<idStr>$ = "ecx";
-		}
-	
-	|	edxTkn
-		{
-			$<idStr>$ = "edx";
-		}
-	
-	|	esiTkn
-		{
-			$<idStr>$ = "esi";
-		}
-	
-	|	ediTkn
-		{
-			$<idStr>$ = "edi";
+			$<options>$ = $<options>1;
+			$<options.NoStorage>$ = 1;
 		}
 	;
+	
+Options:
+		Options 
+		volatileTkn
+		{
+			$<options>$ = $<options>1;
+			$<options.IsVolatile>$ = 1;
+		}
+
+
+
+
+
 
 
 newProcOptionsSemicolon:
-			Semicolon		/* $1 */
-			{
-				$<options.returns>$ = hlastrdup2( "" );
-				$<options.use>$ = NULL;
-				$<options.SpecifiedOptions>$ = 0;
-				$<options.UseFrame>$ = FrameDefault;
-				$<options.UseDisplay>$ = DisplayDefault;
-				$<options.AlignStk>$ = AlignStackDefault;
-				$<options.Alignment>$ = AlignDefault;
-				$<options.NoEnter>$ = EnterDefault;
-				$<options.NoLeave>$ = LeaveDefault;
-				$<options.CallingSequence>$ = pascal_cs;
-			}
-		;
+		';'		/* $1 */
+		{
+			$<options.returns>$ = hlastrdup2( "" );
+			$<options.use>$ = NULL;
+			$<options.SpecifiedOptions>$ = 0;
+			$<options.UseFrame>$ = FrameDefault;
+			$<options.UseDisplay>$ = DisplayDefault;
+			$<options.AlignStk>$ = AlignStackDefault;
+			$<options.Alignment>$ = AlignDefault;
+			$<options.NoEnter>$ = EnterDefault;
+			$<options.NoLeave>$ = LeaveDefault;
+			$<options.CallingSequence>$ = pascal_cs;
+			$<options.NoStorage>$ = $<options.NoStorage>1;
+			$<options.IsVolatile>$ = $<options.IsVolatile>1;
+		}
+	;
 		
 newProcOptionsSemicolon:
-			':'				/* $1 */
+			Lbrace			/* $1 */
 			newOptions		/* $2 */
-			Semicolon		/* $3 */
+			Rbrace			/* $3 */
+			Semicolon		/* $4 */
 			{
 				$<options>$ = $<options>2;
 			}
 		;
 
 
+
+
+
 newProcOptions:
-			Empty		/* $1 */
-			{
-				$<options.returns>$ = hlastrdup2( "" );
-				$<options.use>$ = NULL;
-				$<options.SpecifiedOptions>$ = 0;
-				$<options.UseFrame>$ = FrameDefault;
-				$<options.UseDisplay>$ = DisplayDefault;
-				$<options.AlignStk>$ = AlignStackDefault;
-				$<options.Alignment>$ = AlignDefault;
-				$<options.NoEnter>$ = EnterDefault;
-				$<options.NoLeave>$ = LeaveDefault;
-				$<options.CallingSequence>$ = pascal_cs;
-			}
-		;
-		
-newProcOptions:
-			':'				/* $1 */
+			Lbrace			/* $1 */
 			newOptions		/* $2 */
+			Rbrace			/* $3 */
 			{
 				$<options>$ = $<options>2;
 			}
 		;
+
+
+
 
 
 newOptions:
@@ -38742,10 +38805,23 @@ newOptions:
 			$<options.NoEnter>$ = EnterDefault;
 			$<options.NoLeave>$ = LeaveDefault;
 			$<options.CallingSequence>$ = pascal_cs;
+			$<options.NoStorage>$ = 0;
+			$<options.IsVolatile>$ = 0;
 		}
-
-	|	newOptions returnsTkn Lparen ConstOnlyExpr Rparen
+		
+	|	newOptions
+		','
 		{
+			$<options>$ = $<options>1;
+		}
+		
+	|	newOptions 
+		returnsTkn 
+		Lparen 
+		ConstOnlyExpr 
+		Rparen
+		{
+			$<options>$ = $<options>1;
 			free2( vss $<options.returns>1 );
 			_if
 			( 
@@ -38766,31 +38842,16 @@ newOptions:
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_returns;
 
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
 		
 	|	newOptions		/* $1 */ 
 		useTkn 			/* $2 */
-		useRegTkn		/* $3 */
+		reg32use		/* $3 */
 		{
-			$<options.returns>$ = $<options.returns>1;
+			$<options>$ = $<options>1;
+			$<options.use>$ = $<idStr>3;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_use;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.use>$ = $<idStr>3;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
 	
 
@@ -38798,250 +38859,147 @@ newOptions:
 
 	|	newOptions noframeTkn
 		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
+			$<options>$ = $<options>1;
+			$<options.UseFrame>$ = 0;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noframe;
-			$<options.UseFrame>$ = 0;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
 
 	|	newOptions frameTkn
 		{
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noframe;
 			$<options.UseFrame>$ = 1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
 
 	|	newOptions nodisplayTkn
 		{
 
+			$<options>$ = $<options>1;
+			$<options.UseDisplay>$ = 0;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_nodisplay;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = 0;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
 
 	|	newOptions displayTkn
 		{
 
+			$<options>$ = $<options>1;
+			$<options.UseDisplay>$ = 1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_nodisplay;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = 1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
 
 	|	newOptions noalignstkTkn
 		{
 
+			$<options>$ = $<options>1;
+			$<options.AlignStk>$ = 0;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noalignstk;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = 0;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
 
 	|	newOptions alignstkTkn
 		{
 
+			$<options>$ = $<options>1;
+			$<options.AlignStk>$ = 1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noalignstk;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = 1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
 
 	|	newOptions noenterTkn
 		{
 
+			$<options>$ = $<options>1;
+			$<options.NoEnter>$ = 1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noenter;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = 1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
 
 	|	newOptions useenterTkn
 		{
 
+			$<options>$ = $<options>1;
+			$<options.NoEnter>$ = 0;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noenter;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = 0;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
 
 	|	newOptions noleaveTkn
 		{
 
+			$<options>$ = $<options>1;
+			$<options.NoLeave>$ = 1;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noleave;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.NoLeave>$ = 1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
 
 	|	newOptions useleaveTkn
 		{
 
+			$<options>$ = $<options>1;
+			$<options.NoLeave>$ = 0;
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_noleave;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.NoLeave>$ = 0;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
 		}
 
 	|	newOptions pascalTkn
 		{
 
+			$<options>$ = $<options>1;
 			$<options.CallingSequence>$ = pascal_cs;
 
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_pascal;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
 		}
 
 	|	newOptions stdcallTkn
 		{
 
+			$<options>$ = $<options>1;
 			$<options.CallingSequence>$ = stdcall_cs;
-
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_stdcall;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
 		}
 
 	|	newOptions cdeclTkn
 		{
 
+			$<options>$ = $<options>1;
 			$<options.CallingSequence>$ = cdecl_cs;
-
 			$<options.SpecifiedOptions>$ =
 				$<options.SpecifiedOptions>1 | specified_cdecl;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.Alignment>$ = $<options.Alignment>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
 		}
 
-	|	newOptions	/* $1 */
-		alignTkn	/* $2 */
-		Lparen		/* $3 */
-		ConstExpr	/* $4 */
-		Rparen		/* $5 */
-		{			/* $6 */
+	|	newOptions		/* $1 */
+		alignprocTkn	/* $2 */
+		Lparen			/* $3 */
+		ConstExpr		/* $4 */
+		Rparen			/* $5 */
+		{				/* $6 */
 
-
+			$<options>$ = $<options>1;
 			$<options.SpecifiedOptions>$ = 
 				$<options.SpecifiedOptions>$ | specified_alignment;
 
-			$<options.returns>$ = $<options.returns>1;
-			$<options.use>$ = $<options.use>1;
-			$<options.UseFrame>$ = $<options.UseFrame>1;
-			$<options.UseDisplay>$ = $<options.UseDisplay>1;
-			$<options.AlignStk>$ = $<options.AlignStk>1;
-			$<options.CallingSequence>$ = $<options.CallingSequence>1;
-			$<options.NoLeave>$ = $<options.NoLeave>1;
-			$<options.NoEnter>$ = $<options.NoEnter>1;
-
-			_if( IsNumber( $<v.pType>4 ) && numBits( YYS &$<v>4) <= 32 )
+			_if( IsNumber( $<v.pType>4 ) )
 
 				_if
 				(
-						assembler == fasm
-					&&	$<v.u.unsval>4 != 1
+					$<v.u.unsval>4 != 1
 					&&	$<v.u.unsval>4 != 2
 					&&	$<v.u.unsval>4 != 4
 					&&	$<v.u.unsval>4 != 8
@@ -39050,7 +39008,7 @@ newOptions:
 				
 					yyerror
 					( 
-						"FASM output supports only 1, 2, 4, 8, and 16 "
+						"HLA supports only 1, 2, 4, 8, and 16 "
 						"as alignment values" 
 					);
 				
@@ -39069,39 +39027,22 @@ newOptions:
 			_endif
 			FreeValue( YYS &$<v>4 );
 		}
-	;
 
-
-
-
-
-
-
-
-
- /*
- ** Handle the options that are legal for variable declarations:
- */
-
-VarOptions:
-		Empty
+	|	newOptions 
+		nostorageTkn
 		{
-			$<options.NoStorage>$ = 0;
-			$<options.IsVolatile>$ = 0;
-		}
-
-	|	VarOptions nostorageTkn Semicolon
-		{
-
+			$<options>$ = $<options>1;
 			$<options.NoStorage>$ = 1;
-			$<options.IsVolatile>$ = $<options.IsVolatile>1;
+			$<options.SpecifiedOptions>$ = 
+				$<options.SpecifiedOptions>$ | specified_nostorage;
 		}
 
-	|	VarOptions volatileTkn Semicolon
+	|	newOptions volatileTkn
 		{
-
+			$<options>$ = $<options>1;
 			$<options.IsVolatile>$ = 1;
-			$<options.NoStorage>$ = $<options.NoStorage>1;
+			$<options.SpecifiedOptions>$ = 
+				$<options.SpecifiedOptions>$ | specified_volatile;
 		}
 	;
 
@@ -39109,7 +39050,10 @@ VarOptions:
 
 
 
-				
+
+
+
+
 /*****************************************************/
 
 
@@ -39120,7 +39064,7 @@ VarOptions:
  ** non-terminal is an EnterSymbol call (so $<s>0 points at the
  ** symbol table entry for this procedure).
  */
-
+ 
 OptionalParms:
 		saveCurNS
 		{ 
@@ -39285,6 +39229,9 @@ OneOrMoreParms:
 				_if( $<s>4->pType == tProcptr )
 				
 					SymbolTable->u.proc.parms = $<s>4->u.proc.parms;
+					SymbolTable->u.proc.ParmSize = $<s>4->u.proc.ParmSize;
+					SymbolTable->u.proc.parms->u.proc.ParmSize = 
+						$<s>4->u.proc.ParmSize;
 
 				_else
 				
@@ -41429,39 +41376,17 @@ ReservedTypeIDs:
 	*/
 
 
-TypeDef:	
-		UndefinedID		/* $1 */ 
-		Colon 			/* $2 */
-		procedureTkn 	/* $3 */
-		
-		/*
-		** Before going any farther, save the current
-		** (previous lex level) variable offset and offset 
-		** direction so we can restore these values when
-		** the compiler finishes this declaration.  Note that the
-		** compiler saves these values in the attributes of the
-		** following grammar symbols.
-		*/
-		
-		SaveOffset		/* $4 */ 
-		SaveDirection	/* $5 */
-
-		/*
-		** Also, set up the offset and direction values as appropriate
-		** for processing parameters.  Then process the optional
-		** parameter list.
-		*/
-
-		{				/* $6 */
+typeDefNamem4:
+		{
 
 			struct SymNode *saveSym;
 			
 			_here;
-			assert( $<idStr>1 != NULL );
+			assert( $<idStr>-4 != NULL );
 			InsertSym
 			( 
 
-				$<idStr>1,
+				$<idStr>-4,
 				&proctype_ste,
 				tProcptr, 
 				cType, 
@@ -41489,7 +41414,7 @@ TypeDef:
 			currentNS = NULL;		//  symbol into the hash table!
 			InsertSym
 			( 
-				$<idStr>1,
+				$<idStr>-4,
 				&proctype_ste,
 				tProcptr, 
 				cType, 
@@ -41516,20 +41441,37 @@ TypeDef:
 			$<s>$->u.proc.use = NULL;
 
 		}
-		OptionalParms 	/* $7 */
-		Semicolon		/* $8 */
-		{				/* $9 */
+	;
+	
 
-			/*
-			** These can mess up ProtoOptions, so restore
-			** them before ProtoOptions.
-			*/
 
-			--CurLexLevel;
-			CurOffset = $<v.u.unsval>4;
-			CurOffsetDir = $<v.u.unsval>5;
-		}
-		ProtoOptions	/* $10 */
+TypeDef:	
+		UndefinedID		/* $1 */ 
+		Colon 			/* $2 */
+		procedureTkn 	/* $3 */
+		
+		/*
+		** Before going any farther, save the current
+		** (previous lex level) variable offset and offset 
+		** direction so we can restore these values when
+		** the compiler finishes this declaration.  Note that the
+		** compiler saves these values in the attributes of the
+		** following grammar symbols.
+		*/
+		
+		SaveOffset		/* $4 */ 
+		SaveDirection	/* $5 */
+
+		/*
+		** Also, set up the offset and direction values as appropriate
+		** for processing parameters.  Then process the optional
+		** parameter list.
+		*/
+
+		typeDefNamem4		/* $6 */
+		OptionalParms	 	/* $7 */
+		';'					/* $8 */
+		Options				/* $9 */
 		 
 		/*
 		** Initialize the pointer to the end of the parameters
@@ -41538,19 +41480,162 @@ TypeDef:
 		** local variable declarations.  
 		*/
 		 
-		{				/* $11 */
+		{				/* $10 */
 
 			union YYSTYPE value;
 			
 			_here;
+			--CurLexLevel;
+			CurOffset = $<v.u.unsval>4;
+			CurOffsetDir = $<v.u.unsval>5;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+					specified_returns
+				|	specified_use
+				|	specified_pascal
+				|	specified_stdcall
+				|	specified_cdecl
+				|	specified_alignment 
+			);
 			$<s>6->u.proc.parms->u.proc.parms = SymbolTable;
-			$<s>6->u.proc.parms->u.proc.returns = $<options.returns>10;
-			$<s>6->u.proc.parms->u.proc.use = $<options.use>10;
+			$<s>6->u.proc.parms->u.proc.returns = $<options.returns>9;
+			$<s>6->u.proc.parms->u.proc.use = $<options.use>9;
+			$<s>6->u.proc.parms->u.proc.ParmSize = $<v.u.unsval>7;
 
 			$<s>6->u.proc.parms = SymbolTable;
-			$<s>6->u.proc.returns = $<options.returns>10;
-			$<s>6->u.proc.use = $<options.use>10;
-			$<s>6->u.proc.cs = $<options.CallingSequence>10;
+			$<s>6->u.proc.returns = $<options.returns>9;
+			$<s>6->u.proc.use = $<options.use>9;
+			$<s>6->u.proc.cs = $<options.CallingSequence>9;
+			$<s>6->u.proc.ParmSize = $<v.u.unsval>7;
+
+			/*
+			** Just to be on the safe side, let's create
+			** a "parms" and "vars" entry for this object.
+			*/
+			
+			ClrConst
+			(
+				YYS &value,
+				tUns32,
+				&uns32_ste
+			);
+			value.v.u.unsval = $<v.u.unsval>7;
+			InsertSym
+			( 
+				"_parms_", 
+				&uns32_ste,
+				tUns32, 
+				cConstant, 
+				0,
+				NULL,
+				0, 
+				YYS &value,
+				4,
+				0,
+				NULL,
+				NULL,
+				NULL,
+				0
+			);
+			value.v.u.unsval = 0;
+			InsertSym
+			( 
+				"_vars_", 
+				&uns32_ste,
+				tUns32, 
+				cConstant, 
+				0,
+				NULL,
+				0, 
+				YYS &value,
+				4,
+				0,
+				NULL,
+				NULL,
+				NULL,
+				0
+			);
+			$<s>6->u.proc.parms->u.proc.Locals = SymbolTable;
+			$<s>6->u.proc.Locals = SymbolTable;
+			
+			SymbolTable = $<s>6;
+
+			/*
+			** "Prime" fastLookup for the next identifier we encounter:
+			*/
+			
+			fastLookup = 1;
+			_here;
+		}
+	;
+
+
+
+
+
+
+TypeDef:	
+		UndefinedID		/* $1 */ 
+		Colon 			/* $2 */
+		procedureTkn 	/* $3 */
+		
+		/*
+		** Before going any farther, save the current
+		** (previous lex level) variable offset and offset 
+		** direction so we can restore these values when
+		** the compiler finishes this declaration.  Note that the
+		** compiler saves these values in the attributes of the
+		** following grammar symbols.
+		*/
+		
+		SaveOffset		/* $4 */ 
+		SaveDirection	/* $5 */
+
+		/*
+		** Also, set up the offset and direction values as appropriate
+		** for processing parameters.  Then process the optional
+		** parameter list.
+		*/
+
+		typeDefNamem4				/* $6  */
+		OptionalParms 				/* $7  */
+		newProcOptions				/* $8  */
+		';'							/* $9  */
+		 
+		/*
+		** Initialize the pointer to the end of the parameters
+		** for this procedure variable.
+		** Set up the offset and direction variables to handle
+		** local variable declarations.  
+		*/
+		 
+		{							/* $10 */
+
+			union YYSTYPE value;
+			
+			_here;
+			--CurLexLevel;
+			CurOffset = $<v.u.unsval>4;
+			CurOffsetDir = $<v.u.unsval>5;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_returns
+				|	specified_use
+				|	specified_pascal
+				|	specified_stdcall
+				|	specified_cdecl
+				|	specified_alignment 
+			);
+			$<s>6->u.proc.parms->u.proc.parms = SymbolTable;
+			$<s>6->u.proc.parms->u.proc.returns = $<options.returns>8;
+			$<s>6->u.proc.parms->u.proc.use = $<options.use>8;
+
+			$<s>6->u.proc.parms = SymbolTable;
+			$<s>6->u.proc.returns = $<options.returns>8;
+			$<s>6->u.proc.use = $<options.use>8;
+			$<s>6->u.proc.cs = $<options.CallingSequence>8;
 			
 			/*
 			** Just to be on the safe side, let's create
@@ -41612,6 +41697,19 @@ TypeDef:
 			_here;
 		}
 	;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -50492,12 +50590,25 @@ VariableDef:
 			}
 			OptionalParms	/* $7 	*/ 
 			Semicolon		/* $8 	*/
-			VarOptions		/* $9 	*/
-			{				/* $10	*/
+			Options			/* $9   */
+			{				/* $10 	*/
 
-				/*
-				** Must restore before ProtoOptions
-				*/
+				struct	SymNode	*s;
+				union	YYSTYPE	value;
+				
+				_here;
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>9,
+						specified_returns
+					|	specified_use
+					|	specified_pascal
+					|	specified_stdcall
+					|	specified_cdecl
+					|	specified_alignment 
+					|	specified_nostorage
+					|	specified_volatile 
+				);
 
 				--CurLexLevel;
 				_if( $<options.NoStorage>9 )
@@ -50510,22 +50621,15 @@ VariableDef:
 					
 				_endif
 				CurOffsetDir = $<v.u.unsval>5;
-			}
-			ProtoOptions	/* $11 */
 			 
-			/*
-			** Initialize the pointer to the end of the parameters
-			** for this procedure variable.
-			** Set up the offset and direction variables to handle
-			** local variable declarations.  
-			*/
+				/*
+				** Initialize the pointer to the end of the parameters
+				** for this procedure variable.
+				** Set up the offset and direction variables to handle
+				** local variable declarations.  
+				*/
 			 
-			{				/* $12 */
 
-				struct	SymNode	*s;
-				union	YYSTYPE	value;
-				
-				_here;
 			
 				// Need to create a dummy type to hold the procedure pointer parameters.
 				
@@ -50550,7 +50654,7 @@ VariableDef:
 				SymbolTable->u.proc.parms = s;
 				SymbolTable->u.proc.returns = hlastrdup2( "" );
 				SymbolTable->u.proc.use = NULL;
-				SymbolTable->u.proc.cs = $<options.CallingSequence>11;
+				SymbolTable->u.proc.cs = $<options.CallingSequence>9;
 				$<s>6->Type = SymbolTable;
 				$<s>6->u.proc.parms->Type = SymbolTable;
 				
@@ -50561,13 +50665,13 @@ VariableDef:
 				// Patch the original symbol table entries:
 
 				$<s>6->u.proc.parms->u.proc.parms = SymbolTable;
-				$<s>6->u.proc.parms->u.proc.returns = $<options.returns>11;
-				$<s>6->u.proc.parms->u.proc.use = $<options.use>11;
+				$<s>6->u.proc.parms->u.proc.returns = $<options.returns>9;
+				$<s>6->u.proc.parms->u.proc.use = $<options.use>9;
 
 				$<s>6->u.proc.parms = SymbolTable;
-				$<s>6->u.proc.returns = $<options.returns>11;
-				$<s>6->u.proc.use = $<options.use>11;
-				$<s>6->u.proc.cs = $<options.CallingSequence>11;
+				$<s>6->u.proc.returns = $<options.returns>9;
+				$<s>6->u.proc.use = $<options.use>9;
+				$<s>6->u.proc.cs = $<options.CallingSequence>9;
 				
 			
 				/*
@@ -50656,8 +50760,14 @@ VariableDef:
 			_here;
 		}
 		Semicolon		/* $8 */
-		VarOptions		/* $9 */
+		Options			/* $9 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>9 )
 			
 				CurOffset = $<i>7;
@@ -50845,8 +50955,14 @@ VariableDef:
 
 			}
 			Semicolon			/* $7 */
-			VarOptions			/* $8 */
+			Options				/* $8 */
 			{
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>8,
+						specified_nostorage
+					|	specified_volatile 
+				);
 				_if( $<options.NoStorage>8 )
 				
 					CurOffset = $<i>6;
@@ -50909,8 +51025,14 @@ VariableDef:
 				_endif
 			}
 			Semicolon			/* $7 */
-			VarOptions			/* $8 */
+			Options				/* $8 */
 			{
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>8,
+						specified_nostorage
+					|	specified_volatile 
+				);
 				_if( $<options.NoStorage>8 )
 				
 					CurOffset = $<i>6;
@@ -51049,8 +51171,14 @@ VariableDef:
 
 			}
 			Semicolon			/* $5 */
-			VarOptions			/* $6 */
+			Options				/* $6 */
 			{
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>6,
+						specified_nostorage
+					|	specified_volatile 
+				);
 				_if( $<options.NoStorage>6 )
 				
 					CurOffset = $<i>4;
@@ -51318,8 +51446,14 @@ VariableDef:
 			_endif
 		}
 		Semicolon			/* $8 */
-		VarOptions			/* $9 */
+		Options				/* $9 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>9 )
 			
 				CurOffset = $<i>7;
@@ -52077,12 +52211,22 @@ StaticPtrToProcUninit:
 			_here;
 		}
 		Semicolon			/* $8  */
-		VarOptions			/* $9  */
-		ProtoOptions		/* $10 */
-		OptionalExternal	/* $11 */
+		Options				/* $9 */
+		OptionalExternal	/* $10 */
 		{
 
-			_if( $<returns>11 == NULL )
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+					specified_use
+				|	specified_pascal
+				|	specified_stdcall
+				|	specified_cdecl
+				|	specified_alignment 
+				|	specified_nostorage 
+				|	specified_volatile 
+			);
+			_if( $<returns>10 == NULL )
 
 				EmitTypedLabel( SymbolTable->StaticName, tDWord );
 				_if( !$<options.NoStorage>9 )
@@ -52094,15 +52238,15 @@ StaticPtrToProcUninit:
 			_else
 			 
 				SymbolTable->IsExternal = 1;
-				_if( *$<returns>11 == '\0' )
+				_if( *$<returns>10 == '\0' )
 
 				 	free2( vss SymbolTable->StaticName );
 					SymbolTable->StaticName = hlastrdup2( SymbolTable->TrueName );
-					free2( vss $<returns>11 );
+					free2( vss $<returns>10 );
 
 				_else
 
-					SymbolTable->StaticName = $<returns>11;
+					SymbolTable->StaticName = $<returns>10;
 
 				_endif
 				EmitTypedExtern
@@ -52144,20 +52288,8 @@ StaticProcUninit:
 
 		OptionalParms 		/* $7  */
 		Semicolon			/* $8  */
-		{					/* $9 */
-
-			/*
-			** Must restore before ProtoOptions
-			*/
-
-			--CurLexLevel;
-			CurOffset = $<v.u.intval>4;
-			CurOffsetDir = $<v.u.unsval>5;
-		}
-		VarOptions			/* $10 */
-		ProtoOptions		/* $11 */
-
-		OptionalExternal	/* $12 */
+		Options				/* $9  */
+		OptionalExternal	/* $10 */
 		 
 		/*
 		** Initialize the pointer to the end of the parameters
@@ -52166,13 +52298,27 @@ StaticProcUninit:
 		** local variable declarations.  
 		*/
 		 
-		{					/* $13 */
+		{					/* $11 */
 
 			struct	SymNode	*s;
 			union	YYSTYPE	value;
 
 			_here;
-			_if( $<returns>12 != NULL && $<options.NoStorage>10 )
+			--CurLexLevel;
+			CurOffset = $<v.u.intval>4;
+			CurOffsetDir = $<v.u.unsval>5;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+					specified_returns
+				|	specified_use
+				|	specified_pascal
+				|	specified_stdcall
+				|	specified_cdecl
+				|	specified_nostorage
+				|	specified_volatile 
+			);
+			_if( $<returns>10 != NULL && $<options.NoStorage>9 )
 
 				yyerror
 				(
@@ -52202,9 +52348,9 @@ StaticProcUninit:
 				0
 			);
 			SymbolTable->u.proc.parms = s;
-			SymbolTable->u.proc.returns = $<options.returns>11;
-			SymbolTable->u.proc.use = $<options.use>11;
-			SymbolTable->u.proc.cs = $<options.CallingSequence>11;
+			SymbolTable->u.proc.returns = $<options.returns>9;
+			SymbolTable->u.proc.use = $<options.use>9;
+			SymbolTable->u.proc.cs = $<options.CallingSequence>9;
 			$<s>6->Type = SymbolTable;
 			$<s>6->u.proc.parms->Type = SymbolTable;
 			
@@ -52219,9 +52365,9 @@ StaticProcUninit:
 			$<s>6->u.proc.parms->u.proc.use = NULL;
 
 			$<s>6->u.proc.parms = SymbolTable;
-			$<s>6->u.proc.returns = $<options.returns>11;
-			$<s>6->u.proc.use = $<options.use>11;
-			$<s>6->u.proc.cs = $<options.CallingSequence>11;
+			$<s>6->u.proc.returns = $<options.returns>9;
+			$<s>6->u.proc.use = $<options.use>9;
+			$<s>6->u.proc.cs = $<options.CallingSequence>9;
 			
 			/*
 			** Just to be on the safe side, let's create
@@ -52276,10 +52422,10 @@ StaticProcUninit:
 			SymbolTable = $<s>6;
 
 
-			_if( $<returns>12 == NULL )
+			_if( $<returns>10 == NULL )
 
 				EmitTypedLabel( $<s>6->StaticName, tDWord );
-				_if( !$<options.NoStorage>10 )
+				_if( !$<options.NoStorage>9 )
 
 					EmitDword();
 
@@ -52288,15 +52434,15 @@ StaticProcUninit:
 			_else
 
 				$<s>6->IsExternal = 1;
-				_if( *$<returns>12 == '\0' )
+				_if( *$<returns>10 == '\0' )
 
 				 	free2( vss $<s>6->StaticName );
 					$<s>6->StaticName = hlastrdup2( $<s>6->TrueName );
-					free2( vss $<returns>12 );
+					free2( vss $<returns>10 );
 
 				_else
 
-					$<s>6->StaticName = $<returns>12;
+					$<s>6->StaticName = $<returns>10;
 
 				_endif
 				EmitTypedExtern( $<s>6, $<s>6->StaticName, tDWord );
@@ -52318,9 +52464,15 @@ StaticProcRedef:
 		SaveLocalIDPtr	/* $4 */
 		MatchParms 		/* $5 */
 		Semicolon		/* $6 */
-		VarOptions		/* $7 */
+		Options			/* $7 */
 		{				/* $8 */
 
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>7,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
 
 				$<s>1->IsExternal = 0;
@@ -52369,12 +52521,18 @@ StaticPtrToProcRedef:
 		procedureTkn 		/* $5  */
 		DefinedID			/* $6  */
 		Semicolon			/* $7  */
-		VarOptions			/* $8  */
+		Options				/* $8  */
 		{					/* $9  */
 			
 			char msg[ 256 ];
 			
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			assert( $<idStr>1 != NULL );
 
 			_if( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
@@ -52479,8 +52637,7 @@ StaticProcInit:
 			}
 			ConstOnlyExpr	/* $10 */
 			Semicolon		/* $11 */
-			VarOptions		/* $12 */
-			ProtoOptions	/* $13 */
+			Options			/* $12 */
 			 
 			/*
 			** Initialize the pointer to the end of the parameters
@@ -52493,6 +52650,17 @@ StaticProcInit:
 				struct	SymNode	*s;
 				union	YYSTYPE	value;
 				
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>12,
+						specified_returns
+					|	specified_use
+					|	specified_pascal
+					|	specified_stdcall
+					|	specified_cdecl
+					|	specified_nostorage
+					|	specified_volatile 
+				);
 				_if( $<options.NoStorage>12 )
 
 					yyerror( "'nostorage' option is illegal here" );
@@ -52530,9 +52698,9 @@ StaticProcInit:
 						0
 					);
 					SymbolTable->u.proc.parms = s;
-					SymbolTable->u.proc.returns = $<options.returns>13;
-					SymbolTable->u.proc.use = $<options.use>13;
-					SymbolTable->u.proc.cs = $<options.CallingSequence>13;
+					SymbolTable->u.proc.returns = $<options.returns>12;
+					SymbolTable->u.proc.use = $<options.use>12;
+					SymbolTable->u.proc.cs = $<options.CallingSequence>12;
 					$<s>6->Type = SymbolTable;
 					$<s>6->u.proc.parms->Type = SymbolTable;
 					$<s>6->u.proc.returns = hlastrdup2( "" );
@@ -52551,9 +52719,9 @@ StaticProcInit:
 
 					$<s>6->u.proc.parms = SymbolTable;
 					$<s>6->u.proc.Locals = NULL;
-					$<s>6->u.proc.returns = $<options.returns>13;
-					$<s>6->u.proc.use = $<options.use>13;
-					$<s>6->u.proc.cs = $<options.CallingSequence>13;
+					$<s>6->u.proc.returns = $<options.returns>12;
+					$<s>6->u.proc.use = $<options.use>12;
+					$<s>6->u.proc.cs = $<options.CallingSequence>12;
 			
 					/*
 					** Just to be on the safe side, let's create
@@ -52640,8 +52808,14 @@ StaticPtrToProcInit:
 			_here;
 		}
 		Semicolon			/* $10 */
-		VarOptions			/* $11 */
+		Options				/* $11 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>11,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>11 )
 
 				yyerror( "'nostorage' option is illegal here" );
@@ -52833,9 +53007,15 @@ StaticEnum:
 		EnumList 		/* $7  */
 		Rbrace			/* $8  */
 		Semicolon		/* $9  */
-		VarOptions		/* $10 */
+		Options			/* $10 */
 		{				/* $11 */
 		
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>10,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			// Fix up the generated enum type to include a pointer to
 			// the enum symbols and the count of enum symbols:
 			
@@ -53025,8 +53205,14 @@ StaticPtrToUser:
 			FreeValue( YYS &$<v>7 );
 		}
 		Semicolon			/* $9  */
-		VarOptions			/* $10 */
+		Options				/* $10 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>10,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>10 )
 
 				yyerror( "'nostorage' option is illegal here" );
@@ -53132,8 +53318,14 @@ StaticPtrToExtUser:
 			FreeValue( YYS &$<v>7 );
 		}
 		Semicolon			/* $9  */
-		VarOptions			/* $10 */
+		Options				/* $10 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>10,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>10 )
 
 				yyerror( "'nostorage' option is illegal here" );
@@ -53216,8 +53408,14 @@ StaticPtrToBuiltIn:
 			FreeValue( YYS &$<v>7 );
 		}
 		Semicolon			/* $9  */
-		VarOptions			/* $10 */
+		Options				/* $10 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>10,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>10 )
 
 				yyerror( "'nostorage' option is illegal here" );
@@ -53282,8 +53480,14 @@ StaticPtrToBuiltInExt:
 
 		}
 		Semicolon			/* $9  */
-		VarOptions			/* $10 */
+		Options				/* $10 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>10,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>10 )
 
 				yyerror( "'nostorage' option is illegal here" );
@@ -53306,8 +53510,14 @@ StaticPtrToBuiltInNS:
 		toTkn				/* $4 */
 		ReservedTypeIDs		/* $5 */
 		Semicolon			/* $6 */
-		VarOptions			/* $7 */
+		Options				/* $7 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>7,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
 
 				$<s>1->IsExternal = 0;
@@ -53549,8 +53759,14 @@ StaticSingleTypeInit:
 			FreeValue( YYS &$<v>5 );
 		}
 		Semicolon			/* $7 */
-		VarOptions			/* $8 */
+		Options				/* $8 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>8 )
 
 				yyerror( "'nostorage' option is illegal here" );
@@ -53769,8 +53985,14 @@ StaticSingleTypeWasExt:
 			FreeValue( YYS &$<v>5 );
 		}
 		Semicolon			/* $7 */
-		VarOptions			/* $8 */
+		Options				/* $8 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>8 )
 
 				yyerror( "'nostorage' option is illegal here" );
@@ -53957,8 +54179,14 @@ StaticArrayInit:
 			_endif
 		}
 		Semicolon		/* $10 */
-		VarOptions		/* $11 */
+		Options			/* $11 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>11,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>11 )
 
 				yyerror( "'nostorage' option is illegal here" );
@@ -54155,10 +54383,15 @@ StaticArrayInit:
 			_endif
 		}
 		Semicolon		/* $9  */
-		VarOptions		/* $10 */
+		Options			/* $10 */
 		{
-			
-			_if( $<options.NoStorage>9 )
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>10,
+					specified_nostorage
+				|	specified_volatile 
+			);
+			_if( $<options.NoStorage>10 )
 
 				yyerror( "'nostorage' option is illegal here" );
 
@@ -54321,8 +54554,14 @@ StaticArrayInitExt:
 				_endif
 			}
 			Semicolon		/* $10 */
-			VarOptions		/* $11 */
+			Options			/* $11 */
 			{
+				CheckLegalOptions
+				( 
+					$<options.SpecifiedOptions>11,
+						specified_nostorage
+					|	specified_volatile 
+				);
 				_if( $<options.NoStorage>11 )
 
 					yyerror( "'nostorage' option is illegal here" );
@@ -54390,10 +54629,16 @@ StaticPtrToUserNoInit:
 			_here;
 		}
 		Semicolon			/* $7 */
-		VarOptions			/* $8 */
+		Options				/* $8 */
 		OptionalExternal	/* $9 */
 		{
 
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<returns>9 != NULL && $<options.NoStorage>8 )
 
 				yyerror
@@ -54458,11 +54703,17 @@ StaticPtrToUserExt:
 		toTkn				/* $4 */
 		AnyID				/* $5 */
 		Semicolon			/* $6 */
-		VarOptions			/* $7 */
+		Options				/* $7 */
 		{					/* $8 */
 
 			struct	SymNode *BaseType;
 	
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>7,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			BaseType = lookup( $<idStr>5, 1 );
 			_if( BaseType != NULL )
 
@@ -54577,9 +54828,15 @@ StaticPtrBuiltInNoInit:
 
 		}
 		Semicolon			/* $7 */
-		VarOptions			/* $8 */
+		Options				/* $8 */
 		OptionalExternal	/* $9 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<returns>9 != NULL && $<options.NoStorage>8 )
 
 				yyerror
@@ -54684,9 +54941,15 @@ StaticSingleType:
 			_endif
 		}
 		Semicolon			/* $5 */
-		VarOptions			/* $6 */
+		Options				/* $6 */
 		OptionalExternal	/* $7 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>6,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<returns>7 != NULL && $<options.NoStorage>6 )
 
 				yyerror
@@ -54829,16 +55092,20 @@ StaticSingleExt:
 		Colon 				/* $2 */
 		TypeID				/* $3 */
 		Semicolon			/* $4 */
-		VarOptions			/* $5 */
+		Options				/* $5 */
 		{					/* $6 */
-
-
 
 			struct	SymNode	*BaseType;
 
 			assert( $<s>1 != NULL );
 			assert( $<s>3 != NULL );
 
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>5,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			BaseType = GetBaseType( $<s>3 );
 
 			_if( CantBeVar( BaseType->pType ))
@@ -55047,12 +55314,18 @@ StaticArray:
 			_endif
 		}
 		Semicolon			/* $8  */
-		VarOptions			/* $9  */
+		Options				/* $9  */
 		OptionalExternal	/* $10 */
 		{
 		
 			struct	SymNode *bt;
 
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<returns>10 != NULL && $<options.NoStorage>9 )
 
 				yyerror
@@ -55420,7 +55693,7 @@ StaticArrayExt:
 		DimList 		/* $5 */
 		Rbrack  		/* $6 */
 		Semicolon		/* $7 */
-		VarOptions		/* $8 */
+		Options			/* $8 */
 		{				/* $9 */
 
 			int				*DimensionArray;
@@ -55433,6 +55706,12 @@ StaticArrayExt:
 			assert( $<v.NumElements>5 > 0 );
 			assert( $<v.Dimensions>5 != NULL );
 
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			bt = GetBaseType( $<s>3 );
 
 			/*
@@ -56674,25 +56953,27 @@ ReadOnlyDef:
 		InsertProcSym 		/* $6  */
 		OptionalParms 		/* $7  */
 		Semicolon			/* $8  */
-		VarOptions			/* $9  */
-		{					/* $10 */
-
-			/*
-			** Must restore before ProtoOptions
-			*/
-
-			--CurLexLevel;
-			CurOffset = $<v.u.intval>4;
-			CurOffsetDir = $<v.u.unsval>5;
-		}
-		ProtoOptions		/* $11 */
-		OptionalExternal	/* $12 */
+		Options				/* $9  */
+		OptionalExternal	/* $10 */
 		{
 			struct	SymNode	*s;
 			union YYSTYPE value;
 
 			_here;
-			_if( $<options.NoStorage>9 && $<returns>12 != NULL )
+			--CurLexLevel;
+			CurOffset = $<v.u.intval>4;
+			CurOffsetDir = $<v.u.unsval>5;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+					specified_returns
+				|	specified_use
+				|	specified_pascal
+				|	specified_stdcall
+				|	specified_cdecl
+				|	specified_alignment 
+			);
+			_if( $<options.NoStorage>9 && $<returns>10 != NULL )
 
 				yyerror( "'nostorage' option is illegal here" );
 
@@ -56721,7 +57002,7 @@ ReadOnlyDef:
 			SymbolTable->u.proc.parms = s;
 			SymbolTable->u.proc.returns = hlastrdup2( "" );
 			SymbolTable->u.proc.use = NULL;
-			SymbolTable->u.proc.cs = $<options.CallingSequence>11;
+			SymbolTable->u.proc.cs = $<options.CallingSequence>9;
 			$<s>6->Type = SymbolTable;
 			$<s>6->u.proc.parms->Type = SymbolTable;
 			
@@ -56737,9 +57018,9 @@ ReadOnlyDef:
 			$<s>6->u.proc.parms->u.proc.Locals = NULL;
 
 			$<s>6->u.proc.parms = SymbolTable;
-			$<s>6->u.proc.returns = $<options.returns>11;
-			$<s>6->u.proc.use = $<options.use>11;
-			$<s>6->u.proc.cs = $<options.CallingSequence>11;
+			$<s>6->u.proc.returns = $<options.returns>9;
+			$<s>6->u.proc.use = $<options.use>9;
+			$<s>6->u.proc.cs = $<options.CallingSequence>9;
 			
 			/*
 			** Just to be on the safe side, let's create
@@ -56796,18 +57077,18 @@ ReadOnlyDef:
 
 			// Deal with the @external option here:
 			
-			_if( $<returns>12 != NULL )
+			_if( $<returns>10 != NULL )
 			
 				$<s>6->IsExternal = 1;
 			 	free2( vss $<s>6->StaticName );
-				_if( *$<returns>12 == '\0' )
+				_if( *$<returns>10 == '\0' )
 
 					$<s>6->StaticName = hlastrdup2( $<s>6->TrueName );
-					free2( vss $<returns>12 );
+					free2( vss $<returns>10 );
 
 				_else
 					
-					$<s>6->StaticName = $<returns>12;
+					$<s>6->StaticName = $<returns>10;
 
 				_endif
 				EmitTypedExtern( $<s>6, $<s>6->StaticName, tDWord );
@@ -56860,11 +57141,21 @@ ReadOnlyDef:
 		DefinedID			/* $6  */
 		Semicolon			/* $7  */
 		EnterReadOnlyDef	/* $8  */
-		VarOptions			/* $9  */
-		ProtoOptions		/* $10 */
-		RequiredExternal	/* $11 */
+		Options				/* $9 */
+		RequiredExternal	/* $10 */
 		{
-			assert( $<returns>11 != NULL );
+			assert( $<returns>10 != NULL );
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+					specified_returns
+				|	specified_use
+				|	specified_pascal
+				|	specified_stdcall
+				|	specified_cdecl
+				|	specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>9 )
 
 				yyerror( "'@nostorage' option is illegal here" );
@@ -56872,15 +57163,15 @@ ReadOnlyDef:
 			_endif
 
 			SymbolTable->IsExternal = 1;
-			_if( *$<returns>11 == '\0' )
+			_if( *$<returns>10 == '\0' )
 
 			 	free2( vss SymbolTable->StaticName );
 				SymbolTable->StaticName = hlastrdup2( SymbolTable->TrueName );
-				free2( vss $<returns>11 );
+				free2( vss $<returns>10 );
 
 			_else
 
-				SymbolTable->StaticName = $<returns>11;
+				SymbolTable->StaticName = $<returns>10;
 
 			_endif
 			EmitTypedExtern( SymbolTable, SymbolTable->StaticName, tDWord );
@@ -56901,8 +57192,14 @@ ReadOnlyDef:
 		DefinedID			/* $6  */
 		Semicolon			/* $7  */
 		EnterReadOnlyDef	/* $8  */
-		VarOptions			/* $9  */
+		Options				/* $9  */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>9 )
 
 				EmitTypedLabel( SymbolTable->StaticName, tDWord );
@@ -56944,10 +57241,16 @@ ReadOnlyDef:
 		SaveLocalIDPtr	 		/* $4 */
 		MatchParms 				/* $5 */
 		Semicolon				/* $6 */
-		VarOptions				/* $7 */
+		Options					/* $7 */
 		{						/* $8 */
 
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>7,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>7 )
 
 				_if( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
@@ -56986,7 +57289,7 @@ ReadOnlyDef:
 		procedureTkn 		/* $5  */
 		DefinedID			/* $6  */
 		Semicolon			/* $7  */
-		VarOptions			/* $8  */
+		Options				/* $8  */
 		{
 			
 			char msg[256];
@@ -56994,6 +57297,12 @@ ReadOnlyDef:
 			char *sn;
 
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			assert( $<idStr>1 != NULL );
 
 			assert( $<s>1->u.proc.Forward != NULL );
@@ -57072,9 +57381,15 @@ ReadOnlyDef:
 
 		}
 		Semicolon		/* $10 */
-		VarOptions		/* $11 */
+		Options			/* $11 */
 		{
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>11,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<options.NoStorage>11 )
 
 				EmitLabel( $<s>4->StaticName, EnumSize ); 
@@ -57162,9 +57477,15 @@ ReadOnlyDef:
 		AnyID				/* $5 */
 		EnterROPDef			/* $6 */
 		Semicolon			/* $7 */
-		VarOptions			/* $8 */
+		Options				/* $8 */
 		{
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( !$<options.NoStorage>8 )
 
 				yyerror
@@ -57202,17 +57523,14 @@ ReadOnlyDef:
 		AnyID				/* $5  */
 		EnterROPDef			/* $6  */
 		Semicolon			/* $7  */
-		VarOptions			/* $8  */
+		Options				/* $8  */
 		RequiredExternal	/* $9  */
 		{
-			_if( $<options.NoStorage>8 )
-
-				yyerror
-				( 
-					"'NOSTORAGE' option is illegal here"
-				);
-
-			_endif
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_volatile 
+			);
 			_if( $<returns>9 == NULL )
 			 
 				EmitTypedLabel( $<s>6->StaticName, tDWord );
@@ -57276,12 +57594,18 @@ ReadOnlyDef:
 		toTkn				/* $4 */
 		AnyID				/* $5 */
 		Semicolon			/* $6 */
-		VarOptions			/* $7 */
+		Options				/* $7 */
 		{					/* $8 */
 
 			struct	SymNode *BaseType;
 	
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>7,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( !$<options.NoStorage>7 )
 
 				yyerror
@@ -57417,9 +57741,15 @@ ReadOnlyDef:
 		ReservedTypeIDs		/* $5 */
 		EnterRODef2			/* $6 */
 		Semicolon			/* $7 */
-		VarOptions			/* $8 */
+		Options				/* $8 */
 		{
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( !$<options.NoStorage>8 )
 
 				yyerror
@@ -57451,16 +57781,16 @@ ReadOnlyDef:
 		ReservedTypeIDs		/* $5 */
 		EnterRODef2			/* $6 */
 		Semicolon			/* $7 */
-		VarOptions			/* $8 */
+		Options				/* $8 */
 		RequiredExternal	/* $9 */
 		{
 			_here;
-			_if( $<options.NoStorage>8 )
-
-				yyerror( "'nostorage' option is illegal here" );
-
-			_endif
-
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_volatile 
+			);
+ 
 			_if( $<returns>9 == NULL )
 			 
 				EmitTypedLabel( SymbolTable->StaticName, tDWord );
@@ -57619,9 +57949,15 @@ ReadOnlyDef:
 		TypeID 				/* $3 */
 		EnterRODef3			/* $4 */
 		Semicolon			/* $5 */
-		VarOptions			/* $6 */
+		Options				/* $6 */
 		{
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>6,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( !$<options.NoStorage>6 )
 
 				yyerror
@@ -57665,16 +58001,16 @@ ReadOnlyDef:
 		TypeID		 		/* $3  */
 		EnterRODef3			/* $4  */
 		Semicolon			/* $5  */
-		VarOptions			/* $6  */
+		Options				/* $6  */
 		RequiredExternal	/* $7  */
 		{
 			struct	SymNode	*bt;
 			
-			_if( $<options.NoStorage>6 )
-
-				yyerror( "'nostorage' option is illegal here" );
-
-			_endif
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>6,
+					specified_volatile 
+			);
 			
 			_if( CantBeVar( $<s>3->pType ))
 
@@ -57732,7 +58068,7 @@ ReadOnlyDef:
 		Colon 				/* $2 */
 		TypeID 				/* $3 */
 		Semicolon			/* $4 */
-		VarOptions			/* $5 */
+		Options				/* $5 */
 		{					/* $6 */
 
 			char StaticName[ 256 ];
@@ -57743,6 +58079,12 @@ ReadOnlyDef:
 			assert( $<s>3 != NULL );
 
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>5,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( !$<options.NoStorage>5 )
 
 				yyerror
@@ -58015,8 +58357,14 @@ ReadOnlyDef:
 		Rbrack  			/* $6 */
 		EnterRODef4			/* $7 */
 		Semicolon			/* $8 */
-		VarOptions			/* $9 */
+		Options				/* $9 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( !$<options.NoStorage>9 )
 
 				yyerror
@@ -58051,14 +58399,14 @@ ReadOnlyDef:
 		Rbrack  			/* $6  */
 		EnterRODef4			/* $7  */
 		Semicolon			/* $8  */
-		VarOptions			/* $9  */
+		Options				/* $9  */
 		RequiredExternal	/* $10 */
 		{
-			_if( $<options.NoStorage>9 )
-
-				yyerror( "'nostorage' option is illegal here" );
-
-			_endif
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>9,
+					specified_volatile 
+			);
 			_if( !CantBeVar( $<s>3->pType ))
 			
 				SymbolTable->IsExternal = 1;
@@ -58104,7 +58452,7 @@ ReadOnlyDef:
 		DimList 		/* $5 */
 		Rbrack  		/* $6 */
 		Semicolon		/* $7 */
-		VarOptions		/* $8 */
+		Options			/* $8 */
 		{				/* $9 */
 
 			int				*DimensionArray;
@@ -58118,6 +58466,12 @@ ReadOnlyDef:
 			assert( $<v.Dimensions>5 != NULL );
 
 			_here;
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>8,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( !$<options.NoStorage>8 )
 
 				yyerror
@@ -58367,8 +58721,14 @@ UninitDef:
 		toTkn				/* $4 */
 		ReservedTypeIDs		/* $5 */
 		Semicolon			/* $6 */
-		VarOptions			/* $7 */
+		Options				/* $7 */
 		{
+			CheckLegalOptions
+			( 
+				$<options.SpecifiedOptions>7,
+					specified_nostorage
+				|	specified_volatile 
+			);
 			_if( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
 
 				_if( $<s>1->Type == &pointer_ste && $<s>1->Base == $<s>5 ) 
@@ -103615,6 +103975,19 @@ _begin( main )
 
 	yyparse();
 	
+	_if( yyerrCount != 0 )
+	
+		fprintf
+		(
+			MsgOut,
+			"HLAPARSE assembly failed with %d errors\n",
+			yyerrCount
+		);
+		_return yyerrCount;
+	
+	_endif
+	
+	
 	_if( Verbose )
 	
 		struct timeb	CompileTime;
@@ -103814,77 +104187,75 @@ _begin( main )
 		_else
 		
 			
-			_if( yyerrCount == 0 ) 
 		
-				_if( targetOS == windows_os )
-				 
-					hlabe_compile
-					(
-						FileName,
-						AsmName, 
-						buffer.base, 
-						buffer.base + buffer.offset,
-						objt_pecoff_c,
-						Verbose 
-					);
-					
-				_elseif( targetOS == linux_os )
-				 
-					hlabe_compile
-					(
-						FileName,
-						AsmName, 
-						buffer.base, 
-						buffer.base + buffer.offset,
-						objt_elfLinux_c,
-						Verbose 
-					);
-					
+			_if( targetOS == windows_os )
+			 
+				hlabe_compile
+				(
+					FileName,
+					AsmName, 
+					buffer.base, 
+					buffer.base + buffer.offset,
+					objt_pecoff_c,
+					Verbose 
+				);
 				
-				_elseif( targetOS == freeBSD_os )
-				 
-					hlabe_compile
-					(
-						FileName,
-						AsmName, 
-						buffer.base, 
-						buffer.base + buffer.offset,
-						objt_elfFreeBSD_c,
-						Verbose 
-					);
-					
+			_elseif( targetOS == linux_os )
+			 
+				hlabe_compile
+				(
+					FileName,
+					AsmName, 
+					buffer.base, 
+					buffer.base + buffer.offset,
+					objt_elfLinux_c,
+					Verbose 
+				);
 				
-				_elseif( targetOS == macOS_os )
+			
+			_elseif( targetOS == freeBSD_os )
+			 
+				hlabe_compile
+				(
+					FileName,
+					AsmName, 
+					buffer.base, 
+					buffer.base + buffer.offset,
+					objt_elfFreeBSD_c,
+					Verbose 
+				);
 				
-					fprintf
-					( 
-						MsgOut, 
-						"HLAPARSE does not support direct object "
-						"output under MAC OS X\n" 
-					);
-					_return 1;
-//					hlabe_compile
-//					(
-//						FileName,
-//						AsmName, 
-//						buffer.base, 
-//						buffer.base + buffer.offset,
-//						objt_macho_c,
-//						Verbose 
-//					);
+			
+			_elseif( targetOS == macOS_os )
+			
+				fprintf
+				( 
+					MsgOut, 
+					"HLAPARSE does not support direct object "
+					"output under MAC OS X\n" 
+				);
+				_return 1;
+//				hlabe_compile
+//				(
+//					FileName,
+//					AsmName, 
+//					buffer.base, 
+//					buffer.base + buffer.offset,
+//					objt_macho_c,
+//					Verbose 
+//				);
 
-				_else
+			_else
+			
+				fprintf
+				( 
+					MsgOut, 
+					"Unknown target OS (internal HLAPARSE error)\n" 
+				);
+				_return 1;
 				
-					fprintf
-					( 
-						MsgOut, 
-						"Unknown target OS (internal HLAPARSE error)\n" 
-					);
-					_return 1;
-					
-				_endif
+			_endif
 				
-			_endif			
 		
 		_endif
 		free2( vss buffer.base );
