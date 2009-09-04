@@ -157,17 +157,19 @@ extern int threadSafe;
 ** options union in YYSTYPE:
 */
 
-#define specified_returns 1
-#define specified_noframe 2
-#define specified_nodisplay 4
-#define specified_noalignstk 8
-#define specified_alignment 16
-#define specified_pascal 32
-#define specified_stdcall 64
-#define specified_cdecl 128
-#define specified_noenter 256
-#define specified_noleave 256
-#define specified_use 512
+#define specified_returns 		1
+#define specified_noframe 		2
+#define specified_nodisplay 	4
+#define specified_noalignstk	8
+#define specified_alignment 	16
+#define specified_pascal 		32
+#define specified_stdcall 		64
+#define specified_cdecl 		128
+#define specified_noenter		256
+#define specified_noleave		256
+#define specified_use			512
+#define specified_nostorage 	1024
+#define specified_volatile	 	2048
 
 
 /*
