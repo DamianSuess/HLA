@@ -5398,7 +5398,7 @@ _begin( fp_arith_mem_instr );
 			EmitByteConst(  0xdc , "opcode" );
 			
 		_endif
-		EmitModRegRm( instr, adrs );
+		EmitModRegRm( instr, adrs, 1);
 		
 	_endif
 }	
@@ -5466,7 +5466,7 @@ _begin( fpi_arith_mem_instr );
 			EmitByteConst(  0xde , "opcode" );
 			
 		_endif
-		EmitModRegRm( instr, adrs );
+		EmitModRegRm( instr, adrs, 1);
 		
 	_endif
 }			
@@ -5510,17 +5510,17 @@ _begin( fld_mem )
 		_if( adrs->Size == 4 )
 		
 			EmitByteConst(  0xd9 , "opcode" );
-			EmitModRegRm( 0, adrs );
+			EmitModRegRm( 0, adrs, 1);
 			
 		_elseif( adrs->Size == 8 )
 		
 			EmitByteConst(  0xdd , "opcode" );
-			EmitModRegRm( 0, adrs );
+			EmitModRegRm( 0, adrs, 1);
 			
 		_else // Size == 10
 		
 			EmitByteConst(  0xdb , "opcode" );
-			EmitModRegRm( 5, adrs );
+			EmitModRegRm( 5, adrs, 1);
 			
 		_endif
 		
@@ -5565,12 +5565,12 @@ _begin( fst_mem )
 		_if( adrs->Size == 4 )
 		
 			EmitByteConst(  0xd9 , "opcode" );
-			EmitModRegRm( 2, adrs );
+			EmitModRegRm( 2, adrs, 1);
 			
 		_elseif( adrs->Size == 8 )
 		
 			EmitByteConst(  0xdd , "opcode" );
-			EmitModRegRm( 2, adrs );
+			EmitModRegRm( 2, adrs, 1);
 			
 		_endif
 		
@@ -5630,17 +5630,17 @@ _begin( fstp_mem )
 		_if( adrs->Size == 4 )
 		
 			EmitByteConst(  0xd9 , "opcode" );
-			EmitModRegRm( 3, adrs );
+			EmitModRegRm( 3, adrs, 1);
 			
 		_elseif( adrs->Size == 8 )
 		
 			EmitByteConst(  0xdd , "opcode" );
-			EmitModRegRm( 3, adrs );
+			EmitModRegRm( 3, adrs, 1);
 			
 		_elseif( adrs->Size == 10 )
 		
 			EmitByteConst(  0xdb , "opcode" );
-			EmitModRegRm( 7, adrs );
+			EmitModRegRm( 7, adrs, 1);
 				
 		_endif
 		
@@ -5688,12 +5688,12 @@ _begin( fist_mem )
 		_if( adrs->Size == 2 )
 		
 			EmitByteConst(  0xdf , "opcode" );
-			EmitModRegRm( 2, adrs );
+			EmitModRegRm( 2, adrs, 1);
 			
 		_else //( adrs->Size == 4 )
 		
 			EmitByteConst(  0xdb , "opcode" );
-			EmitModRegRm( 2, adrs );
+			EmitModRegRm( 2, adrs, 1);
 			
 		_endif
 		
@@ -5739,17 +5739,17 @@ _begin( fistp_mem )
 		_if( adrs->Size == 2 )
 		
 			EmitByteConst(  0xdf , "opcode" );
-			EmitModRegRm( 3, adrs );
+			EmitModRegRm( 3, adrs, 1);
 			
 		_elseif( adrs->Size == 4 )
 		
 			EmitByteConst(  0xdb , "opcode" );
-			EmitModRegRm( 3, adrs );
+			EmitModRegRm( 3, adrs, 1);
 			
 		_elseif( adrs->Size == 8 )
 		
 			EmitByteConst(  0xdf , "opcode" );
-			EmitModRegRm( 7, adrs );
+			EmitModRegRm( 7, adrs, 1);
 					
 		_endif
 		
@@ -5807,7 +5807,7 @@ _begin( fisttp_mem )
 			EmitByteConst(  0xdd , "opcode" );
 					
 		_endif
-		EmitModRegRm( 1, adrs );
+		EmitModRegRm( 1, adrs, 1);
 		
 	_endif
 				
@@ -5849,17 +5849,17 @@ _begin( fild_mem )
 		_if( adrs->Size == 2 )
 		
 			EmitByteConst(  0xdf , "opcode" );
-			EmitModRegRm( 0, adrs );
+			EmitModRegRm( 0, adrs, 1);
 			
 		_elseif( adrs->Size == 4 )
 		
 			EmitByteConst(  0xdb , "opcode" );
-			EmitModRegRm( 0, adrs );
+			EmitModRegRm( 0, adrs, 1);
 			
 		_elseif( adrs->Size == 8 )
 		
 			EmitByteConst(  0xdf , "opcode" );
-			EmitModRegRm( 5, adrs );
+			EmitModRegRm( 5, adrs, 1);
 					
 		_endif
 		
@@ -5898,7 +5898,7 @@ _begin( fbstp_mem )
 	_if( !sourceOutput )
 
 		EmitByteConst(  0xdf , "opcode" );
-		EmitModRegRm( 6, adrs );
+		EmitModRegRm( 6, adrs, 1);
 		
 	_endif
 			
@@ -5935,7 +5935,7 @@ _begin( fbld_mem )
 	_if( !sourceOutput )
 	
 		EmitByteConst(  0xdf , "opcode" );
-		EmitModRegRm( 4, adrs );
+		EmitModRegRm( 4, adrs, 1);
 		
 	_endif
 			
@@ -6088,7 +6088,7 @@ _begin( fldenv_mem )
 			
 		_endif
 		EmitByteConst(  0xd9 , "opcode" );			// fldenv ESC opcode
-		EmitModRegRm( 4, adrs );		// 4=fldenv subopcode.
+		EmitModRegRm( 4, adrs, 1);	// 4=fldenv subopcode.
 		
 	_endif
 
@@ -6117,7 +6117,7 @@ _begin( fstenv_mem )
 			
 		_endif
 		EmitByteConst(  0xd9 , "opcode" );			// fldenv ESC opcode
-		EmitModRegRm( 6, adrs );		// 4=fldenv subopcode.
+		EmitModRegRm( 6, adrs, 1);	// 4=fldenv subopcode.
 		
 	_endif
 
@@ -6148,7 +6148,7 @@ _begin( frstor_mem )
 			
 		_endif
 		EmitByteConst(  0xdd , "opcode" );			// frstor ESC opcode
-		EmitModRegRm( 4, adrs );		// 4=frstor subopcode.
+		EmitModRegRm( 4, adrs, 1);	// 4=frstor subopcode.
 		
 	_endif
 
@@ -6177,7 +6177,7 @@ _begin( fsave_mem )
 			
 		_endif
 		EmitByteConst(  0xdd , "opcode" );			// fsave ESC opcode
-		EmitModRegRm( 6, adrs );		// 6=fsave subopcode.
+		EmitModRegRm( 6, adrs, 1);	// 6=fsave subopcode.
 		
 	_endif
 
@@ -6202,8 +6202,8 @@ _begin( fxrstor_mem )
 	asm1opm( "fxrstor", adrs, 0, testMode, doSource );
 	_if( !doSource )
 	
-		EmitWordConst( 0xae0f );	// fxrstor/fxsave opcode
-		EmitModRegRm( 1, adrs );	// 1=frstor subopcode.
+		EmitWordConst( 0xae0f );					// fxrstor/fxsave opcode
+		EmitModRegRm( 1, adrs, 1);	// 1=frstor subopcode.
 		
 	_endif
 
@@ -6224,8 +6224,8 @@ _begin( fxsave_mem )
 	asm1opm( "fxsave", adrs, 0, testMode, doSource );
 	_if( !doSource )
 	
-		EmitWordConst( 0xae0f );	// fxsave/fxsave opcode
-		EmitModRegRm( 0, adrs );	// 0=fxsave subopcode.
+		EmitWordConst( 0xae0f );					// fxsave/fxsave opcode
+		EmitModRegRm( 0, adrs, 1);	// 0=fxsave subopcode.
 		
 	_endif
 
@@ -6242,8 +6242,8 @@ _begin( fldcw_mem )
 	asm1opm( "fldcw", adrs, 0, testMode, sourceOutput );
 	_if( !sourceOutput )
 	
-		EmitByteConst(  0xd9 , "opcode" );		// fldcw ESC opcode
-		EmitModRegRm( 5, adrs );	// 5=fldcw subopcode.
+		EmitByteConst(  0xd9 , "opcode" );			// fldcw ESC opcode
+		EmitModRegRm( 5, adrs, 1);	// 5=fldcw subopcode.
 		
 	_endif
 
@@ -6268,8 +6268,8 @@ _begin( fstcw_mem )
 			EmitByteConst(  0x9b , "wait opcode" );
 			
 		_endif
-		EmitByteConst(  0xd9 , "opcode" );		// fstcw ESC opcode
-		EmitModRegRm( 7, adrs );	// 7=fstcw subopcode.
+		EmitByteConst(  0xd9 , "opcode" );			// fstcw ESC opcode
+		EmitModRegRm( 7, adrs, 1);	// 7=fstcw subopcode.
 		
 	_endif
 
@@ -6298,8 +6298,8 @@ _begin( fstsw_mem )
 			EmitByteConst(  0x9b , "wait opcode" );
 			
 		_endif
-		EmitByteConst(  0xdd , "opcode" );		// fstsw ESC opcode
-		EmitModRegRm( 7, adrs );	// 7=fstsw subopcode.
+		EmitByteConst(  0xdd , "opcode" );			// fstsw ESC opcode
+		EmitModRegRm( 7, adrs, 1);	// 7=fstsw subopcode.
 		
 	_endif
 
@@ -6573,8 +6573,8 @@ _begin( movd_r_m )
 			EmitByteConst(  0x66 , "size prefix" );
 			
 		_endif
-		EmitWordConst( 0x7e0f );	// movd( mmx, mem ) opcode
-		EmitModRegRm( reg, adrs );
+		EmitWordConst( 0x7e0f );		// movd( mmx, mem ) opcode
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -6631,7 +6631,7 @@ _begin( movd_m_r )
 			
 		_endif
 		EmitWordConst( 0x6e0f );	// movd( mem, reg ) opcode
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif			
 
@@ -6665,7 +6665,7 @@ _begin( movq_regmmx_m )
 	_if( !sourceOutput )
 	
 		EmitWordConst( 0x7f0f );	// movq( mmx, mem ) opcode
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 
@@ -6697,7 +6697,7 @@ _begin( movq_m_regmmx )
 	_if( !sourceOutput )
 	
 		EmitWordConst( 0x6f0f );	// movq( mem, mmx ) opcode
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif			
 
@@ -6736,7 +6736,7 @@ _begin( movq_regxmm_m )
 	
 		EmitByteConst(  0x66 , "size prefix" );		// Size prefix, makes it SSE
 		EmitWordConst( 0xd60f );	// movq( xmm, mem ) opcode
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif			
 	
@@ -6772,7 +6772,7 @@ _begin( movq_m_regxmm )
 	
 		EmitByteConst(  0xf3 , "opcode prefix" );		// Prefix to make it SSE
 		EmitWordConst( 0x7e0f );	// movq( mem, xmm ) opcode
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif			
 	
@@ -7228,8 +7228,18 @@ _begin( sse_instr_m_r )
 	_if( SSE_sizes[instr] != adrs->Size )
 	
 		adrs->forcedSize = SSE_sizes[instr];
+			
+	_endif
+	_if( assembler == masm && instr == addsubps_instr )
+	
+		adrs->forcedSize = 8;
+		
+	_elseif( assembler == nasm )
+	
+		adrs->forcedSize = 0;
 		
 	_endif
+
 	asm2opmr
 	(
 		SSE_strs[instr],
@@ -7238,7 +7248,7 @@ _begin( sse_instr_m_r )
 		_ifx
 		( 
 			assembler == masm, 
-			_ifx( instr == addsubps_instr, -(adrs->Size / 2), -adrs->Size), 
+			-adrs->Size, 
 			0
 		),
 		testMode,
@@ -7252,7 +7262,7 @@ _begin( sse_instr_m_r )
 			
 		_endif
 		EmitWordConst( 0x0f | (	SSE_opcodes[ instr ] << 8 ) );
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -7344,7 +7354,7 @@ _begin( sse_mov_instr_r_m )
 			
 		_endif
 		EmitWordConst( 0x010f | (SSE_mov_st_instr_opcodes[ instr ] << 8) );
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -7390,7 +7400,7 @@ _begin( sse_mov_instr_m_r )
 			
 		_endif
 		EmitWordConst( 0x000f | (SSE_mov_ld_instr_opcodes[ instr ] << 8) );
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 
@@ -7509,7 +7519,16 @@ _begin( EmitMovsds_m_r )
 	assert( instr < num_movsds_instrs );
 	assert( reg < 8 );
 	doSource = sourceOutput && assembler != tasm;
-	adrs->forcedSize = setForced( adrs, _ifx( instr == movss_instr, 4, 8 ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = 
+			setForced( adrs, _ifx( instr == movss_instr, 4, 8 ) );
+			
+	_endif
 	asm2opmr
 	(
 		movsds_strs[ instr ],
@@ -7524,7 +7543,7 @@ _begin( EmitMovsds_m_r )
 
 		EmitWordConst( 0x0f00 | movsds_prefix[instr] );
 		EmitByteConst(  0x10 , "opcode" );
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -7545,7 +7564,16 @@ _begin( EmitMovsds_r_m )
 	assert( instr < num_movsds_instrs );
 	assert( reg < 8 );
 	doSource = sourceOutput && assembler != tasm;	
-	adrs->forcedSize = setForced( adrs, _ifx( instr == movss_instr, 4, 8 ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = 
+			setForced( adrs, _ifx( instr == movss_instr, 4, 8 ) );
+			
+	_endif
 	asm2oprm
 	(
 		movsds_strs[ instr ],
@@ -7559,7 +7587,7 @@ _begin( EmitMovsds_r_m )
 	
 		EmitWordConst( 0x0f00 | movsds_prefix[instr] );
 		EmitByteConst(  0x11 , "opcode" );				// movss/d mem,xmm opcode.
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -7622,7 +7650,12 @@ _begin(Emit_mw_rv_r)
 				assembler == fasm 
 			||	assembler == nasm
 			||	(
-					isReg16( reg ) && ( assembler == gas ||	assembler == masm )
+					isReg16( reg ) && 
+					( 
+							assembler == gas 
+						||	assembler == masm
+						||	assembler == hlabe 
+					)
 				) 
 		)
 		
@@ -7660,7 +7693,7 @@ _begin( Emit_mw_rv_m )
 	
 		EmitByteConst(  0x0f , "2 byte opcode prefix" );
 		EmitByteConst(  mw_rv_opcodes_0[instr] , "opcode" );
-		EmitModRegRm( mw_rv_opcodes_1[instr], adrs );
+		EmitModRegRm( mw_rv_opcodes_1[instr], adrs, 1);
 		
 	_endif
 
@@ -7750,7 +7783,7 @@ _begin( Emit_ew_m )
 	
 		EmitByteConst(  0x0f , "2 byte opcode prefix" );
 		EmitByteConst(  ew_opcodes_0[instr] , "opcode" );
-		EmitModRegRm(  ew_opcodes_1[instr], adrs );
+		EmitModRegRm(  ew_opcodes_1[instr], adrs, 1);
 		
 	_endif
 
@@ -7764,12 +7797,18 @@ _end( Emit_ew_m )
 void Emit_invlpg( padrsYYS adrs )
 _begin( Emit_invlpg )
 
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+	
+	_endif
+		
 	asm1opm( "invlpg", adrs, 0, testMode, sourceOutput );
 	adrs->forcedSize = 0;
 	_if( !sourceOutput )
 	
 		EmitWordConst( 0x010f );
-		EmitModRegRm( 7, adrs );
+		EmitModRegRm( 7, adrs, 1);
 		
 	_endif
 
@@ -7835,7 +7874,15 @@ _begin( Emit_Gv_Ew_m )
 		adrs->forcedSize = 2;
 		
 	_endif
-	adrs->forcedSize = setForced( adrs, regSize( reg ) );
+	_if( assembler == masm || assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( reg ) );
+		
+	_endif
 	asm2opmr
 	(
 		larlsl_strs[instr],
@@ -7853,7 +7900,7 @@ _begin( Emit_Gv_Ew_m )
 			
 		_endif
 		EmitWordConst( _ifx( instr == lar_instr, 0x020f, 0x030f ));
-		EmitModRegRm( regCode(reg), adrs );
+		EmitModRegRm( regCode(reg), adrs, 1);
 		
 	_endif
 	
@@ -7908,7 +7955,7 @@ _begin( Emit_ms_m )
 	_endif
 	
 	EmitWordConst( 0x010f );
-	EmitModRegRm(  ms_opcodes[instr], adrs );
+	EmitModRegRm(  ms_opcodes[instr], adrs, 1);
 	
 		
 
@@ -7973,6 +8020,11 @@ _begin( Emit_Vps_Mq )
 		adrs->forcedSize = 8;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
 	asm2oprm
 	(
 		_ifx( instr == movlps_instr, "movlps", "movhps" ),
@@ -7994,7 +8046,7 @@ _begin( Emit_Vps_Mq )
 			EmitWordConst( 0x170f );
 			
 		_endif
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -8019,6 +8071,11 @@ _begin( Emit_Mq_Vps )
 		adrs->forcedSize = 8;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
 	asm2opmr
 	(
 		_ifx( instr == movlps_instr, "movlps", "movhps" ),
@@ -8039,7 +8096,7 @@ _begin( Emit_Mq_Vps )
 			EmitWordConst( 0x160f );
 			
 		_endif
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -8062,6 +8119,11 @@ _begin( Emit_Vps_Wq_m )
 		adrs->forcedSize = 16;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
 	asm2opmr
 	(
 		_ifx( instr == unpcklps_instr, "unpcklps", "unpckhps" ),
@@ -8082,7 +8144,7 @@ _begin( Emit_Vps_Wq_m )
 			EmitWordConst( 0x150f );
 			
 		_endif
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -8144,6 +8206,11 @@ _begin( Emit_Vsd_Mq_m )
 		adrs->forcedSize = 8;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
 	asm2oprm
 	(
 		_ifx( instr == movlpd_instr, "movlpd", "movhpd" ),
@@ -8165,7 +8232,7 @@ _begin( Emit_Vsd_Mq_m )
 			EmitWordConst( 0x170f );
 			
 		_endif
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -8183,6 +8250,11 @@ _begin( Emit_Mq_Vsd_m )
 	_if( 8 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 8;
+		
+	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
 		
 	_endif
 	asm2opmr
@@ -8206,7 +8278,7 @@ _begin( Emit_Mq_Vsd_m )
 			EmitWordConst( 0x160f );
 			
 		_endif
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -8251,6 +8323,11 @@ _begin( Emit_Vpd_Wq_m )
 		adrs->forcedSize = 16;
 		
 	_endif
+	_if( assembler == masm )
+	
+		adrs->forcedSize = 8;
+		
+	_endif
 	asm2opmr
 	(
 		Vpd_Wq_strs[ instr ],
@@ -8264,7 +8341,7 @@ _begin( Emit_Vpd_Wq_m )
 	
 		EmitByteConst(  Vpd_Wq_opcodes[instr] & 0xff , "opcode prefix" );
 		EmitWordConst( Vpd_Wq_opcodes[instr] >> 8 );
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -8365,6 +8442,11 @@ _begin( Emit_Gv_Ev_m )
 	assert( instr < num_Gv_Ev_instrs );
 	assert( isReg1632( reg ) );
 	adrs->forcedSize = setForced( adrs, regSize( reg ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
 	asm2opmr
 	(
 		Gv_Ev_strs[ instr ],
@@ -8382,7 +8464,7 @@ _begin( Emit_Gv_Ev_m )
 			
 		_endif
 		EmitWordConst( Gv_Ev_opcodes[instr] );
-		EmitModRegRm( regCode(reg), adrs );
+		EmitModRegRm( regCode(reg), adrs, 1);
 		
 	_endif
 	
@@ -8716,6 +8798,11 @@ _begin( Emit_Pq_Qq_m )
 			
 	rgsz = _ifx( isXmm, 16, 8 );
 	adrs->forcedSize = setForced( adrs, rgsz );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
 	asm2opmr
 	(
 		Pq_Qq_strs[ instr ],
@@ -8734,7 +8821,7 @@ _begin( Emit_Pq_Qq_m )
 			
 		_endif
 		EmitWordConst( Pq_Qq_opcodes[ instr ] );
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -8849,6 +8936,11 @@ _begin( Emit_Vdq_Wq_m )
 			
 	rgsz = _ifx( isXmm, 16, 8 );
 	adrs->forcedSize = setForced( adrs, rgsz );
+	_if( assembler == nasm || assembler == fasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
 	asm2opmr
 	(
 		Vdq_Wq_strs[ instr ],
@@ -8866,7 +8958,7 @@ _begin( Emit_Vdq_Wq_m )
 			
 		_endif
 		EmitWordConst( Vdq_Wq_opcodes[ instr ] );
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -8938,7 +9030,15 @@ _begin( Emit_Vdq_Wd_m )
 			);
 			
 	rgsz = _ifx( isXmm, 16, 4 );
-	adrs->forcedSize = setForced( adrs, rgsz );
+	_if( assembler == nasm || assembler == fasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, rgsz );
+		
+	_endif
 	asm2opmr
 	(
 		Vdq_Wq_strs[ instr ],
@@ -8956,7 +9056,7 @@ _begin( Emit_Vdq_Wd_m )
 			
 		_endif
 		EmitWordConst( Vdq_Wq_opcodes[ instr ] );
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -8978,7 +9078,7 @@ _begin( Emit_Movddup )
 			sourceOutput 
 		&&	assembler != gas 
 		&&	assembler != tasm; 
-			
+		
 	asm2oprr
 	(
 		"movddup",
@@ -9012,7 +9112,15 @@ _begin( Emit_Movddup )
 		&&	assembler != gas 
 		&&	assembler != tasm; 
 		
-	adrs->forcedSize = setForced( adrs, 8 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 8 );
+		
+	_endif
 	asm2opmr
 	(
 		"movddup",
@@ -9026,7 +9134,7 @@ _begin( Emit_Movddup )
 	
 		EmitByteConst(  0xf2 , "opcode prefix" );
 		EmitWordConst( 0x120f );
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	_here;
@@ -9127,7 +9235,15 @@ _begin( Emit_pshuf_m )
 		&&	assembler != tasm;
 
 	rgsz = _ifx( instr == pshufw_instr, 8, 16 );
-	adrs->forcedSize = setForced( adrs, rgsz );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, rgsz );
+		
+	_endif
 	asm3opcmr
 	(
 		pshuf_strs[ instr ],
@@ -9151,7 +9267,7 @@ _begin( Emit_pshuf_m )
 			
 		_endif
 		EmitWordConst( 0x700f );
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		EmitByteConst(  cnt , "" );
 		
 	_endif
@@ -9328,7 +9444,15 @@ _begin( Emit_psl_psr_m )
 		&&	(assembler != gas || (instr != psrldq_instr && instr != pslldq_instr));
 		
 	rgsz = _ifx( isXmm, 16, 8 );
-	adrs->forcedSize = setForced( adrs, rgsz );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, rgsz );
+		
+	_endif
 	asm2opmr
 	(
 		psr_psl_strs[ instr ],
@@ -9351,7 +9475,7 @@ _begin( Emit_psl_psr_m )
 			
 		_endif
 		EmitWordConst( psr_psl_Pq_Qq_opcodes[ instr ] );
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -9423,6 +9547,11 @@ _begin( Emit_set_Eb_m )
 		adrs->forcedSize = 1;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
 	asm1opm
 	(
 		set_Eb_instrs[ instr ],
@@ -9434,7 +9563,7 @@ _begin( Emit_set_Eb_m )
 	_if( !sourceOutput )
 	
 		EmitWordConst( 0x900f | (instr << 8 ));
-		EmitModRegRm( 0, adrs );
+		EmitModRegRm( 0, adrs, 1);
 	
 	_endif
 	
@@ -9546,6 +9675,11 @@ _begin( Emit_bt_r_m )
 		adrs->forcedSize = setForced( adrs, regSize( reg ) );
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
 	asm2oprm
 	(
 		bt_strs[ instr ],
@@ -9559,7 +9693,7 @@ _begin( Emit_bt_r_m )
 	
 		doBTLockPrefix( &instr, regSize( reg ) );
 		EmitWordConst( (bt_opcodes[instr] << 8) | 0x0f );
-		EmitModRegRm( regCode(reg), adrs );
+		EmitModRegRm( regCode(reg), adrs, 1);
 		
 	_endif
 		
@@ -9627,7 +9761,7 @@ _begin( Emit_bt_c_m )
 	
 		doBTLockPrefix( &instr, adrs->Size );
 		EmitWordConst( 0xba0f );
-		EmitModRegRm( instr+4, adrs );	// sub-opcodes start at /4
+		EmitModRegRm( instr+4, adrs, 1);	// sub-opcodes start at /4
 		EmitByteConst(  bitnum , "" );
 		
 	_endif
@@ -9749,7 +9883,15 @@ _begin( Emit_shxd_c_r_m )
 
 	assert( instr < num_shxd_instrs );
 	assert( isReg1632( reg ));
-	adrs->forcedSize = setForced( adrs, regSize( reg ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( reg ) );
+		
+	_endif
 	asm3opcrm
 	(
 		shxd_strs[ instr ],
@@ -9776,7 +9918,7 @@ _begin( Emit_shxd_c_r_m )
 			EmitWordConst( 0xac0f );
 			
 		_endif
-		EmitModRegRm( regCode(reg), adrs );
+		EmitModRegRm( regCode(reg), adrs, 1);
 		EmitByteConst(  bitcnt , "" );
 		
 	_endif
@@ -9795,7 +9937,15 @@ _begin( Emit_shxd_cl_r_m )
 
 	assert( instr < num_shxd_instrs );
 	assert( isReg1632( reg ));
-	adrs->forcedSize = setForced( adrs, regSize( reg ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( reg ) );
+		
+	_endif
 	asm3oprrm
 	(
 		shxd_strs[ instr ],
@@ -9822,7 +9972,7 @@ _begin( Emit_shxd_cl_r_m )
 			EmitWordConst( 0xad0f );
 			
 		_endif
-		EmitModRegRm( regCode(reg), adrs );
+		EmitModRegRm( regCode(reg), adrs, 1);
 		
 	_endif
 		
@@ -9881,7 +10031,7 @@ _begin( EmitLxS )
 			EmitByteConst(  opcodes[ segreg ] >> 8 , "" );
 			
 		_endif
-		EmitModRegRm( regCode(reg), adrs );
+		EmitModRegRm( regCode(reg), adrs, 0 );
 		
 	_endif
 		
@@ -10050,19 +10200,19 @@ _begin( EmitMov_c_m )
 		_if( adrs->Size == 1 )
 		
 	    	EmitByteConst(  0xc6 , "" );
-			EmitModRegRm( 0, adrs );
+			EmitModRegRm( 0, adrs, 1);
 			EmitByteConst(  cnst , "" );
 				
 		_elseif( adrs->Size == 2 )
 		
 	    	EmitWordConst( 0xc766 );
-			EmitModRegRm( 0, adrs );
+			EmitModRegRm( 0, adrs, 1);
 			EmitWordConst( cnst );
 				
 		_elseif( adrs->Size == 4 )
 		
 	    	EmitByteConst(  0xc7 , "" );
-			EmitModRegRm( 0, adrs );
+			EmitModRegRm( 0, adrs, 1);
 			EmitDwordConst( cnst, "" );
 
 		_endif
@@ -10091,7 +10241,7 @@ _begin( EmitMov_r_sr )
 	);
 	_if( !sourceOutput )
 	
-		_if( assembler == masm  )
+		_if( assembler == masm || assembler == hlabe  )
 		
 			EmitByteConst(  0x66 , "size prefix" );
 			
@@ -10149,6 +10299,13 @@ _begin( EmitMov_sr_m )
 		adrs->forcedSize = 2;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
+	
+	
 	asm2oprm
 	(
 		"mov",
@@ -10167,7 +10324,7 @@ _begin( EmitMov_sr_m )
 			
 		_endif
 		EmitByteConst(  0x8c , "" );
-		EmitModRegRm( sreg, adrs );
+		EmitModRegRm( sreg, adrs, 1);
 		
 	_endif
 	
@@ -10186,6 +10343,12 @@ _begin( EmitMov_m_sr )
 		adrs->forcedSize = 2;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
+	
 	asm2opmr
 	(
 		"mov",
@@ -10199,7 +10362,7 @@ _begin( EmitMov_m_sr )
 	_if( !sourceOutput )
 	
 		EmitByteConst(  0x8e , "" );
-		EmitModRegRm( sreg, adrs );
+		EmitModRegRm( sreg, adrs, 1);
 		
 	_endif
 	
@@ -10318,7 +10481,15 @@ _begin( EmitMov_r_m )
 	int dispOnly;
 	
 	assert( isReg( reg ));
-	adrs->forcedSize = setForced( adrs, regSize( reg ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( reg ) );
+		
+	_endif
  	asm2oprm
 	(
 		"mov",
@@ -10343,7 +10514,7 @@ _begin( EmitMov_r_m )
 			_else
 			
 				EmitByteConst(  0x88 , "" );
-				EmitModRegRm( regCode(reg), adrs );  
+				EmitModRegRm( regCode(reg), adrs, 1);  
 			
 			_endif
 			
@@ -10359,7 +10530,7 @@ _begin( EmitMov_r_m )
 			_else
 			
 				EmitWordConst( 0x8966 );
-				EmitModRegRm( regCode(reg), adrs );  
+				EmitModRegRm( regCode(reg), adrs, 1);  
 			
 			_endif
 			
@@ -10375,7 +10546,7 @@ _begin( EmitMov_r_m )
 			_else
 			
 				EmitByteConst(  0x89 , "" );
-				EmitModRegRm( regCode(reg), adrs );  
+				EmitModRegRm( regCode(reg), adrs, 1);  
 			
 			_endif
 			
@@ -10408,7 +10579,15 @@ _begin( EmitMov_m_r )
 	
 	assert( isReg( reg ));
 	assert( adrs != NULL );
-	adrs->forcedSize = setForced( adrs, regSize( reg ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( reg ) );
+		
+	_endif
 	asm2opmr
 	(
 		"mov",
@@ -10433,7 +10612,7 @@ _begin( EmitMov_m_r )
 			_else
 
 				EmitByteConst(  0x8a , "" );
-				EmitModRegRm( regCode( reg ), adrs );  
+				EmitModRegRm( regCode( reg ), adrs, 1);  
 			
 			_endif
 			
@@ -10449,7 +10628,7 @@ _begin( EmitMov_m_r )
 			_else
 			
 				EmitWordConst( 0x8b66 );
-				EmitModRegRm( regCode(reg), adrs );  
+				EmitModRegRm( regCode(reg), adrs, 1);  
 			
 			_endif
 			
@@ -10465,7 +10644,7 @@ _begin( EmitMov_m_r )
 			_else
 			
 				EmitByteConst(  0x8b , "" );
-				EmitModRegRm( regCode(reg), adrs );  
+				EmitModRegRm( regCode(reg), adrs, 1);  
 			
 			_endif
 			
@@ -10733,7 +10912,7 @@ _begin( EmitMov_o_m )
 	_if( !sourceOutput )
 	
 		EmitByteConst(  0xC7 , "" );
-		EmitModRegRm( 0, adrs );
+		EmitModRegRm( 0, adrs, 1);
 		EmitOffset( label, disp );
 		
 	_endif
@@ -10854,7 +11033,7 @@ _begin( EmitLea_m_r )
 	_if( !sourceOutput )
 	
 		EmitByteConst(  0x8d , "" );
-		EmitModRegRm( regCode(reg), adrs );
+		EmitModRegRm( regCode(reg), adrs, 1);
 		
 	_endif
 		
@@ -11073,7 +11252,7 @@ _begin( EmitMovxx_m_r )
 		_endif
 		EmitByteConst(  0x0f , "2 byte opcode prefix" );
 		EmitByteConst(  opcode | (adrs->Size == 2), "" );
-		EmitModRegRm( regCode(reg), adrs );
+		EmitModRegRm( regCode(reg), adrs, 1);
 		
 	_endif
 
@@ -11126,7 +11305,15 @@ EmitXadd_r_m( int srcReg, padrsYYS adrs, int lockPrefix )
 _begin( EmitXadd_r_m )
 
 	assert( isReg( srcReg ));
-	adrs->forcedSize = setForced( adrs, regSize( srcReg ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( srcReg ) );
+	
+	_endif
 	asm2oprm
 	(
 		_ifx
@@ -11186,7 +11373,7 @@ _begin( EmitXadd_r_m )
 			
 		_endif
 			
-		EmitModRegRm( regCode(srcReg), adrs );
+		EmitModRegRm( regCode(srcReg), adrs, 1);
 		
 	_endif
 		
@@ -11291,7 +11478,7 @@ _begin( EmitCmpps_m_r )
 	_if( !doSource )
 
 		EmitWordConst( 0xc20f );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		EmitByteConst(  subop , "" );
 		
 	_endif
@@ -11400,7 +11587,7 @@ _begin( EmitCmppd_m_r )
 
 		EmitByteConst(  0x66 , "size prefix" );	// cmppd prefix
 		EmitWordConst( 0xc20f );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		EmitByteConst(  subop , "" );
 		
 	_endif
@@ -11483,6 +11670,11 @@ _begin( EmitCmpss_m_r )
 		adrs->forcedSize = 4;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
 	_if( testMode || sourceOutput )
 	
 		asmPrintf
@@ -11508,7 +11700,7 @@ _begin( EmitCmpss_m_r )
 
 		EmitByteConst(  0xf3 , "opcode prefix" );	// cmpss prefix
 		EmitWordConst( 0xc20f );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		EmitByteConst(  subop , "" );
 		
 	_endif
@@ -11602,6 +11794,11 @@ _begin( EmitCmpsd_m_r )
 		adrs->forcedSize = 8;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_endif
 	asm3opcmr
 	(
 		"cmpsd",
@@ -11616,7 +11813,7 @@ _begin( EmitCmpsd_m_r )
 
 		EmitByteConst(  0xf2 , "" );	// cmpsd prefix
 		EmitWordConst( 0xc20f );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		EmitByteConst(  subop , "" );
 		
 	_endif
@@ -11638,7 +11835,15 @@ _begin( EmitMovnti_r_m )
 	assert( adrs != NULL );
 	
 	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
-	adrs->forcedSize = setForced( adrs, 4 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 4 );
+		
+	_endif
 	asm2oprm
 	(
 		"movnti",
@@ -11651,7 +11856,7 @@ _begin( EmitMovnti_r_m )
 	_if( !doSource )
 	
 		EmitWordConst( 0xc30f );
-		EmitModRegRm( regCode(reg), adrs );
+		EmitModRegRm( regCode(reg), adrs, 1);
 		
 	_endif
 	
@@ -11723,9 +11928,16 @@ _begin( EmitPinsrw_m_r )
 	doSource = 
 			sourceOutput 
 		&&	assembler != tasm; 
-//		&&	!(assembler == masm && prefix != 0);
 
-	adrs->forcedSize = setForced( adrs, 2 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 2 );
+		
+	_endif
 	asm3opcmr
 	(
 		"pinsrw",
@@ -11750,7 +11962,7 @@ _begin( EmitPinsrw_m_r )
 			
 		_endif
 		EmitWordConst( 0xc40f );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		EmitByteConst(  cnst , "" );
 		
 	_endif
@@ -11865,7 +12077,15 @@ _begin( EmitShufxx_m_r )
 			sourceOutput 
 		&&	assembler != tasm; 
 		
-	adrs->forcedSize = setForced( adrs, 16 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 16 );
+		
+	_endif
 	asm3opcmr
 	(
 		shufxx_strs[prefix!=0],
@@ -11884,7 +12104,7 @@ _begin( EmitShufxx_m_r )
 			
 		_endif
 		EmitWordConst( 0xc60f );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		EmitByteConst(  cnst , "" );
 		
 	_endif
@@ -11904,6 +12124,11 @@ _begin( EmitCmpXchg8b )
 		adrs->forcedSize = 8;
 		
 	_endif
+	_if( assembler == nasm ) 
+	
+		adrs->forcedSize = 0;
+		
+	_endif
 	asm1opm
 	(
 		"cmpxchg8b",
@@ -11915,7 +12140,7 @@ _begin( EmitCmpXchg8b )
 	_if( !sourceOutput )
 	
 		EmitWordConst( 0xc70f );
-		EmitModRegRm( 1, adrs );
+		EmitModRegRm( 1, adrs, 1);
 		
 	_endif
 	
@@ -12047,7 +12272,15 @@ _begin( EmitMovntq_r_m )
 	
 	assert( srcReg <= 7 );
 	doSource = sourceOutput && assembler != tasm;
-	adrs->forcedSize = setForced( adrs, 8 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 8 );
+		
+	_endif
 	asm2oprm
 	(
 		"movntq",
@@ -12060,7 +12293,7 @@ _begin( EmitMovntq_r_m )
 	_if( !doSource )
 	
 		EmitWordConst( 0xe70f );
-		EmitModRegRm( srcReg, adrs );
+		EmitModRegRm( srcReg, adrs, 1);
 		
 	_endif
 
@@ -12075,7 +12308,15 @@ _begin( EmitMovntdq_r_m )
 	
 	assert( srcReg <= 7 );
 	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
-	adrs->forcedSize = setForced( adrs, 16 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 16 );
+		
+	_endif
 	asm2oprm
 	(
 		"movntdq",
@@ -12089,7 +12330,7 @@ _begin( EmitMovntdq_r_m )
 	
 		EmitByteConst(  0x66 , "size prefix" );
 		EmitWordConst( 0xe70f );
-		EmitModRegRm( srcReg, adrs );
+		EmitModRegRm( srcReg, adrs, 1);
 		
 	_endif
 
@@ -12219,7 +12460,15 @@ _begin( EmitCom_m_r )
 	assert( destReg <= 7 );
 	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
 	rgsz = _ifx( instr==comiss_instr || instr==ucomiss_instr, 4, 8);
-	adrs->forcedSize = setForced( adrs, rgsz );
+	_if( assembler == nasm ) 
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, rgsz );
+		
+	_endif
 	asm2opmr
 	(
 			com_strs[ instr ],
@@ -12238,7 +12487,7 @@ _begin( EmitCom_m_r )
 		_endif
 		EmitByteConst(  0x0f , "2 byte opcode prefix" );
 		EmitByteConst(  com_opcodes[instr] >> 8 , "" );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		
 	_endif
 
@@ -12301,7 +12550,15 @@ _begin( EmitPd2pi_m_r )
 	assert( instr < num_pd2pi_instrs );
 	assert( destReg <= 7 );
 	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
-	adrs->forcedSize = setForced( adrs, 16 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+		
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 16 );
+		
+	_endif
 	asm2opmr
 	(
 			pd2pi_strs[ instr ],
@@ -12315,7 +12572,7 @@ _begin( EmitPd2pi_m_r )
 	
 		EmitWordConst( 0x0f66 );
 		EmitByteConst(  pd2pi_opcodes[instr] , "" );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		
 	_endif
 
@@ -12412,7 +12669,7 @@ _begin( EmitPssd2pdss_m_r )
 		
 		_endif
 		EmitWordConst( 0x5a0f );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		
 	_endif
 
@@ -12478,7 +12735,15 @@ _begin( Emitpi2pdps_m_r )
 	assert( instr < num_pi2pdps_instrs );
 	assert( destReg <= 7 );
 	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
-	adrs->forcedSize = setForced( adrs, 8 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 8 );
+		
+	_endif
 	asm2opmr
 	(
 			pi2pdps_strs[ instr ],
@@ -12496,7 +12761,7 @@ _begin( Emitpi2pdps_m_r )
 		
 		_endif
 		EmitWordConst( 0x2a0f );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		
 	_endif
 
@@ -12559,7 +12824,15 @@ _begin( Emitps2pi_m_r )
 	assert( instr < num_ps2pi_instrs );
 	assert( destReg <= 7 );
 	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
-	adrs->forcedSize = setForced( adrs, 8 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 8 );
+	
+	_endif
 	asm2opmr
 	(
 			ps2pi_strs[ instr ],
@@ -12573,7 +12846,7 @@ _begin( Emitps2pi_m_r )
 	
 		EmitByteConst(  0x0f , "2 byte opcode prefix" );
 		EmitByteConst(  ps2pi_opcodes[ instr ] , "" );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		
 	_endif
 
@@ -12638,7 +12911,15 @@ _begin( Emitsd2si_m_r )
 	assert( instr < num_sd2si_instrs );
 	assert( isReg32( destReg ) );
 	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
-	adrs->forcedSize = setForced( adrs, 8 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 8 );
+	
+	_endif
 	asm2opmr
 	(
 			sd2si_strs[ instr ],
@@ -12652,7 +12933,7 @@ _begin( Emitsd2si_m_r )
 
 		EmitWordConst( 0x0ff2 );
 		EmitByteConst(  sd2si_opcode[ instr ] , "" );
-		EmitModRegRm( regCode(destReg), adrs );
+		EmitModRegRm( regCode(destReg), adrs, 1);
 		
 	_endif
 
@@ -12718,7 +12999,15 @@ _begin( Emitss2si_m_r )
 	assert( instr < num_ss2si_instrs );
 	assert( isReg32( destReg ) );
 	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
-	adrs->forcedSize = setForced( adrs, 4 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 4 );
+	
+	_endif
 	asm2opmr
 	(
 			ss2si_strs[ instr ],
@@ -12732,7 +13021,7 @@ _begin( Emitss2si_m_r )
 
 		EmitWordConst( 0x0ff3 );
 		EmitByteConst(  ss2si_opcode[ instr ] , "" );
-		EmitModRegRm( regCode(destReg), adrs );
+		EmitModRegRm( regCode(destReg), adrs, 1);
 		
 	_endif
 
@@ -12799,7 +13088,15 @@ _begin( Emitsi2sds_m_r )
 	assert( instr < num_si2sds_instrs );
 	assert( destReg <= 7 );
 	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
-	adrs->forcedSize = setForced( adrs, 4 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 4 );
+	
+	_endif
 	asm2opmr
 	(
 			si2sds_strs[ instr ],
@@ -12813,7 +13110,7 @@ _begin( Emitsi2sds_m_r )
 
 		EmitByteConst(  si2sds_opcode[ instr ] , "" );
 		EmitWordConst( 0x2a0f );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		
 	_endif
 
@@ -12864,7 +13161,15 @@ _begin( Emitss2sd_m_r )
 	
 	assert( destReg <= 7 );
 	doSource = sourceOutput && assembler != tasm; // && assembler != masm;
-	adrs->forcedSize = setForced( adrs, 4 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 4 );
+		
+	_endif
 	asm2opmr
 	(
 			"cvtss2sd",
@@ -12878,7 +13183,7 @@ _begin( Emitss2sd_m_r )
 
 		EmitByteConst(  0xf3 , "opcode prefix" );
 		EmitWordConst( 0x5a0f );
-		EmitModRegRm( destReg, adrs );
+		EmitModRegRm( destReg, adrs, 1);
 		
 	_endif
 
@@ -12911,6 +13216,11 @@ _begin( EmitMovntp )
 		adrs->forcedSize = 16;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_endif
 	asm2oprm
 	(
 			movnt_strs[ instr ],
@@ -12928,7 +13238,7 @@ _begin( EmitMovntp )
 			
 		_endif
 		EmitWordConst( 0x2b0f );	// movd( mmx, mem ) opcode
-		EmitModRegRm( reg, adrs );
+		EmitModRegRm( reg, adrs, 1);
 		
 	_endif
 	
@@ -12985,6 +13295,12 @@ _begin( EmitM8Instr )
 		adrs->forcedSize = 1;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_endif
+	
 	asm1opm
 	(
 			m8_strs[ instr ],
@@ -12996,7 +13312,7 @@ _begin( EmitM8Instr )
 	_if( !doSource )
 
 		EmitWordConst( m8_opcodes[ instr ] );
-		EmitModRegRm( m8_regcodes[ instr ], adrs );
+		EmitModRegRm( m8_regcodes[ instr ], adrs, 1);
 		
 	_endif
 	
@@ -13116,6 +13432,12 @@ _begin( EmitMxcsr )
 		adrs->forcedSize = 4;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_endif
+	
 	asm1opm
 	(
 			ldstmxcsr_strs[ instr ],
@@ -13127,7 +13449,7 @@ _begin( EmitMxcsr )
 	_if( !doSource )
 
 		EmitWordConst( 0xae0f );
-		EmitModRegRm( ldstmxcsr_opcodes[ instr ], adrs );
+		EmitModRegRm( ldstmxcsr_opcodes[ instr ], adrs, 1);
 		
 	_endif
 	
@@ -13319,7 +13641,15 @@ _begin( EmitGeneric_r_m )
 
 	assert( isReg( srcReg ));
 	assert( instr <= num_generic_instrs );
-	adrs->forcedSize = setForced( adrs, regSize( srcReg ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( srcReg ) );
+		
+	_endif
 	_if( assembler == nasm || assembler == gas )
 	
 		asm2oprm
@@ -13367,7 +13697,7 @@ _begin( EmitGeneric_r_m )
 		// The L.O. bit of the opcode is zero for 8 bits, 1 for 16/32 bits.
 		
 		EmitByteConst(  (gen_ops[ instr ] - 2) | isReg1632( srcReg ) , "" );
-		EmitModRegRm( regCode(srcReg), adrs );
+		EmitModRegRm( regCode(srcReg), adrs, 1);
 		
 	_endif 
 		
@@ -13381,7 +13711,15 @@ _begin( EmitGeneric_m_r )
 	
 	assert( isReg( destReg ));
 	assert( instr <= num_generic_instrs );	
-	adrs->forcedSize = setForced( adrs, regSize( destReg ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( destReg ) );
+		
+	_endif
 	_if( assembler == nasm || assembler == gas )
 	
 		asm2opmr
@@ -13429,7 +13767,7 @@ _begin( EmitGeneric_m_r )
 		// The L.O. bit of the opcode is zero for 8 bits, 1 for 16/32 bits.
 		
 		EmitByteConst(  gen_ops[ instr ]  | isReg1632( destReg ) , "" );
-		EmitModRegRm( regCode(destReg), adrs );
+		EmitModRegRm( regCode(destReg), adrs, 1);
 
 	_endif 
 	
@@ -13507,7 +13845,8 @@ _begin( EmitGeneric_i_r )
 			
 			_if
 			( 
-					assembler == masm 
+					assembler == hlabe 
+				||	assembler == masm 
 				||	assembler == fasm 
 				||	assembler == nasm 
 				||	assembler == gas 
@@ -13763,6 +14102,12 @@ _begin( EmitGeneric_i_m )
 		adrs->forcedSize = adrs->Size;
 		
 	_endif
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_endif
+	
 	_if( assembler == nasm || assembler == gas )
 	
 		asm2opcm
@@ -13802,7 +14147,7 @@ _begin( EmitGeneric_i_m )
 		
 			
 			EmitByteConst(  0x80 , "" );
-			EmitModRegRm( gen_imm_ops[ instr ], adrs );
+			EmitModRegRm( gen_imm_ops[ instr ], adrs, 1);
 			EmitByteConst(  v->v.u.unsval , "" );
 		
 		_elseif( adrs->Size == 2 )
@@ -13820,7 +14165,7 @@ _begin( EmitGeneric_i_m )
 				
 				// The L.O. bit of the opcode is zero for 8 bits, 1 for 16/32 bits.
 				
-				EmitModRegRm( gen_imm_ops[ instr ], adrs );
+				EmitModRegRm( gen_imm_ops[ instr ], adrs, 1);
 				EmitByteConst(  v->v.u.unsval , "" );
 
 			_elseif
@@ -13833,7 +14178,7 @@ _begin( EmitGeneric_i_m )
 				
 				// The L.O. bit of the opcode is zero for 8 bits, 1 for 16/32 bits.
 				
-				EmitModRegRm( gen_imm_ops[ instr ], adrs );
+				EmitModRegRm( gen_imm_ops[ instr ], adrs, 1);
 				EmitByteConst(  v->v.u.unsval , "" );
 
 			_else
@@ -13842,7 +14187,7 @@ _begin( EmitGeneric_i_m )
 				
 				// The L.O. bit of the opcode is zero for 8 bits, 1 for 16/32 bits.
 				
-				EmitModRegRm( gen_imm_ops[ instr ], adrs );
+				EmitModRegRm( gen_imm_ops[ instr ], adrs, 1);
 				EmitWordConst( v->v.u.unsval );
 				
 			_endif
@@ -13865,7 +14210,7 @@ _begin( EmitGeneric_i_m )
 
 				// The L.O. bit of the opcode is zero for 8 bits, 1 for 16/32 bits.
 				
-				EmitModRegRm( gen_imm_ops[ instr ], adrs );
+				EmitModRegRm( gen_imm_ops[ instr ], adrs, 1);
 				EmitPointer( YYS v );
 				
 			_elseif( v->v.u.intval >= -128 && v->v.u.intval <= 127 )
@@ -13874,7 +14219,7 @@ _begin( EmitGeneric_i_m )
 				
 				// The L.O. bit of the opcode is zero for 8 bits, 1 for 16/32 bits.
 				
-				EmitModRegRm( gen_imm_ops[ instr ], adrs );
+				EmitModRegRm( gen_imm_ops[ instr ], adrs, 1);
 				EmitByteConst(  v->v.u.unsval & 0xff , "" );
 
 			_elseif( v->v.u.unsval >= 0xffffff80 )
@@ -13883,7 +14228,7 @@ _begin( EmitGeneric_i_m )
 				
 				// The L.O. bit of the opcode is zero for 8 bits, 1 for 16/32 bits.
 				
-				EmitModRegRm( gen_imm_ops[ instr ], adrs );
+				EmitModRegRm( gen_imm_ops[ instr ], adrs, 1);
 				EmitByteConst(  v->v.u.unsval & 0xff , "" );
 				
 
@@ -13893,7 +14238,7 @@ _begin( EmitGeneric_i_m )
 
 				// The L.O. bit of the opcode is zero for 8 bits, 1 for 16/32 bits.
 				
-				EmitModRegRm( gen_imm_ops[ instr ], adrs );
+				EmitModRegRm( gen_imm_ops[ instr ], adrs, 1);
 				EmitDwordConst( v->v.u.unsval, "" );
 				
 			_endif
@@ -14160,7 +14505,7 @@ _begin( EmitUnary_m )
 		
 
 		EmitByteConst(  unary_opcodes[ instr ] | (adrs->Size >= 2) , "" );
-		EmitModRegRm( unary_subop[instr], adrs );
+		EmitModRegRm( unary_subop[instr], adrs, 1);
 		
 	_endif
 	
@@ -14249,7 +14594,7 @@ _begin( EmitBound_r_m )
 				
 			_endif
 			EmitByteConst(  0x62 , "" );
-			EmitModRegRm( regCode(reg), mem );
+			EmitModRegRm( regCode(reg), mem, 1);
 
 		_endif
 		FreeAdrs( mem );
@@ -14396,7 +14741,15 @@ EmitArpl_r_m( int src, padrsYYS adrs )
 _begin( EmitArpl_r_m )
 
 	assert( isReg16( src ));
-	adrs->forcedSize = setForced( adrs, 2 );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, 2 );
+		
+	_endif
 	asm2oprm
 	(
 		"arpl",
@@ -14409,7 +14762,7 @@ _begin( EmitArpl_r_m )
 	_if( !sourceOutput )
 	
 		EmitByteConst(  0x63 , "" );
-		EmitModRegRm(regCode( src ), adrs );
+		EmitModRegRm(regCode( src ), adrs, 1);
 		
 	_endif
 	
@@ -14704,7 +15057,8 @@ _begin( EmitTest_r_r )
 		EmitByteConst(  0x84 + isReg1632( src ), "" );
 		_if
 		( 
-				assembler == masm 
+				assembler == masm
+			||	assembler == hlabe 
 			||	(
 						assembler == gas 
 					&&	(gasSyntax == macGas || targetOS == freeBSD_os) 
@@ -14729,7 +15083,15 @@ EmitTest_r_m( int reg, padrsYYS adrs )
 _begin( EmitTest_r_m )
 
 	assert( isReg( reg ) );
-	adrs->forcedSize = setForced( adrs, regSize( reg ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( reg ) );
+		
+	_endif
 	asm2oprm
 	(
 		"test",
@@ -14752,7 +15114,7 @@ _begin( EmitTest_r_m )
 		
 		_endif
 		EmitByteConst(  0x84 + isReg1632( reg ), "" );
-		EmitModRegRm(regCode( reg ), adrs );
+		EmitModRegRm(regCode( reg ), adrs, 1);
 		
 	_endif
 			
@@ -14764,7 +15126,15 @@ EmitTest_m_r( padrsYYS adrs, int reg )
 _begin( EmitTest_m_r )
 
 	assert( isReg( reg ) );
-	adrs->forcedSize = setForced( adrs, regSize( reg ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( reg ) );
+		
+	_endif
 	asm2opmr
 	(
 		"test",
@@ -14793,7 +15163,7 @@ _begin( EmitTest_m_r )
 		
 		_endif
 		EmitByteConst(  0x84 + isReg1632( reg ), "" );
-		EmitModRegRm( regCode( reg ), adrs );
+		EmitModRegRm( regCode( reg ), adrs, 1);
 		
 	_endif
 		
@@ -14935,19 +15305,19 @@ _begin( EmitTest_c_m )
 		_if( adrs->Size == 1 )
 		
 			EmitByteConst(  0xf6 , "" );
-			EmitModRegRm( 0, adrs );
+			EmitModRegRm( 0, adrs, 1);
 			EmitByteConst(  cnst->v.u.unsval , "" );
 			
 		_elseif( adrs->Size == 2 ) 
 		
 			EmitWordConst( 0xf766 );
-			EmitModRegRm( 0, adrs );
+			EmitModRegRm( 0, adrs, 1);
 			EmitWordConst( cnst->v.u.unsval );
 			
 		_else 
 		
 			EmitByteConst(  0xf7 , "" );
-			EmitModRegRm( 0, adrs );
+			EmitModRegRm( 0, adrs, 1);
 			EmitDwordConst( cnst->v.u.unsval, "" );
 			
 		_endif
@@ -15018,7 +15388,15 @@ EmitXchg_r_m( int locked, int reg, padrsYYS adrs )
 _begin( EmitXchg_r_m )
 
 	assert( isReg( reg ));
-	adrs->forcedSize = setForced( adrs, regSize( reg ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( reg ) );
+		
+	_endif
 	asm2oprm
 	(
 		_ifx( locked, _ifx( assembler==hla, "lock.xchg", "lock xchg"), "xchg" ),
@@ -15041,7 +15419,7 @@ _begin( EmitXchg_r_m )
 		
 		_endif
 		EmitByteConst(  0x86 + isReg1632( reg ), "" );
-		EmitModRegRm( regCode( reg ), adrs );
+		EmitModRegRm( regCode( reg ), adrs, 1);
 		
 	_endif
 		
@@ -15248,12 +15626,12 @@ _begin( EmitShiftRotate_c_m )
 		_if( shiftVal == 1 )
 		
 			EmitByteConst(  0xd0 | adrs->Size != 1 , "" );
-			EmitModRegRm( shiftAndRotate_subops[ instr], adrs );			
+			EmitModRegRm( shiftAndRotate_subops[ instr], adrs, 1);			
 		
 		_else
 		
 			EmitByteConst( 0xc0 | adrs->Size != 1 , "mod-reg-r/m" );
-			EmitModRegRm( shiftAndRotate_subops[ instr], adrs );			
+			EmitModRegRm( shiftAndRotate_subops[ instr], adrs, 1);			
 			EmitByteConst(  shiftVal , "" );	
 		
 		_endif
@@ -15295,7 +15673,7 @@ _begin( EmitShiftRotate_cl_m )
 			
 		_endif
 		EmitByteConst(  0xd2 | adrs->Size != 1 , "" );
-		EmitModRegRm( shiftAndRotate_subops[ instr], adrs );
+		EmitModRegRm( shiftAndRotate_subops[ instr], adrs, 1);
 		
 	_endif			
 	
@@ -15466,7 +15844,15 @@ EmitIntMul_m_r( padrsYYS adrs, int dest )
 _begin( EmitIntMul_m_r )
 
 	assert( isReg1632(dest) );
-	adrs->forcedSize = setForced( adrs, regSize( dest ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( dest ) );
+		
+	_endif
 	asm2opmr
 	(
 		_ifx( assembler == hla, "intmul", "imul"),
@@ -15484,7 +15870,7 @@ _begin( EmitIntMul_m_r )
 			
 		_endif	
 		EmitWordConst( 0xaf0f );
-		EmitModRegRm( regCode( dest ), adrs );
+		EmitModRegRm( regCode( dest ), adrs, 1);
 		
 	_endif
 	
@@ -15562,7 +15948,15 @@ EmitIntMul_c_m_r( int cnst, padrsYYS adrs, int dest )
 _begin( EmitIntMul_c_m_r )
 
 	assert( isReg1632(dest) );
-	adrs->forcedSize = setForced( adrs, regSize( dest ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( dest ) );
+		
+	_endif
 	asm3opcmr
 	(
 		_ifx( assembler == hla, "intmul", "imul"),
@@ -15595,7 +15989,7 @@ _begin( EmitIntMul_c_m_r )
 				
 			_endif
 			EmitByteConst(  0x6b , "" );
-			EmitModRegRm( regCode( dest ), adrs );
+			EmitModRegRm( regCode( dest ), adrs, 1);
 			EmitByteConst(  cnst & 0xff , "" );
 				
 		_else
@@ -15604,13 +15998,13 @@ _begin( EmitIntMul_c_m_r )
 			
 				EmitByteConst(  0x66 , "size prefix" );
 				EmitByteConst(  0x69 , "" );
-				EmitModRegRm( regCode( dest ), adrs );
+				EmitModRegRm( regCode( dest ), adrs, 1);
 				EmitWordConst( cnst );
 				
 			_else
 			
 				EmitByteConst(  0x69 , "" );
-				EmitModRegRm( regCode( dest ), adrs );
+				EmitModRegRm( regCode( dest ), adrs, 1);
 				EmitDwordConst( cnst, "" );
 				
 			_endif
@@ -15730,7 +16124,15 @@ EmitCall_m( padrsYYS adrs )
 _begin( EmitCall_m )
 
 	assert( adrs != NULL );
-	adrs->forcedSize = 4;
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = 4;
+		
+	_endif
 	asm1opm
 	(
 		_ifx( assembler == gas, "call *", "call" ),
@@ -15742,7 +16144,7 @@ _begin( EmitCall_m )
 	_if( !sourceOutput )
 	
 		EmitByteConst(  0xff , "" );
-		EmitModRegRm( 2, adrs );
+		EmitModRegRm( 2, adrs, 1);
 		SetReferenced( adrs->Sym );
 		
 	_endif
@@ -16038,7 +16440,15 @@ EmitJmp_m( padrsYYS adrs )
 _begin( EmitJmp_m )
 
 	assert( adrs != NULL );
-	adrs->forcedSize = 4;
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = 4;
+		
+	_endif
 	asm1opm
 	(
 		_ifx( assembler == gas, "jmp *", "jmp" ),
@@ -16050,7 +16460,7 @@ _begin( EmitJmp_m )
 	_if( !sourceOutput )
 	
 		EmitByteConst(  0xff , "" );
-		EmitModRegRm( 4, adrs );
+		EmitModRegRm( 4, adrs, 1);
 		
 	_endif
 	
@@ -16337,7 +16747,15 @@ EmitCmpXchg_m_r( int locked, padrsYYS adrs, int reg )
 _begin( EmitCmpXchg_m_r )
 
 	assert( isReg( reg ));
-	adrs->forcedSize = setForced( adrs, regSize( reg ) );
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_else
+	
+		adrs->forcedSize = setForced( adrs, regSize( reg ) );
+		
+	_endif
 	asm2oprm
 	(
 		_ifx
@@ -16375,7 +16793,7 @@ _begin( EmitCmpXchg_m_r )
 		_endif
 		EmitByteConst(  0x0f , "2 byte opcode prefix" );
 		EmitByteConst(  0xb0 + isReg1632( reg ) , "" );
-		EmitModRegRm( regCode( reg ), adrs );
+		EmitModRegRm( regCode( reg ), adrs, 1);
 		
 	_endif
 	
@@ -24276,7 +24694,11 @@ _begin( push_mem )
 
 	assert( adrs != NULL );
 	size = _ifx( forcedSize == 0, adrs->Size, forcedSize );
-	_if( adrs->forcedSize != 0 )
+	_if( assembler == nasm )
+	
+		adrs->forcedSize = 0;
+
+	_elseif( adrs->forcedSize != 0 )
 	
 		adrs->forcedSize = size;
 		
@@ -24326,7 +24748,8 @@ _begin( push_mem )
 		EmitModRegRm
 		( 
 			6,		// Reg encoding for PUSH instruction
-			adrs
+			adrs,
+			assembler == masm
 		);
 		
 	_endif
@@ -24691,7 +25114,8 @@ _begin( pop_mem )
 		EmitModRegRm
 		( 
 			0,		// Reg encoding for POP instruction
-			adrs
+			adrs,
+			assembler == masm
 		);
 		
 	_endif
@@ -29105,13 +29529,14 @@ _end( encodeReg )
 void 
 EncodeAdrs
 (
-	padrsYYS adrs,
-	unsigned *modRm,
-	unsigned *hasSib,
-	unsigned *sib,
-	unsigned *dispType,
-	int *disp,
-	char *dispLabel
+	padrsYYS 	adrs,
+	unsigned 	*modRm,
+	unsigned 	*hasSib,
+	unsigned 	*sib,
+	unsigned 	*dispType,
+	int 		*disp,
+	char 		*dispLabel,
+	unsigned	masmSwap
 )
 _begin( EncodeAdrs )
 
@@ -29120,6 +29545,7 @@ _begin( EncodeAdrs )
 	char *staticName;
 	unsigned iReg;
 	unsigned bReg;
+	unsigned tempReg;
 	unsigned scale;
 
 	_here;
@@ -29194,6 +29620,21 @@ _begin( EncodeAdrs )
 	*dispType = encode_disp_0;
 	*disp = 0;
 	*dispLabel = '\0';
+	
+	
+	// MASM, for some crazy reason, will swap the index and base
+	// registers if no scale is present. HLA's code generator mimics
+	// this in order to make it easy to test HLA's output by comparing
+	// disassembled MASM code against disassembled HLA(BE) code.
+	
+//	_if( masmSwap && scale == 0 && iReg != no_reg && bReg != encode_ESP )
+//	
+//		tempReg = iReg;
+//		iReg = bReg;
+//		bReg = tempReg;
+//		
+//	_endif
+	
 
 	///// Set up the MOD field of the mod-reg-r/m byte:
 
@@ -29230,7 +29671,7 @@ _begin( EncodeAdrs )
 	_else
 		
 		*disp = adrs->Disp;
-		_if( bReg == no_reg )
+		_if( bReg == no_reg && iReg == no_reg )
 
 			// Kludge for displacement-only/no-base addressing mode
 
@@ -29240,7 +29681,7 @@ _begin( EncodeAdrs )
 
 		_elseif( *disp == 0 )
 
-			_if( bReg == encode_EBP )
+			_if( bReg == encode_EBP  )
 
 				// Kludge! If [EBP] addressing mode,
 				// we have to force [EBP+disp] because
@@ -29271,6 +29712,8 @@ _begin( EncodeAdrs )
 		_endif
 
 	_endif
+	
+	
 
 
 	//// Set up the SIB byte here:
@@ -29335,7 +29778,7 @@ _end( EncodeAdrs )
 
 
 void
-EmitModRegRm( unsigned reg, padrsYYS adrs )
+EmitModRegRm( unsigned reg, padrsYYS adrs, unsigned masmSwap )
 _begin( EmitModRegRm )
 
 	unsigned hasSib;
@@ -29375,7 +29818,8 @@ _begin( EmitModRegRm )
 		&sib, 
 		&dispType, 
 		&disp,
-		dispLabel 
+		dispLabel,
+		masmSwap 
 	);
 	EmitByteConst(  modRm | (reg<<3) , "" );
 	_if( hasSib )

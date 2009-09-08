@@ -3471,10 +3471,7 @@ _proc( buildRaw )
 	curSection		:section_t;
 	objType			:obj_t 
 );	@use eax;
-	
-var
-	relocIndex	:uns32;
-	
+var;
 _begin( buildRaw );
 
 	push( ebx );
@@ -3483,18 +3480,17 @@ _begin( buildRaw );
 	push( edi );
 	push( esi );
 
-	mov( 0, relocIndex );
 	mov( relocations, esi );
-	
 	if( objType = pecoff_c ) then
 	
 		// If we have 65,535 or more relocations, then the
 		// first relocation record contains the actual number
 		// of relocations.
 		
-		if( numRelocs >= $ffff ) then
+		mov( numRelocs, eax );
+		if( eax >= $ffff ) then
 		
-			mov( 1, relocIndex );
+			mov( eax, relocESI.RelocCount );
 			add( @size( w.IMAGE_RELOCATION ), esi );
 			
 		endif;
@@ -5460,9 +5456,10 @@ _begin( generateCOFF );
 	// Write the .text section record to the COFF symbol table:
 	
 	mov( numCodeRelocs, eax );
-	if( eax > $ffff ) then
+	if( eax >= $ffff ) then
 	
 		mov( $ffff, ax );
+		add( 1, numCodeRelocs );	// Allow for size added to reloc table
 		
 	endif;
 	mov( ax, CodeAuxSection.NumberOfRelocations );
@@ -5487,9 +5484,10 @@ _begin( generateCOFF );
 	// Write the .data section record to the COFF symbol table:
 	
 	mov( numDataRelocs, eax );
-	if( eax > $ffff ) then
+	if( eax >= $ffff ) then
 	
 		mov( $ffff, ax );
+		add( 1, numDataRelocs );	// Allow for size added to reloc table
 		
 	endif;
 	mov( ax, DataAuxSection.NumberOfRelocations );
@@ -5661,11 +5659,6 @@ _begin( generateCOFF );
 		// a 32-bit relocation count.
 		
 		mov( $FFFF, codeSectionHeader.NumberOfRelocations );
-		
-		// Allocate storage for the relocation records (including
-		// one extra to hold the extended length).
-		
-		add( 1, edx );
 		intmul( @size( w.IMAGE_RELOCATION ), edx, eax );
 		mem.alloc( eax );
 		mov( eax, codeRelocations );
@@ -5694,7 +5687,15 @@ _begin( generateCOFF );
 	mov( 0, codeSectionHeader.PointerToLinenumbers );
 	mov( 0, codeSectionHeader.NumberOfLinenumbers );
 	
-	buildRaw( codeList, codeRelocations, numCodeRelocs, rawCode, code_c, pecoff_c );  
+	buildRaw
+	( 
+		codeList, 
+		codeRelocations, 
+		numCodeRelocs, 
+		rawCode, 
+		code_c, 
+		pecoff_c 
+	);  
 	
 
 
@@ -5735,10 +5736,10 @@ _begin( generateCOFF );
 	else
 	
 		mov( $FFFF, dataSectionHeader.NumberOfRelocations );
-		add( 1, edx );
 		intmul( @size( w.IMAGE_RELOCATION ), edx, eax );
 		mem.alloc( eax );
 		mov( eax, dataRelocations );
+		
 		mov( edx, (type w.IMAGE_RELOCATION [eax]).RelocCount );
 		mov( 0, (type w.IMAGE_RELOCATION [eax]).SymbolTableIndex );
 		mov( 0, (type w.IMAGE_RELOCATION [eax]).Type1 );
@@ -5760,7 +5761,15 @@ _begin( generateCOFF );
 	mov( 0, dataSectionHeader.PointerToLinenumbers );
 	mov( 0, dataSectionHeader.NumberOfLinenumbers );
 
-	buildRaw( dataList, dataRelocations, numDataRelocs, rawData, data_c, pecoff_c );  
+	buildRaw
+	( 
+		dataList, 
+		dataRelocations, 
+		numDataRelocs, 
+		rawData, 
+		data_c, 
+		pecoff_c 
+	);  
 
 	
 	
