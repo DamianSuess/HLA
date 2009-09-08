@@ -98039,16 +98039,6 @@ amGutz:
 			$<mem.scale>$ = 0;
 			$<mem.disp>$  = 0;
 			
-			// Kludge for binary compatibility with MASM.
-			// If Scale is not present,
-			// then swap the index and base registers.
-			
-			_if( assembler == masm )
-			
-				$<mem.base>$  = $<reg.encoding>3;
-				$<mem.index>$ = $<reg.encoding>1;
-				
-			_endif	
 		}
 	
 	|	iamRegister		/* $1 */
@@ -98095,16 +98085,6 @@ amGutz:
 			$<mem.scale>$ = 0;
 			$<mem.disp>$  = $<v.u.unsval>4;
 			
-			// Kludge for binary compatibility with MASM.
-			// If Scale is not present,
-			// then swap the index and base registers.
-			
-			_if( assembler == masm )
-			
-				$<mem.base>$  = $<reg.encoding>3;
-				$<mem.index>$ = $<reg.encoding>1;
-				
-			_endif	
 		}
 	
 	|	iamRegister		/* $1 */

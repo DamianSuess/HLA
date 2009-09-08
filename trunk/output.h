@@ -131,7 +131,7 @@ extern void jmpHere( int disp );
 extern void callHere( int disp );
 extern void condJumpHere( char *instr );	
 extern void condJumpHere2( char *instr, union YYSTYPE *adrs );	
-extern void EmitModRegRm( unsigned reg, struct adrsYYS *adrs );
+extern void EmitModRegRm( unsigned reg, struct adrsYYS *adrs, unsigned masmSwap );
 extern void EmitShuffleOpcode( unsigned which );
 extern void EmitXshiftOpcode( unsigned which );
 extern void EmitXshiftImm
@@ -153,13 +153,14 @@ extern void OutputMemParm
 	
 extern void EncodeAdrs
 (
-	struct adrsYYS *adrs,
-	unsigned *modRm,
-	unsigned *hasSib,
-	unsigned *sib,
-	unsigned *dispType,
-	int *disp,
-	char *dispLabel
+	struct adrsYYS	*adrs,
+	unsigned 		*modRm,
+	unsigned 		*hasSib,
+	unsigned 		*sib,
+	unsigned 		*dispType,
+	int 			*disp,
+	char 			*dispLabel,
+	unsigned		masmSwap
 );
 
 extern int CheckDisp( union YYSTYPE *disp );
