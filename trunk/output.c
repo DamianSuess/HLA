@@ -22147,10 +22147,14 @@ _begin( BeginMain )
 			
 	_endswitch
 	EmitCallLabel( "BuildExcepts" sympost );
-	Pushd( 0 );		
-	EmitMov_r_r( reg_esp, reg_ebp );
 	
-	push_r( reg_ebp );
+
+	pushd( 0 );				// Just a safety buffer
+	push_r( reg_ebp );		// Previous EBP
+	push_r( reg_ebp );		// Fake a display
+			
+	initAdrs2( &adrs, NULL, reg_esp, -1, 0, -4 );
+	EmitLea_m_r( &adrs, reg_ebp );
 	
 	_if( -CurOffset > 4 )
 

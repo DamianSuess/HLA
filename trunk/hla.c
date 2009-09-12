@@ -711,6 +711,12 @@ _begin( getBaseName )
 	base = strrchr( name, DIR_SEP_CHAR );
 	_if( base == NULL )
 	
+		#ifdef windows_c
+		
+			base = strrchr( name, '/' );
+			if( base == NULL )	// Captures next statement!
+			
+		#endif
 		base = name - 1;
 	
 	_endif
@@ -782,6 +788,7 @@ _begin( doCmdLine)
 	int		nameLen;
 	char	*namePosn;
 	char	*linkerName;
+	int		i;
 	
 	
 	// Before doing anything else, scan the command line and see if there
@@ -903,7 +910,9 @@ _begin( doCmdLine)
 	namePosn = strrchr( argv[0], '/' );
 	_if( namePosn == NULL )
 	
-		namePosn = strrchr( argv[0], '\\' );
+		#ifdef windows_c
+			namePosn = strrchr( argv[0], '\\' );
+		#endif
 		_if( namePosn == NULL )
 		
 			namePosn = argv[0];
@@ -1700,7 +1709,22 @@ _begin( doCmdLine)
 			FileList[ FileCnt ] = malloc( sufxPosn + 1 );
 			assert( FileList[ FileCnt ] != NULL );
 			strncpy( FileList[ FileCnt ], baseFileName, sufxPosn );
-			FileList[ FileCnt ][ sufxPosn ] = '\0';	
+			FileList[ FileCnt ][ sufxPosn ] = '\0';
+			#ifdef windows_c
+			
+				// Under Windows, clean up the path separator characters:
+				
+				_for( i=0, i<sufxPosn, ++i )
+				
+					_if( FileList[ FileCnt ][ i ] == '/' )
+					
+						FileList[ FileCnt ][ i ] = '\\';
+						
+					_endif
+						
+				_endfor
+				
+			#endif	
 			++FileCnt;
 			
 		_endif

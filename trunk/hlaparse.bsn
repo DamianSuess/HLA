@@ -5451,6 +5451,7 @@ pgm:
 
 		struct SymNode			dummy;	/* Aribtrary val for Pgm object	*/
 		struct contextListType	*p;
+		int						*dims;
 
 		_here;
 
@@ -5504,22 +5505,24 @@ pgm:
 		** the main program's local symbols.
 		*/
 
+		dims = malloc( sizeof( int ));
+		*dims = 1;
 		InsertSym
 		(
 			"_display_",
 			&dword_ste,
 			tDWord,
 			cVar,
-			0,
-			NULL,
-			0,
-			NULL,			/* No value */
-			0,
+			1,				// Arity
+			dims,			// [1]
+			1,				// # elements
+			NULL,			// No value
+			4,				// display is 4 bytes
 			CurOffset,
-			NULL,
-			NULL,
-			NULL,
-			0
+			NULL,			// Static name
+			NULL,			// Base
+			NULL,			// Fields
+			0				// FieldCnt
 		);
 
 
@@ -18163,60 +18166,62 @@ procs:
 
 				_endif
 				StartProc( $<en.s>6->StaticName ); 
-				_if( $<options.UseFrame>9 && !$<options.UseDisplay>9 )
-
-
-					/*
-					** If we're not building a display, just use the
-					** standard entry sequence.
-					*/
-
-					StdEntry( RoundedOffset, $<options.NoEnter>9 );
-
-					/*
-					** Align the stack on a dword boundary.
-					*/
-
-					_if( AlwaysAlignStk && $<options.AlignStk>9 )
-
-						AlignStack();
-
-					_endif
-
-				_elseif( $<options.UseFrame>9 )
-
-					/*
-					** We've got to construct the display.
-					*/
-
-					ConstructDisplay
-					( 
-						CurLexLevel, 
-						RoundedOffset,
-						$<options.NoEnter>9 
-					);
-
-					/*
-					** Align the stack on a dword boundary.
-					*/
-
-					_if( AlwaysAlignStk && $<options.AlignStk>9 )
-
-						AlignStack();
-
-					_endif
-
-
-
+				_if( $<options.UseFrame>9 )
 				
-				/*
-				** _else
-				**
-				** 		Don't do anything special if we're not emiting
-				**		code to construct the stack frame.  Note that
-				**		"noframe" automatically assumes "nodisplay" as
-				**		far as code emission is concerned.
-				*/
+					_if( !$<options.UseDisplay>9 )
+
+
+						/*
+						** If we're not building a display, just use the
+						** standard entry sequence.
+						*/
+
+						StdEntry( RoundedOffset, $<options.NoEnter>9 );
+
+						/*
+						** Align the stack on a dword boundary.
+						*/
+
+						_if( AlwaysAlignStk && $<options.AlignStk>9 )
+
+							AlignStack();
+
+						_endif
+
+					_else //$<options.UseFrame>9
+
+						/*
+						** We've got to construct the display.
+						*/
+
+						ConstructDisplay
+						( 
+							CurLexLevel, 
+							RoundedOffset,
+							$<options.NoEnter>9 
+						);
+
+						/*
+						** Align the stack on a dword boundary.
+						*/
+
+						_if( AlwaysAlignStk && $<options.AlignStk>9 )
+
+							AlignStack();
+
+						_endif
+						
+					_endif
+
+					
+					/*
+					** _else
+					**
+					** 		Don't do anything special if we're not emiting
+					**		code to construct the stack frame.  Note that
+					**		"noframe" automatically assumes "nodisplay" as
+					**		far as code emission is concerned.
+					*/
 
 				_endif
 
