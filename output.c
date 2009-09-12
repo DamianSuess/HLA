@@ -22149,7 +22149,7 @@ _begin( BeginMain )
 	EmitCallLabel( "BuildExcepts" sympost );
 	
 
-	pushd( 0 );				// Just a safety buffer
+	Pushd( 0 );				// Just a safety buffer
 	push_r( reg_ebp );		// Previous EBP
 	push_r( reg_ebp );		// Fake a display
 			
