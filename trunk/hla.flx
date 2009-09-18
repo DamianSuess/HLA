@@ -964,6 +964,7 @@ _endconst       endconst
 _endfor         endfor      
 _endif          endif       
 _endlabel       endlabel    
+_endproc        endproc
 _endreadonly    endreadonly
 _endrecord      endrecord   
 _endstatic      endstatic   
@@ -1320,7 +1321,7 @@ _prefetchnta    prefetchnta
 _prefetcht0     prefetcht0 
 _prefetcht1     prefetcht1 
 _prefetcht2     prefetcht2
-_proc			proc 
+_proc			proc
 _procedure      procedure
 _program        program     
 _psadbw         psadbw   
@@ -5596,6 +5597,7 @@ _zstring		zstring
 {_begin}                                { testRW( beginTkn );       }
 {_end}                                  { testRW( endTkn );         }
 {_proc}		                            { testRW( procTkn );   		}
+{_endproc}		                        { testRW( endprocTkn );   	}
 {_procedure}                            { testRW( procedureTkn );   }
 {_iterator}                             { testRW( iteratorTkn );    }
 {_method}                               { testRW( methodTkn );      }
@@ -5605,6 +5607,7 @@ _zstring		zstring
 ~begin                                  { _return beginTkn;         }
 ~end                                    { _return endTkn;           }
 ~proc		                            { _return procTkn;     		}
+~endproc		                        { _return endprocTkn;     	}
 ~procedure                              { _return procedureTkn;     }
 ~iterator                               { _return iteratorTkn;      }
 ~method                                 { _return methodTkn;        }
