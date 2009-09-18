@@ -5253,7 +5253,8 @@ UnitDeclarations:
 	;
  
 UnitDecls:	
-		/* Empty */
+		/* Empty */ 
+		
 	|	UnitDecls 
 		saveCurNS 
 		labelTkn 
@@ -5317,36 +5318,28 @@ UnitDecls:
 			currentNS = $<ru.saveCurNS>2; 
 		}
 		
-//	|	UnitDecls 
-//		saveCurNS 
-//		segmentTkn 
-//		Segments 
-//		{ 
-//			currentNS = $<ru.saveCurNS>2; 
-//		}
+	|	UnitDecls 
+		saveCurNS 
+		procTkn 
+		procDcls
+		optionalEndProc
+		{ 
+			currentNS = $<ru.saveCurNS>2; 
+		}
 		
 	|	UnitDecls 
 		saveCurNS 
-		procs 
-		optionalEndProc 
+		procs
+		optionalSemicolon
 		{ 
 			currentNS = $<ru.saveCurNS>2; 
 		} 
 
- /*
-	|	UnitDecls 
-		saveCurNS 
-		macros 
-		optionalSemicolon 
-		{ 
-			currentNS = $<ru.saveCurNS>2; 
-		}
- */
 		
 	|	UnitDecls 
 		saveCurNS 
 		NameSpace 
-		optionalSemicolon 
+		optionalSemicolon
 		{ 
 			currentNS = $<ru.saveCurNS>2; 
 		}
@@ -5367,7 +5360,7 @@ optionalEndLabel:
 		/* Empty */
 		
 	|	endlabelTkn
-		Semicolon
+		OneOrMoreSemicolons
 	;
 
 	
@@ -5376,7 +5369,7 @@ optionalEndVar:
 		/* Empty */
 		
 	|	endvarTkn
-		Semicolon
+		OneOrMoreSemicolons
 	;
 
 	
@@ -5385,7 +5378,7 @@ optionalEndConst:
 		/* Empty */
 		
 	|	endconstTkn
-		Semicolon
+		OneOrMoreSemicolons
 	;
 
 	
@@ -5394,7 +5387,7 @@ optionalEndVal:
 		/* Empty */
 		
 	|	endvalTkn
-		Semicolon
+		OneOrMoreSemicolons
 	;
 
 	
@@ -5403,7 +5396,7 @@ optionalEndType:
 		/* Empty */
 		
 	|	endtypeTkn
-		Semicolon
+		OneOrMoreSemicolons
 	;
 
 	
@@ -5412,7 +5405,7 @@ optionalEndStatic:
 		/* Empty */
 		
 	|	endstaticTkn
-		Semicolon
+		OneOrMoreSemicolons
 	;
 
 	
@@ -5421,7 +5414,7 @@ optionalEndStorage:
 		/* Empty */
 		
 	|	endstorageTkn
-		Semicolon
+		OneOrMoreSemicolons
 	;
 
 	
@@ -5430,7 +5423,7 @@ optionalEndRO:
 		/* Empty */
 		
 	|	endreadonlyTkn
-		Semicolon
+		OneOrMoreSemicolons
 	;
 
 	
@@ -5439,7 +5432,7 @@ optionalEndProc:
 		/* Empty */
 		
 	|	endprocTkn
-		Semicolon
+		OneOrMoreSemicolons
 	;
 
 
@@ -5897,6 +5890,7 @@ Declarations:
 
  
 Decls:	/* Empty */
+
 	|	Decls 
 		saveCurNS 
 		labelTkn 
@@ -5971,8 +5965,18 @@ Decls:	/* Empty */
 		
 	|	Decls 
 		saveCurNS 
+		procTkn 
+		procDcls
+		optionalEndProc
+		{
+			currentNS = $<ru.saveCurNS>2; 
+		}
+		
+		
+	|	Decls 
+		saveCurNS 
 		procs
-		optionalEndProc 
+		optionalSemicolon
 		{ 
 			currentNS = $<ru.saveCurNS>2; 
 		}
@@ -5980,7 +5984,7 @@ Decls:	/* Empty */
 	|	Decls 
 		saveCurNS 
 		NameSpace 
-		optionalSemicolon 
+		optionalSemicolon
 		{ 
 			currentNS = $<ru.saveCurNS>2; 
 		}
@@ -6029,16 +6033,16 @@ doFast:
 	
 
 NameSpace:
-		namespaceTkn	/* $1 */ 
-		UndefinedID 	/* $2 */
-		EnterNSName		/* $3 */
-		Semicolon		/* $4 */ 
-		SavePointerList	/* $5  */
-		NameSpaceDCLs	/* $6  */
-		endTkn			/* $7  */
-		AnyID			/* $8  */
-		Semicolon		/* $9  */
-		{				/* $10 */
+		namespaceTkn			/* $1 */ 
+		UndefinedID 			/* $2 */
+		EnterNSName				/* $3 */
+		Semicolon				/* $4 */ 
+		SavePointerList			/* $5  */
+		NameSpaceDCLs			/* $6  */
+		endTkn					/* $7  */
+		AnyID					/* $8  */
+		Semicolon				/* $9  */
+		{						/* $10 */
 
 			struct SymNode *CurSym;
 
@@ -6154,17 +6158,17 @@ NameSpace:
 	
 	
 NameSpace:
-		namespaceTkn	/* $1 */ 
-		UndefinedID 	/* $2 */
-		EnterNSName		/* $3 */
-		Semicolon		/* $4 */
-		doFast			/* $5 */
-		SavePointerList	/* $6  */
-		NameSpaceDCLs	/* $7  */
-		endTkn			/* $8  */
-		AnyID			/* $9  */
-		Semicolon		/* $10 */
-		{				/* $11 */
+		namespaceTkn		/* $1 */ 
+		UndefinedID 		/* $2 */
+		EnterNSName			/* $3 */
+		Semicolon			/* $4 */
+		doFast				/* $5 */
+		SavePointerList		/* $6  */
+		NameSpaceDCLs		/* $7  */
+		endTkn				/* $8  */
+		AnyID				/* $9  */
+		Semicolon			/* $10 */
+		{					/* $11 */
 
 			struct SymNode *CurSym;
 
@@ -6289,16 +6293,16 @@ NameSpace:
 
 
 NameSpace:
-		namespaceTkn	/* $1  */ 
-		LocalID 	    /* $2  */
-		SetNSName		/* $3  */
-		Semicolon		/* $4  */
-		SavePointerList	/* $5  */
-		NameSpaceDCLs	/* $6  */
-		endTkn			/* $7  */
-		AnyID			/* $8  */
-		Semicolon		/* $9  */
-		{				/* $10 */
+		namespaceTkn		/* $1  */ 
+		LocalID 	    	/* $2  */
+		SetNSName			/* $3  */
+		Semicolon			/* $4  */
+		SavePointerList		/* $5  */
+		NameSpaceDCLs		/* $6  */
+		endTkn				/* $7  */
+		AnyID				/* $8  */
+		Semicolon			/* $9  */
+		{					/* $10 */
 
 			assert( $<idStr>8 != NULL );
 
@@ -6364,17 +6368,17 @@ NameSpace:
 
 
 NameSpace:
-		namespaceTkn	/* $1  */ 
-		LocalID 	    /* $2  */
-		SetNSName		/* $3  */
-		Semicolon		/* $4  */
-		doFast			/* $5  */
-		SavePointerList	/* $6  */
-		NameSpaceDCLs	/* $7  */
-		endTkn			/* $8  */
-		AnyID			/* $9  */
-		Semicolon		/* $10 */
-		{				/* $11 */
+		namespaceTkn		/* $1  */ 
+		LocalID 	    	/* $2  */
+		SetNSName			/* $3  */
+		Semicolon			/* $4  */
+		doFast				/* $5  */
+		SavePointerList		/* $6  */
+		NameSpaceDCLs		/* $7  */
+		endTkn				/* $8  */
+		AnyID				/* $9  */
+		Semicolon			/* $10 */
+		{					/* $11 */
 
 			assert( $<idStr>9 != NULL );
 
@@ -6571,28 +6575,28 @@ SetNSName:
 
 
 NameSpace:
-		namespaceTkn	/* $1 */ 
-		BadLocalID 	    /* $2 */
-		Semicolon		/* $3 */
-		doFast			/* $4 */
+		namespaceTkn		/* $1 */ 
+		BadLocalID 	    	/* $2 */
+		Semicolon			/* $3 */
+		doFast				/* $4 */
 		{
 			yyerror( "Expected a NAMESPACE identifier" );
 		}
-		NameSpaceDCLs	/* $6 */
-		endTkn			/* $7 */
-		AnyID			/* $8 */
-		Semicolon		/* $9 */
+		NameSpaceDCLs		/* $6 */
+		endTkn				/* $7 */
+		AnyID				/* $8 */
+		Semicolon			/* $9 */
 	|
-		namespaceTkn	/* $1 */ 
-		BadLocalID 	    /* $2 */
-		Semicolon		/* $3 */
+		namespaceTkn		/* $1 */ 
+		BadLocalID 	    	/* $2 */
+		Semicolon			/* $3 */
 		{
 			yyerror( "Expected a NAMESPACE identifier" );
 		}
-		NameSpaceDCLs	/* $5 */
-		endTkn			/* $6 */
-		AnyID			/* $7 */
-		Semicolon		/* $8 */
+		NameSpaceDCLs		/* $5 */
+		endTkn				/* $6 */
+		AnyID				/* $7 */
+		Semicolon			/* $8 */
 	;
 	
 BadLocalID:
@@ -6608,15 +6612,21 @@ BadLocalID:
 
 
 NameSpaceDCLs:
+		optionalSemicolon
+		NSDcls
+	;
+	
+NSDcls:
 		Empty 
-	|	NameSpaceDCLs constTkn Constants optionalEndConst
-	|	NameSpaceDCLs valTkn Values optionalEndVal  
-	|	NameSpaceDCLs typeTkn Types optionalEndType  
-	|	NameSpaceDCLs NameSpaceVars optionalEndVar  
-	|	NameSpaceDCLs staticTkn StaticVars optionalEndStatic  
-	|	NameSpaceDCLs uninitializedTkn UninitVars optionalEndStorage  
-	|	NameSpaceDCLs readonlyTkn ReadOnlyVars optionalEndRO  
-	|	NameSpaceDCLs procs optionalEndProc  
+	|	NSDcls constTkn Constants optionalEndConst
+	|	NSDcls valTkn Values optionalEndVal  
+	|	NSDcls typeTkn Types optionalEndType  
+	|	NSDcls NameSpaceVars optionalEndVar  
+	|	NSDcls staticTkn StaticVars optionalEndStatic  
+	|	NSDcls uninitializedTkn UninitVars optionalEndStorage  
+	|	NSDcls readonlyTkn ReadOnlyVars optionalEndRO  
+	|	NSDcls procTkn procDcls optionalEndProc
+	|	NSDcls procs optionalSemicolon
  	;
 
 
@@ -17690,25 +17700,22 @@ optionalLocalIDs:
 
 
 // Handle new-style procedure declarations here:
-//
-// procs -> "proc" procDCLs
 
-procs:
-		procTkn				/* $1 */
-		optionalSemicolon	/* $2 */
-		procDcls			/* $3 */
-		
+	
+	
 procDcls:
 		/* empty */
 	;
 	
 procDcls:
+		procDcls			/* $2 */
 		newProcs			/* $1 */
-		optionalSemicolon	/* $2 */
-		procDcls			/* $3 */
 	;
 
 
+newProcs:
+		';'
+	;
 
 /**********************************************************/
 /*                                                        */
