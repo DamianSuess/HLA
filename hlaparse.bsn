@@ -1235,6 +1235,7 @@ union	YYSTYPE	forReturnVal;
 %token beginTkn
 %token endTkn
 %token procTkn
+%token endprocTkn
 %token procedureTkn
 %token iteratorTkn
 %token methodTkn
@@ -5327,7 +5328,7 @@ UnitDecls:
 	|	UnitDecls 
 		saveCurNS 
 		procs 
-		optionalSemicolon 
+		optionalEndProc 
 		{ 
 			currentNS = $<ru.saveCurNS>2; 
 		} 
@@ -5429,6 +5430,15 @@ optionalEndRO:
 		/* Empty */
 		
 	|	endreadonlyTkn
+		Semicolon
+	;
+
+	
+optionalEndProc:
+
+		/* Empty */
+		
+	|	endprocTkn
 		Semicolon
 	;
 
@@ -5961,8 +5971,8 @@ Decls:	/* Empty */
 		
 	|	Decls 
 		saveCurNS 
-		procs 
-		optionalSemicolon  
+		procs
+		optionalEndProc 
 		{ 
 			currentNS = $<ru.saveCurNS>2; 
 		}
@@ -6600,13 +6610,13 @@ BadLocalID:
 NameSpaceDCLs:
 		Empty 
 	|	NameSpaceDCLs constTkn Constants optionalEndConst
-	|	NameSpaceDCLs valTkn Values optionalEndVal 
-	|	NameSpaceDCLs typeTkn Types optionalEndType 
-	|	NameSpaceDCLs NameSpaceVars optionalEndVar
-	|	NameSpaceDCLs staticTkn StaticVars optionalEndStatic 
-	|	NameSpaceDCLs uninitializedTkn UninitVars optionalEndStorage
-	|	NameSpaceDCLs readonlyTkn ReadOnlyVars optionalEndRO
-	|	NameSpaceDCLs procs optionalSemicolon 
+	|	NameSpaceDCLs valTkn Values optionalEndVal  
+	|	NameSpaceDCLs typeTkn Types optionalEndType  
+	|	NameSpaceDCLs NameSpaceVars optionalEndVar  
+	|	NameSpaceDCLs staticTkn StaticVars optionalEndStatic  
+	|	NameSpaceDCLs uninitializedTkn UninitVars optionalEndStorage  
+	|	NameSpaceDCLs readonlyTkn ReadOnlyVars optionalEndRO  
+	|	NameSpaceDCLs procs optionalEndProc  
  	;
 
 
@@ -17684,16 +17694,18 @@ optionalLocalIDs:
 // procs -> "proc" procDCLs
 
 procs:
-		procTkn			/* $1 */
-		procDcls		/* $2 */
+		procTkn				/* $1 */
+		optionalSemicolon	/* $2 */
+		procDcls			/* $3 */
 		
 procDcls:
 		/* empty */
 	;
 	
 procDcls:
-		newProcs		/* $1 */
-		procDcls		/* $2 */
+		newProcs			/* $1 */
+		optionalSemicolon	/* $2 */
+		procDcls			/* $3 */
 	;
 
 
@@ -33054,6 +33066,7 @@ ClassStuff:
 				$<v>$ = $<v>1;
 			} 	
 			newClassProcDCLs
+			optionalEndProc
 			{ 
 				_here; 
 				$<v.u.intval>$ = $<v.u.intval>1; 
@@ -33061,7 +33074,7 @@ ClassStuff:
 			ClassStuff
 			{
 				(void) $<v.u.intval>3;	//Shut up bison
-				(void) $<v.u.intval>5;	//Shut up bison
+				(void) $<v.u.intval>6;	//Shut up bison
 			}
 
 
@@ -33072,6 +33085,7 @@ ClassStuff:
 				$<v>$ = $<v>1;
 			} 	
 			newClassOverrideDCLs
+			optionalEndProc 
 			{ 
 				_here; 
 				$<v.u.intval>$ = $<v.u.intval>1; 
@@ -33079,7 +33093,7 @@ ClassStuff:
 			ClassStuff
 			{
 				(void) $<v.u.intval>4;	//Shut up bison
-				(void) $<v.u.intval>6;	//Shut up bison
+				(void) $<v.u.intval>7;	//Shut up bison
 			}
 
 
@@ -76514,6 +76528,16 @@ SingleStmt:
 		uninitializedTkn
 		UninitVars
 		endstorageTkn
+		{
+			$<returns>$ = NULL;
+		}
+	;
+
+
+
+SingleStmt:
+		procs
+		endprocTkn
 		{
 			$<returns>$ = NULL;
 		}

@@ -3052,7 +3052,7 @@ _begin( asmPop )
 			
 				asmPrintf
 				(
-					"%-2s       pop( %s );\n",
+					"%-2s      pop( %s );\n",
 					_ifx( isComment, "//", "" ),
 					operand
 				);
@@ -26693,8 +26693,6 @@ _begin( EmitValpConst )
 				sprintf( name, "array" sympost "%d", LblCntr++ );
 				OutPaddedValue( name, sym->Type, value );
 
-//				sprintf( val2, "[esp-%d]", Size*4 );
-//				Emit2rc( "lea", "esp", val2 );
 				initLea_m_r( reg_esp, -Size*4, reg_esp );
 				push_r( reg_ecx );
 				push_r( reg_esi );
@@ -26704,7 +26702,6 @@ _begin( EmitValpConst )
 
 				EmitMov_c_r( Size*4, reg_ecx );
 				EmitMov_o_r( name, 0, reg_esi );
-//				Emit2rm( "lea", "edi", "[esp+16]"  );
 				initLea_m_r( reg_esp, 16, reg_edi );
 				str_instr( rep_movsd_instr );
 				popfd();
@@ -26748,8 +26745,6 @@ _begin( EmitValpConst )
 
 			_else
 
-//				sprintf( adrs, "[esp-%d]", Size*4 );
-//				Emit2rc( "lea", "esp", adrs );
 				initLea_m_r( reg_esp, -Size*4, reg_esp );
 				push_r( reg_ecx );
 				push_r( reg_esi );
@@ -26758,7 +26753,6 @@ _begin( EmitValpConst )
 				implied_instr( cld_instr );
 				EmitMov_c_r( Size, reg_ecx );
 				EmitMov_o_r( name, 0, reg_esi );
-//				Emit2rm( "lea", "edi", "[esp+16]" );
 				initLea_m_r( reg_esp, 16, reg_edi );
 				str_instr( rep_movsd_instr );
 				popfd();
@@ -26902,7 +26896,6 @@ _begin( PushActualValue )
 				_default
 				
 					EmitMovxx_m_r( movzx_instr, actual, useReg );
-//					movzx_mr( actual, useReg );
 					push_r( useReg );
 					
 			_endswitch			
@@ -27094,7 +27087,6 @@ _begin( PushActualValue )
 			_else
 			
 				EmitMovxx_m_r( movzx_instr, actual, useReg );
-//				movzx_mr( actual, useReg );
 				push_r( useReg );
 				
 			_endif;			
@@ -27152,10 +27144,7 @@ _begin( PushActualValue )
 
 		char ea[32];
 		
-//		sprintf( ea, "[esp-%d]", ( actual->ObjectSize + 3 ) & ~3 );
-//		Emit2cr( "lea", "esp", ea );
-		initLea_m_r( reg_esp, -( actual->ObjectSize + 3 ) & ~3, reg_esp );
-		//sub_ir( ( actual->ObjectSize + 3 ) & ~3, reg_esp );
+		initLea_m_r( reg_esp, -(( actual->ObjectSize + 3 ) & ~3), reg_esp );
 		push_r( reg_esi );
 		push_r( reg_edi );
 		push_r( reg_ecx );
@@ -28250,11 +28239,30 @@ _begin( OutputMemParm )
 						
 						_else
 						
-							push_r( reg_eax );
-							push_r( reg_eax );
-							EmitLea_m_r2( actual, reg_eax );
-							initMov_r_m( reg_eax, reg_esp, 4, 4 );
-							pop_r( reg_eax );
+							_if( theProc->u.proc.use == NULL )
+						
+								// No "use" register available, so emit
+								// some ugly code:
+								
+								push_r( reg_eax );
+								push_r( reg_eax );
+								EmitLea_m_r2( actual, reg_eax );
+								initMov_r_m( reg_eax, reg_esp, 4, 4 );
+								pop_r( reg_eax );
+								
+							_else
+							
+								int r;
+								
+								// Yeah! We have a "use" register, use
+								// it to generate cleaner code:
+								
+								r = strToReg( theProc->u.proc.use );
+								assert( r >= reg_eax && r <= reg_edi );
+								EmitLea_m_r2( actual, r );
+								push_r( r );
+								
+							_endif
 						
 						_endif
 
