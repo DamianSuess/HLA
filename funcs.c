@@ -757,12 +757,12 @@ _begin( StrFunc )
 	_elseif( Value->v.pType == tDWord )                    
                                                      
 		Result->v.u.strval = s = malloc2( 16 );
-		sprintf( s, "%lx", Value->v.u.unsval );
+		sprintf( s, "%x", Value->v.u.unsval );
 
 	_elseif( Value->v.pType == tQWord )                    
                                                      
 		Result->v.u.strval = s = malloc2( 24 );
-		sprintf( s, "%lx_%08x", Value->v.u.lwordval[1], Value->v.u.lwordval[0] );
+		sprintf( s, "%x_%08x", Value->v.u.lwordval[1], Value->v.u.lwordval[0] );
 
 	_elseif( Value->v.pType == tLWord )                    
                                                      
@@ -770,7 +770,7 @@ _begin( StrFunc )
 		sprintf
 		( 
 			s, 
-			"%lx_%lx_%lx_%08x", 
+			"%x_%08x_%08x_%08x", 
 			Value->v.u.lwordval[3], 
 			Value->v.u.lwordval[2],
 			Value->v.u.lwordval[1],
@@ -2667,7 +2667,7 @@ _end( OddFunc )
 /*                                          */
 /********************************************/
 
-#define HLArandom(num) ( (((long)rand()) * ((long)(num)))/(((long)(RAND_MAX)+1L)) )
+#define HLArandom(num) ( (((int)rand()) * ((int	)(num)))/(((int)(RAND_MAX)+1L)) )
 		 
 
 void
@@ -2686,7 +2686,7 @@ _begin( RandFunc )
 	);
 	_if( IsNumber( Value->v.pType ))
 
-		Result->v.u.intval = HLArandom( labs( Value->v.u.intval ));
+		Result->v.u.intval = HLArandom( abs( Value->v.u.intval ));
 
 	_else
 
@@ -2735,7 +2735,7 @@ _begin( RandomizeFunc )
 	);
 	_if( IsNumber( Value->v.pType ) )
 
-		Result->v.u.intval = HLArandom( labs( Value->v.u.intval ));
+		Result->v.u.intval = HLArandom( abs( Value->v.u.intval ));
 
 	_else
 

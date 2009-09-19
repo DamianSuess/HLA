@@ -1036,7 +1036,7 @@ extern int yylex( union YYSTYPE *yylval );
 
 	struct
 	{
-		long	int			Disp;
+				int			Disp;
 		char				*FullName;
 		struct	SymNode		*Sym;
 		char				*StaticName;
@@ -8186,7 +8186,7 @@ DimList:
 			$<v.Dimensions>$ =
 				malloc2
 				( 
-					sizeof( unsigned long ) 
+					sizeof( unsigned ) 
 				);
 
 			*$<v.Dimensions>$ = $<v.u.unsval>1;
@@ -8238,7 +8238,7 @@ DimList:
 			$<v.Dimensions>$ =
 				malloc2
 				( 
-					sizeof( unsigned long ) * 
+					sizeof( unsigned ) * 
 						( $<v.Arity>1 + 1 )
 				);
 
@@ -8337,7 +8337,7 @@ IndexList:
 				$<v.Dimensions>$ =
 					malloc2
 					( 
-						sizeof( unsigned long ) 
+						sizeof( unsigned ) 
 					);
 
 				*$<v.Dimensions>$ = $<v.u.unsval>1;
@@ -8365,7 +8365,7 @@ IndexList:
 				$<v.Dimensions>$ =
 					malloc2
 					( 
-						sizeof( unsigned long ) * 
+						sizeof( unsigned ) * 
 							( $<v.Arity>1 + 1 )
 					);
 
@@ -59190,7 +59190,7 @@ StaticExpr:
 				sprintf
 				( 
 					StaticName, 
-					"(%s%s%ld)", 
+					"(%s%s%d)", 
 					flist->StaticName,
 					_ifx( $<v.u.intval>4 < 0, "", "+" ), 
 					$<v.u.intval>4 
@@ -59228,7 +59228,7 @@ StaticExpr:
 					sprintf
 					( 
 						StaticName, 
-						"(%s" sympost "%d%s%ld)", 
+						"(%s" sympost "%d%s%d)", 
 						$<idStr>2, 
 						LblCntr++, 
 						_ifx( $<v.u.intval>4 < 0, "", "+" ), 
@@ -59283,7 +59283,7 @@ StaticExpr:
 			sprintf
 			( 
 				StaticName, 
-				"(%s%s%ld)", 
+				"(%s%s%d)", 
 				$<s>2->StaticName, 
 				_ifx( $<v.u.intval>4 < 0, "", "+" ), 
 				$<v.u.intval>4 
@@ -59341,7 +59341,7 @@ StaticExpr:
 					sprintf
 					(
 						adrs,
-						"(%s%s%ld)",
+						"(%s%s%d)",
 						$<dotName.StaticName>4,
 						_ifx( $<dotName.Disp>4 < 0, "", "+" ), 
 						$<dotName.Disp>4
@@ -59355,7 +59355,7 @@ StaticExpr:
 					sprintf
 					(
 						adrs,
-						"(%s%s%ld)",
+						"(%s%s%d)",
 						$<s>2->StaticName,
 						_ifx( $<dotName.Disp>4 < 0, "", "+" ), 
 						$<dotName.Disp>4
@@ -59428,7 +59428,7 @@ StaticExpr:
 					sprintf
 					(
 						adrs,
-						"(%s%s%ld)",
+						"(%s%s%d)",
 						$<dotName.StaticName>4,
 						_ifx( $<dotName.Disp>4 < 0, "", "+" ), 
 						$<dotName.Disp>4 + $<v.u.unsval>6
@@ -59441,7 +59441,7 @@ StaticExpr:
 					sprintf
 					(
 						adrs,
-						"(%s%s%ld)",
+						"(%s%s%d)",
 						$<s>2->StaticName,
 						_ifx( $<dotName.Disp>4 < 0, "", "+" ), 
 						$<dotName.Disp>4 + $<v.u.unsval>6
@@ -61015,7 +61015,7 @@ ConstExpr:
 
 					char temp[ 256 ];
 					
-					sprintf( temp, "%s+%lu", $<v.u.strval>1, $<v.u.unsval>3 );
+					sprintf( temp, "%s+%u", $<v.u.strval>1, $<v.u.unsval>3 );
 					$<v.pType>$ = tPointer;
 					$<v.Type>$ = &pointer_ste;
 					$<v.SymClass>$ = cConstant;
@@ -61247,7 +61247,7 @@ ConstExpr:	ConstExpr '-' ConstExpr
 
 						char temp[ 256 ];
 						
-						sprintf( temp, "%s-%lu", $<v.u.strval>1, $<v.u.unsval>3 );
+						sprintf( temp, "%s-%u", $<v.u.strval>1, $<v.u.unsval>3 );
 						$<v.pType>$ = tPointer;
 						$<v.Type>$ = &pointer_ste;
 						$<v.SymClass>$ = cConstant;
@@ -63263,7 +63263,7 @@ ConstExpr:
 		
 				char adrs[16];
 				
-				sprintf( adrs, "%lu", $<v.u.lwordval>3[0] );
+				sprintf( adrs, "%u", $<v.u.lwordval>3[0] );
 				$<v.u.strval>$ = hlastrdup2( adrs );
 				$<v.u.lwordval>$[1] = 0;
 				$<v.u.lwordval>$[2] = 0;
@@ -63446,7 +63446,7 @@ ConstExpr:
 			
 					char adrs[16];
 					
-					sprintf( adrs, "%lu", $<v.u.lwordval>3[0] );
+					sprintf( adrs, "%u", $<v.u.lwordval>3[0] );
 					$<v.u.strval>$ = hlastrdup2( adrs );
 					$<v.u.lwordval>$[1] = 0;
 					$<v.u.lwordval>$[2] = 0;
@@ -79099,14 +79099,14 @@ OneCallParameter:
 			_here;
 			assert( $<s>-1 != NULL );
 
-			sprintf( thunkname, "thunk_%lu" sympost, $<v.u.unsval>2 );
+			sprintf( thunkname, "thunk_%u" sympost, $<v.u.unsval>2 );
 			pop_r( reg_ebp );
 			ret_instr( 4 );
 			EndProc( thunkname );
 			{
 				char lbl[ 256 ];
 				
-				sprintf( lbl, "endthunk_%lu" sympost, $<v.u.unsval>2 );
+				sprintf( lbl, "endthunk_%u" sympost, $<v.u.unsval>2 );
 				EmitStmtLbl( lbl );
 			}
 
@@ -91251,7 +91251,7 @@ SingleStmt:
 			char constant[ 256 ];
 
 			_here;
-			sprintf( thunkname, "thunk_%lu" sympost, $<v.u.unsval>5 );
+			sprintf( thunkname, "thunk_%u" sympost, $<v.u.unsval>5 );
 			pop_r( reg_ebp );
 			ret_instr( 4 );
 			EndProc( thunkname );
@@ -91259,7 +91259,7 @@ SingleStmt:
 			{
 				char lbl[ 256 ];
 				
-				sprintf( lbl, "endthunk_%lu" sympost, $<v.u.unsval>5 );
+				sprintf( lbl, "endthunk_%u" sympost, $<v.u.unsval>5 );
 				EmitStmtLbl( lbl );
 			}
 			$<adrs.Disp>3 += 4;
@@ -91632,7 +91632,7 @@ SingleStmt:
 				EmitJmpLabel( label );
 				EmitStmtLblNum( "exception" sympost "%d", EndTryLabel+1 );
 				EmitGeneric_i_r( cmp_instr, YYS &$<v>6, reg_eax );
-				sprintf( label, "exception" sympost "%lu", $<v.u.unsval>$ );
+				sprintf( label, "exception" sympost "%u", $<v.u.unsval>$ );
 				EmitCondJump( jne_instr, label );
 				//processCondJump( jne_instr, label, 0,0 );
 
@@ -91653,7 +91653,7 @@ SingleStmt:
 
 			EmitBackPatchds
 			( 
-				"exception" sympost "%lu", 
+				"exception" sympost "%u", 
 				$<v.u.unsval>12, 
 				"Raise" sympost 
 			);
@@ -91708,7 +91708,7 @@ SingleStmt:
 				EmitJmpLabel( label );
 				EmitStmtLblNum( "exception" sympost "%d", EndTryLabel+1 );
 				EmitGeneric_i_r( cmp_instr, YYS &$<v>9, reg_eax );
-				sprintf( label, "exception" sympost "%lu", $<v.u.unsval>$ );
+				sprintf( label, "exception" sympost "%u", $<v.u.unsval>$ );
 				EmitCondJump( jne_instr, label );
 
 
@@ -91831,7 +91831,7 @@ OneException:
 			EmitJmpLabel( label );
 			EmitStmtLblNum( "exception" sympost "%d", $<v.u.intval>0 );
 			EmitGeneric_i_r( cmp_instr, YYS &$<v>3, reg_eax );
-			sprintf( label, "exception" sympost "%lu", $<v.u.unsval>$ );
+			sprintf( label, "exception" sympost "%u", $<v.u.unsval>$ );
 			EmitCondJump( jne_instr, label );
 		}
 		Stmts				/* $6 */
@@ -92669,7 +92669,7 @@ SingleStmt:
 			_here;
 			$<v.u.intval>$ = -( LblCntr++ );
 
-			sprintf( symbol, "exitfor" sympost "%ld", -$<v.u.intval>$ );
+			sprintf( symbol, "exitfor" sympost "%d", -$<v.u.intval>$ );
 			PushStaticAdrs( symbol );
 			EmitCallLabel( $<s>2->StaticName );
 			push_r( reg_ebp );
@@ -92907,7 +92907,7 @@ SingleStmt:
 
 					initAdrs( &yysAdrs, reg_esi, -1, 0, 0 );
 					EmitMov_m_r( &yysAdrs, reg_edi, 4 );
-					sprintf( symbol, "exitfor" sympost "%ld", -$<v.u.intval>$ );
+					sprintf( symbol, "exitfor" sympost "%d", -$<v.u.intval>$ );
 					PushStaticAdrs( symbol );
 					initAdrs1( &yysAdrs, reg_edi, $<adrs.Sym>3->Offset );
 					EmitCall_m( &yysAdrs );
@@ -93184,7 +93184,7 @@ SingleStmt:
 					sprintf
 					( 
 						label, 
-						"exitfor" sympost "%ld", 
+						"exitfor" sympost "%d", 
 						-$<v.u.intval>$
 					);
 					PushStaticAdrs( label );
@@ -93312,7 +93312,7 @@ SingleStmt:
 			char label[ 256 ];
 
 			_here;
-			sprintf( label, "forever" sympost "%ld", $<v.u.intval>2 + 1 );
+			sprintf( label, "forever" sympost "%d", $<v.u.intval>2 + 1 );
 			EmitJmpLabel( label );
 			EmitStmtLblNum( "exitloop" sympost "%d", $<v.u.intval>2 );
 			NewLn();
@@ -96177,7 +96177,7 @@ OneOrMoreCaseVals:
 				$<caseVals.cases>$ =
 					malloc2
 					( 
-						sizeof( unsigned long ) * ( $<caseVals.cnt>$ )
+						sizeof( unsigned ) * ( $<caseVals.cnt>$ )
 					);
 
 				memcpy

@@ -4930,7 +4930,7 @@ void
 str_instr( enum str_instrs instr )
 _begin( str_instr )
 
-	unsigned long opcode;
+	unsigned opcode;
 	
 	assert( instr < num_str_instrs );
 	_if( sourceOutput )
@@ -6377,12 +6377,14 @@ _begin( ret_instr )
 			
 		_else
 		
+			char adrsStr[ 256 ];
+			
 			_if( testMode )
 			
 				sprintf
 				( 
 					adrsStr, 
-					"        ret        %d%d ", 
+					"        ret        %s%d ", 
 					gasImm,
 					retSize 
 				);
@@ -23446,7 +23448,7 @@ _end( OutValue )
 
 
 static int
-HexToStr( unsigned long hex, char *dest )
+HexToStr( unsigned hex, char *dest )
 _begin( HexToStr )
 
 		_switch( assembler )
@@ -23737,7 +23739,7 @@ StaticConstToStr( struct SymNode *type, union YYSTYPE *value, char *dest )
 _begin( StaticConstToStr )
 
 	char msg[ 128 ];
-	unsigned long theValue;
+	unsigned theValue;
 	int index;
 	int needsOffset = 0;
 
@@ -23796,11 +23798,11 @@ _begin( StaticConstToStr )
 		
 		_case( tInt8 )
 
-			theValue = (unsigned long )(theValue & 0xff);
+			theValue = (unsigned )(theValue & 0xff);
 
 		_case( tInt16 )
 
-			theValue = (unsigned long )(theValue & 0xffff);
+			theValue = (unsigned )(theValue & 0xffff);
 
 		_case( tInt32 )
 
@@ -23836,7 +23838,7 @@ _begin( StaticConstToStr )
 				
 				_if( isdigit( *value->v.u.strval ))
 				
-					sprintf( dest, "%d", value->v.u.strval );
+					sprintf( dest, "%d", (int) value->v.u.strval );
 					
 				_else
 				
@@ -23880,7 +23882,7 @@ _begin( StaticConstToStr )
 				
 				_if( isdigit( *value->v.u.strval ))
 				
-					sprintf( dest, "%d", value->v.u.strval );
+					sprintf( dest, "%d", (int) value->v.u.strval );
 					
 				_else
 				
@@ -24128,7 +24130,7 @@ _begin( StaticConstToStr )
 			
 			_if( isdigit( *value->v.u.strval ))
 			
-				sprintf( dest, "%d", value->v.u.strval );
+				sprintf( dest, "%d", (int) value->v.u.strval );
 				
 			_else
 			
@@ -26320,7 +26322,7 @@ _begin( EmitValpConst )
 					asmPrintf( ";/* push real4=%15.8e */\n", value->v.u.fltval.f.f );
 					
 				_endif
-				Pushd( *(unsigned long*)&value->v.u.fltval.f.f );
+				Pushd( *(unsigned*)&value->v.u.fltval.f.f );
 
 			_elseif( sym->pType == tReal64 )
 
@@ -26329,8 +26331,8 @@ _begin( EmitValpConst )
 					asmPrintf( ";/* push real8=%24.18e */\n", value->v.u.fltval.f.d );
 					
 				_endif
-				Pushd( *((unsigned long*)(&value->v.u.fltval.f.d)+1) );
-				Pushd( *(unsigned long*)&value->v.u.fltval.f.d );
+				Pushd( *((unsigned*)(&value->v.u.fltval.f.d)+1) );
+				Pushd( *(unsigned*)&value->v.u.fltval.f.d );
 
 
 			_elseif( sym->pType == tReal80 )
@@ -26352,9 +26354,9 @@ _begin( EmitValpConst )
 					_endif
 					
 				_endif
-				Pushd( (unsigned long) *((unsigned short*)(&value->v.u.fltval.f.d)+4) );
-				Pushd( *((unsigned long*)(&value->v.u.fltval.f.d)+1) );
-				Pushd( *(unsigned long*)&value->v.u.fltval.f.d );
+				Pushd( (unsigned) *((unsigned short*)(&value->v.u.fltval.f.d)+4) );
+				Pushd( *((unsigned*)(&value->v.u.fltval.f.d)+1) );
+				Pushd( *(unsigned*)&value->v.u.fltval.f.d );
 				
 
 			_elseif( sym->ObjectSize == 16 )
@@ -26671,10 +26673,10 @@ _begin( EmitValpConst )
 						
 					Pushd
 					( 
-							(long) bytes[j] 
-						+	(((long) bytes[j+1]) << 8)
-						+	(((long) bytes[j+2]) << 16)
-						+	(((long) bytes[j+3]) << 24)
+							(int) bytes[j] 
+						+	(((int) bytes[j+1]) << 8)
+						+	(((int) bytes[j+2]) << 16)
+						+	(((int) bytes[j+3]) << 24)
 					);
 
 				_endfor
@@ -27055,8 +27057,8 @@ _begin( PushActualValue )
 
 	_elseif( actual->ObjectSize < 64 )
 
-		unsigned long SaveDisp;
-		unsigned long index;
+		unsigned SaveDisp;
+		unsigned index;
 
 		/*
 		** Figure out how many dwords to push
@@ -27913,7 +27915,7 @@ _begin( OutputMemParm )
 
 							_elseif( formal->ObjectSize <= 64 )
 
-								unsigned long index;
+								unsigned index;
 
 								/*
 								** Figure out how many dwords to push
@@ -28008,7 +28010,7 @@ _begin( OutputMemParm )
 
 							_else
 
-								unsigned long Size;
+								unsigned Size;
 
 								Size = (formal->ObjectSize + 3) & ~3;
 								EmitGeneric_c_r( sub_instr, Size, reg_esp );

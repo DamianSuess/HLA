@@ -2935,10 +2935,8 @@ _begin( main )
 						_if
 						( 
 								len < 2
-							||	(
-										ObjName[len-2] != '.'
-									&&	ObjName[len-1] != 'o'
-								)
+							||	ObjName[len-2] != '.'
+							||	ObjName[len-1] != 'o'
 						)
 						
 							strcat( ObjName, ".o" );

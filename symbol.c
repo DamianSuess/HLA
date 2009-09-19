@@ -3557,7 +3557,7 @@ _begin( PrintValues )
 				fprintf
 				( 
 					MsgOut,
-					"%lu", 
+					"%u", 
 					Value->u.unsval
 				);
 
@@ -3665,7 +3665,7 @@ _begin( PrintValues )
 				fprintf
 				( 
 					MsgOut,
-					"%ld", 
+					"%d", 
 					Value->u.intval
 				);
 
