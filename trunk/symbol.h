@@ -204,13 +204,13 @@ struct SymNode
 		
 		unsigned	char			bytes[16];
 		unsigned	short			words[8];
-		unsigned	long			dwords[4];
-		long						intval;
-		long		unsigned		unsval;
-		long		unsigned		boolval;			
-		long		unsigned		charval;
-		long		unsigned		qwordval[2];
-		long		unsigned		lwordval[4];			
+		unsigned					dwords[4];
+		int							intval;
+		unsigned					unsval;
+		unsigned					boolval;			
+		unsigned					charval;
+		unsigned					qwordval[2];
+		unsigned					lwordval[4];			
 		struct		flt80			fltval;			
 		char						*strval;
 		unsigned	char			csetval[ CSetSizeInBytes ]; 		
@@ -254,13 +254,13 @@ union ValuesSize
 		
 		unsigned	char			bytes[16];
 		unsigned	short			words[8];
-		unsigned	long			dwords[4];
-		long						intval;
-		long		unsigned		unsval;
-		long		unsigned		boolval;			
-		long		unsigned		charval;
-		long		unsigned		qwordval[2];
-		long		unsigned		lwordval[4];			
+		unsigned					dwords[4];
+		int							intval;
+		unsigned					unsval;
+		unsigned					boolval;			
+		unsigned					charval;
+		unsigned					qwordval[2];
+		unsigned					lwordval[4];			
 		struct		flt80			fltval;			
 		char						*strval;
 		unsigned	char			csetval[ CSetSizeInBytes ]; 		

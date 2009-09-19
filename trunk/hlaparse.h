@@ -2320,7 +2320,7 @@ typedef union YYSTYPE
 
 	struct
 	{
-		long	int			Disp;
+				int			Disp;
 		char				*FullName;
 		struct	SymNode		*Sym;
 		char				*StaticName;

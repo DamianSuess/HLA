@@ -708,7 +708,7 @@ _begin( yyerror )
 				MsgOut, 
 				"Syntax error.\n"
 				"Near: << %s >>\n\n",
-				*yytext 
+				(char *) &yytext 
 			);
 
 		_else
@@ -727,7 +727,7 @@ _begin( yyerror )
 				"%s.\n"
 				"Near: << %s >>\n",
 				msg, 
-				yytext 
+				(char *) &yytext 
 			);
 
 
@@ -2315,7 +2315,7 @@ _begin( numBits )
 							value->v.u.lwordval[3] == 0xffffffff
 						&&	value->v.u.lwordval[2] == 0xffffffff
 						&&	value->v.u.lwordval[1] == 0xffffffff
-						&&	(unsigned long) value->v.u.lwordval[0] >= 0x80000000
+						&&	(unsigned) value->v.u.lwordval[0] >= 0x80000000
 					)
 				||	(
 							value->v.u.lwordval[3] == 0
@@ -2330,7 +2330,7 @@ _begin( numBits )
 					(
 							value->v.u.lwordval[3] == 0xffffffff
 						&&	value->v.u.lwordval[2] == 0xffffffff
-						&&	(unsigned long) value->v.u.lwordval[1] >= 0x80000000
+						&&	(unsigned) value->v.u.lwordval[1] >= 0x80000000
 					)
 				||	(
 							value->v.u.lwordval[3] == 0
@@ -2721,11 +2721,11 @@ _begin( malloc2 )
 	// Track the extent of the heap, so free2 knows if
 	// we're deallocating data on the heap.
 	
-	if( (unsigned long) p < (unsigned long) minAdrs )
+	if( (unsigned) p < (unsigned) minAdrs )
 	{
 		minAdrs = p;
 	}
-	else if( (unsigned long) p > (unsigned long) maxAdrs )
+	else if( (unsigned) p > (unsigned) maxAdrs )
 	{
 		maxAdrs = p;
 	}
@@ -2987,8 +2987,8 @@ _begin( free2 )
 		pp2 = pp + mpp->size + sizeof( mallocHeader_t );
 		if
 		( 
-				(unsigned long) pp < (unsigned long) minAdrs 
-			||	(unsigned long) pp > (unsigned long) maxAdrs 
+				(unsigned) pp < (unsigned) minAdrs 
+			||	(unsigned) pp > (unsigned) maxAdrs 
 		)
 		{
 			fprintf( stdout, "Address in free2 is out of range\n" );
@@ -3104,8 +3104,8 @@ _begin( free2 )
 	
 		if
 		( 
-				(unsigned long) *p >= (unsigned long) minAdrs 
-			&&	(unsigned long) *p <= (unsigned long) maxAdrs 
+				(unsigned) *p >= (unsigned) minAdrs 
+			&&	(unsigned) *p <= (unsigned) maxAdrs 
 		)
 		{	
 			free( *p );
@@ -3474,7 +3474,7 @@ _begin( PrintList2 )
 			fprintf
 			( 
 				PrintOut,
-				"%lx_%08lx_%08lx_%08lx",
+				"%x_%08x_%08x_%08x",
 				v1->v.u.lwordval[3],
 				v1->v.u.lwordval[2],
 				v1->v.u.lwordval[1],
@@ -3486,7 +3486,7 @@ _begin( PrintList2 )
 			fprintf
 			( 
 				PrintOut,
-				"%lx_%08lx_%08lx",
+				"%x_%08x_%08x",
 				v1->v.u.lwordval[2],
 				v1->v.u.lwordval[1],
 				v1->v.u.lwordval[0]
@@ -3497,7 +3497,7 @@ _begin( PrintList2 )
 			fprintf
 			( 
 				PrintOut,
-				"%lx_%08lx",
+				"%x_%08x",
 				v1->v.u.lwordval[1],
 				v1->v.u.lwordval[0]
 			);
@@ -3507,7 +3507,7 @@ _begin( PrintList2 )
 			fprintf
 			( 
 				PrintOut,
-				"%lx",
+				"%x",
 				v1->v.u.lwordval[0]
 			);
 			
@@ -3520,7 +3520,7 @@ _begin( PrintList2 )
 			fprintf
 			( 
 				PrintOut,
-				"%lx_%08lx",
+				"%x_%08x",
 				v1->v.u.lwordval[1],
 				v1->v.u.lwordval[0]
 			);
@@ -3530,7 +3530,7 @@ _begin( PrintList2 )
 			fprintf
 			( 
 				PrintOut,
-				"%lx",
+				"%x",
 				v1->v.u.lwordval[0]
 			);
 			
@@ -3541,7 +3541,7 @@ _begin( PrintList2 )
 			fprintf
 			( 
 				PrintOut,
-				"%lx",
+				"%x",
 				v1->v.u.lwordval[0]
 			);
 	
@@ -3551,7 +3551,7 @@ _begin( PrintList2 )
 			fprintf
 			( 
 				PrintOut,
-				"%lx",
+				"%x",
 				v1->v.u.lwordval[0] & 0xffff
 			);
 	
@@ -3561,7 +3561,7 @@ _begin( PrintList2 )
 			fprintf
 			( 
 				PrintOut,
-				"%lx",
+				"%x",
 				v1->v.u.lwordval[0] & 0xff
 			);
 	

@@ -249,7 +249,7 @@ typedef struct TLSEtree
 	struct 	TLSEtree 	*left;
 	struct	TLSEtree 	*right;
 	char	 			*StmtLbl;
-	unsigned long 		Count;
+	unsigned	 		Count;
 
 } TLSEtree;
 
