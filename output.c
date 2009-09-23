@@ -1372,12 +1372,12 @@ _begin( EmitDotBSS )
 					"  .bss\n\n"
 				);
 				
-			_else	// Mac OSX's Gas has no .bss
+			_else	// Mac OSX's Gas has no .bss, must use .section
 			
 				asmPuts
 				(
 					"\n\n" 
-					"  .data\n\n"
+					"  .section __DATA, __BSS\n\n"
 				);
 			
 			_endif
@@ -1396,24 +1396,12 @@ _begin( EmitDotBSS )
 		
 		_case( fasm )
 		
-			_if( targetOS == windows_os )
-
-				asmPuts
-				( 
-					"\n\n"
-					"  section '.bss'  readable writeable align 16\n\n"
-				);
+			asmPuts
+			( 
+				"\n\n"
+				"  section '.bss'  readable writeable align 16\n\n"
+			);
 				
-			_else
-
-				asmPuts
-				( 
-					"\n\n"
-					"  section '.bss' writeable align 16\n\n"
-					
-				);
-				
-			_endif
 			
 		_endcase
 		
