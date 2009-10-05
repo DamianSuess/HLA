@@ -6852,11 +6852,8 @@ begin subval;
 			// as 128-bit objects.  So we have to do a full
 			// 128-bit sub here:
 			
-			mov( [esi], ax );
-			sub( ax, [edi] );
-			pushfd();
-			mov( [esi+2], ax );
-			sbb( ax, [edi+2] );
+			mov( [esi], eax );
+			sub( eax, [edi] );
 			mov( [esi+4], eax );
 			sbb( eax, [edi+4] );
 			mov( [esi+8], eax );

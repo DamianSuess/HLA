@@ -9,3 +9,4 @@
 // Uncomment the following to get quick traces of the code:
 
 //#define _here  fprintf( MsgOut, "@:%s:%s(%d)\n", __FILE__, _name, __LINE__ )
+//#define _here  asmPrintf( ";/* @:%s:%s(%d)*/\n", __FILE__, _name, __LINE__ )

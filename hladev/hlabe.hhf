@@ -27,23 +27,26 @@ const
 	
 
 
-	tknEBX		:text := "(type tokenStmt_t [ebx])";
-	dispEBX		:text := "(type disp_t [ebx])";
-	rel1EBX		:text := "(type rel_1_Stmt_t [ebx])";
-	rel2EBX		:text := "(type rel_2_Stmt_t [ebx])";
-	rel14EBX	:text := "(type rel_1_4_Stmt_t [ebx])";
-	rel4EBX		:text := "(type rel_4_Stmt_t [ebx])";
-	jmpEBX		:text := "(type jmp_Stmt_t [ebx])";
-	srcEBX		:text := "(type sourceFileList_t [ebx])";
-	dupEBX		:text := "(type dupStmt_t [ebx])";
-	tblEDX		:text := "(type tableNode_t [edx])";
-	tblEAX		:text := "(type tableNode_t [eax])";
-	symEDX		:text := "(type symbol_t [edx])";
-	symEAX		:text := "(type symbol_t [eax])";
-	symECX		:text := "(type symbol_t [ecx])";
-	symEBX		:text := "(type symbol_t [ebx])";
-	relocESI	:text := "(type w.IMAGE_RELOCATION [ESI])";
-	relocElfESI	:text := "(type Elf32_Rel [ESI])";
+	tknEBX			:text := "(type tokenStmt_t [ebx])";
+	dispEBX			:text := "(type disp_t [ebx])";
+	rel1EBX			:text := "(type rel_1_Stmt_t [ebx])";
+	rel2EBX			:text := "(type rel_2_Stmt_t [ebx])";
+	rel14EBX		:text := "(type rel_1_4_Stmt_t [ebx])";
+	rel4EBX			:text := "(type rel_4_Stmt_t [ebx])";
+	jmpEBX			:text := "(type jmp_Stmt_t [ebx])";
+	srcEBX			:text := "(type sourceFileList_t [ebx])";
+	dupEBX			:text := "(type dupStmt_t [ebx])";
+	tblEDX			:text := "(type tableNode_t [edx])";
+	tblEAX			:text := "(type tableNode_t [eax])";
+	symEDX			:text := "(type symbol_t [edx])";
+	symEAX			:text := "(type symbol_t [eax])";
+	symECX			:text := "(type symbol_t [ecx])";
+	symEBX			:text := "(type symbol_t [ebx])";
+	relocEBX		:text := "(type relocStmt_t [ebx])";
+	relocESI		:text := "(type w.IMAGE_RELOCATION [ESI])";
+	relocElfESI		:text := "(type Elf32_Rel [ESI])";
+	relocMachoESI	:text := "(type relocation_info [esi])";
+	scRelocMachoESI	:text := "(type scattered_relocation_info [esi])";
 
 	// ELF constants
 	
@@ -594,6 +597,33 @@ type
 		endrecord;
 		
 		
+	scattered_relocation_info:
+		record
+
+   			r_address	:dword;	/* offset in the section to what is being
+				   					relocated */
+			// r_type:4,	/* if not 0, machine specific relocation type */
+			// r_length:2,	/* 0=byte, 1=word, 2=long, 3=quad */
+			// r_pcrel:1, 	/* was relocated pc relative already */
+			// r_scattered:1;	/* 1=scattered, 0=non-scattered (see above) */
+			
+			r_value		:int32;	/* the value the item to be relocated is
+				   					refering to (without any offset added) */
+		endrecord;
+
+		
+const
+		r_pcrel		:= @{24};
+		r_length_b	:= @{};
+		r_length_w	:= @{25};
+		r_length_d	:= @{26};
+		r_length_q	:= @{25,26};
+		r_extern	:= @{27};
+		
+		r_scattered	:= @{31, 29};	// Also dword length.
+		
+
+type		
 	reloc_type_generic:
 		enum
 		{
@@ -628,6 +658,9 @@ type
 const
 		MH_MAGIC		:dword := $feedface;
 		MH_OBJECT		:dword := $1;
+		
+		i386cpu			:= 7;
+		i386sub			:= 3;
 		
 		/* Constants for the cmd field of all load commands, the type */
 		
@@ -692,13 +725,6 @@ const
 
 		R_ABS							:= 0;		/* absolute relocation type for Mach-O files */
 
-		/* mask to be applied to the r_address field 
-			of a relocation_info structure to tell that
-			is is really a scattered_relocation_info
-			stucture 
-		*/
-		
-		R_SCATTERED						:= $80000000;	
 
 	
 	 
@@ -915,7 +941,7 @@ type
 	
 		next		:pointer to symbol_t;
 		id			:string;
-		symIndex	:uns32;				// index to symbol table entry
+		symIndex	:uns32;				// index to object file symbol table entry
 		offset		:dword;
 		size		:uns32;
 		section		:section_t;
@@ -1231,7 +1257,8 @@ static
 		codeList	:tokenList_t;
 		dataList	:tokenList_t;
 		bssList	    :tokenList_t;
-		verbose		:boolean
+		verbose		:boolean;
+		objType		:obj_t
 	);	@external;
 	
 	
@@ -1271,14 +1298,14 @@ static
 	
 	procedure compileMACHO
 	( 
-				inputFilename	:string;
-				outputFilename	:string; 
-				start_source	:dword; 
-				end_source		:dword;
-				verbose			:boolean; 
-		result	codeListPtr		:tokenList_t;
-		result	dataListPtr		:tokenList_t;
-		result	bssListPtr	    :tokenList_t
+			inputFilename	:string;
+			outputFilename	:string; 
+			start_source	:dword; 
+			end_source		:dword;
+			verbose			:boolean; 
+		var	codeListPtr		:tokenList_t;
+		var	dataListPtr		:tokenList_t;
+		var	bssListPtr	    :tokenList_t
 	);	@external;
 	
 	

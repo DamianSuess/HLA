@@ -1377,7 +1377,7 @@ _begin( EmitDotBSS )
 				asmPuts
 				(
 					"\n\n" 
-					"  .section __DATA, __BSS\n\n"
+					"  .section __DATA, __bss\n\n"
 				);
 			
 			_endif
@@ -2419,7 +2419,14 @@ _begin( EmitExternDirective )
 					CurSym->Name
 				);
 				
-			//else no output for Mac OSX Gas
+			_else // output for Mac OSX Gas
+				
+											   
+				asmPrintf
+				(
+					"        .globl    %s\n",
+					CurSym->Name
+				);
 				
 			_endif
 			
@@ -2549,7 +2556,6 @@ _begin( EmitExternCodeSymbols )
 		CurSym = extHashTable[ index ];
 		_while( CurSym != NULL )
 
-
 			_if
 			(
 					!CurSym->IsPublic 
@@ -2559,6 +2565,7 @@ _begin( EmitExternCodeSymbols )
 					)
 				&&	CurSym->pType == tLabel 
 			)
+
 
 				EmitExternDirective( CurSym, "" );
 				
@@ -2591,14 +2598,17 @@ _begin( extPubIterator )
 	outputBuf				*save = asmBuf;
 	struct		SymNode		*sym;
 	
+	_here;
+	
 	// This function used to emit the external symbols.
 	// However, that code was moved to the segment output function.
 
 	asmBuf = output;
 
-	// Emit the public symbols (must go in the text segment):
+	// Emit the public symbols first:
 
-	EmitDotText( 0 );
+	
+	
 	asmPuts( "\n" );
 	_for( index=0, index < 2048, ++index )
 	
@@ -2685,6 +2695,8 @@ _begin( extPubIterator )
 	
 	// Emit all the external code symbols here:
 	
+	EmitDotText( 0 );
+	asmPuts( "\n" );
 	EmitExternCodeSymbols();	
 	asmPuts( "\n\n" );
 	
@@ -5195,6 +5207,19 @@ static unsigned fp_sti_st0_opcodes[ num_fp_instrs ] =
 	
 };
 
+static unsigned fp_sti_st0_opcodes_mac[ num_fp_instrs ] =
+{
+	0xc0d8, // fadd_instr,
+	0xc8d8, // fmul_instr,
+	0xd0d8, // fcom_instr,
+	0xd8d8, // fcomp_instr
+	0xe8d8, // fsubr_instr,
+	0xe0d8, // fsub_instr,
+	0xf8d8, // fdivr_instr,
+	0xf0d8, // fdiv_instr,
+	
+};
+
 // fp_st0_sti_opcodes must be kept in sync with (enum fp_instrs) in output.h!
 
 static unsigned fp_st0_sti_opcodes[ num_fp_instrs ] =
@@ -5207,6 +5232,19 @@ static unsigned fp_st0_sti_opcodes[ num_fp_instrs ] =
 	0xe0dc, // fsubr_instr,
 	0xf8dc, // fdiv_instr,
 	0xf0dc, // fdivr_instr,
+};
+
+
+static unsigned fp_st0_sti_opcodes_mac[ num_fp_instrs ] =
+{
+	0xc0dc, // fadd_instr,
+	0xc8dc, // fmul_instr,
+	0xd0d8,	// fcomp_instr	-- reversed operands!
+	0xd8d8, // fcompp_instr	-- reversed operands!
+	0xe0dc, // fsubr_instr,	-- Swapped with fsub for st0, st0
+	0xe8dc, // fsub_instr,
+	0xf0dc, // fdivr_instr,	-- Swapped with fdiv for st0, st0
+	0xf8dc, // fdiv_instr,
 };
 
 
@@ -5230,7 +5268,15 @@ _begin( fp_arith_sti_st0_instr )
 	);
 	_if( !sourceOutput )
 		 
-		EmitWordConst( fp_sti_st0_opcodes[instr] | (regCode(fpreg) << 8) );
+		_if( targetOS == macOS_os && fpreg == reg_st0 )
+		
+			EmitWordConst( fp_sti_st0_opcodes_mac[instr] | (regCode(fpreg) << 8) );
+			
+		_else
+		
+			EmitWordConst( fp_sti_st0_opcodes[instr] | (regCode(fpreg) << 8) );
+			
+		_endif
 			
 	_endif
 			
@@ -5277,8 +5323,12 @@ _begin( fp_arith_st0_sti_instr )
 	
 		// Most of the back-end assemblers encode ST0 using the fp_sti_st0
 		// opcode.  Let's replicate that encoding.
-				
-		_if( fpreg == reg_st0 && assembler != nasm )
+		
+		_if( fpreg == reg_st0 && targetOS == macOS_os )
+		
+			EmitWordConst( fp_sti_st0_opcodes_mac[instr] | (regCode(fpreg) << 8) );
+
+		_elseif( fpreg == reg_st0 && assembler != nasm )
 		
 			EmitWordConst( fp_sti_st0_opcodes[instr] | (regCode(fpreg) << 8) );
 
@@ -7816,9 +7866,9 @@ _begin( Emit_Gv_Ew_r )
 	assert( instr == lsl_instr || instr == lar_instr );
 	assert( src >= reg_ax && src <= reg_edi );
 	assert( dest >= reg_ax && dest <= reg_edi );
-	_if( assembler == fasm && isReg32( dest ) )
+	_if( (assembler == fasm || assembler == gas) && isReg32( dest ) )
 	
-		// FASM only allows 16-bit registers
+		// FASM/Gas only allows 16-bit registers
 		
 		dest = (dest & 0x7) + reg_ax;
 		src = (src & 0x7) + reg_ax;
@@ -7855,7 +7905,7 @@ _begin( Emit_Gv_Ew_m )
 
 	assert( instr == lsl_instr || instr == lar_instr );
 	assert( isReg1632( reg ) );
-	_if( assembler == fasm && isReg32( reg ))
+	_if( (assembler == fasm || assembler == gas) && isReg32( reg ))
 	
 		// FASM only allows 16-bit registers.
 		
@@ -8103,7 +8153,7 @@ _begin( Emit_Vps_Wq_m )
 	
 	assert( instr == unpcklps_instr || instr == unpckhps_instr );
 	assert( reg < 8 );
-	doSource = sourceOutput && assembler != tasm;
+	doSource = sourceOutput && assembler != tasm && targetOS != macOS_os;
 	_if( 16 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 16;
@@ -8879,7 +8929,8 @@ _begin( Emit_Vdq_Wq_r )
 					instr != punpcklqdq_instr
 				&&	instr != punpckhqdq_instr
 				&&	!(assembler == tasm && isXmm)
-				&&	!(assembler == gas && instr == lddqu_instr) 
+				&&	!(assembler == gas && instr == lddqu_instr)
+				&&	targetOS != macOS_os 
 			);
 			
 	asm2oprr
@@ -8922,6 +8973,7 @@ _begin( Emit_Vdq_Wq_m )
 				&&	instr != punpckhqdq_instr
 				&&	!(assembler == tasm && isXmm)
 				&&	!(assembler == gas && instr == lddqu_instr)
+				&&	targetOS != macOS_os 
 			);
 			
 	rgsz = _ifx( isXmm, 16, 8 );
@@ -8975,6 +9027,7 @@ _begin( Emit_Vdq_Wd_r )
 				&&	instr != punpckhqdq_instr
 				&&	!(assembler == tasm && isXmm)
 				&&	!(assembler == gas && instr == lddqu_instr) 
+				&&	targetOS != macOS_os 
 			);
 			
 	asm2oprr
@@ -9017,6 +9070,7 @@ _begin( Emit_Vdq_Wd_m )
 				&&	instr != punpckhqdq_instr
 				&&	!(assembler == tasm && isXmm)
 				&&	!(assembler == gas && instr == lddqu_instr)
+				&&	targetOS != macOS_os 
 			);
 			
 	rgsz = _ifx( isXmm, 16, 4 );
@@ -10231,7 +10285,7 @@ _begin( EmitMov_r_sr )
 	);
 	_if( !sourceOutput )
 	
-		_if( assembler == masm || assembler == hlabe  )
+		_if( assembler == masm || (assembler == hlabe && targetOS != macOS_os) )
 		
 			EmitByteConst(  0x66 , "size prefix" );
 			
@@ -15357,7 +15411,7 @@ _begin( EmitXchg_r_r )
 		
 			EmitByteConst(  0x90 | regCode( src ) , "" );
 			
-		_elseif( assembler == gas )
+		_elseif( assembler == gas || targetOS == macOS_os )
 
 			EmitByteConst( 0x86 + isReg1632( src ), "" );
 			EmitByteConst( 0xc0 | (regCode( src ) << 3) | regCode( dest ), "mod-reg-r/m" );
@@ -17095,6 +17149,16 @@ _end( EmitPublic )
 
 
 
+void
+EmitTypedPublic( char *theLabel, enum PrimType pType )
+_begin( EmitTypedPublic )
+
+	extLookup( NULL, theLabel, pType, 1, 0, 0 );
+
+_end( EmitTypedPublic )
+
+
+
 /*
 ** EmitAdrs-
 **
@@ -18513,7 +18577,7 @@ _begin( EmitDword )
 		_case( gas )
 
 			asmPuts( "        .space     4\n" );
-			
+				
 		_endcase
 		
 		_case( fasm )
@@ -19803,17 +19867,37 @@ _end( EmitLabelledString )
 void
 EmitBackPatchss
 (
-	char	*sym,
-	char	*equals
+	char				*sym,
+	char				*equals,
+	enum	PrimType	pType
 )
 _begin( EmitBackPatchss )
 
 	char	bp[256];
-	struct	bpList_t *thisBP;
+	struct	bpList_t	*thisBP;
+	struct	SymNode		*eqSym;
 
+	// Force a reference of equals:
+	
+	eqSym = lookup( equals, 1 );
+	_if( eqSym != NULL && eqSym->IsExternal && eqSym->IsReferenced == NULL )
+	
+		// Force a reference if the symbol is external:
+		
+		extLookup
+		( 
+			eqSym, 
+			equals, 
+			pType, 
+			0,
+			1,
+			0 
+		);
+		
+	_endif
 
 	_switch( assembler )
-	
+										
 		_case( gas )
 
 			_if( gasSyntax == macGas )
@@ -24790,7 +24874,7 @@ _begin( push_sr )
 	_else
 	
 		asmPush( segregmap[theSegReg][assembler], 2, "", 1 );
-		_if( assembler == gas )
+		_if( assembler == gas || targetOS == macOS_os )
 		
 			EmitByteConst( 0x66, "size prefix" );
 			
@@ -25158,7 +25242,7 @@ _begin( pop_sr )
 	_else
 	
 		asmPop( segregmap[srcReg][assembler], 2, 1 );
-		_if( assembler == gas )
+		_if( assembler == gas || targetOS == macOS_os )
 		
 			EmitByteConst(  0x66 , "size prefix" );
 			
@@ -25467,7 +25551,7 @@ _begin( OutputVMT )
 			// in case we're inheriting fields from some class that
 			// isn't defined in the current module:
 			
-			extLookup( ClassPtr, ClassPtr->StaticName, tLabel, 0, 1, 0 );
+			extLookup( ClassPtr, ClassPtr->StaticName, tDWord, 0, 1, 0 );
 
 		_endif
 
