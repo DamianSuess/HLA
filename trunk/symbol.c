@@ -3509,7 +3509,7 @@ _begin( PrintSize )
 			MsgOut, 
 			", ID='%s' ref:%d", 
 			Sym->StaticName, 
-			_ifx( Sym->IsReferenced != NULL, Sym->IsReferenced->ForceRef, 0 ) 
+			_ifx( Sym->IsReferenced != NULL, Sym->IsReferenced->ForceRef, -1 ) 
 		);
 
 	_endif

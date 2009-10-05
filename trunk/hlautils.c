@@ -708,7 +708,7 @@ _begin( yyerror )
 				MsgOut, 
 				"Syntax error.\n"
 				"Near: << %s >>\n\n",
-				(char *) &yytext 
+				(char *) yytext 
 			);
 
 		_else
@@ -727,7 +727,7 @@ _begin( yyerror )
 				"%s.\n"
 				"Near: << %s >>\n",
 				msg, 
-				(char *) &yytext 
+				(char *) yytext 
 			);
 
 

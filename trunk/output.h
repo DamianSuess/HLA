@@ -1813,6 +1813,7 @@ extern void EmitTypedExtern
 );
 extern void EmitVMTExtern( struct SymNode *sym, char *theSymbol );
 extern void EmitPublic( char *theLabel );
+extern void EmitTypedPublic( char *theLabel, enum PrimType pType );
 extern void EmitAdrs( char *theLabel );
 extern void extPubIterator( outputBuf *output );
 extern void EmitPointer( union YYSTYPE *adrs );
@@ -1902,7 +1903,7 @@ extern void EndSeg( char *SegName );
  */
 
 extern void IterateBP( void );
-extern void EmitBackPatchss( char *sym, char *equals );
+extern void EmitBackPatchss( char *sym, char *equals, enum PrimType pType );
 extern void EmitBackPatchds( char *sym, int symNum, char *equals );
 extern void EmitBackPatchdsc
 ( 

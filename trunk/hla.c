@@ -114,11 +114,11 @@ FILE *MsgOut;
 	#define unixOS
 	enum	OSChoice		targetOS 	= macOS_os;
 	enum	OSChoice		hostOS	 	= macOS_os;
-	enum	AsmChoice		SourceFmt 	= gas;
+	enum	AsmChoice		SourceFmt 	= hlabe;
 	enum	gasChoice		gasSyntax	= macGas;
 	enum	ObjFormat		ObjFmt 		= macho;
 	enum	LinkerChoice	linker 		= ld;
-			int				Internal 	= 0;
+			int				Internal 	= 1;
 			char			*OSName		= "Mac OSX";
 			char			fileSep		= '/';
 			char			*fileSepStr	= "/";
@@ -831,11 +831,11 @@ _begin( doCmdLine)
 			_elseif( _streq( ucArg, "MACOS" ))
 			
 				targetOS 	= macOS_os;
-				SourceFmt	= gas;
+				SourceFmt	= hlabe;
 				gasSyntax	= macGas;
 				ObjFmt 		= macho;
 				linker 		= ld;
-				Internal 	= 0;
+				Internal 	= 1;
 				
 			_endif
 			
@@ -2274,35 +2274,7 @@ _begin( main )
 			
 		_endif
 		
-	_endif
-	
-	 
-
-	_if
-	( 
-			ObjFmt == macho
-		&& 	(
-					SourceFmt != gas 
-				||	gasSyntax != macGas
-			)
-		&&	!SourceOnly
-	)
-	
-		fprintf
-		(
-			MsgOut,
-			"\n"
-			"********************************************************\n"
-			"Warning: MACHO output is only available when using GASX.\n"
-			"********************************************************\n"
-			"\n"
-		);
-		SourceFmt 	= gas;
-		gasSyntax 	= macGas;
-		Internal	= 0;
-		
-	_endif
-	
+	_endif	
 	
 	
 	_if
@@ -3363,12 +3335,13 @@ _begin( main )
 		sprintf
 		( 
 			CmdLine, 
-			"ld %s %s %s  -o \"%s\" %s \0",
+			"ld %s %s %s  -o \"%s\" %s %c",
 			_ifx( gasSyntax == macGas, "-arch i386", "" ),
 			linkerOptions,
 			LinkOpts,
 			ExeName,
-			includeLib
+			includeLib,
+			0
 		);
 			
 		

@@ -711,12 +711,12 @@ extern void SetReferenced(struct	SymNode	*sym);
 
 extern void extLookup
 ( 
-	struct	SymNode	*sym, 
-	char			*theLabel, 
-	enum PrimType	theType, 
-	char			IsPublic,
-	char			ForceRef,
-	char			isVMT 
+	struct	SymNode		*sym, 
+	char				*theLabel, 
+	enum 	PrimType	theType, 
+	char				IsPublic,
+	char				ForceRef,
+	char				isVMT 
 );
 	
 	

@@ -3,7 +3,7 @@
 //	Backend for HLA that produces an object code file.
 
 unit hlabeUnit;																  
-?@nodisplay := true;
+?@nodisplay := true;		 
 ?@noalignstack := true;
 
 ?runFromHLA := false;	// Set to true if calling from an HLA program.
@@ -18,6 +18,7 @@ const
 	coffSymEBX		:text := "(type w.IMAGE_SYMBOL [ebx])";
 	elfSymEAX		:text := "(type Elf32_Sym [eax])";
 	elfSymEBX		:text := "(type Elf32_Sym [ebx])";
+	MachoSymEBX		:text := "(type nlist [ebx])";
 	 
 type
 	pRelocations	:pointer to byte; //w.IMAGE_RELOCATION or Elf32_Rel;
@@ -34,15 +35,28 @@ static
 	numELFsyms		:uns32;
 	elfSymSize		:dword;
 	
+	MachoSyms		:dword;
+	MachoSymSize	:dword;
+	numMachoSyms	:uns32;
+	
+	
 	stringTable		:pByte;
 	strTblOffset	:dword;
 	strTblSize		:uns32;
 
 	codeSize		:dword;
+	codeStart		:dword;
+	codeEnd			:dword;
 	numCodeRelocs	:dword;
+	
 	dataSize		:dword;
+	dataStart		:dword;
+	dataEnd			:dword;
 	numDataRelocs	:dword;
+	
 	bssSize			:dword;
+	bssStart		:dword;
+	bssEnd			:dword;
 	
     symbolTable     :table_t;
     equatesTable    :table_t;
@@ -684,7 +698,7 @@ static
 	_proc( RelExpr );
 	var
 		accResult	:dword;				// Displacement/immediate value
-		symbol		:tableNodePtr_t;	// Pointer to relocatabe object.
+		symbol		:tableNodePtr_t;	// Pointer to relocatable object.
 		
 		
 		#macro testReloc;
@@ -755,7 +769,6 @@ static
 					str.init( idStrBuf, @size( idStrBuf ) );
 					mov( eax, idStr );
 					grabID( idStr );
-					
 					symbolTable.getNode( idStr );
 					if( (type tableNode_t [eax]).Value = 0 ) then
 
@@ -777,7 +790,6 @@ static
 						// symbol is actually defined.
 						
 						mov( undefinedSection_c, symEAX.section );
-												
 						
 					else    // Symbol is already defined
 					
@@ -1008,6 +1020,7 @@ static
 			add( curSize, edi );	// Index to string starting position.
 			mov( strEnd, ecx );		// Compute string length
 			sub( esi, ecx );
+			cld();
 			rep.movsb();
 			
 			pop( ecx );
@@ -1614,7 +1627,6 @@ static
 		mov( edx, edxSave );
 		mov( esi, esiSave );
 		mov( edi, ediSave );
-		cld();
 		
 		// Save away pointers to lastRec's prev record (the one we will
 		// be concatenating data to) and it's previous record (that we
@@ -1642,6 +1654,7 @@ static
 		mov( (type varLen_t [esi]).numBytes, ecx );
 		add( @size( varLen_t ), ecx );
 		mov( eax, edi );
+		cld();
 		rep.movsb();
 		
 		// Set up the new length in the record:
@@ -1655,6 +1668,7 @@ static
 		mov( lastRec, esi );
 		mov( (type varLen_t [esi]).numBytes, ecx );
 		add( @size( varLen_t ), esi );
+		cld();
 		rep.movsb();
 		
 		// Okay, link the new record into the list after newPrev:
@@ -2187,8 +2201,10 @@ _begin( lexer );
 						mov( NULL, symEAX.next );
 						mov( (type tableNode_t [ecx]).id, ecx );
 						mov( ecx, symEAX.id );
-						mov( currentSection, cl );
-						mov( cl, symEAX.section );
+
+						// Must define the section later:
+						
+						mov( undefinedSection_c, symEAX.section );
 						
 					else    // Symbol is already defined
 					
@@ -2216,11 +2232,8 @@ _begin( lexer );
 						
 						or( isPublic_c, symECX.flags );
 						
-						// Set the section to the current section number
-						
-						mov( currentSection, al );
-						mov( al, symECX.section );
-						
+						// Note: leave the section number alone.
+												
 					endif;
                     skipToEoln();
 					
@@ -3227,6 +3240,7 @@ _begin( addCOFFsym );
 		mov( 0, coffSymEBX.N.LongName[0] );
 		mov( 0, coffSymEBX.N.LongName[4] );
 		lea( edi, coffSymEBX.N.ShortName );
+		cld();
 		rep.movsb(); 
 	
 	else
@@ -3253,6 +3267,7 @@ _begin( addCOFFsym );
 			
 		mov( edx, edi );
 		add( stringTable, edi );
+		cld();
 		rep.movsb();
 		
 		// Must zero-terminate the name in the strings table:
@@ -3293,6 +3308,7 @@ _begin( addCOFFsym );
 		add( @size( w.IMAGE_SYMBOL ), edi ); 
 		add( COFFsyms, edi );
 		intmul( @size( w.IMAGE_SYMBOL ), eax, ecx );
+		cld();
 		rep.movsb();
 		
 	endif;
@@ -3313,6 +3329,9 @@ _begin( addCOFFsym );
 
 	
 _end( addCOFFsym );
+
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -3391,6 +3410,7 @@ _begin( addELFsym );
 			
 		mov( edx, edi );
 		add( stringTable, edi );
+		cld();
 		rep.movsb();
 
 		// Must zero-terminate the name in the strings table:
@@ -3434,6 +3454,128 @@ _end( addELFsym );
 
 
 
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// addMachoSym-
+//
+//	Adds a symbol to the ELF symbol table.
+
+_proc( addMachoSym )
+(
+		theName				:string;
+		theValue			:dword;
+		theType				:byte;
+		sectionNumber		:byte
+);
+var
+_begin( addMachoSym );
+
+	push( eax );
+	push( ebx );
+	push( ecx );
+	push( edx );
+	push( esi );
+	push( edi );
+	
+	
+	// See if we have room in the symbol table for the new symbol:
+	
+	intmul( @size( nlist ), numMachoSyms, ebx );
+	lea( eax, [ebx+@size(nlist)] );
+	if( eax > MachoSymSize ) then 
+			
+		// We've exceeded the size of the currently allocated
+		// Mach-O symbol table, so make a bigger one:
+		
+		shl( 1, MachoSymSize );		// Double the size
+		mem.realloc( MachoSyms, MachoSymSize );
+		mov( eax, MachoSyms );
+		
+	endif;
+	
+	// Compute pointer to next free symbol slot:
+	
+	add( MachoSyms, ebx );
+	
+	// We have to create a strings table entry and copy the name there.
+	 
+	mov( theName, esi );
+	assert( esi <> NULL );
+	
+	str.length( esi );
+	mov( eax, ecx );
+	mov( strTblOffset, edx );
+	lea( eax, [edx+ecx+1] );	// New "end of string table" value.
+	mov( eax, strTblOffset );
+	
+	// See if there is room for the new string in the table.
+	
+	if( eax > strTblSize ) then
+	
+		// Must allocate more storage for the strings table:
+		
+		shl( 1, strTblSize );	// Double existing size
+		mem.realloc( stringTable, strTblSize );
+		mov( eax, stringTable );
+		
+	endif;
+		
+	mov( edx, edi );
+	add( stringTable, edi );
+	cld();
+	rep.movsb();
+
+	// Must zero-terminate the name in the strings table:
+	
+	mov( 0, (type byte [edi]));
+			
+		
+	
+	// Must have the offset into the string table in the symbol table entry:
+	
+	mov( edx, MachoSymEBX.n_strx );
+	
+	// Okay, copy the remaining fields to the symbol table entry:
+	 
+	mov( theValue, eax );
+	mov( eax, MachoSymEBX.n_value );
+	mov( theType, al );
+	mov( al, MachoSymEBX.n_type );
+	mov( sectionNumber, al );
+	mov( al, MachoSymEBX.n_sect );
+	mov( 0, MachoSymEBX.n_desc );
+	
+	
+	
+	pop( edi );
+	pop( esi );
+	pop( edx );
+	pop( ecx );
+	pop( ebx );
+	pop( eax );
+	
+_end( addMachoSym );
+
+
+
+
+
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // buildRaw-
@@ -3465,6 +3607,7 @@ _end( addELFsym );
 _proc( buildRaw )
 (
 	list			:tokenList_t;
+	sectionStart	:dword;
 	relocations		:pRelocations;
 	numRelocs		:uns32;
 	rawInfo			:pByte;
@@ -3613,6 +3756,7 @@ _begin( buildRaw );
 						// In a readonly or data section, fill with zeros.
 						
 						xor( eax, eax );
+						cld();
 						rep.stosb();
 					
 					endif;
@@ -3646,6 +3790,7 @@ _begin( buildRaw );
 				if( ecx <> 0 ) then
 				
 					lea( esi, (type byteStmt_t [ebx]).byteData );
+					cld();
 					rep.movsb();
 									
 				endif;
@@ -3697,16 +3842,19 @@ _begin( buildRaw );
 				jb byteDup;
 				ja dwordDup;
 				
+					cld();
 					rep.stosw();
 					jmp done;
 					
 				byteDup:
 				
+					cld();
 					rep.stosb();
 					jmp done;
 					
 				dwordDup:
 				
+					cld();
 					rep.stosd();
 					
 				done:
@@ -3738,7 +3886,7 @@ _begin( buildRaw );
 				
 				
 			case( rel1_4_tkn )
-			
+
 				if( rel14EBX.curOfsSize = 1 ) then
 				
 					// 1-byte opcode + 1-byte displacement:
@@ -3784,6 +3932,12 @@ _begin( buildRaw );
 								mov( w.IMAGE_REL_I386_REL32, relocESI.Type1 );
 								add( @size( w.IMAGE_RELOCATION ), esi );
 								
+								// Need to store offset field into the
+								// displacement rather than the disp field:
+								
+								mov( rel14EBX.offset, eax );
+								mov( eax, [edi-4] );
+								
 							elseif( objType <= elfFreeBSD_c ) then
 							
 								mov( tknEBX.instrOffset, edx );
@@ -3797,6 +3951,32 @@ _begin( buildRaw );
 								
 								add( @size( Elf32_Rel ), esi );
 							
+								// Need to store offset field into the
+								// displacement rather than the disp field:
+								
+								mov( rel14EBX.offset, eax );
+								mov( eax, [edi-4] );
+							
+							elseif( objType = macho_c ) then
+							
+								mov( tknEBX.instrOffset, edx );
+								add( 2, edx );
+								mov( edx, relocMachoESI.r_address );
+								
+								mov( symEAX.symIndex, eax );
+								or( r_pcrel | r_length_d | r_extern, eax );
+								mov( eax, relocMachoESI.r_symbolnum );
+								add( @size( relocation_info ), esi );
+								
+								// Need to store the distance to the beginning
+								// of the section into the instruction's 
+								// displacement field:
+							
+								mov( rel4EBX.instrOffset, eax );
+								add( 6, eax );
+								neg( eax );
+								mov( eax, [edi-4] );
+							
 							else
 							
 								stderr.put
@@ -3806,11 +3986,6 @@ _begin( buildRaw );
 								
 							endif;
 							
-							// Need to store offset field into the
-							// displacement rather than the disp field:
-							
-							mov( rel14EBX.offset, eax );
-							mov( eax, [edi-4] );
 							
 						endif;
 						
@@ -3890,6 +4065,26 @@ _begin( buildRaw );
 								// ELF needs this magic value here:
 								
 								mov( $FFFF_FFFC, eax );
+								mov( eax, [edi-4] );
+							
+							elseif( objType = macho_c ) then
+							
+								mov( tknEBX.instrOffset, edx );
+								add( 1, edx );
+								mov( edx, relocMachoESI.r_address );
+								
+								mov( symEAX.symIndex, eax );
+								or( r_pcrel | r_length_d | r_extern, eax );
+								mov( eax, relocMachoESI.r_symbolnum );
+								add( @size( relocation_info ), esi );
+							
+								// Need to store the distance to the beginning
+								// of the section into the instruction's 
+								// displacement field:
+							
+								mov( rel4EBX.instrOffset, eax );
+								add( 5, eax );
+								neg( eax );
 								mov( eax, [edi-4] );
 							
 							else
@@ -3975,6 +4170,26 @@ _begin( buildRaw );
 							mov( $FFFF_FFFC, eax );
 							mov( eax, [edi-4] );
 						
+						elseif( objType = macho_c ) then
+						
+							mov( tknEBX.instrOffset, edx );
+							add( 1, edx );
+							mov( edx, relocMachoESI.r_address );
+							
+							mov( symEAX.symIndex, eax );
+							or( r_pcrel | r_length_d | r_extern, eax );
+							mov( eax, relocMachoESI.r_symbolnum );
+							add( @size( relocation_info ), esi );
+							
+							// Need to store the distance to the beginning
+							// of the section into the instruction's displacement
+							// field:
+						
+							mov( rel4EBX.instrOffset, eax );
+							add( 5, eax );
+							neg( eax );
+							mov( eax, [edi-4] );
+						
 						else
 						
 							stderr.put
@@ -3992,17 +4207,15 @@ _begin( buildRaw );
 					 
 			case( reloc_tkn ) 	 
 			
-				mov( (type relocStmt_t [ebx]).offset, eax );
-				stosd();
 				
 				// For reloc_tkn we must emit a relocation record
 				// along with a four-byte offset.
 				
-				if( (type relocStmt_t [ebx]).symbol <> NULL ) then
+				if( relocEBX.symbol <> NULL ) then
 				
 					if( objType = pecoff_c ) then
 							
-						mov( (type relocStmt_t [ebx]).symbol, eax );
+						mov( relocEBX.symbol, eax );
 						mov( tblEAX.Value, eax );
 						mov( symEAX.symIndex, eax );
 						mov( eax, relocESI.SymbolTableIndex );
@@ -4011,12 +4224,21 @@ _begin( buildRaw );
 						mov( w.IMAGE_REL_I386_DIR32, relocESI.Type1 );
 						add( @size( w.IMAGE_RELOCATION ), esi );
 						
+						// Store the address of the symbol plus any
+						// offset from the symbol into the object code:
+						
+						mov( relocEBX.symbol, eax );
+						mov( (type tableNode_t [eax]).Value, eax );
+						mov( (type symbol_t [eax]).offset, eax );
+						add( relocEBX.offset, eax );
+						stosd();
+						
 					elseif( objType <= elfFreeBSD_c ) then
 					
 						mov( tknEBX.instrOffset, edx );
 						mov( edx, relocElfESI.r_offset );
 						
-						mov( (type relocStmt_t [ebx]).symbol, eax );
+						mov( relocEBX.symbol, eax );
 						mov( tblEAX.Value, eax );
 						mov( symEAX.symIndex, edx );
 						shl( 8, edx );
@@ -4024,7 +4246,104 @@ _begin( buildRaw );
 						mov( edx, relocElfESI.r_info );
 						
 						add( @size( Elf32_Rel ), esi );
+						
+						// Store the address of the symbol plus any
+						// offset from the symbol into the object code:
+						
+						mov( relocEBX.symbol, eax );
+						mov( (type tableNode_t [eax]).Value, eax );
+						mov( symEAX.offset, eax );
+						add( relocEBX.offset, eax );
+						stosd();
 					
+					elseif( objType = macho_c ) then
+					
+						// If the symbol is external, or if the offset
+						// from the symbol is zero, then we've got a
+						// standard relocation entry. If the symbol is
+						// not external and the offset is non-zero, then
+						// we need to create a scattered relocation entry:
+						
+						mov( relocEBX.symbol, eax );
+						mov( tblEAX.Value, eax );
+						mov( tknEBX.instrOffset, edx );
+						sub( sectionStart, edx );
+						test( isExtern_c, symEAX.flags );
+						if( @nz || relocEBX.offset = 0 ) then	
+						
+							// Standard relocation entry
+						
+							mov( edx, relocMachoESI.r_address );
+							test( isExtern_c, symEAX.flags );
+							if( @nz ) then
+							
+								mov( symEAX.symIndex, eax );
+								or( r_length_d | r_extern, eax );	
+								mov( eax, relocMachoESI.r_symbolnum );
+								add( @size( relocation_info ), esi );							
+								
+							
+								// Store the offset from the symbol into the 
+								// object code:
+								
+								mov( relocEBX.offset, eax );
+								stosd();
+							
+							
+							else
+							
+								movzx( symEAX.section, eax );
+								if( al = code_c ) then
+								
+									mov( 1, al );
+									
+								elseif( al = data_c ) then
+								
+									mov( 2, al );
+									
+								elseif( al = bss_c ) then
+								
+									mov( 3, al );
+									
+								else
+								
+									stdout.put
+									( 
+										"HLABE Internal error (Bad section):",
+										(type uns8 al), 
+										nl 
+									);
+									raise( ex.ValueOutOfRange );
+									
+								endif;
+								or( r_length_d, eax );
+								mov( eax, relocMachoESI.r_symbolnum );
+								add( @size( relocation_info ), esi );							
+								
+							
+								// Store the address of the symbol into the 
+								// object code:
+								
+								mov( relocEBX.symbol, eax );
+								mov( (type tableNode_t [eax]).Value, eax );
+								mov( symEAX.offset, eax );
+								stosd();
+								
+							endif;
+							
+						else	// Scattered relocation entry
+						
+							mov( edx, scRelocMachoESI.r_address );
+							or( r_scattered, scRelocMachoESI.r_address );
+							mov( symEAX.offset, eax );
+							mov( eax, scRelocMachoESI.r_value );
+							add( relocEBX.offset, eax );
+							stosd();
+							add( @size( scattered_relocation_info ), esi );
+						
+						endif;
+						
+						
 					else
 					
 						stderr.put
@@ -4047,6 +4366,7 @@ _begin( buildRaw );
 				if( ecx <> 0 ) then
 				
 					xor( eax, eax );
+					cld();
 					rep.stosb();
 				
 				endif;
@@ -4066,7 +4386,7 @@ _begin( buildRaw );
 				
 		endswitch;
 		mov( tknEBX.next, ebx );
-				
+	
 	endwhile;
 	
 	pop( esi );
@@ -4092,7 +4412,8 @@ _proc( optimizeDisps )
 	codeList	:tokenList_t;
 	dataList	:tokenList_t;
 	bssList	    :tokenList_t;
-	verbose		:boolean
+	verbose		:boolean;
+	objType		:obj_t
 );
 var
 	passes	:uns32;
@@ -4118,7 +4439,8 @@ var
 		codeList		:tokenList_t;
 		dataList		:tokenList_t;
 		bssList	    	:tokenList_t;
-		initialDispSize	:uns32
+		initialDispSize	:uns32;
+		objType			:obj_t
 	);
 	var
 		codeRelocs	:dword;
@@ -4129,7 +4451,12 @@ var
 		//
 		//	Does a pass over one of the sections.
 		
-		_proc( sectionPass )( list:tokenList_t; initialDispSize:uns32 );
+		_proc( sectionPass )
+		( 
+			list			:tokenList_t; 
+			initialDispSize	:uns32;
+			initialOffset	:dword 
+		);
 		var
 		_begin( sectionPass );
 		
@@ -4137,7 +4464,7 @@ var
 			push( ecx );
 			push( edx );
 			
-			xor( ecx, ecx );
+			mov( initialOffset, ecx );
 			mov( list, ebx );
 			while( ebx <> NULL ) do
 			
@@ -4343,6 +4670,7 @@ var
 				mov( (type tokenStmt_t [ebx]).next, ebx );
 				
 			endwhile;
+			mov( ecx, eax );	// Return final displacement value.
 			pop( edx );
 			pop( ecx );
 			pop( ebx );
@@ -4352,13 +4680,45 @@ var
 	_begin( firstPass );
 	
 		mov( code_c, currentSection );
-		sectionPass( codeList, initialDispSize );
+		mov( 0, codeStart );
+		sectionPass( codeList, initialDispSize, codeStart );
+		mov( eax, codeEnd );
 		
+		// If Mach-O (Mac OSX), then DATA section displacement
+		// must follow the TEXT section (rounded to 16-byte address):
+		
+		if( objType = macho_c ) then
+		
+			add( 15, eax );
+			and( $FFFF_FFF0, eax );
+			mov( eax, dataStart );
+			
+		else
+		
+			mov( 0, dataStart );
+			
+		endif;
 		mov( data_c, currentSection );
-		sectionPass( dataList, initialDispSize );
+		sectionPass( dataList, initialDispSize, dataStart );
+		mov( eax, dataEnd );
 		
+		// If Mach-O (Mac OSX), then BSS section displacement
+		// must follow the DATA section (rounded to 16-byte address):
+		
+		if( objType = macho_c ) then
+		
+			add( 15, eax );
+			and( $FFFF_FFF0, eax );
+			
+		else
+		
+			xor( eax, eax );
+			
+		endif;
+		mov( eax, bssStart );
 		mov( bss_c, currentSection );
-		sectionPass( bssList, initialDispSize );
+		sectionPass( bssList, initialDispSize, eax );
+		mov( eax, bssEnd );
 		
 	_end( firstPass );
 	
@@ -4377,7 +4737,9 @@ var
 	( 
 		codeList	:tokenList_t;
 		dataList	:tokenList_t;
-		destSize	:byte
+		bssList		:tokenList_t;
+		destSize	:byte;
+		objType		:obj_t
 	);
 		
 	var
@@ -4499,16 +4861,17 @@ var
 		//						size (1 or 4).
 		_proc( doPhase )
 		( 
-				list		:tokenList_t;
-			var	lengthened	:boolean;
-				destSize	:byte	 
+				list			:tokenList_t;
+			var	lengthened		:boolean;
+				destSize		:byte;
+				initialOffset	:dword	 
 		);
 		var
 			origOffset	:dword;
 			
 		_begin( doPhase );
 		
-			xor( ecx, ecx );
+			mov( initialOffset, ecx );
 			mov( list, ebx );
 			while( ebx <> NULL ) do
 			
@@ -4779,8 +5142,34 @@ var
 		repeat
 		
 			mov( false, lengthened );
-			doPhase( codeList, lengthened, destSize );
-			doPhase( dataList, lengthened, destSize  );
+			mov( 0, codeStart );
+			doPhase( codeList, lengthened, destSize, codeStart );
+			mov( ecx, codeEnd );
+			if( objType = macho_c ) then
+			
+				add( 15, ecx );
+				and( $FFFF_FFF0, ecx );
+				
+			else
+			
+				xor( ecx, ecx );
+				
+			endif;
+			mov( ecx, dataStart );
+			doPhase( dataList, lengthened, destSize, ecx  );
+			mov( ecx, dataEnd );
+			
+			// BSS never changes size, but for Mach-O files
+			// the starting displacement might change.
+			if( objType = macho_c ) then
+			
+				add( 15, ecx );
+				and( $FFFF_FFF0, ecx );
+				mov( ecx, bssStart );
+				doPhase( bssList, lengthened, destSize, ecx  );
+				mov( ecx, bssEnd );
+				
+			endif;
 			add( 1, passes );
 						
 			// Optimization is an NP-Complete problem.
@@ -5086,15 +5475,15 @@ var
 		push( edx );
 		
 		cleanupPass( codeList, code_c );
-		mov( eax, codeSize );
+		mov( eax, codeEnd );
 		mov( edx, numCodeRelocs );
 		
 		cleanupPass( dataList, data_c );
-		mov( eax, dataSize );
+		mov( eax, dataEnd );
 		mov( edx, numDataRelocs );
 		
 		cleanupPass( bssList, bss_c );
-		mov( eax, bssSize );
+		mov( eax, bssEnd );
 		if( edx <> 0 ) then
 		
 			stderr.put( "Internal error (relocations in BSS section)" nl );
@@ -5146,10 +5535,11 @@ _begin( optimizeDisps );
 		codeList,
 		dataList,
 		bssList,
-		1	
+		1,
+		objType	
 	);
 	
-	dispPhase( codeList, dataList, 4 );
+	dispPhase( codeList, dataList, bssList, 4, objType );
 	mov( eax, passes );
 	if( eax > 16384 ) then
 
@@ -5163,16 +5553,16 @@ _begin( optimizeDisps );
 			codeList,
 			dataList,
 			bssList,
-			4	
+			4,
+			objType	
 		);
 		mov( eax, codeRelocs );
 		mov( edx, dataRelocs );
 		
-		dispPhase( codeList, dataList, 1 );
+		dispPhase( codeList, dataList, bssList, 1, objType );
 		mov( eax, passes );
 	
-		finalPass( codeList, dataList, bssList );
-		
+		finalPass( codeList, dataList, bssList );		
 		if( verbose ) then
 		
 			stdout.put( "Optimization passes: ", passes, "+16386" nl );
@@ -5190,6 +5580,17 @@ _begin( optimizeDisps );
 		endif;
 		
 	endif;
+	mov( codeEnd, eax );
+	sub( codeStart, eax );
+	mov( eax, codeSize );
+	
+	mov( dataEnd, eax );
+	sub( dataStart, eax );
+	mov( eax, dataSize );
+	
+	mov( bssEnd, eax );
+	sub( bssStart, eax );
+	mov( eax, bssSize );
 	
 _end( optimizeDisps );
 
@@ -5689,7 +6090,8 @@ _begin( generateCOFF );
 	
 	buildRaw
 	( 
-		codeList, 
+		codeList,
+		codeStart, 
 		codeRelocations, 
 		numCodeRelocs, 
 		rawCode, 
@@ -5763,7 +6165,8 @@ _begin( generateCOFF );
 
 	buildRaw
 	( 
-		dataList, 
+		dataList,
+		dataStart, 
 		dataRelocations, 
 		numDataRelocs, 
 		rawData, 
@@ -5883,10 +6286,10 @@ _begin( generateCOFF );
 	
 	// Okay, copy all the data to the block of memory we just allocated:
 	
-	cld();
 	mov( COFFfile, edi );
 	lea( esi, CoffFileHeader );
 	mov( @size( w.IMAGE_FILE_HEADER ), ecx );
+	cld();
 	rep.movsb();
 	
 	lea( esi, codeSectionHeader );
@@ -6702,7 +7105,8 @@ _begin( generateELF );
 		
 		buildRaw
 		( 
-			codeList, 
+			codeList,
+			codeStart, 
 			codeRelocations, 
 			numCodeRelocs, 
 			rawCode, 
@@ -6729,7 +7133,8 @@ _begin( generateELF );
 
 		buildRaw
 		( 
-			dataList, 
+			dataList,
+			dataStart, 
 			dataRelocations, 
 			numDataRelocs, 
 			rawData, 
@@ -7034,6 +7439,7 @@ _begin( generateELF );
 	align16();
 	mov( shstrtab, esi );
 	mov( shstrtabSize, ecx );
+	cld();
 	rep.movsb();
 	
 	// Copy the symbol table to the ELF file:
@@ -7116,6 +7522,710 @@ _end( generateELF );
 
 
 	
+
+
+	
+///////////////////////////////////////////////////////////////////////////////
+//
+// generateMacho-
+//
+//	Generates a Mach-O file.
+//
+	
+
+
+_proc( generateMacho )
+(
+	inputFilename	:string;
+	outputFilename	:string; 
+	codeList		:tokenList_t;
+	dataList		:tokenList_t;
+	bssList			:tokenList_t
+);
+
+		
+var
+	codeRelocations		:pRelocations;
+	dataRelocations		:pRelocations;
+	
+	rawCode				:pByte;
+	rawData				:pByte;
+	
+	numLocalSyms		:uns32;
+	numPublicSyms		:uns32;
+	numExternalSyms		:uns32;
+	
+	 
+	MachoFile			:dword;
+	MachoSize			:dword;
+	
+	filesize			:dword;
+	fileHandle			:dword;
+	
+	mhSize				:dword;
+	
+	mh:
+		record
+		
+			mh			:mach_header;
+			textSeg		:segment_command;
+			ts			:section;
+			ds			:section;
+			bss			:section;
+			symtab		:symtab_command;
+			dysymtab	:dysymtab_command;
+			
+		endrecord;
+			
+	
+	
+	
+	#macro mov16( s, d ):_a_, _i_;
+
+		?_a_:byte[16];
+		#for( _i_ := 0 to 15 )
+		
+			?_a_[_i_] := 0;
+			
+		#endfor
+		?_i_ := 0;
+		#while( _i_ < @length(s) )
+		
+			?_a_[_i_] := char( @substr( s, _i_, 1 ) );
+			?_i_ := _i_ + 1;
+			
+		#endwhile;
+		mov
+		( 
+			_a_[0] + (_a_[1] << 8) + (_a_[2] << 16) + (_a_[3] <<24), 
+			(type dword d[0])
+		);
+		mov
+		( 
+			_a_[4] + (_a_[5] << 8) + (_a_[6] << 16) + (_a_[7] <<24), 
+			(type dword d[4])
+		);
+		mov
+		( 
+			_a_[8] + (_a_[9] << 8) + (_a_[10] << 16) + (_a_[11] <<24), 
+			(type dword d[8])
+		);
+		mov
+		( 
+			_a_[12] + (_a_[13] << 8) + (_a_[14] << 16) + (_a_[15] <<24), 
+			(type dword d[12])
+		);
+		
+	#endmacro
+
+				
+			
+	
+		
+_begin( generateMacho );
+
+	push( eax );
+	push( ebx );
+	push( ecx );
+	push( edx );
+	push( esi ); 
+	push( edi );
+	
+	if( verboseDebug ) then
+	
+		stdout.put
+		(
+			"generateMacho:" nl 
+			"Input filename:  ", inputFilename, nl 
+			"Output filename: ", outputFilename, nl 
+		);
+		
+	endif;
+		
+	
+	
+	// Construct the Mach-o symbol table and the Mach-o strings table.
+	//	 
+	// Initial strings table size will be 256K
+	
+	mov( 256*1024, strTblSize );
+	mem.zalloc( 256*1024 );
+	mov( eax, stringTable );
+	mov( 1, strTblOffset );
+	
+	// Initial symbol table size will be 65536 symbols
+	
+	mem.zalloc( 65536 * @size( nlist ));
+	mov( eax, MachoSyms );
+	mov( eax, ebx );
+	mov( 65536 * @size( nlist ), MachoSymSize );
+	mov( 0, numMachoSyms );	// Must have one dummy entry.
+	
+	
+	
+	
+	
+	// Copy all the symbols from the generic symbol table to
+	// the Mach-o symbol table.  We have to emit the local
+	// names first, the public symbols second, and then the 
+	// external symbols last.
+	
+	// Emit the local symbols:
+	
+	mov( 0, numLocalSyms );
+	foreach symbolTable.item() do
+	
+		mov( eax, edx );
+		mov( (type tableNode_t [eax]).Value, ebx );
+		
+		// Map generic section number to Mach-o section numbers:
+		
+		movzx( symEBX.section, ecx );
+		if( ecx = code_c ) then
+		
+			mov( 1, ecx );
+		
+		elseif( ecx = data_c ) then
+		
+			mov( 2, ecx );
+	
+		elseif( ecx = bss_c ) then
+		
+			mov( 3, ecx );
+	
+		else	// Undefined section.
+		
+			xor( ecx, ecx );
+			
+		endif;
+		
+				
+		
+		// Get the offset value for this symbol:
+		
+		mov( symEBX.offset, edi );
+		
+		// If it's a local symbol emit it to the Mach-O symbol table
+		// and the Mach-O strings table:
+		
+ 		test( isPublic_c | isExtern_c, symEBX.flags );
+		if( @z ) then
+		
+			addMachoSym
+			(
+				(type tableNode_t [edx]).id,	// Name
+				edi,							// Offset
+				N_SECT,							// Type
+				cl								// Section #
+			);
+			
+			// Save index to this Mach-O symbol table entry so
+			// we can quickly find it when generating all the reloc data.
+			
+			add( 1, numLocalSyms );
+			mov( numMachoSyms, eax );
+			mov( eax, symEBX.symIndex );
+			add( 1, eax );
+			mov( eax, numMachoSyms );
+			
+		endif;
+		
+	endfor;	
+	
+	
+	
+	// Emit the public symbols:
+	
+	mov( 0, numPublicSyms );
+	foreach symbolTable.item() do
+	
+		mov( eax, edx );
+		mov( (type tableNode_t [eax]).Value, ebx );
+		
+		// Map generic section number to Mach-o section numbers:
+		
+		movzx( symEBX.section, ecx );
+		if( ecx = code_c ) then
+		
+			mov( 1, ecx );
+		
+		elseif( ecx = data_c ) then
+		
+			mov( 2, ecx );
+	
+		elseif( ecx = bss_c ) then
+		
+			mov( 3, ecx );
+	
+		else	// Undefined section.
+		
+			xor( ecx, ecx );
+			
+		endif;
+		
+				
+		
+		// Get the offset value for this symbol:
+		
+		mov( symEBX.offset, edi );
+		
+		// If it's a public symbol emit it to the Mach-O symbol table
+		// and the Mach-O strings table:
+		
+		test( isPublic_c, symEBX.flags );
+		if( @nz ) then
+		
+			addMachoSym
+			(
+				(type tableNode_t [edx]).id,	// Name
+				edi,							// Offset
+				N_SECT | N_EXT,					// Type
+				cl								// Section #
+			);
+			
+			// Save index to this Mach-O symbol table entry so
+			// we can quickly find it when generating all the reloc data.
+			
+			add( 1, numPublicSyms );
+			mov( numMachoSyms, eax );
+			mov( eax, symEBX.symIndex );
+			add( 1, eax );
+			mov( eax, numMachoSyms );
+			
+		endif;
+		
+	endfor;	
+	
+	
+	
+	// Emit the external symbols:
+	
+	mov( 0, numExternalSyms );
+	foreach symbolTable.item() do
+	
+		mov( eax, edx );
+		mov( (type tableNode_t [eax]).Value, ebx );
+		
+		// Map generic section number to Mach-o section numbers:
+		
+		movzx( symEBX.section, ecx );
+		if( ecx = code_c ) then
+		
+			mov( 1, ecx );
+		
+		elseif( ecx = data_c ) then
+		
+			mov( 2, ecx );
+	
+		elseif( ecx = bss_c ) then
+		
+			mov( 3, ecx );
+	
+		else	// Undefined section.
+		
+			xor( ecx, ecx );
+			
+		endif;
+				
+		
+		// Get the offset value for this symbol:
+		
+		mov( symEBX.offset, edi );
+		
+		// If it's a public symbol emit it to the Mach-O symbol table
+		// and the Mach-O strings table:
+		
+		test( isExtern_c, symEBX.flags );
+		if( @nz ) then
+		
+			addMachoSym
+			(
+				(type tableNode_t [edx]).id,	// Name
+				edi,							// Offset
+				N_UNDF | N_EXT,					// Type
+				cl								// Section #
+			);
+			
+			// Save index to this Mach-O symbol table entry so
+			// we can quickly find it when generating all the reloc data.
+			
+			add( 1, numExternalSyms );
+			mov( numMachoSyms, eax );
+			mov( eax, symEBX.symIndex );
+			add( 1, eax );
+			mov( eax, numMachoSyms );
+			
+		endif;
+		
+	endfor;	
+		 
+	
+		 
+	
+	// If there is a code segment, generate the raw data for that code
+	// section and the corresponding code relocations:
+	
+	mov( codeSize, eax );
+	if( eax <> 0 ) then
+	
+		// Allocate storage for the raw code:
+	
+		add( 15, eax );			// Round out to a multiple of 16 bytes
+		and( $FFFF_FFF0, eax );
+		mov( eax, codeSize );
+		mem.zalloc( eax );
+		mov( eax, rawCode );
+		
+		// Allocate storage for the code relocations:
+		
+		intmul( @size(relocation_info), numCodeRelocs, eax );
+		add( @size(relocation_info), eax );	// Just in case numCodeRelocs is 0.
+		mem.alloc( eax );
+		mov( eax, codeRelocations ); 
+
+
+		// Build the raw code and code relocations data:
+		
+		buildRaw
+		( 
+			codeList,
+			codeStart, 
+			codeRelocations, 
+			numCodeRelocs, 
+			rawCode, 
+			code_c, 
+			macho_c 
+		); 
+		
+	endif;
+	
+	// If there is a data section, allocate storage for it (and the data
+	// relocations section, if there are any data relocations):
+	
+	mov( dataSize, eax );
+	if( eax <> 0 ) then
+	
+		// Allocate storage for the data, if any:
+	
+		add( 15, eax );			// Round out to a multiple of 16 bytes
+		and( $FFFF_FFF0, eax );
+		mov( eax, dataSize );
+		mem.zalloc( eax );
+		mov( eax, rawData );
+	
+		intmul( @size(relocation_info), numDataRelocs, eax );
+		mem.alloc( eax );
+		mov( eax, dataRelocations ); 
+
+		buildRaw
+		( 
+			dataList,
+			dataStart, 
+			dataRelocations, 
+			numDataRelocs, 
+			rawData, 
+			data_c, 
+			macho_c 
+		);  
+	
+	endif;
+	
+	add( 15, bssSize );
+	and( $FFFF_FFF0, bssSize );	
+
+	
+	
+	
+	// There are 3 segments:
+	//
+	//	1	:__TEXT,__text
+	//	2	:LC_SYMTAB	
+	//	3	:LC_DYSYMTAB	
+	//
+	//		
+	//	
+	// Fill in the Mach-o header:
+	
+	mov( MH_MAGIC, mh.mh.magic );
+	mov( i386cpu, mh.mh.cputype );
+	mov( i386sub, mh.mh.cpusubtype );
+	mov( MH_OBJECT, mh.mh.filetype );
+	mov( 3, mh.mh.ncmds );
+	mov( @size( mh )-@size( mach_header ), mh.mh.sizeofcmds );
+	mov( 0, mh.mh.flags );				// Always zero -- nothing special in file.
+	
+	
+
+	// Fill in the __TEXT LC_SEGMENT load command:
+	
+	mov( LC_SEGMENT, mh.textSeg.cmd );
+	mov
+	( 
+		@size( mh.textSeg ) + @size( mh.ts ) + @size( mh.ds ) + @size( mh.bss ),
+		mh.textSeg.cmdsize
+	);
+	mov16( "", mh.textSeg.segname );
+	mov( 0, mh.textSeg.vmaddr );
+	
+	// filesize and vmsize are the size of the code, data, and _bss sections:
+	
+	mov( codeSize, eax );
+	add( dataSize, eax );
+	mov( eax, mh.textSeg.filesize );
+	add( bssSize, eax );
+	mov( eax, mh.textSeg.vmsize );
+	
+	mov( @size( mh ), mh.textSeg.fileoff );
+	mov( %111, mh.textSeg.maxprot );			// rwx
+	mov( %111, mh.textSeg.initprot );			// rwx
+	mov( 3, mh.textSeg.nsects );
+	mov( 0, mh.textSeg.flags );
+	
+	// The text section header immediately follows the __TEXT Segment header:
+	
+	mov16( "__text", mh.ts.sectname );
+	mov16( "__TEXT", mh.ts.segname );
+	mov( 0, mh.ts.addr );
+	mov( codeSize, eax );
+	mov( eax, mh.ts.size );
+	mov( @size( mh ), mh.ts.offset );
+	mov( 4, mh.ts._align );			// 2^4 = 16-byte alignment
+	mov( codeSize, eax );
+	add( dataSize, eax );
+	add( @size( mh ), eax );
+	mov( eax, mh.ts.reloff );
+	mov( numCodeRelocs, eax );
+	mov( eax, mh.ts.nreloc );
+	mov( S_ATTR_SOME_INSTRUCTIONS, mh.ts.flags );
+	mov( 0, mh.ts.reserved1 );
+	mov( 0, mh.ts.reserved2 );
+
+
+
+	
+	// The __data section header immediately follows the __text section header:
+	
+	mov16( "__data", mh.ds.sectname );
+	mov16( "__DATA", mh.ds.segname );
+	mov( dataStart, eax );
+	mov( eax, mh.ds.addr );
+	mov( dataSize, eax );
+	mov( eax, mh.ds.size );
+	
+	// The data follows the code in the file:
+	
+	mov( mh.ts.offset, eax );
+	add( codeSize, eax );
+	mov( eax, mh.ds.offset );
+	mov( 4, mh.ds._align );			// 2^4 = 16-byte alignment
+	intmul( @size( relocation_info ), numCodeRelocs, eax );
+	add( mh.ts.reloff, eax );
+	mov( eax, mh.ds.reloff );
+	mov( numDataRelocs, eax );
+	mov( eax, mh.ds.nreloc );
+	mov( 0, mh.ds.flags );
+	mov( 0, mh.ds.reserved1 );
+	mov( 0, mh.ds.reserved2 );
+	
+	
+	// The __bss section header immediately follows the __data section header:
+	
+	mov16( "__bss", mh.bss.sectname );
+	mov16( "__DATA", mh.bss.segname );
+	mov( bssStart, eax );
+	mov( eax, mh.bss.addr );
+	mov( bssSize, eax );
+	mov( eax, mh.bss.size );
+	mov( 0,   mh.bss.offset );
+	mov( 4,   mh.bss._align );			// 2^4 = 16-byte alignment
+	mov( 0,   mh.bss.reloff );
+	mov( 0,   mh.bss.nreloc );
+	mov( S_ZEROFILL,   mh.bss.flags );
+	mov( 0,   mh.bss.reserved1 );
+	mov( 0,   mh.bss.reserved2 );
+	
+	
+	// Now build the LC_SYMTAB segment:
+	
+	mov( LC_SYMTAB, mh.symtab.cmd );
+	mov( @size( symtab_command ), mh.symtab.cmdsize );
+	mov( 0, mh.symtab.symoff );	// Will fill this in later
+	mov( numMachoSyms, eax );
+	mov( eax, mh.symtab.nsyms );
+	mov( 0, mh.symtab.stroff );	// Will fill this in later
+	mov( strTblOffset, eax );
+	mov( eax, mh.symtab.strsize );
+		
+	
+	// Now build the LC_DYSYMTAB segment:
+	
+	mov( LC_DYSYMTAB, mh.dysymtab.cmd );
+	mov( @size( dysymtab_command ), mh.dysymtab.cmdsize );
+	
+	
+	mov( numLocalSyms, eax );
+	mov( 0, mh.dysymtab.ilocalsym );
+	mov( eax, mh.dysymtab.nlocalsym		 );
+	
+	
+	if( numPublicSyms <> 0 ) then
+
+		mov( numLocalSyms, eax );
+		mov( eax, mh.dysymtab.iextdefsym );
+		
+	else
+	
+		mov( 0, mh.dysymtab.iextdefsym );
+		
+	endif;  
+	mov( numPublicSyms, eax );
+	mov( eax, mh.dysymtab.nextdefsym );
+		
+		
+	if( numExternalSyms <> 0 ) then
+	
+		mov( numLocalSyms, eax );
+		add( numPublicSyms, eax );
+		mov( eax, mh.dysymtab.iundefsym );
+		
+	else
+	
+		mov( 0, mh.dysymtab.iundefsym );
+		
+	endif;	 
+	mov( numExternalSyms, eax			 ); 
+	mov( eax, mh.dysymtab.nundefsym		 );  
+		
+	xor( eax, eax 						 );					 
+	mov( eax, mh.dysymtab.tocoff		 );	
+	mov( eax, mh.dysymtab.ntoc			 );
+	mov( eax, mh.dysymtab.modtaboff		 );
+	mov( eax, mh.dysymtab.nmodtab		 );	
+	mov( eax, mh.dysymtab.extrefsymoff	 );
+	mov( eax, mh.dysymtab.nextrefsyms	 );	
+	mov( eax, mh.dysymtab.indirectsymoff );	
+	mov( eax, mh.dysymtab.nindirectsyms	 );
+	mov( eax, mh.dysymtab.extreloff		 );
+	mov( eax, mh.dysymtab.nextrel		 );	
+	mov( eax, mh.dysymtab.locreloff		 );
+	mov( eax, mh.dysymtab.nlocrel		 );	
+	
+	
+	// Compute the size of the Mach-O file:
+	//
+	// Start with the size of the headers (this is a constant):	
+	
+	mov( @size( mh ), eax );
+	
+	// Add in the code and data which immediately follow the headers:
+	
+	add( codeSize, eax );
+	add( dataSize, eax );
+	
+	// Next come the code and data relocations.
+	//		
+	// Add in the size of the code relocations:
+	
+	intmul( @size( relocation_info ), numCodeRelocs, edx );
+	add( edx, eax );
+	
+	// Add in the size of the data relocations:
+	
+	intmul( @size( relocation_info ), numDataRelocs, edx );
+	add( edx, eax );
+	
+	// Add in the size of the Mach-O Symbol table:
+	
+	mov( eax, mh.symtab.symoff );	// Fill in symbol table offset
+	intmul( @size( nlist ), numMachoSyms, edx );
+	add( edx, eax );
+	
+	// Add in the size of the strings table:
+	
+	mov( eax, mh.symtab.stroff );	// Fill in string table offset
+	add( strTblOffset, eax );
+	
+	// Make the whole thing a multiple of 16 bytes:
+	
+	add( 15, eax );
+	and( $FFFF_FFF0, eax );
+	mov( eax, MachoSize );
+	
+	// Allocate the storage for the Mach-O file:
+	
+	mem.zalloc( eax );
+	mov( eax, MachoFile );
+	
+	
+	
+	
+	
+	// Okay, copy the file header to the Mach-O file:
+	
+	cld();
+	mov( eax, edi );
+	lea( esi, mh );
+	mov( @size( mh ), ecx );
+	rep.movsb();
+	
+	// Copy the code to the Mach-O file:
+	
+	mov( rawCode, esi );
+	mov( codeSize, ecx );
+	rep.movsb();
+	
+	
+	// Copy the data to the Mach-O file:
+	
+	mov( rawData, esi );
+	mov( dataSize, ecx );
+	rep.movsb();
+	
+	// Copy the code relocations to the Mach-O file:
+	
+	mov( codeRelocations, esi );
+	intmul( @size( relocation_info ), numCodeRelocs, ecx );
+	rep.movsb();
+	
+	// Copy the data relocations to the Mach-O file:
+	
+	mov( dataRelocations, esi );
+	intmul( @size( relocation_info ), numDataRelocs, ecx );
+	rep.movsb();
+	
+	// Copy the symbol table to the Mach-O file:
+	
+	mov( MachoSyms, esi );
+	intmul( @size( nlist ), numMachoSyms, ecx );
+	rep.movsb();
+	
+	// Copy the string table to the Mach-O file:
+	
+	mov( stringTable, esi );
+	mov( strTblOffset, ecx );
+	rep.movsb(); 
+	
+	
+
+	// Okay, write the Mach-O file to disk:	
+	
+	fileio.openNew( outputFilename );
+	mov( eax, fileHandle );
+	fileio.write( fileHandle, val MachoFile, MachoSize );
+	fileio.close( fileHandle );
+	
+		
+	pop( edi );
+	pop( esi );
+	pop( edx );
+	pop( ecx );
+	pop( ebx );
+	pop( eax );
+		
+_end( generateMacho );
+
+
+	
 ///////////////////////////////////////////////////////////////////////////////
 //
 // compileCOFF-
@@ -7164,7 +8274,7 @@ _begin( compileCOFF );
 	// Compute branch (and other) displacements and detect various
 	// errors (like undefined symbols, branch out of range, and so on):
 	
-	optimizeDisps( codeList, dataList, bssList, verbose );
+	optimizeDisps( codeList, dataList, bssList, verbose, pecoff_c );
 	
 	// Now generate the COFF file:
 	
@@ -7236,7 +8346,7 @@ _begin( compileELF );
 	// Compute branch (and other) displacements and detect various
 	// errors (like undefined symbols, branch out of range, and so on):
 	
-	optimizeDisps( codeList, dataList, bssList, verbose );
+	optimizeDisps( codeList, dataList, bssList, verbose, elf_c );
 	
 	// Now generate the ELF file:
 	
@@ -7275,29 +8385,69 @@ _end( compileELF );
 //
 //	Compiles an HLABE file to a Mac OSX Mach-O object file.
 
-procedure compileMACHO
+_proc( compileMACHO )
 ( 
-			inputFilename	:string;
-			outputFilename	:string; 
-			start_source	:dword; 
-			end_source		:dword;
-			verbose			:boolean; 
-	result	codeListPtr		:tokenList_t;
-	result	dataListPtr		:tokenList_t;
-	result	bssListPtr	    :tokenList_t
+		inputFilename	:string;
+		outputFilename	:string; 
+		start_source	:dword; 
+		end_source		:dword;
+		verbose			:boolean; 
+	var	codeListPtr		:tokenList_t;
+	var	dataListPtr		:tokenList_t;
+	var	bssListPtr	    :tokenList_t
 );
-begin compileMACHO;
-
-	lexer( start_source, end_source, codeListPtr, dataListPtr, bssListPtr );
-	optimizeDisps( codeListPtr, dataListPtr, bssListPtr, verbose );
-	mov( true, eax );
-	stderr.put
-	( 
-		"Mach-O output is not yet supported by HLABE -- compile failed" nl 
-	);
-	xor( eax, eax );
+var
+	codeList	:tokenList_t;
+	dataList	:tokenList_t;
+	bssList	    :tokenList_t;
 	
-end compileMACHO;
+	dummySymbol	:symbol_t;
+
+_begin( compileMACHO );
+
+	push( ebx );
+	mov( codeListPtr, ebx );
+	mov( [ebx], eax );
+	mov( eax, codeList );
+	
+	mov( dataListPtr, ebx );
+	mov( [ebx], eax );
+	mov( eax, dataList );
+	
+	mov( bssListPtr, ebx );
+	mov( [ebx], eax );
+	mov( eax, bssList );
+	
+	
+	// Convert the ".asm" file to the internal representation that
+	// the code generator uses:
+	
+	lexer( start_source, end_source, codeList, dataList, bssList );
+	
+	// Compute branch (and other) displacements and detect various
+	// errors (like undefined symbols, branch out of range, and so on):
+	
+	optimizeDisps( codeList, dataList, bssList, verbose, macho_c );
+	
+	// Now generate the Mach-o file:
+	
+	generateMacho( inputFilename, outputFilename, codeList, dataList, bssList );
+	
+	mov( codeListPtr, ebx );
+	mov( codeList, eax );
+	mov( eax, [ebx] );
+	
+	mov( dataListPtr, ebx );
+	mov( dataList, eax );
+	mov( eax, [ebx] );
+	
+	mov( bssListPtr, ebx );
+	mov( bssList, eax );
+	mov( eax, [ebx] );
+
+	mov( true, eax );
+	
+_end( compileMACHO );
 
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -7536,6 +8686,8 @@ _begin( compile );
 				(type symbol_t [edx]).offset, 
 				", sec:",
 				(type uns8 (type symbol_t [edx]).section),
+				", index:",
+				(type uns8 (type symbol_t [edx]).symIndex),
 				nl
 			);
 			

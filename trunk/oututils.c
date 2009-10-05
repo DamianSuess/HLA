@@ -502,14 +502,11 @@ _begin( CheckStatic )
 					)
 				)
 					
-					// shouldn't be emitting backpatches any more
-					// (they don't work on Mac OSX).
-					// Catch this if we attempt it.
-					
 					EmitBackPatchss
 					(
 						StaticList->StaticName,
-						StaticList->DefinedSym->StaticName
+						StaticList->DefinedSym->StaticName,
+						StaticList->DefinedSym->pType
 					);
 					
 				_endif
@@ -567,15 +564,12 @@ _begin( CheckStatic )
 							StaticSymEntry->StaticName 
 						)
 					)
-					
-						// shouldn't be emitting backpatches any more
-						// (they don't work on Mac OSX).
-						// Catch this if we attempt it.
-						
+
 						EmitBackPatchss
 						(
 							StaticList->StaticName,
-							StaticSymEntry->StaticName
+							StaticSymEntry->StaticName,
+							StaticSymEntry->pType
 						);
 						
 					_endif
@@ -965,14 +959,11 @@ _begin( CheckFwdRef )
 
 					_if( _strne( flist->StaticName, s->StaticName ))
 					
-						// shouldn't be emitting backpatches any more
-						// (they don't work on Mac OSX).
-						// Catch this if we attempt it.
-						
 						EmitBackPatchss
 						(
 							flist->StaticName,
-							s->StaticName
+							s->StaticName,
+							s->pType
 						);
 						
 					_endif
@@ -1712,7 +1703,7 @@ _begin( SetReferenced )
 				sym->pType, 
 				0,				// IsPublic
 				1,				// IsReferenced
-				0				// isVMT 
+				0				// isVMT
 			);
 			
 		_endif

@@ -43044,8 +43044,6 @@ FwdLabels:
 				temp->isExternal = 0;
 				temp->referenced = 0;
 				FwdLabelsList = temp;
-
-					
 				
 			_else
 			
@@ -43081,7 +43079,7 @@ FwdLabels:
 				
 				_if( flist != NULL )
 				
-					EmitBackPatchss( flist->StaticName, sn );
+					EmitBackPatchss( flist->StaticName, sn, tLabel );
 					free2( vss flist->StaticName );
 					flist->StaticName = hlastrdup2( sn );
 					
@@ -52504,7 +52502,7 @@ StaticProcRedef:
 				$<s>1->IsExternal = 0;
 				_if( $<s>1->pType == tProcptr )
 
-					EmitPublic( $<s>1->StaticName );
+					EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 					EmitTypedLabel( $<s>1->StaticName, tDWord );
 					_if( !$<options.NoStorage>7 )
 
@@ -52581,7 +52579,7 @@ StaticPtrToProcRedef:
 						
 					_endif
 
-					EmitPublic( $<s>1->StaticName );
+					EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 					EmitTypedLabel( $<s>1->StaticName, tDWord );
 					_if( !$<options.NoStorage>8 )
 
@@ -52898,7 +52896,7 @@ StaticRedefInit:
 
 					_if( $<s>1->pType == tProcptr )
 
-						EmitPublic( $<s>1->StaticName );
+						EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 						EmitTypedLabel( $<s>1->StaticName, tDWord );
 						EmitAdrs( $<v.u.strval>7 );
 
@@ -52979,7 +52977,7 @@ StaticPtrToProcRedefInit:
 							
 						_endif
 
-						EmitPublic( $<s>1->StaticName );
+						EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 						EmitTypedLabel( $<s>1->StaticName, tDWord );
 						EmitAdrs( $<v.u.strval>8 );
 
@@ -53307,7 +53305,7 @@ StaticPtrToExtUser:
 				$<s>1->IsExternal = 0;
 				_if( $<s>1->Type == &pointer_ste && $<s>1->Base == BaseType ) 
 
-					EmitPublic( $<s>1->StaticName );
+					EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 					EmitTypedLabel( $<s>1->StaticName, tDWord );
 					EmitAdrs( $<v.u.strval>7 );
 
@@ -53475,7 +53473,7 @@ StaticPtrToBuiltInExt:
 				$<s>1->IsExternal = 0;
 				_if( $<s>1->Type == &pointer_ste && $<s>1->Base == $<s>5 )
 
-					EmitPublic( $<s>1->StaticName );
+					EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 					EmitTypedLabel( $<s>1->StaticName, tDWord );
 					EmitAdrs( $<v.u.strval>7 );
 
@@ -53549,7 +53547,7 @@ StaticPtrToBuiltInNS:
 				$<s>1->IsExternal = 0;
 				_if( $<s>1->Type == &pointer_ste && $<s>1->Base == $<s>5 ) 
 
-					EmitPublic( $<s>1->StaticName );
+					EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 					EmitTypedLabel( $<s>1->StaticName, tDWord );
 					_if( !$<options.NoStorage>7 )
 
@@ -53843,7 +53841,7 @@ StaticSingleTypeWasExt:
 					$<s>1->IsExternal = 0;
 					_if( $<s>1->Type == $<s>3 ) 
 
-						EmitPublic( $<s>1->StaticName );
+						EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 
 						/*
 						** Check to see if the TypeID and the ConstOnlyExpr
@@ -54534,7 +54532,7 @@ StaticArrayInitExt:
 					_if( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
 
 						$<s>1->IsExternal = 0;
-						EmitPublic( $<s>1->StaticName );
+						EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 						_if
 						( 
 							ArraysAreCompatible
@@ -54757,7 +54755,7 @@ StaticPtrToUserExt:
 				_if( $<s>1->Type == &pointer_ste && $<s>1->Base == BaseType ) 
 
 					$<s>1->IsExternal = 0;
-					EmitPublic( $<s>1->StaticName );
+					EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 					EmitTypedLabel( $<s>1->StaticName, tDWord );
 					_if( !$<options.NoStorage>7 )
 
@@ -55142,7 +55140,7 @@ StaticSingleExt:
 			_elseif( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
 
 				$<s>1->IsExternal = 0;
-				EmitPublic( $<s>1->StaticName );
+				EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 				_if( !$<options.NoStorage>5 )
 				
 					_if( IsPrimitive( $<s>3->pType ))
@@ -55756,7 +55754,7 @@ StaticArrayExt:
 					char *theType;
 
 					$<s>1->IsExternal = 0;
-					EmitPublic( $<s>1->StaticName );
+					EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 					EmitTypedLabel
 					( 
 						$<s>1->StaticName, 
@@ -56281,7 +56279,7 @@ StaticDef:
 				NULL,				/* Fields		*/
 				0					/* FieldCnt		*/
 			);
-			EmitPublic( sn );
+			EmitTypedPublic( sn, tDWord );
 			EmitTypedLabel( sn, tDWord );
 
 			_if( $<s>5->pType == tClass )
@@ -56884,7 +56882,7 @@ ReadOnlyDef:
 				NULL,				/* Fields		*/
 				0					/* FieldCnt		*/
 			);
-			EmitPublic( sn );
+			EmitTypedPublic( sn, tDWord );
 			EmitTypedLabel( sn, tDWord );
 
 			_if( $<s>5->pType == tClass )
@@ -57659,7 +57657,7 @@ ReadOnlyDef:
 				_if( $<s>1->Type == &pointer_ste && $<s>1->Base == BaseType ) 
 
 					$<s>1->IsExternal = 0;
-					EmitPublic( $<s>1->StaticName );
+					EmitTypedPublic( $<s>1->StaticName, tDWord );
 					EmitTypedLabel( $<s>1->StaticName, tDWord ); 
 
 				_else
@@ -58138,7 +58136,7 @@ ReadOnlyDef:
 					)
 
 						$<s>1->IsExternal = 0;
-						EmitPublic ( $<s>1->StaticName );
+						EmitTypedPublic ( $<s>1->StaticName, $<s>1->pType );
 						EmitLabel( $<s>1->StaticName, bt->ObjectSize );  
 
 					_else
@@ -58525,7 +58523,7 @@ ReadOnlyDef:
 				_if( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
 
 					$<s>1->IsExternal = 0;
-					EmitPublic( $<s>1->StaticName );
+					EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 					EmitLabel( $<s>1->StaticName, bt->ObjectSize );
 					
 					_if
@@ -58760,7 +58758,7 @@ UninitDef:
 				_if( $<s>1->Type == &pointer_ste && $<s>1->Base == $<s>5 ) 
 
 					$<s>1->IsExternal = 0;
-					EmitPublic( $<s>1->StaticName );
+					EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
 					EmitTypedLabel( $<s>1->StaticName, tDWord );
 					_if( !$<options.NoStorage>7 )
 
@@ -61235,6 +61233,8 @@ ConstExpr:	ConstExpr '-' ConstExpr
 			{
 				struct SymNode v;
 
+				_here;
+				
 				/*
 				** Handle the special case where the left operand
 				** is of the form "@ID" which can only be used as
@@ -61263,6 +61263,7 @@ ConstExpr:	ConstExpr '-' ConstExpr
 
 				_elseif( MakeCompatible( &$<v>1, &$<v>3 ))
 
+					_here;
 					SetConst
 					( 
 						YYS &$<v>$, 
@@ -61298,6 +61299,7 @@ ConstExpr:	ConstExpr '-' ConstExpr
 						_case( tReal80 )
   			    		_case( tCset )
 
+							_here;
 							memcpy( &$<v>$, &$<v>1, sizeofSymNode );
 							subval
 							( 
@@ -61306,6 +61308,7 @@ ConstExpr:	ConstExpr '-' ConstExpr
 								&$<v.pType>$,
 								&$<v.Type>$ 
 							);
+							_here;
 						
 
 						_endcase
@@ -61334,6 +61337,7 @@ ConstExpr:	ConstExpr '-' ConstExpr
 
 
 				_endif
+				_here;
 
 			};
 	  
@@ -97956,6 +97960,7 @@ Displacement:
 		'+'
 		ConstOnlyExpr
 		{
+			_here;
 			$<v>$ = $<v>2;
 			_if( !( IsOrdinal( $<v.pType>2 ) && numBits32( YYS &$<v>2 ) <= 32 ))
 
@@ -97970,10 +97975,12 @@ Displacement:
 
 	|	'-'
 		{
-			PushBackStr( "0-" );
+			_here;
+			PushBackStr( "0 - " );
 		}
 		ConstOnlyExpr
 		{
+			_here;
 			$<v>$ = $<v>3;
 			_if( IsOrdinal( $<v.pType>3 ) && numBits32( YYS &$<v>3 ) <= 32 )
 
@@ -97990,6 +97997,7 @@ Displacement:
 				$<v.Type>$ = &int32_ste;
 
 			_endif
+			_here;
 		}
 	;
 
@@ -97997,6 +98005,7 @@ Displacement:
 Displacement2:
 		ConstOnlyExpr
 		{
+			_here;
 			$<v>$ = $<v>1;
 			_if( !( IsOrdinal( $<v.pType>1 ) && numBits32( YYS &$<v>1 ) <= 32 ))
 
@@ -98058,6 +98067,7 @@ amGutz:
 		iamRegister		/* $1 */
 		Rbrack			/* $2 */
 		{
+			_here;
 			$<mem.base>$  = $<reg.encoding>1;
 			$<mem.index>$ = -1;
 			$<mem.scale>$ = 0;
@@ -98070,6 +98080,7 @@ amGutz:
 		iamRegister		/* $3 */
 		Rbrack			/* $4 */
 		{
+			_here;
 			$<mem.base>$  = $<reg.encoding>1;
 			$<mem.index>$ = $<reg.encoding>3;
 			$<mem.scale>$ = 0;
@@ -98083,6 +98094,7 @@ amGutz:
 		ScaledIndex		/* $4 */
 		Rbrack			/* $5 */
 		{
+			_here;
 			$<mem.base>$  = $<reg.encoding>1;
 			$<mem.index>$ = $<reg.encoding>3;
 			$<mem.scale>$ = $<v.u.unsval>4;
@@ -98093,6 +98105,7 @@ amGutz:
 		ScaledIndex		/* $2 */
 		Rbrack			/* $3 */
 		{
+			_here;
 			$<mem.base>$  = -1;
 			$<mem.index>$ = $<reg.encoding>1;
 			$<mem.scale>$ = $<v.u.unsval>2;
@@ -98104,6 +98117,7 @@ amGutz:
 		Displacement	/* $2 */
 		Rbrack			/* $3 */
 		{
+			_here;
 			$<mem.base>$  = $<reg.encoding>1;
 			$<mem.index>$ = -1;
 			$<mem.scale>$ = 0;
@@ -98116,11 +98130,12 @@ amGutz:
 		Displacement	/* $4 */
 		Rbrack			/* $5 */
 		{
+			_here;
 			$<mem.base>$  = $<reg.encoding>1;
 			$<mem.index>$ = $<reg.encoding>3;
 			$<mem.scale>$ = 0;
 			$<mem.disp>$  = $<v.u.unsval>4;
-			
+			_here;
 		}
 	
 	|	iamRegister		/* $1 */
@@ -98130,6 +98145,7 @@ amGutz:
 		Displacement	/* $5 */
 		Rbrack			/* $6 */
 		{
+			_here;
 			$<mem.base>$  = $<reg.encoding>1;
 			$<mem.index>$ = $<reg.encoding>3;
 			$<mem.scale>$ = $<v.u.unsval>4;
@@ -98141,6 +98157,7 @@ amGutz:
 		Displacement	/* $3 */
 		Rbrack			/* $4 */
 		{
+			_here;
 			$<mem.base>$  = -1;
 			$<mem.index>$ = $<reg.encoding>1;
 			$<mem.scale>$ = $<v.u.unsval>2;
@@ -98158,6 +98175,7 @@ zeroOrMoreGutz:
 		amGutz			/* $2 */
 		zeroOrMoreGutz	/* $3 */
 		{
+			_here;
 			$<mem>$ = $<mem>2;
 			mergeMem( YYM &$<mem>$, YYM &$<mem>3 );
 		}
@@ -98167,12 +98185,14 @@ zeroOrMoreGutz:
 		Rbrack			/* $3 */
 		zeroOrMoreGutz	/* $4 */
 		{
+			_here;
 			$<mem>$ = $<mem>4;
 			$<mem.disp>$ += $<v.u.unsval>2;
 		}
 	
 	|	/* empty */
 		{
+			_here;
 			$<mem.base>$ = -1;
 			$<mem.index>$ = -1;
 			$<mem.scale>$ = 0;
@@ -103203,6 +103223,8 @@ _begin( main )
 			_elseif( _streq( option, "-MACOS" ))
 			
 				targetOS = macOS_os;
+				assembler = hlabe;
+				useHLABE = 1;
 				_break;
 				
 			_endif
@@ -103875,7 +103897,7 @@ _begin( main )
 				
 			_endif
 			
-			// When using the internal HLA back engin, we're really creating
+			// When using the internal HLA back engine, we're really creating
 			// an .obj file, but the common code that follows expects the output
 			// filename in the AsmName variable:
 			
@@ -103895,6 +103917,7 @@ _begin( main )
 						
 					_endcase
 					
+					_case( macOS_os )
 					_case( freeBSD_os )
 					_case( linux_os )
 					
@@ -103902,7 +103925,6 @@ _begin( main )
 						
 					_endcase
 					
-					_case( macOS_os )
 					_default
 
 						yyerror( "Target OS doesn't support the use of HLABE" );
@@ -104244,22 +104266,15 @@ _begin( main )
 			
 			_elseif( targetOS == macOS_os )
 			
-				fprintf
-				( 
-					MsgOut, 
-					"HLAPARSE does not support direct object "
-					"output under MAC OS X\n" 
+				hlabe_compile
+				(
+					FileName,
+					AsmName, 
+					buffer.base, 
+					buffer.base + buffer.offset,
+					objt_macho_c,
+					Verbose 
 				);
-				_return 1;
-//				hlabe_compile
-//				(
-//					FileName,
-//					AsmName, 
-//					buffer.base, 
-//					buffer.base + buffer.offset,
-//					objt_macho_c,
-//					Verbose 
-//				);
 
 			_else
 			
