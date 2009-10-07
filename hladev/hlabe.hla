@@ -4255,8 +4255,8 @@ _begin( buildRaw );
 						
 						mov( relocEBX.symbol, eax );
 						mov( (type tableNode_t [eax]).Value, eax );
-						mov( symEAX.offset, eax );
-						add( relocEBX.offset, eax );
+						//mov( symEAX.offset, eax );
+						mov( relocEBX.offset, eax );
 						stosd();
 					
 					elseif( objType = macho_c ) then
