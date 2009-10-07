@@ -191,7 +191,8 @@ int		IgnoreErrors = 0;	/* True if the program is to ignore errors	    */
 int		TempIgnoreErrors = 0;
 
 int		RecFieldCnt	= 0;	/* Used to count fields in records & unions		*/
-int		testMode = 0;
+int		testMode 	= 0;	/* True if -test, but false if HLABE			*/
+int		testMode2	= 0;	/* True if -test								*/
 
 
  /*
@@ -103459,8 +103460,9 @@ _begin( main )
 
 			_elseif( _streq( option, "-TEST" ) )
 
-				MsgOut = stdout;
-				testMode = 1;
+				MsgOut 		= stdout;
+				testMode 	= 1;
+				testMode2 	= 1;
 
 			// Check for LEVEL options
 

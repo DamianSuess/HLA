@@ -556,6 +556,7 @@ extern int						StackSize;
 extern int						HasAbstract;
 extern int						yyerrCount;
 extern int						testMode;
+extern int						testMode2;
 extern union YYSTYPE 			*RecordValues;
 
 	

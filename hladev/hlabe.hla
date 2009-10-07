@@ -3894,6 +3894,7 @@ _begin( buildRaw );
 					mov( rel14EBX.opcode1, al );
 					stosb();
 					mov( rel14EBX.disp, eax );
+					add( rel14EBX.offset, eax );
 					stosb();
 					
 				else
@@ -3903,6 +3904,7 @@ _begin( buildRaw );
 					mov( rel14EBX.opcode2, ax );
 					stosw();
 					mov( rel14EBX.disp, eax );
+					add( rel14EBX.offset, eax );
 					stosd();
 					
 					// If the displacement references an
@@ -4004,6 +4006,7 @@ _begin( buildRaw );
 					mov( jmpEBX.opcode1, al );
 					stosb();
 					mov( jmpEBX.disp, eax );
+					add( jmpEBX.offset, eax );
 					stosb();
 					
 				else
@@ -4013,6 +4016,7 @@ _begin( buildRaw );
 					mov( jmpEBX.opcode2, al );
 					stosb();
 					mov( jmpEBX.disp, eax );
+					add( jmpEBX.offset, eax );
 					stosd();
 					
 					
@@ -4107,14 +4111,15 @@ _begin( buildRaw );
 				
 				
 					 
-			case( rel4_tkn )	 
-			
+			case( rel4_tkn )
+				 
 				// CALL instruction.
 				// 1-byte opcode + 4-byte displacement:
 				
 				mov( rel4EBX.opcode, al );
 				stosb();
 				mov( rel4EBX.disp, eax );
+				add( rel4EBX.offset, eax );
 				stosd();
 				
 				
@@ -4149,6 +4154,7 @@ _begin( buildRaw );
 							// displacement rather than the disp field:
 							
 							mov( rel4EBX.offset, eax );
+							add( rel4EBX.disp, eax );
 							mov( eax, [edi-4] );
 						
 						elseif( objType <= elfFreeBSD_c ) then
@@ -4227,10 +4233,7 @@ _begin( buildRaw );
 						// Store the address of the symbol plus any
 						// offset from the symbol into the object code:
 						
-						mov( relocEBX.symbol, eax );
-						mov( (type tableNode_t [eax]).Value, eax );
-						mov( (type symbol_t [eax]).offset, eax );
-						add( relocEBX.offset, eax );
+						mov( relocEBX.offset, eax );
 						stosd();
 						
 					elseif( objType <= elfFreeBSD_c ) then
