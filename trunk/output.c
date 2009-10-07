@@ -16436,7 +16436,8 @@ _begin( EmitInt_c )
 		_elseif
 		( 
 				intnum == 4 
-			&&	assembler == hlabe 
+			&&	assembler == hlabe
+			&&	!testMode2 
 		)
 		
 			EmitByteConst(  0xce , "" );
@@ -22038,6 +22039,26 @@ _begin( BeginMain )
 	NewLn();
 	StartProc( "_HLAMain" );
 	
+	// If in testMode, emit a NOP so that _HLAMain and start are
+	// not at the same address in memory (this is so both labels
+	// will correctly disassemble without one disassembly producing
+	// one label and a different disassembly producing the other
+	// label):
+	
+	_if( testMode2 )
+	
+		_if( assembler == hlabe )
+		
+			asmPuts( " .b $90\n" );
+			
+		_else
+		
+			asmPuts( " nop\n" );
+			
+		_endif
+		
+	_endif
+	
 	_switch( targetOS )
 	
 		_case( linux_os )
@@ -22227,7 +22248,7 @@ _begin( BeginMain )
 	push_r( reg_ebp );		// Previous EBP
 	push_r( reg_ebp );		// Fake a display
 			
-	initAdrs2( &adrs, NULL, reg_esp, -1, 0, -4 );
+	initAdrs2( &adrs, NULL, reg_esp, -1, 0, 4 );
 	EmitLea_m_r( &adrs, reg_ebp );
 	
 	_if( -CurOffset > 4 )
@@ -29708,19 +29729,6 @@ _begin( EncodeAdrs )
 	*dispLabel = '\0';
 	
 	
-	// MASM, for some crazy reason, will swap the index and base
-	// registers if no scale is present. HLA's code generator mimics
-	// this in order to make it easy to test HLA's output by comparing
-	// disassembled MASM code against disassembled HLA(BE) code.
-	
-//	_if( masmSwap && scale == 0 && iReg != no_reg && bReg != encode_ESP )
-//	
-//		tempReg = iReg;
-//		iReg = bReg;
-//		bReg = tempReg;
-//		
-//	_endif
-	
 
 	///// Set up the MOD field of the mod-reg-r/m byte:
 
@@ -29807,7 +29815,7 @@ _begin( EncodeAdrs )
 	// Set up the scaling for the SIB byte (may not be necessary, but
 	// it's convenient to do it here).
 
-	* sib =
+	*sib =
 		_ifx( scale == 8, 0xc0,
 			_ifx( scale == 4, 0x80,
 				_ifx( scale == 2, 0x40,	
@@ -29843,7 +29851,22 @@ _begin( EncodeAdrs )
 		// error, which has already been caught).
 
 		*hasSib = 1;
-		*sib |= (iReg<<3) | bReg;
+		_if( bReg == no_reg )
+		
+			// If there is no base register, then we've got to
+			// use EBP as the base register with a 4-byte
+			// displacement (which is the only way to get
+			// an addressing mode like "[ecx*2]").
+			
+			*sib |= (iReg<<3) | encode_EBP;
+			*modRm = 4; // MOD = %00, SIB.
+			*dispType = encode_disp_4;
+		
+		_else
+		
+			*sib |= (iReg<<3) | bReg;
+			
+		_endif
 
 	_endif
 
