@@ -5509,7 +5509,7 @@ pgm:
 		** the main program's local symbols.
 		*/
 
-		dims = malloc( sizeof( int ));
+		dims = (int *) malloc( sizeof( int ));
 		*dims = 1;
 		InsertSym
 		(
