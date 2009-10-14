@@ -44,6 +44,10 @@
 #include "version.h"
 
 
+#define isUnix (targetOS == linux_os || targetOS == freeBSD_os)
+#define isMLF (targetOS == linux_os || targetOS == freeBSD_os || targetOS == macOS_os)
+#define isML  (targetOS == linux_os || targetOS == macOS_os)
+#define isMF  (targetOS == freeBSD_os || targetOS == macOS_os)
 #define isGAS(s) (assembler == gas && (s))
 #define gasImm	_ifx( assembler == gas, "$", "")
 #define cmt(c) 											\
@@ -1986,7 +1990,7 @@ _begin( EmitAlign )
 	_endif
 	_if( alignment > 1 )
 	
-		_if( assembler == gas && gasSyntax == macGas )
+		_if( targetOS == macOS_os )
 		
 			asmPrintf( "        .align (%d)\n", pow2 );
 
@@ -4943,7 +4947,7 @@ _begin( str_instr )
 		opcode = 
 			_ifx
 			( 
-				assembler == gas && targetOS != freeBSD_os, 
+				targetOS == linux_os || targetOS == macOS_os,
 				gas_str_opcodes[ instr ], 
 				str_opcodes[ instr ] 
 			);
@@ -6879,7 +6883,7 @@ _begin( movq_r_r )
 					assembler == fasm 
 				||	assembler == tasm 
 				||	assembler == nasm 
-				||	assembler == gas
+				||	isMLF
 			)
 			
 				EmitWordConst( 0x6f0f );
@@ -6894,7 +6898,7 @@ _begin( movq_r_r )
 					assembler == fasm 
 				||	assembler == tasm 
 				||	assembler == nasm 
-				||	assembler == gas
+				||	isMLF
 			)
 			
 				EmitByteConst( 0xc0 | (reg2 << 3) | reg1 , "mod-reg-r/m" );
@@ -7692,7 +7696,7 @@ _begin(Emit_mw_rv_r)
 			||	(
 					isReg16( reg ) && 
 					( 
-							assembler == gas 
+							isMLF 
 						||	assembler == masm
 						||	assembler == hlabe 
 					)
@@ -7866,7 +7870,7 @@ _begin( Emit_Gv_Ew_r )
 	assert( instr == lsl_instr || instr == lar_instr );
 	assert( src >= reg_ax && src <= reg_edi );
 	assert( dest >= reg_ax && dest <= reg_edi );
-	_if( (assembler == fasm || assembler == gas) && isReg32( dest ) )
+	_if( (assembler == fasm || isMLF) && isReg32( dest ) )
 	
 		// FASM/Gas only allows 16-bit registers
 		
@@ -7905,7 +7909,7 @@ _begin( Emit_Gv_Ew_m )
 
 	assert( instr == lsl_instr || instr == lar_instr );
 	assert( isReg1632( reg ) );
-	_if( (assembler == fasm || assembler == gas) && isReg32( reg ))
+	_if( (assembler == fasm || isMLF) && isReg32( reg ))
 	
 		// FASM only allows 16-bit registers.
 		
@@ -9643,7 +9647,7 @@ static void
 doBTLockPrefix( enum bt_instrs *instr, int size )
 _begin( doLockPrefix )
 
-	_if( assembler == gas && targetOS != freeBSD_os )
+	_if( targetOS == macOS_os || targetOS == linux_os )
 	
 		_if( size == 2)
 		
@@ -10110,7 +10114,14 @@ _begin( EmitMov_r_r )
 
 		// Assume register sizes are already correct.
 		
-		_if( assembler == fasm || assembler == nasm || assembler == gas )
+		_if
+		( 
+				assembler == fasm 
+			||	assembler == nasm 
+			||	targetOS == macOS_os 
+			||	targetOS == linux_os 
+			||	targetOS == freeBSD_os 
+		)
 		
 			_if( isReg8( src ))
 			
@@ -10285,7 +10296,7 @@ _begin( EmitMov_r_sr )
 	);
 	_if( !sourceOutput )
 	
-		_if( assembler == masm || (assembler == hlabe && targetOS != macOS_os) )
+		_if( assembler == masm || (assembler == hlabe && !isMLF) )
 		
 			EmitByteConst(  0x66 , "size prefix" );
 			
@@ -10362,7 +10373,7 @@ _begin( EmitMov_sr_m )
 	
 	_if( !sourceOutput )
 	
-		_if( (assembler == gas && targetOS == freeBSD_os)  )
+		_if( (targetOS == freeBSD_os)  )
 		
 			EmitByteConst(  0x66 , "size prefix" );
 			
@@ -11385,7 +11396,7 @@ _begin( EmitXadd_r_m )
 			
 		_elseif( isReg16( srcReg ))
 		
-			_if( assembler == gas && targetOS != freeBSD_os  )
+			_if( isML )
 			
 				EmitByteConst( 0x66, "size prefix" );
 				_if( lockPrefix != 0 )
@@ -13645,7 +13656,7 @@ _begin( generic_r_r )
 			EmitByteConst(  0x66 , "size prefix" );	// Size prefix
 			
 		_endif
-		_if( gen_lock[ instr ] != 0 && assembler == gas && targetOS != freeBSD_os )
+		_if( gen_lock[ instr ] != 0 && isML )
 		
 			EmitByteConst(  gen_lock[ instr ] , "" );
 			
@@ -13655,7 +13666,7 @@ _begin( generic_r_r )
 		( 
 				assembler == fasm
 			||	assembler == nasm
-			||	assembler == gas 
+			||	isMLF 
 		)
 		 
 		 	// MASM kludge -- to make disassembly output comparison easier.
@@ -13731,7 +13742,7 @@ _begin( EmitGeneric_r_m )
 			EmitByteConst(  0x66 , "size prefix" );	// Size prefix
 			
 		_endif
-		_if( gen_lock[ instr ] != 0 && assembler == gas && targetOS != freeBSD_os )
+		_if( gen_lock[ instr ] != 0 && isML )
 		
 			EmitByteConst(  gen_lock[ instr ] , "" );
 			
@@ -13801,7 +13812,7 @@ _begin( EmitGeneric_m_r )
 			EmitByteConst(  0x66 , "size prefix" );	// Size prefix
 			
 		_endif
-		_if( gen_lock[ instr ] != 0 && assembler == gas && targetOS != freeBSD_os )
+		_if( gen_lock[ instr ] != 0 && isML )
 		
 			EmitByteConst(  gen_lock[ instr ] , "" );
 			
@@ -13881,7 +13892,7 @@ _begin( EmitGeneric_i_r )
 		_elseif( isReg16( destReg ))
 		
 			EmitByteConst(  0x66 , "size prefix" );	// Size prefix
-			_if( gen_lock[ instr ] != 0 && assembler == gas && targetOS != freeBSD_os )
+			_if( gen_lock[ instr ] != 0 && isML )
 			
 				EmitByteConst(  gen_lock[ instr ] , "" );
 				
@@ -13893,7 +13904,7 @@ _begin( EmitGeneric_i_r )
 				||	assembler == masm 
 				||	assembler == fasm 
 				||	assembler == nasm 
-				||	assembler == gas 
+				||	isMLF 
 				||	(
 							assembler == nasm
 						&&	!( 
@@ -14197,7 +14208,7 @@ _begin( EmitGeneric_i_m )
 		_elseif( adrs->Size == 2 )
 		
 			EmitByteConst(  0x66 , "size prefix" );	// Size prefix
-			_if( gen_lock[ instr ] != 0 && assembler == gas && targetOS != freeBSD_os )
+			_if( gen_lock[ instr ] != 0 && isML )
 			
 				EmitByteConst(  gen_lock[ instr ] , "" );
 				
@@ -14453,7 +14464,7 @@ _begin( EmitUnary_r )
 		
 		// Special case for lock instructions under GAS:
 		
-		_if( isLockUnary( instr ) && assembler == gas && targetOS != freeBSD_os )
+		_if( isLockUnary( instr ) && isML )
 		
 			EmitByteConst(  0xf0 , "" );
 			instr = unlockUnary( instr );
@@ -14540,7 +14551,7 @@ _begin( EmitUnary_m )
 		
 		// Special case for lock instructions (under Gas):
 		
-		_if( isLockUnary( instr ) && assembler == gas && targetOS != freeBSD_os )
+		_if( isLockUnary( instr ) && isML )
 		
 			EmitByteConst(  0xf0 , "" );
 			instr = unlockUnary( instr );
@@ -15103,10 +15114,7 @@ _begin( EmitTest_r_r )
 		( 
 				assembler == masm
 			||	assembler == hlabe 
-			||	(
-						assembler == gas 
-					&&	(gasSyntax == macGas || targetOS == freeBSD_os) 
-				)
+			||	isMF
 		)
 		
 			EmitByteConst( 0xc0 | (regCode( dest ) << 3) | regCode( src ), "mod-reg-r/m" );
@@ -15411,7 +15419,7 @@ _begin( EmitXchg_r_r )
 		
 			EmitByteConst(  0x90 | regCode( src ) , "" );
 			
-		_elseif( assembler == gas || targetOS == macOS_os )
+		_elseif( isMLF )
 
 			EmitByteConst( 0x86 + isReg1632( src ), "" );
 			EmitByteConst( 0xc0 | (regCode( src ) << 3) | regCode( dest ), "mod-reg-r/m" );
@@ -16768,7 +16776,7 @@ _begin( EmitCmpXchg_r_r )
 		
 			_endif
 			EmitByteConst(  0x66 , "size prefix" );
-			_if( locked && assembler == gas && targetOS != freeBSD_os )
+			_if( locked && isML )
 		
 				EmitByteConst(  0xf0 , "" );
 		
@@ -16825,7 +16833,7 @@ _begin( EmitCmpXchg_m_r )
 		
 			_endif
 			EmitByteConst(  0x66 , "size prefix" );
-			_if( locked && assembler == gas && targetOS != freeBSD_os )
+			_if( locked && isML )
 		
 				EmitByteConst(  0xf0 , "" );
 		
@@ -24895,7 +24903,7 @@ _begin( push_sr )
 	_else
 	
 		asmPush( segregmap[theSegReg][assembler], 2, "", 1 );
-		_if( assembler == gas || targetOS == macOS_os )
+		_if( isMLF )
 		
 			EmitByteConst( 0x66, "size prefix" );
 			
@@ -25263,7 +25271,7 @@ _begin( pop_sr )
 	_else
 	
 		asmPop( segregmap[srcReg][assembler], 2, 1 );
-		_if( assembler == gas || targetOS == macOS_os )
+		_if( isMLF )
 		
 			EmitByteConst(  0x66 , "size prefix" );
 			
