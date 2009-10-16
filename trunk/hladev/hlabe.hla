@@ -3941,12 +3941,12 @@ _begin( buildRaw );
 							||	dl <> curSection
 							||	(
 										dh
-									&&	objType >= minElf_c
-									&&	objType <= maxElf_c
+									&&	objType in minElf_c..maxElf_c
 								)
 						) then
 						
-							if( objType = pecoff_c ) then
+							mov( objType, dl );
+							if( dl = pecoff_c ) then
 							
 								mov( symEAX.symIndex, eax );
 								mov( eax, relocESI.SymbolTableIndex );
@@ -3962,7 +3962,7 @@ _begin( buildRaw );
 								mov( rel14EBX.offset, eax );
 								mov( eax, [edi-4] );
 								
-							elseif( objType <= elfFreeBSD_c ) then
+							elseif( dl in minElf_c..maxElf_c ) then
 							
 								mov( tknEBX.instrOffset, edx );
 								add( 2, edx );
@@ -3981,7 +3981,7 @@ _begin( buildRaw );
 								mov( rel14EBX.offset, eax );
 								mov( eax, [edi-4] );
 							
-							elseif( objType = macho_c ) then
+							elseif( dl = macho_c ) then
 							
 								mov( tknEBX.instrOffset, edx );
 								add( 2, edx );
@@ -4061,12 +4061,12 @@ _begin( buildRaw );
 							||	dl <> curSection
 							||	(
 										dh
-									&&	objType >= minElf_c
-									&&	objType <= maxElf_c
+									&&	objType in minElf_c..maxElf_c
 								)
 						) then
 						
-							if( objType = pecoff_c ) then
+							mov( objType, dl );
+							if( dl = pecoff_c ) then
 						
 								mov( symEAX.symIndex, eax );
 								mov( eax, relocESI.SymbolTableIndex );
@@ -4082,7 +4082,7 @@ _begin( buildRaw );
 								mov( jmpEBX.offset, eax );
 								mov( eax, [edi-4] );
 								
-							elseif( objType <= elfFreeBSD_c ) then 
+							elseif( dl in minElf_c..maxElf_c ) then 
 							
 								mov( tknEBX.instrOffset, edx );
 								add( 1, edx );
@@ -4105,7 +4105,7 @@ _begin( buildRaw );
 								endif;
 								
 							
-							elseif( objType = macho_c ) then
+							elseif( dl = macho_c ) then
 							
 								mov( tknEBX.instrOffset, edx );
 								add( 1, edx );
@@ -4176,12 +4176,12 @@ _begin( buildRaw );
 						||	dl <> curSection
 						||	(
 									dh
-								&&	objType >= minElf_c
-								&&	objType <= maxElf_c
+								&&	objType in minElf_c..maxElf_c
 							)
 					) then
 					
-						if( objType = pecoff_c ) then
+						mov( objType, dl );
+						if( dl = pecoff_c ) then
 							
 							mov( symEAX.symIndex, eax );
 							mov( eax, relocESI.SymbolTableIndex );
@@ -4198,7 +4198,7 @@ _begin( buildRaw );
 							add( rel4EBX.disp, eax );
 							mov( eax, [edi-4] );
 						
-						elseif( objType <= elfFreeBSD_c ) then
+						elseif( dl in minElf_c..maxElf_c ) then
 						
 							mov( tknEBX.instrOffset, edx );
 							add( 1, edx );
@@ -4217,7 +4217,7 @@ _begin( buildRaw );
 							
 							mov( $FFFF_FFFC, (type dword [edi-4]) );
 						
-						elseif( objType = macho_c ) then
+						elseif( dl = macho_c ) then
 						
 							mov( tknEBX.instrOffset, edx );
 							add( 1, edx );
@@ -4260,7 +4260,8 @@ _begin( buildRaw );
 				
 				if( relocEBX.symbol <> NULL ) then
 				
-					if( objType = pecoff_c ) then
+					mov( objType, dl );
+					if( dl = pecoff_c ) then
 							
 						mov( relocEBX.symbol, eax );
 						mov( tblEAX.Value, eax );
@@ -4277,7 +4278,7 @@ _begin( buildRaw );
 						mov( relocEBX.offset, eax );
 						stosd();
 						
-					elseif( objType <= elfFreeBSD_c ) then
+					elseif( dl in minElf_c..maxElf_c ) then
 					
 						mov( tknEBX.instrOffset, edx );
 						mov( edx, relocElfESI.r_offset );
@@ -4300,7 +4301,7 @@ _begin( buildRaw );
 						mov( relocEBX.offset, eax );
 						stosd();
 					
-					elseif( objType = macho_c ) then
+					elseif( dl = macho_c ) then
 					
 						// If the symbol is external, or if the offset
 						// from the symbol is zero, then we've got a
@@ -5426,6 +5427,10 @@ var
 								( 
 										dh = isExtern_c 
 									||	dl <> curSection 
+									||	(
+												dh
+											&&	objType in minElf_c..maxElf_c
+										)
 								) then
 								 
 									add( 1, esi );
@@ -5460,8 +5465,7 @@ var
 									||	dl <> curSection 
 									||	(
 												dh
-											&&	objType >= minElf_c
-											&&	objType <= maxElf_c
+											&&	objType in minElf_c..maxElf_c
 										)
 								) then
 								 
@@ -5497,8 +5501,7 @@ var
 								||	dl <> curSection								 
 								||	(
 											dh
-										&&	objType >= minElf_c
-										&&	objType <= maxElf_c
+										&&	objType in minElf_c..maxElf_c
 									)
 							) then
 							 
