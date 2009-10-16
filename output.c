@@ -1,6 +1,6 @@
 
 /***************************************************/
-/*                                                 */		  
+/*                                                 */
 /*                                                 */		
 /* HLA Code Generation functions are in this file. */			  
 /* (iterim note: actually, the functions are split */
@@ -48,6 +48,7 @@
 #define isMLF (targetOS == linux_os || targetOS == freeBSD_os || targetOS == macOS_os)
 #define isML  (targetOS == linux_os || targetOS == macOS_os)
 #define isMF  (targetOS == freeBSD_os || targetOS == macOS_os)
+#define isLF (targetOS == linux_os || targetOS == freeBSD_os )
 #define isGAS(s) (assembler == gas && (s))
 #define gasImm	_ifx( assembler == gas, "$", "")
 #define cmt(c) 											\
@@ -1990,7 +1991,7 @@ _begin( EmitAlign )
 	_endif
 	_if( alignment > 1 )
 	
-		_if( targetOS == macOS_os )
+		_if( targetOS == macOS_os && assembler != hlabe )
 		
 			asmPrintf( "        .align (%d)\n", pow2 );
 
@@ -2618,6 +2619,7 @@ _begin( extPubIterator )
 	
 		CurSym = extHashTable[ index ];
 		_while( CurSym != NULL )
+		
 
 			_if( CurSym->IsPublic )
 
@@ -2903,7 +2905,6 @@ _begin( EndProc )
 				);
 				
 			_endif
-			++LblCntr;
 			
 		_endcase
 		
@@ -2946,6 +2947,7 @@ _begin( EndProc )
 			assert( !"Bad assembler value" );
 
 	_endswitch
+	++LblCntr;
 
 _end( EndProc )
 
@@ -4708,69 +4710,69 @@ unsigned  str_opcodes[ num_str_instrs ] =
 };
 
 
-unsigned  gas_str_opcodes[ num_str_instrs ] =
-{
-	0xa4,		// movsb_instr,	
-	0xa566,		// movsw_instr,	
-	0xa5,		// movsd_instr,
-	
-	0xa4f3,		// rep_movsb_instr,	
-	0xa5f366,	// rep_movsw_instr,	
-	0xa5f3,		// rep_movsd_instr,
-	
-	0xac,		// lodsb_instr,	
-	0xad66,		// lodsw_instr,	
-	0xad,		// lodsd_instr,
-	0xacf3,		// rep_lodsb_instr,	
-	0xadf366,	// rep_lodsw_instr,	
-	0xadf3,		// rep_lodsd_instr,
-	
-	0xaa,		// stosb_instr,	
-	0xab66,		// stosw_instr,	
-	0xab,		// stosd_instr,
-	
-	0xaaf3,		// rep_stosb_instr,	
-	0xabf366,	// rep_stosw_instr,	
-	0xabf3,		// rep_stosd_instr,
-	
-	0xa6,		// cmpsb_instr,	
-	0xa766,		// cmpsw_instr,	
-	0xa7,		// cmpsd_instr,
-	
-	0xa6f3,		// repe_cmpsb_instr,	
-	0xa7f366,	// repe_cmpsw_instr,	
-	0xa7f3,		// repe_cmpsd_instr,
-	
-	0xa6f2,		// repne_cmpsb_instr,	
-	0xa7f266,	// repne_cmpsw_instr,	
-	0xa7f2,		// repne_cmpsd_instr,
-	
-	0xae,		// scasb_instr,	
-	0xaf66,		// scasw_instr,	
-	0xaf,		// scasd_instr,
-	
-	0xaef3,		// repe_scasb_instr,	
-	0xaff366,	// repe_scasw_instr,	
-	0xaff3,		// repe_scasd_instr,
-	
-	0xaef2,		// repne_scasb_instr,	
-	0xaff266,	// repne_scasw_instr,	
-	0xaff2,		// repne_scasd_instr,
-	
-	0x6e,		// outsb_instr,	
-	0x6f66,		// outsw_instr,	
-	0x6f,		// outsd_instr,
-	0x6ef3,		// rep_outsb_instr,	
-	0x6ff366,	// rep_outsw_instr,	
-	0x6ff3,		// rep_outsd_instr,
-	
-	0x6c,		// insb_instr,	
-	0x6d66,		// insw_instr,	
-	0x6d,		// insd_instr,
-	0x6cf3,		// rep_insb_instr,	
-	0x6df366,	// rep_insw_instr,	
-	0x6df3		// rep_insd_instr,
-};
+//unsigned  gas_str_opcodes[ num_str_instrs ] =
+//{
+//	0xa4,		// movsb_instr,	
+//	0xa566,		// movsw_instr,	
+//	0xa5,		// movsd_instr,
+//	
+//	0xa4f3,		// rep_movsb_instr,	
+//	0xa566f3,	// rep_movsw_instr,	
+//	0xa5f3,		// rep_movsd_instr,
+//	
+//	0xac,		// lodsb_instr,	
+//	0xad66,		// lodsw_instr,	
+//	0xad,		// lodsd_instr,
+//	0xacf3,		// rep_lodsb_instr,	
+//	0xad66f3,	// rep_lodsw_instr,	
+//	0xadf3,		// rep_lodsd_instr,
+//	
+//	0xaa,		// stosb_instr,	
+//	0xab66,		// stosw_instr,	
+//	0xab,		// stosd_instr,
+//	
+//	0xaaf3,		// rep_stosb_instr,	
+//	0xab66f3,	// rep_stosw_instr,	
+//	0xabf3,		// rep_stosd_instr,
+//	
+//	0xa6,		// cmpsb_instr,	
+//	0xa766,		// cmpsw_instr,	
+//	0xa7,		// cmpsd_instr,
+//	
+//	0xa6f3,		// repe_cmpsb_instr,	
+//	0xa766f3,	// repe_cmpsw_instr,	
+//	0xa7f3,		// repe_cmpsd_instr,
+//	
+//	0xa6f2,		// repne_cmpsb_instr,	
+//	0xa766f2,	// repne_cmpsw_instr,	
+//	0xa7f2,		// repne_cmpsd_instr,
+//	
+//	0xae,		// scasb_instr,	
+//	0xaf66,		// scasw_instr,	
+//	0xaf,		// scasd_instr,
+//	
+//	0xaef3,		// repe_scasb_instr,	
+//	0xaf66f3,	// repe_scasw_instr,	
+//	0xaff3,		// repe_scasd_instr,
+//	
+//	0xaef2,		// repne_scasb_instr,	
+//	0xaf66f2,	// repne_scasw_instr,	
+//	0xaff2,		// repne_scasd_instr,
+//	
+//	0x6e,		// outsb_instr,	
+//	0x6f66,		// outsw_instr,	
+//	0x6f,		// outsd_instr,
+//	0x6ef3,		// rep_outsb_instr,	
+//	0x6f66f3,	// rep_outsw_instr,	
+//	0x6ff3,		// rep_outsd_instr,
+//	
+//	0x6c,		// insb_instr,	
+//	0x6d66,		// insw_instr,	
+//	0x6d,		// insd_instr,
+//	0x6cf3,		// rep_insb_instr,	
+//	0x6d66f3,	// rep_insw_instr,	
+//	0x6df3		// rep_insd_instr,
+//};
 
 char *str_strs[3][ num_str_instrs ] =
 {
@@ -4944,13 +4946,13 @@ _begin( str_instr )
 		
 	_else
 
-		opcode = 
-			_ifx
-			( 
-				targetOS == linux_os || targetOS == macOS_os,
-				gas_str_opcodes[ instr ], 
-				str_opcodes[ instr ] 
-			);
+		opcode = str_opcodes[ instr ];
+//			_ifx
+//			( 
+//				targetOS == macOS_os,
+//				gas_str_opcodes[ instr ], 
+//				str_opcodes[ instr ] 
+//			);
 			
 		_switch( assembler )
 		
@@ -5272,7 +5274,7 @@ _begin( fp_arith_sti_st0_instr )
 	);
 	_if( !sourceOutput )
 		 
-		_if( targetOS == macOS_os && fpreg == reg_st0 )
+		_if( isMLF && fpreg == reg_st0 )
 		
 			EmitWordConst( fp_sti_st0_opcodes_mac[instr] | (regCode(fpreg) << 8) );
 			
@@ -5328,7 +5330,7 @@ _begin( fp_arith_st0_sti_instr )
 		// Most of the back-end assemblers encode ST0 using the fp_sti_st0
 		// opcode.  Let's replicate that encoding.
 		
-		_if( fpreg == reg_st0 && targetOS == macOS_os )
+		_if( fpreg == reg_st0 && isMLF )
 		
 			EmitWordConst( fp_sti_st0_opcodes_mac[instr] | (regCode(fpreg) << 8) );
 
@@ -6590,11 +6592,11 @@ _begin( movd_r_m )
 			sourceOutput 
 		&&	!(
 					(
-							assembler == tasm	// MASM6 doesn't handle SSE version.
-						||	assembler == tasm	// Neither does TASM5
+							assembler == tasm	// TASM doesn't handle SSE version.
 					)
 				&&	prefix66
-			);
+			)
+		&&	!isMLF;
 	 
 	_if( 4 != adrs->Size && adrs->Size != 0 )
 	
@@ -6606,7 +6608,7 @@ _begin( movd_r_m )
 		"movd",
 		src,
 		adrs,
-		4,
+		adrs->Size,
 		testMode,
 		doSource
 	);
@@ -6651,11 +6653,17 @@ _begin( movd_m_r )
 							assembler == tasm	// TASM doesn't handle SSE version.
 					)
 				&&	prefix66
-			);
+			)
+		&&	!isMLF;
 	
 	_if( 4 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 4;
+		
+	_endif
+	_if( isLF )
+	
+		adrs->forcedSize = 0;
 		
 	_endif
 	asm2opmr
@@ -6663,7 +6671,7 @@ _begin( movd_m_r )
 		"movd",
 		adrs,
 		dest,
-		4,
+		adrs->Size,
 		testMode,
 		doSource
 	);	 
@@ -8017,7 +8025,7 @@ _begin( Emit_Vps_VRq )
 	
 	assert( instr == movhlps_instr || instr == movlhps_instr );
 	assert( src < 8 && dest < 8 );
-	doSource = sourceOutput && assembler != tasm;
+	doSource = sourceOutput && assembler != tasm && !isMLF;
 	
 	asm2oprr
 	(
@@ -8057,7 +8065,7 @@ _begin( Emit_Vps_Mq )
 	
 	assert( instr == movlps_instr || instr == movhps_instr );
 	assert( reg < 8 );
-	doSource = sourceOutput && assembler != tasm;
+	doSource = sourceOutput && assembler != tasm && !isMLF;
 	
 	_if( 8 != adrs->Size && adrs->Size != 0 )
 	
@@ -8108,7 +8116,7 @@ _begin( Emit_Mq_Vps )
 	
 	assert( instr == movlps_instr || instr == movhps_instr );
 	assert( reg < 8 );
-	doSource = sourceOutput && assembler != tasm;
+	doSource = sourceOutput && assembler != tasm && !isMLF;
 	
 	_if( 8 != adrs->Size && adrs->Size != 0 )
 	
@@ -8157,7 +8165,7 @@ _begin( Emit_Vps_Wq_m )
 	
 	assert( instr == unpcklps_instr || instr == unpckhps_instr );
 	assert( reg < 8 );
-	doSource = sourceOutput && assembler != tasm && targetOS != macOS_os;
+	doSource = sourceOutput && assembler != tasm && !isMLF;
 	_if( 16 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 16;
@@ -8245,7 +8253,7 @@ _begin( Emit_Vsd_Mq_m )
 	assert( instr == movlpd_instr || instr == movhpd_instr );
 	assert( reg < 8 );
 	doSource = sourceOutput && assembler != tasm;
-	_if( 8 != adrs->Size && adrs->Size != 0 )
+	_if( 8 != adrs->Size && adrs->Size != 0 || assembler == gas )
 	
 		adrs->forcedSize = 8;
 		
@@ -8290,7 +8298,7 @@ _begin( Emit_Mq_Vsd_m )
 	
 	assert( instr == movlpd_instr || instr == movhpd_instr );
 	assert( reg < 8 );
-	doSource = sourceOutput && assembler != tasm;
+	doSource = sourceOutput && assembler != tasm && !isMLF;
 	_if( 8 != adrs->Size && adrs->Size != 0 )
 	
 		adrs->forcedSize = 8;
@@ -8934,7 +8942,7 @@ _begin( Emit_Vdq_Wq_r )
 				&&	instr != punpckhqdq_instr
 				&&	!(assembler == tasm && isXmm)
 				&&	!(assembler == gas && instr == lddqu_instr)
-				&&	targetOS != macOS_os 
+				&&	!isMLF 
 			);
 			
 	asm2oprr
@@ -8977,7 +8985,7 @@ _begin( Emit_Vdq_Wq_m )
 				&&	instr != punpckhqdq_instr
 				&&	!(assembler == tasm && isXmm)
 				&&	!(assembler == gas && instr == lddqu_instr)
-				&&	targetOS != macOS_os 
+				&&	!isMLF 
 			);
 			
 	rgsz = _ifx( isXmm, 16, 8 );
@@ -9031,7 +9039,7 @@ _begin( Emit_Vdq_Wd_r )
 				&&	instr != punpckhqdq_instr
 				&&	!(assembler == tasm && isXmm)
 				&&	!(assembler == gas && instr == lddqu_instr) 
-				&&	targetOS != macOS_os 
+				&&	!isMLF 
 			);
 			
 	asm2oprr
@@ -9074,7 +9082,7 @@ _begin( Emit_Vdq_Wd_m )
 				&&	instr != punpckhqdq_instr
 				&&	!(assembler == tasm && isXmm)
 				&&	!(assembler == gas && instr == lddqu_instr)
-				&&	targetOS != macOS_os 
+				&&	!isMLF 
 			);
 			
 	rgsz = _ifx( isXmm, 16, 4 );
@@ -9647,7 +9655,7 @@ static void
 doBTLockPrefix( enum bt_instrs *instr, int size )
 _begin( doLockPrefix )
 
-	_if( targetOS == macOS_os || targetOS == linux_os )
+	_if( targetOS == macOS_os )
 	
 		_if( size == 2)
 		
@@ -11396,7 +11404,7 @@ _begin( EmitXadd_r_m )
 			
 		_elseif( isReg16( srcReg ))
 		
-			_if( isML )
+			_if( targetOS == macOS_os )
 			
 				EmitByteConst( 0x66, "size prefix" );
 				_if( lockPrefix != 0 )
@@ -13646,7 +13654,7 @@ _begin( generic_r_r )
 	);	
 	_if( !sourceOutput )
 	
-		_if( gen_lock[ instr ] != 0 && (assembler != gas || targetOS == freeBSD_os) )
+		_if( gen_lock[ instr ] != 0 )
 		
 			EmitByteConst(  gen_lock[ instr ] , "" );
 			
@@ -13656,12 +13664,6 @@ _begin( generic_r_r )
 			EmitByteConst(  0x66 , "size prefix" );	// Size prefix
 			
 		_endif
-		_if( gen_lock[ instr ] != 0 && isML )
-		
-			EmitByteConst(  gen_lock[ instr ] , "" );
-			
-		_endif
-		
 		_if
 		( 
 				assembler == fasm
@@ -13669,7 +13671,6 @@ _begin( generic_r_r )
 			||	isMLF 
 		)
 		 
-		 	// MASM kludge -- to make disassembly output comparison easier.
 			// Note: The L.O. bit of the opcode is zero for 8 bits, 1 for 16/32 bits.
 			
 			EmitByteConst(  (gen_ops[ instr ] - 2) | isReg1632( srcReg ) , "" );
@@ -13677,6 +13678,7 @@ _begin( generic_r_r )
 			
 		_else
 		 
+		 	// MASM kludge -- to make disassembly output comparison easier.
 			// Note: The L.O. bit of the opcode is zero for 8 bits, 1 for 16/32 bits.
 
 			EmitByteConst(  gen_ops[ instr ] | isReg1632( srcReg ) , "" );
@@ -13732,7 +13734,7 @@ _begin( EmitGeneric_r_m )
 	_endif	
 	_if( !sourceOutput )
 	
-		_if( gen_lock[ instr ] != 0 && (assembler != gas || targetOS == freeBSD_os) )
+		_if( gen_lock[ instr ] != 0 )
 		
 			EmitByteConst(  gen_lock[ instr ] , "" );
 			
@@ -13740,11 +13742,6 @@ _begin( EmitGeneric_r_m )
 		_if( isReg16( srcReg ))
 		
 			EmitByteConst(  0x66 , "size prefix" );	// Size prefix
-			
-		_endif
-		_if( gen_lock[ instr ] != 0 && isML )
-		
-			EmitByteConst(  gen_lock[ instr ] , "" );
 			
 		_endif
 		
@@ -13802,7 +13799,7 @@ _begin( EmitGeneric_m_r )
 	_endif
 	_if( !sourceOutput )
 	
-		_if( gen_lock[ instr ] != 0 && (assembler != gas || targetOS == freeBSD_os) )
+		_if( gen_lock[ instr ] != 0 )
 		
 			EmitByteConst(  gen_lock[ instr ] , "" );
 			
@@ -13810,11 +13807,6 @@ _begin( EmitGeneric_m_r )
 		_if( isReg16( destReg ))
 		
 			EmitByteConst(  0x66 , "size prefix" );	// Size prefix
-			
-		_endif
-		_if( gen_lock[ instr ] != 0 && isML )
-		
-			EmitByteConst(  gen_lock[ instr ] , "" );
 			
 		_endif
 		
@@ -13859,14 +13851,7 @@ _begin( EmitGeneric_i_r )
 			
 	_if( !sourceOutput )
 	
-		_if
-		( 
-				gen_lock[ instr ] != 0 
-			&&	(
-						(assembler != gas || targetOS == freeBSD_os) 
-					||	!isReg16( destReg )
-				) 
-		)
+		_if( gen_lock[ instr ] != 0 )
 		
 			EmitByteConst(  gen_lock[ instr ] , "" );
 			
@@ -13892,11 +13877,6 @@ _begin( EmitGeneric_i_r )
 		_elseif( isReg16( destReg ))
 		
 			EmitByteConst(  0x66 , "size prefix" );	// Size prefix
-			_if( gen_lock[ instr ] != 0 && isML )
-			
-				EmitByteConst(  gen_lock[ instr ] , "" );
-				
-			_endif
 			
 			_if
 			( 
@@ -14190,10 +14170,7 @@ _begin( EmitGeneric_i_m )
 	_endif
 	_if( !sourceOutput )	
 
-		_if
-		( 
-				gen_lock[ instr ] != 0 
-			&&	((assembler != gas || targetOS == freeBSD_os) || adrs->Size != 2) )
+		_if( gen_lock[ instr ] != 0 )
 		
 			EmitByteConst(  gen_lock[ instr ] , "" );
 			
@@ -14207,13 +14184,7 @@ _begin( EmitGeneric_i_m )
 		
 		_elseif( adrs->Size == 2 )
 		
-			EmitByteConst(  0x66 , "size prefix" );	// Size prefix
-			_if( gen_lock[ instr ] != 0 && isML )
-			
-				EmitByteConst(  gen_lock[ instr ] , "" );
-				
-			_endif
-			
+			EmitByteConst(  0x66 , "size prefix" );	// Size prefix			
 			_if( v->v.u.intval >= -128 && v->v.u.intval <= 127 )
 			
 				EmitByteConst(  0x83 , "" );	// xxx reg16, const8
@@ -14447,7 +14418,7 @@ _begin( EmitUnary_r )
 	
 		// Special case for lock instructions:
 		
-		_if( isLockUnary( instr ) && (assembler != gas || targetOS == freeBSD_os) )
+		_if( isLockUnary( instr ) )
 		
 			EmitByteConst(  0xf0 , "" );
 			instr = unlockUnary( instr );
@@ -14462,16 +14433,6 @@ _begin( EmitUnary_r )
 			
 		_endif
 		
-		// Special case for lock instructions under GAS:
-		
-		_if( isLockUnary( instr ) && isML )
-		
-			EmitByteConst(  0xf0 , "" );
-			instr = unlockUnary( instr );
-			
-		_endif
-		
-
 		// Special case for INC/DEC(reg16/reg32)
 			
 		_if( isReg1632( reg ) && instr==inc_instr )
@@ -14534,7 +14495,7 @@ _begin( EmitUnary_m )
 
 		// Special case for lock instructions:
 		
-		_if( isLockUnary( instr ) && (assembler != gas || targetOS == freeBSD_os) )
+		_if( isLockUnary( instr )  )
 		
 			EmitByteConst(  0xf0 , "" );
 			instr = unlockUnary( instr );
@@ -14549,14 +14510,6 @@ _begin( EmitUnary_m )
 			
 		_endif
 		
-		// Special case for lock instructions (under Gas):
-		
-		_if( isLockUnary( instr ) && isML )
-		
-			EmitByteConst(  0xf0 , "" );
-			instr = unlockUnary( instr );
-			
-		_endif
 		
 
 		EmitByteConst(  unary_opcodes[ instr ] | (adrs->Size >= 2) , "" );
@@ -14692,7 +14645,6 @@ _begin( EmitBound_r_c_c )
 			EmitData( lbound, tWord, cLBound );
 			EmitData( ubound, tWord, cUBound );
 			endStrSeg();
-			++LblCntr;
 
 		_else
 
@@ -14700,9 +14652,9 @@ _begin( EmitBound_r_c_c )
 			EmitData( lbound, tDWord, cLBound );
 			EmitData( ubound, tDWord, cUBound );
 			endStrSeg();
-			++LblCntr;
 
 		_endif
+		++LblCntr;
 		_if( regSize( reg ) == 2 )
 		
 			BuildAdrs
@@ -15114,7 +15066,7 @@ _begin( EmitTest_r_r )
 		( 
 				assembler == masm
 			||	assembler == hlabe 
-			||	isMF
+			||	isMLF
 		)
 		
 			EmitByteConst( 0xc0 | (regCode( dest ) << 3) | regCode( src ), "mod-reg-r/m" );
@@ -16770,17 +16722,12 @@ _begin( EmitCmpXchg_r_r )
 		
 		_if( isReg16( src ))
 		
-			_if( locked && (assembler != gas || targetOS == freeBSD_os) )
+			_if( locked )
 		
 				EmitByteConst(  0xf0 , "" );
 		
 			_endif
 			EmitByteConst(  0x66 , "size prefix" );
-			_if( locked && isML )
-		
-				EmitByteConst(  0xf0 , "" );
-		
-			_endif
 			
 		_elseif( locked )
 		
@@ -16827,17 +16774,12 @@ _begin( EmitCmpXchg_m_r )
 		
 		_if( isReg16( reg ))
 		
-			_if( locked && (assembler != gas || targetOS == freeBSD_os) )
+			_if( locked )
 		
 				EmitByteConst(  0xf0 , "" );
 		
 			_endif
 			EmitByteConst(  0x66 , "size prefix" );
-			_if( locked && isML )
-		
-				EmitByteConst(  0xf0 , "" );
-		
-			_endif
 			
 		_elseif( locked )
 		
@@ -17181,6 +17123,7 @@ _begin( EmitLabelledAdrs )
 	char *o32 = offset32;
 	char *h32 = "&";
 
+	_here;
 	_if( theLabel == NullPointer || isdigit( *theLabel ))
 	
 		o32 = "";
@@ -17240,6 +17183,7 @@ _begin( EmitLabelledAdrs )
 		asmPrintf( "%-7s dd         %s%s\n", name, o32, theLabel );
 
 	_endswitch
+	_here;
 
 _end( EmitLabelledAdrs )
 
@@ -17248,7 +17192,9 @@ void
 EmitAdrs( char *theLabel )
 _begin( EmitAdrs )
 
+	_here;
 	EmitLabelledAdrs( "", theLabel );
+	_here;
 	
 _end( EmitAdrs )
 
@@ -29254,9 +29200,6 @@ _begin( EmitMemInRange4 )
 			** make more sense in the context of those stmts.)
 			*/
 			
-//			EmitIMC( "cmp", address, YYS startConst );
-//			sprintf( label, "L%d_true" sympost, LblCntr );
-//			Emit1L( _ifx( IsSigned, "jl", "jb" ), label );
 			EmitGeneric_i_m( cmp_instr, YYS startConst, adrs );
 			sprintf( label, "true" sympost "%d", LblCntr );
 			_if( IsSigned )
@@ -29269,9 +29212,6 @@ _begin( EmitMemInRange4 )
 				
 			_endif
 			
-//			EmitIMC( "cmp", address, YYS endConst );
-//			sprintf( label, "L%d_false" sympost, target );
-//			Emit1L( _ifx( IsSigned, "jng", "jna" ), label );
 			EmitGeneric_i_m( cmp_instr, YYS endConst, adrs );
 			sprintf( label, "false" sympost "%d", target );
 			_if( IsSigned )
@@ -29295,9 +29235,6 @@ _begin( EmitMemInRange4 )
 			** to the %d_true label.
 			*/
 
-//			EmitIMC( "cmp", address, YYS startConst );
-//			sprintf( label, "L%d_false" sympost, target );
-//			Emit1L( _ifx( IsSigned, "jl", "jb" ), label );
 			EmitGeneric_i_m( cmp_instr, YYS startConst, adrs );
 			sprintf( label, "false" sympost "%d", target );
 			_if( IsSigned )
@@ -29310,9 +29247,6 @@ _begin( EmitMemInRange4 )
 				
 			_endif
 			
-//			EmitIMC( "cmp", address, YYS endConst );
-//			sprintf( label, "L%d_false" sympost, target );
-//			Emit1L( _ifx( IsSigned, "jg", "ja" ), label );
 			EmitGeneric_i_m( cmp_instr, YYS endConst, adrs );
 			sprintf( label, "false" sympost "%d", target );
 			_if( IsSigned )

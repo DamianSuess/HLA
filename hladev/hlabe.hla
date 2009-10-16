@@ -1218,7 +1218,6 @@ static
 		mov( eax, dwordVal );
 		
 		if( edx = NULL ) then
-		
 			// Allocate an appropriate amount of storage to 
 			// allow us to store the non-relocatable dword value.
 		
@@ -2585,25 +2584,41 @@ _begin( lexer );
 						
 					else    // Symbol is already defined
 					
-					    mov( (type tableNode_t [eax]).Value, eax );
+					    mov( (type tableNode_t [eax]).Value, ecx );
 						test
 						( 
-						    isPublic_c | isDefined_c, 
-							(type symbol_t [eax]).flags 
+						    isExtern_c, 
+							(type symbol_t [ecx]).flags 
 						);
 						if( @nz ) then
 						
+							mov( (type tableNode_t [eax]).id, eax );
 						    stderr.put
 							( 
-							    "External symbol is already defined. Error at line", 
+							    "External symbol '",
+								(type string eax), 
+								"' is already defined. "
+								"Error in HLABE code at line ", 
 								lineNumber,
 								nl 
 							);
 							raise( ex.InvalidArgument );
 							
-						endif;
+						else
 						
-						or( isExtern_c, symEAX.flags );
+							test( isDefined_c,  (type symbol_t [ecx]).flags );
+							if( @nz ) then
+							
+								or( isPublic_c, (type symbol_t [ecx]).flags );
+								
+							else
+							
+								or( isExtern_c, (type symbol_t [ecx]).flags );
+							
+							endif;
+							
+						endif;
+						mov( ecx, eax );
 						
 						// Set the section to the current section number
 						
@@ -3917,11 +3932,18 @@ _begin( buildRaw );
 						mov( rel14EBX.symbol, eax );
 						mov( tblEAX.Value, eax );
 						mov( symEAX.section, dl );
-						test( isExtern_c, symEAX.flags );
+						mov( symEAX.flags, dh );
+						and( isExtern_c | isPublic_c, dh );
+						test( isExtern_c, dh );
 						if
 						(
 								@nz 
 							||	dl <> curSection
+							||	(
+										dh
+									&&	objType >= minElf_c
+									&&	objType <= maxElf_c
+								)
 						) then
 						
 							if( objType = pecoff_c ) then
@@ -4030,11 +4052,18 @@ _begin( buildRaw );
 						mov( jmpEBX.symbol, eax );
 						mov( tblEAX.Value, eax );
 						mov( symEAX.section, dl );
-						test( isExtern_c, symEAX.flags );
+						mov( symEAX.flags, dh );
+						and( isExtern_c | isPublic_c, dh );
+						test( isExtern_c, dh );
 						if
 						(
 								@nz 
 							||	dl <> curSection
+							||	(
+										dh
+									&&	objType >= minElf_c
+									&&	objType <= maxElf_c
+								)
 						) then
 						
 							if( objType = pecoff_c ) then
@@ -4068,8 +4097,13 @@ _begin( buildRaw );
 							
 								// ELF needs this magic value here:
 								
-								mov( $FFFF_FFFC, eax );
-								mov( eax, [edi-4] );
+								test( isExtern_c, symEAX.flags );
+								if( @nz ) then
+								
+									mov( $FFFF_FFFC, (type dword [edi-4]) );
+									
+								endif;
+								
 							
 							elseif( objType = macho_c ) then
 							
@@ -4133,11 +4167,18 @@ _begin( buildRaw );
 					mov( rel4EBX.symbol, eax );
 					mov( tblEAX.Value, eax );
 					mov( symEAX.section, dl );
-					test( isExtern_c, symEAX.flags );
+					mov( symEAX.flags, dh );
+					and( isExtern_c | isPublic_c, dh );
+					test( isExtern_c, dh );
 					if
 					(
 							@nz 
 						||	dl <> curSection
+						||	(
+									dh
+								&&	objType >= minElf_c
+								&&	objType <= maxElf_c
+							)
 					) then
 					
 						if( objType = pecoff_c ) then
@@ -4163,6 +4204,7 @@ _begin( buildRaw );
 							add( 1, edx );
 							mov( edx, relocElfESI.r_offset );
 							
+							mov( symEAX.flags, dl );
 							mov( symEAX.symIndex, eax );
 							shl( 8, eax );
 							or( R_386_PC32, eax );
@@ -4173,8 +4215,7 @@ _begin( buildRaw );
 							
 							// ELF needs this magic value here:
 							
-							mov( $FFFF_FFFC, eax );
-							mov( eax, [edi-4] );
+							mov( $FFFF_FFFC, (type dword [edi-4]) );
 						
 						elseif( objType = macho_c ) then
 						
@@ -5207,7 +5248,8 @@ var
 	( 
 		codeList		:tokenList_t;
 		dataList		:tokenList_t;
-		bssList	    	:tokenList_t
+		bssList	    	:tokenList_t;
+		objType			:obj_t
 	);
 	var
 		codeRelocs	:dword;
@@ -5223,7 +5265,12 @@ var
 		//		EAX-	Size of section (in bytes)
 		//		EDX-	# of relocations in section
 		
-		_proc( cleanupPass )( list:tokenList_t; curSection:section_t );
+		_proc( cleanupPass )
+		( 
+			list		:tokenList_t; 
+			curSection	:section_t;
+			objType		:obj_t 
+		);
 		var
 		_begin( cleanupPass );
 		
@@ -5375,7 +5422,11 @@ var
 								mov( symEAX.section, dl );
 								mov( symEAX.flags, dh );
 								and( isExtern_c | isPublic_c, dh );
-								if( dh = isExtern_c || dl <> curSection ) then
+								if
+								( 
+										dh = isExtern_c 
+									||	dl <> curSection 
+								) then
 								 
 									add( 1, esi );
 									
@@ -5403,7 +5454,16 @@ var
 								mov( symEAX.section, dl );
 								mov( symEAX.flags, dh );
 								and( isExtern_c | isPublic_c, dh );
-								if( dh = isExtern_c ||	dl <> curSection ) then
+								if
+								( 
+										dh = isExtern_c 
+									||	dl <> curSection 
+									||	(
+												dh
+											&&	objType >= minElf_c
+											&&	objType <= maxElf_c
+										)
+								) then
 								 
 									add( 1, esi );
 									
@@ -5423,14 +5483,24 @@ var
 						// that is not in the current section, then we
 						// need a relocation record:
 						
-						
 						if( rel4EBX.symbol <> NULL ) then
 						
 							mov( rel4EBX.symbol, eax );
 							mov( tblEAX.Value, eax );
 							mov( symEAX.section, dl );
-							test( isExtern_c, symEAX.flags );
-							if( @nz || dl <> curSection ) then
+							mov( symEAX.flags, dh );
+							and( isExtern_c | isPublic_c, dh );
+							test( isExtern_c, dh );
+							if
+							( 
+									@nz 
+								||	dl <> curSection								 
+								||	(
+											dh
+										&&	objType >= minElf_c
+										&&	objType <= maxElf_c
+									)
+							) then
 							 
 								add( 1, esi );
 								
@@ -5477,15 +5547,15 @@ var
 		push( ecx );
 		push( edx );
 		
-		cleanupPass( codeList, code_c );
+		cleanupPass( codeList, code_c, objType );
 		mov( eax, codeEnd );
 		mov( edx, numCodeRelocs );
 		
-		cleanupPass( dataList, data_c );
+		cleanupPass( dataList, data_c, objType );
 		mov( eax, dataEnd );
 		mov( edx, numDataRelocs );
 		
-		cleanupPass( bssList, bss_c );
+		cleanupPass( bssList, bss_c, objType );
 		mov( eax, bssEnd );
 		if( edx <> 0 ) then
 		
@@ -5565,7 +5635,7 @@ _begin( optimizeDisps );
 		dispPhase( codeList, dataList, bssList, 1, objType );
 		mov( eax, passes );
 	
-		finalPass( codeList, dataList, bssList );		
+		finalPass( codeList, dataList, bssList, objType );		
 		if( verbose ) then
 		
 			stdout.put( "Optimization passes: ", passes, "+16386" nl );
@@ -5575,7 +5645,7 @@ _begin( optimizeDisps );
 		
 	else
 	
-		finalPass( codeList, dataList, bssList );
+		finalPass( codeList, dataList, bssList, objType );
 		if( verbose ) then
 		
 			stdout.put( "Optimization passes: ", passes, "+2" nl );
@@ -8349,7 +8419,7 @@ _begin( compileELF );
 	// Compute branch (and other) displacements and detect various
 	// errors (like undefined symbols, branch out of range, and so on):
 	
-	optimizeDisps( codeList, dataList, bssList, verbose, elf_c );
+	optimizeDisps( codeList, dataList, bssList, verbose, brand );
 	
 	// Now generate the ELF file:
 	
@@ -8552,21 +8622,6 @@ _begin( compile );
 					outputFilename, 
 				    start_source, 
 					end_source,
-					verbose, 
-					codeList, 
-					dataList, 
-					bssList 
-				);
-				
-			case( elf_c )
-			
-				compileELF
-				( 
-					inputFilename,
-					outputFilename, 
-				    start_source, 
-					end_source,
-					elf_c,
 					verbose, 
 					codeList, 
 					dataList, 

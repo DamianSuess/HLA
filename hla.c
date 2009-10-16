@@ -1613,7 +1613,7 @@ _begin( doCmdLine)
 			
 			_elseif( _streq( ucArg, "TEST" ))
 
-				MsgOut = stdout;
+				MsgOut  = stdout;
 				IgnoreErrors = 1;
 					
 
@@ -1621,7 +1621,7 @@ _begin( doCmdLine)
 			
 			_elseif( ThisArg == 'V' )
 
-				MsgOut = stdout;
+				MsgOut  = stdout;
 				Verbose = 1;
 				
 				
@@ -1950,7 +1950,7 @@ _begin( main )
 	// RatC to write the execution log to the standard output rather
 	// than a file:
 	
-	MsgOut = stderr;				/* Normally send all output to stderr	*/
+	MsgOut  = stderr;				/* Normally send all output to stderr	*/
 	
 	
 	// HLA.EXE uses the following strings to supply command line parameters

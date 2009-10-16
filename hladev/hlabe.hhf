@@ -922,16 +922,17 @@ type
 	};
 	
 	// Supported object file formats:
+	// These must be kept in sync with the C code!!!
 	
 	obj_t		:enum
 	{
 		pecoff_c,
-		elf_c,
 		elfLinux_c,
+		// Insert addition ELF formats here!!!!
 		elfFreeBSD_c,
 		macho_c
 	};
-	?minElf_c := elf_c;
+	?minElf_c := elfLinux_c;
 	?maxElf_c := elfFreeBSD_c;
 	
 	
