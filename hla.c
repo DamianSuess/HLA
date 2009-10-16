@@ -1033,7 +1033,7 @@ _begin( doCmdLine)
 				Internal	= 0;
 				_if
 				( 
-						(!targetOS == linux_os || targetOS == freeBSD_os )
+						!(targetOS == linux_os || targetOS == freeBSD_os )
 					&&	!SourceOnly 
 				)
 				
