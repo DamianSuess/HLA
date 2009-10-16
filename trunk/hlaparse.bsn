@@ -482,7 +482,7 @@ outputBuf extBuf;
 ** Error device output file variable.
 */
 
-FILE *MsgOut;
+FILE *MsgOut  = NULL;
 
 
 /*
@@ -1312,6 +1312,7 @@ union	YYSTYPE	forReturnVal;
 %token fastTkn
 %token segmentTkn
 %token hereTkn
+%token atlabelTkn
 
 %token	nameTkn
 %token	valresTkn
@@ -44225,6 +44226,25 @@ ValueDef:
 
 
 
+ValueDef:
+		atlabelTkn assignTkn ConstOnlyExpr Semicolon
+		{
+			_here;
+			_if( !checkSmallUns( YYS &$<v>3 ) || $<v.u.intval>3 < 1 )
+
+				yyerror( "@label must be assigned an integer > 1" );
+
+			_else
+
+				LblCntr = $<v.u.intval>3;
+
+			_endif
+			_here;
+		}
+	;
+
+		 
+		 
 
 		 
 ValueDef:
@@ -47230,6 +47250,24 @@ ValueRedef:
 				_endif
 
 					
+			}
+
+
+
+
+	|		atlabelTkn assignTkn ConstOnlyExpr Semicolon
+			{
+				_here;
+				_if( !checkSmallInt( YYS &$<v>3 ) || $<v.u.intval>3 < 1 )
+
+					yyerror( "@label must be assigned an integer > 1" );
+
+				_else
+
+					LblCntr = $<v.u.intval>3;
+
+				_endif
+				_here;
 			}
 
 
@@ -57744,7 +57782,7 @@ EnterRODef2:
 				4,					/* ObjectSize	*/
 				0,					/* CurOffset	*/
 				sn,					/* StaticName	*/
-				BaseType,				/* BaseType		*/
+				BaseType,			/* BaseType		*/
 				NULL,				/* Fields		*/
 				0					/* FieldCnt		*/
 			);
@@ -72215,6 +72253,19 @@ ConstFunc:	enumSizeTkn
 					&int32_ste
 				);
 				$<v.u.intval>$ = EnumSize;
+			}
+		;
+
+
+ConstFunc:	atlabelTkn 
+			{
+				ClrConst
+				( 
+					YYS &$<v>$, 
+					tInt32, 
+					&int32_ste
+				);
+				$<v.u.intval>$ = LblCntr;
 			}
 		;
 
@@ -89278,7 +89329,7 @@ SingleStmt:
 				
 			_endif
 			EmitTest_r_r( $<reg.encoding>3, $<reg.encoding>5 );
-			$<returns>$ = hlastrdup2( regStrs[ $<reg.encoding>5 ] );
+			$<returns>$ = hlastrdup2( "@nz" );
 		}
 	;
 
@@ -89303,7 +89354,7 @@ SingleStmt:
 			_endif
 			EmitTest_r_m( $<reg.encoding>3, &$<adrs>5 );
 			FreeAdrs( &$<adrs>5 );
-			$<returns>$ = hlastrdup2( regStrs[ $<reg.encoding>3 ] );
+			$<returns>$ = hlastrdup2( "@nz" );
 		}
 	;
 
@@ -89329,7 +89380,7 @@ SingleStmt:
 			_endif
 			EmitTest_m_r( &$<adrs>3, $<reg.encoding>5 );
 			FreeAdrs( &$<adrs>3 );
-			$<returns>$ = hlastrdup2( regStrs[ $<reg.encoding>5 ] );
+			$<returns>$ = hlastrdup2( "@nz" );
 		}
 	;
 
@@ -89361,7 +89412,7 @@ SingleStmt:
 			
 			_endif
 			EmitTest_c_r( YYS &$<v>3, $<reg.encoding>5 );
-			$<returns>$ = hlastrdup2( regStrs[ $<reg.encoding>5 ] );
+			$<returns>$ = hlastrdup2( "@nz" );
 		}
 	;
 
@@ -89393,7 +89444,8 @@ SingleStmt:
 			
 			_endif
 			EmitTest_c_m( YYS &$<v>3, &$<adrs>5 );
-			$<returns>$ = FreeAdrs2( &$<adrs>5 );
+			FreeAdrs( &$<adrs>5 );
+			$<returns>$ = hlastrdup2( "@nz" );
 		}
 	;
 
@@ -91639,8 +91691,6 @@ SingleStmt:
 				EmitGeneric_i_r( cmp_instr, YYS &$<v>6, reg_eax );
 				sprintf( label, "exception" sympost "%u", $<v.u.unsval>$ );
 				EmitCondJump( jne_instr, label );
-				//processCondJump( jne_instr, label, 0,0 );
-
 
 			_endif
 		}

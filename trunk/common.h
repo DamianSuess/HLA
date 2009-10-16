@@ -129,12 +129,12 @@ extern enum OSChoice targetOS;
 extern int useHLABE;
 
 // objType values:
+// These must be kept in sync with the assembly code!
 
 #define objt_pecoff_c		0
-#define objt_elf_c			1
-#define objt_elfLinux_c		2
-#define objt_elfFreeBSD_c	3
-#define objt_macho_c		4
+#define objt_elfLinux_c		1
+#define objt_elfFreeBSD_c	2
+#define objt_macho_c		3
 
 extern void hlabe_compile
 (

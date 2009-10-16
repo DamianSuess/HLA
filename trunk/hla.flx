@@ -589,6 +589,7 @@ a_istype  			@istype
 a_isupper    	    @isupper    
 a_isxdigit   	    @isxdigit   
 a_l				    @l
+a_label				@label
 a_lastobject		@lastobject
 a_le			    @le
 a_leave             @leave          
@@ -5754,7 +5755,7 @@ _zstring		zstring
 {a_external}                            { _return externalTkn;      }
 {a_abstract}                            { _return abstractTkn;      }
 {a_here}                                { _return hereTkn;          }
-
+{a_label}								{ _return atlabelTkn;		}
 
  /*
  ** Parameter passing mechanism keywords

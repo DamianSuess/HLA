@@ -240,12 +240,13 @@
 	        char posn
         )
         {
-            int  len;
+            int  	len;
+			FILE	*mOut = MsgOut;
 
-			if( MsgOut == NULL ) MsgOut = stderr;
+			mOut = stdout;
 	        fprintf
             ( 
-				MsgOut,
+				mOut,
                 "%c:%s:%d(%s)\n", 
                 posn, 
                 funcName,
@@ -266,11 +267,12 @@
         )
         {
             int  len;
+			FILE	*mOut = MsgOut;
 
-			if( MsgOut == NULL ) MsgOut = stderr;
+			mOut = stdout;
 	        fprintf
             ( 
-				MsgOut,
+				mOut,
                 "%c:%s:%d(%s)\n", 
                 (expr?trueCh:falseCh), 
                 funcName,
