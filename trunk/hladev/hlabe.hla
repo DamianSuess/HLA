@@ -3932,17 +3932,11 @@ _begin( buildRaw );
 						mov( rel14EBX.symbol, eax );
 						mov( tblEAX.Value, eax );
 						mov( symEAX.section, dl );
-						mov( symEAX.flags, dh );
-						and( isExtern_c | isPublic_c, dh );
-						test( isExtern_c, dh );
+						test( isExtern_c, symEAX.flags );
 						if
 						(
 								@nz 
 							||	dl <> curSection
-							||	(
-										dh
-									&&	objType in minElf_c..maxElf_c
-								)
 						) then
 						
 							mov( objType, dl );
@@ -5427,10 +5421,6 @@ var
 								( 
 										dh = isExtern_c 
 									||	dl <> curSection 
-									||	(
-												dh
-											&&	objType in minElf_c..maxElf_c
-										)
 								) then
 								 
 									add( 1, esi );
