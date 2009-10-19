@@ -1176,7 +1176,9 @@ static
 		
 			procedure @text( dummy ); @noframe;
 			begin @text( dummy );
+			jmp lbl;
 			byte procname,0;
+			lbl:
 			nop;
 			nop;
 			nop;
@@ -1199,7 +1201,6 @@ static
 			nop;
 			nop;
 			nop;
-			align(4);
 			end @text( dummy );
 			
 		#endif
@@ -1207,7 +1208,7 @@ static
 		
 			#if( dbgTrace_c ) 
 			
-				;stdout.put( procname, nl );
+				;stdout.put( procname + nl )
 				
 			#endif 
 		
@@ -1221,11 +1222,12 @@ static
 		
 			procedure @text( dummy ); @noframe;
 			begin @text( dummy );
+			jmp lbl;
 			byte " end ", procname,0;
+			lbl:
 			nop;
 			nop;
 			nop;
-			align(4);
 			end @text( dummy )
 			
 		#endif
