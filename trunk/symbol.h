@@ -222,8 +222,8 @@ struct SymNode
 		
 		struct
 		{
-			char					*returns;
-			char					*use;
+					char			*returns;
+					char			*use;
 			struct	SymNode			*parms;
 			struct	SymNode			*Locals;
 			struct	SymNode			*Forward;
@@ -231,6 +231,14 @@ struct SymNode
 					unsigned		ParmSize;
 			enum	CallSeq			cs;
 		} proc;
+		
+		struct
+		{
+			struct	SymNode			*nextOvld;	// Linked list of ovld entries
+			struct	SymNode			*parms;		// Signature for this proc
+					int				numParms;	// Signature for this proc
+					char			*procName;	// Proc to call if sig matches.
+		}ovld;
 	}u;
 	
 
@@ -281,6 +289,14 @@ union ValuesSize
 					unsigned		ParmSize;
 			enum	CallSeq			cs;
 		} proc;
+		
+		struct
+		{
+			struct	SymNode			*nextOvld;	// Linked list of ovld entries
+			struct	SymNode			*parms;		// Signature for this proc
+					int				numParms;	// Signature for this proc
+					char			*procName;	// Proc to call if sig matches.
+		}ovld;
 };
 
 

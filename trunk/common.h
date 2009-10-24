@@ -83,6 +83,7 @@ extern void  HLAWarning( char *, char*, int, char * );
 
 
 extern int lexInput( void );
+extern void _yyless( int i );
 extern unsigned char ReservedWords[ 2048 ];
 
 extern int SkipLookup;
@@ -586,6 +587,16 @@ extern void Add2PtrList
 	struct SymNode *reference, 
 	char *undefdID 
 );
+
+extern struct SymNode *matchSignature
+(
+	struct SymNode		*ovldID,
+	int					parmCnt,
+	struct	SymNode		**types,
+	enum	ParmForm	pForm
+); 
+
+					
 
 
 extern void PushBackStr( char s[] );

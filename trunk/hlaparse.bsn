@@ -406,6 +406,7 @@ int	parmLookup = 0;
 ** usage of the ExceptionPtr variable (for external emission).
 */
 
+int	need_raise						= 0;
 int	need_ExceptionPtr				= 0;
 int	need_HLA_PUSH_EXCEPTIONPTR		= 0;
 int	need_HLA_SET_EXCEPTIONPTR		= 0; 
@@ -824,6 +825,47 @@ _begin( getFileStr )
 _end( getFileStr )
 
 
+// captureYYText -
+//
+//	Used by the overloads declaration and other
+// code that needs to grab a sequence of characters
+// from startName to yytext:
+
+static char*
+captureYYText( char *startText, char *endText )
+_begin( captureYYText )
+
+		char	*result;
+		int		len;
+
+		len = endText-startText;
+		result = malloc2( len + 1 );
+		memcpy( result, startText, len );
+		result[ len ] = '\0';
+		_return( result );
+
+_end( captureYYText )
+
+
+
+static char*
+captureOverload( char *startName )
+_begin( captureOverload )
+
+		char	*result;
+		int		len;
+
+		startName += 9; //strlen( "overloads" );
+		_while( isspace( *startName ));
+		
+			++startName;
+			
+		_endwhile
+		_return( captureYYText( startName, yytext ) );
+
+_end( captureOverload )
+
+
 
 
 
@@ -951,6 +993,20 @@ extern int yylex( union YYSTYPE *yylval );
 	struct	opnodeYYS		*opnode;
 	struct	operandYYS		*operand;
 	struct	PointerListType	*plist;
+	
+	struct
+	{
+				char	*idStr;		// Must be first!
+		struct	SymNode	*s;
+	} neID;  // For anyID ("n" "e" ID :-) )
+	
+	struct
+	{
+		int					parmCnt;
+		struct	SymNode		**types;
+		char				*parms;
+		enum	ParmForm	pForm;
+	} collectedParms;
 	
 	struct
 	{
@@ -1195,6 +1251,9 @@ union	YYSTYPE	forReturnVal;
 %token NonLocalMethodID
 %token NonLocalLabelID
 
+%token OverloadedID
+%token ovldClassTkn
+
 %token ClassVarID
 %token ClassStaticID
 %token ClassProcID
@@ -1287,10 +1346,12 @@ union	YYSTYPE	forReturnVal;
 %token downtoTkn
 %token externalTkn
 %token abstractTkn
+%token overloadsTkn
 %token overrideTkn
 %token overridesTkn
 %token forwardTkn
 %token returnsTkn
+%token atreturnsTkn
 %token noframeTkn
 %token frameTkn
 %token nodisplayTkn
@@ -5154,7 +5215,7 @@ unit:
 			struct	MethodListType	*temp;
 
 
-			_if( _strne( $<idStr>2, $<idStr>7 ) )
+			_if( _strne( $<idStr>2, $<neID.idStr>7 ) )
 			
 				yyerror( "Identifier must match unit name" );
 
@@ -5235,13 +5296,13 @@ unit:
 			--CurLexLevel;
 			CheckFwdRef();
 
-			free2( vss $<idStr>7 );
+			free2( vss $<neID.idStr>7 );
+			endSourceFile();
 			inUnit = 0;
 			_here;
 
 		}
 	;
-
 
 
 
@@ -5559,7 +5620,7 @@ pgm:
 	{				/* $9 */
 
 		_here;
-		_if( _strne( $<idStr>2, $<idStr>8) )
+		_if( _strne( $<idStr>2, $<neID.idStr>8) )
 		
 			yyerror( "Identifier must match program name" );
 
@@ -5701,7 +5762,7 @@ pgm:
 
 
 		_here;
-		_if( _strne( $<idStr>2, $<idStr>14 ) )
+		_if( _strne( $<idStr>2, $<neID.idStr>14 ) )
 		
 			yyerror( "Identifier must match program name" );
 
@@ -5808,6 +5869,7 @@ pgm:
 
 		EndMain();
 		endCseg();
+		endSourceFile();
 
 		inMain = 0;
 		inProgram = 0;
@@ -6048,7 +6110,7 @@ NameSpace:
 
 			struct SymNode *CurSym;
 
-			assert( $<idStr>8 != NULL );
+			assert( $<neID.idStr>8 != NULL );
 
 
 			/*
@@ -6114,7 +6176,7 @@ NameSpace:
 			** matches the name space name.
 			*/
 
-			_if( _strne( $<idStr>2, $<idStr>8 ))
+			_if( _strne( $<idStr>2, $<neID.idStr>8 ))
 
 				char msg[ 256 ];
 
@@ -6123,7 +6185,7 @@ NameSpace:
 					msg,
 					"Identifier <<%s>> after END in name space\n"
 					"declaration must match <<%s>>",
-					$<idStr>8,
+					$<neID.idStr>8,
 					$<idStr>2
 				);
 				yyerror( msg );
@@ -6154,7 +6216,7 @@ NameSpace:
 
 
 			inNamespace = 0;
-			free2( vss $<idStr>8 );
+			free2( vss $<neID.idStr>8 );
 		}
 	;
 	
@@ -6174,7 +6236,7 @@ NameSpace:
 
 			struct SymNode *CurSym;
 
-			assert( $<idStr>9 != NULL );
+			assert( $<neID.idStr>9 != NULL );
 
 
 			/*
@@ -6241,7 +6303,7 @@ NameSpace:
 			** matches the name space name.
 			*/
 
-			_if( _strne( $<idStr>2, $<idStr>9 ))
+			_if( _strne( $<idStr>2, $<neID.idStr>9 ))
 
 				char msg[ 256 ];
 
@@ -6250,7 +6312,7 @@ NameSpace:
 					msg,
 					"Identifier <<%s>> after END in name space\n"
 					"declaration must match <<%s>>",
-					$<idStr>9,
+					$<neID.idStr>9,
 					$<idStr>2
 				);
 				yyerror( msg );
@@ -6281,7 +6343,7 @@ NameSpace:
 
 
 			inNamespace = 0;
-			free2( vss $<idStr>9 );
+			free2( vss $<neID.idStr>9 );
 			
 			/*
 			** Turn off the Fast Namespace operation
@@ -6306,7 +6368,7 @@ NameSpace:
 		Semicolon			/* $9  */
 		{					/* $10 */
 
-			assert( $<idStr>8 != NULL );
+			assert( $<neID.idStr>8 != NULL );
 
 
 			/*
@@ -6344,7 +6406,7 @@ NameSpace:
 			** matches the name space name.
 			*/
 
-			_if( _strne( $<s>2->TrueName, $<idStr>8 ))
+			_if( _strne( $<s>2->TrueName, $<neID.idStr>8 ))
 
 				char msg[ 256 ];
 
@@ -6353,7 +6415,7 @@ NameSpace:
 					msg,
 					"Identifier <<%s>> after END in name space\n"
 					"declaration must match <<%s>>",
-					$<idStr>8,
+					$<neID.idStr>8,
 					$<s>2->TrueName
 				);
 				yyerror( msg );
@@ -6363,7 +6425,7 @@ NameSpace:
 
 
 			inNamespace = 0;
-			free2( vss $<idStr>8 );
+			free2( vss $<neID.idStr>8 );
 		}
 	;
 
@@ -6382,7 +6444,7 @@ NameSpace:
 		Semicolon			/* $10 */
 		{					/* $11 */
 
-			assert( $<idStr>9 != NULL );
+			assert( $<neID.idStr>9 != NULL );
 
 
 			/*
@@ -6421,7 +6483,7 @@ NameSpace:
 			** matches the name space name.
 			*/
 
-			_if( _strne( $<s>2->TrueName, $<idStr>9 ))
+			_if( _strne( $<s>2->TrueName, $<neID.idStr>9 ))
 
 				char msg[ 256 ];
 
@@ -6430,7 +6492,7 @@ NameSpace:
 					msg,
 					"Identifier <<%s>> after END in name space\n"
 					"declaration must match <<%s>>",
-					$<idStr>9,
+					$<neID.idStr>9,
 					$<s>2->TrueName
 				);
 				yyerror( msg );
@@ -6440,7 +6502,7 @@ NameSpace:
 
 
 			inNamespace = 0;
-			free2( vss $<idStr>9 );
+			free2( vss $<neID.idStr>9 );
 			
 			/*
 			** Turn off the Fast Namespace operation
@@ -7117,7 +7179,6 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7127,7 +7188,6 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7136,7 +7196,6 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7145,7 +7204,6 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7154,7 +7212,6 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7163,7 +7220,6 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7172,7 +7228,6 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7181,7 +7236,6 @@ AnyLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 		;
@@ -7192,7 +7246,6 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7201,7 +7254,6 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7210,7 +7262,6 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7219,7 +7270,6 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7228,7 +7278,6 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7237,7 +7286,6 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7246,7 +7294,6 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7255,7 +7302,6 @@ AnyNonLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 		;
@@ -7267,7 +7313,6 @@ DefinedID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7277,7 +7322,6 @@ DefinedID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 		;
@@ -7291,7 +7335,6 @@ DefinedConstID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7300,7 +7343,6 @@ DefinedConstID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 		;
@@ -7378,23 +7420,24 @@ AnyID:
 		{
 			_here;
 			assert(	$<idStr>1 != NULL );
-			$<idStr>$ = $<idStr>1;
+			$<neID.idStr>$ = $<idStr>1;
+			$<neID.s>$ = NULL;
 			_here;
 		}
 
 	|	AnyLocalID
 		{
 			_here;
-			$<idStr>$ = hlastrdup2( $<s>1->TrueName );
-//			SetReferenced( $<s>1 );
+			$<neID.idStr>$ = hlastrdup2( $<s>1->TrueName );
+			$<neID.s>$ = $<s>1;
 			_here;
 		}
 
 	|	AnyNonLocalID
 		{
 			_here;
-			$<idStr>$ = hlastrdup2( $<s>1->TrueName );
-//			SetReferenced( $<s>1 );
+			$<neID.idStr>$ = hlastrdup2( $<s>1->TrueName );
+			$<neID.s>$ = $<s>1;
 			_here;
 		}
 	;
@@ -7406,7 +7449,6 @@ AnyLabelID:
 			_here;
 			assert( $<s>1 != NULL );
 			$<s>$ = $<s>1;
-//			SetReferenced( $<s>1 );
 			_here;
 		}
 		
@@ -7415,7 +7457,6 @@ AnyLabelID:
 			_here;
 			assert( $<s>1 != NULL );
 			$<s>$ = $<s>1;
-//			SetReferenced( $<s>1 );
 			_here;
 		}
 	;
@@ -7454,7 +7495,7 @@ ArbID:
 		{
 			_here;
 			assert(	$<idStr>1 != NULL );
-			$<idStr>$ = $<idStr>1;
+			$<idStr>$ = $<neID.idStr>1;
 		}
 	|	ReservedIDs
 		{
@@ -7494,7 +7535,6 @@ NonConstLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7503,7 +7543,15 @@ NonConstLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
+				_here;
+			}
+
+
+		|	LocalLabelID
+			{
+				_here;
+				assert( $<s>1 != NULL );
+				$<s>$ = $<s>1;
 				_here;
 			}
 
@@ -7512,7 +7560,6 @@ NonConstLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7521,7 +7568,6 @@ NonConstLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
 
@@ -7530,19 +7576,8 @@ NonConstLocalID:
 				_here;
 				assert( $<s>1 != NULL );
 				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
 				_here;
 			}
-
-		|	LocalLabelID
-			{
-				_here;
-				assert( $<s>1 != NULL );
-				$<s>$ = $<s>1;
-//				SetReferenced( $<s>1 );
-				_here;
-			}
-
 		;
 
 
@@ -8644,7 +8679,7 @@ RecordRef:
 				int				ValueIndex;
 				char			*lcID;
 				
-				lcID = hlastrdup2( $<idStr>3 ); 
+				lcID = hlastrdup2( $<neID.idStr>3 ); 
 				lowercase( lcID );
 				FieldList = $<v.Fields>1;
 				ValueIndex = 0;
@@ -8661,7 +8696,7 @@ RecordRef:
 				_if
 				( 
 						FieldList != NULL 
-					&&	_streq( $<idStr>3, FieldList->TrueName )
+					&&	_streq( $<neID.idStr>3, FieldList->TrueName )
 				)
 				
 					assert( $<v.u.FieldValues>1 != NULL );
@@ -8698,7 +8733,7 @@ RecordRef:
 					ErrorNear
 					( 
 						"Undefined symbol/field name", 
-						$<idStr>3, 
+						$<neID.idStr>3, 
 						__LINE__,
 						__FILE__ 
 					);
@@ -8720,7 +8755,7 @@ RecordRef:
 				assert( $<v.CurField>1 != NULL );
 				assert( $<v.CurField>1->TrueName != NULL );
 				
-				_if( _strne( $<idStr>3, $<v.CurField>1->TrueName ))
+				_if( _strne( $<neID.idStr>3, $<v.CurField>1->TrueName ))
 
 					sprintf
 					(
@@ -8729,7 +8764,7 @@ RecordRef:
 						"field for union object %s (not %s)",
 						$<v.CurField>1->TrueName,
 						$<v.TrueName>1,
-						$<idStr>3
+						$<neID.idStr>3
 					);
 					yyerror( msg );
 
@@ -8787,10 +8822,9 @@ RecordRef:
 				memcpy( &$<v>$, &dummy_ste, sizeofSymNode );
 
 			_endif
-			free2( vss $<idStr>3 );
+			free2( vss $<neID.idStr>3 );
 		}
 	;
-
 
 
 /*****************************************************/
@@ -8889,7 +8923,7 @@ RecordAdrs:
 				int				ValueIndex;
 				char			*lcID;
 				
-				lcID = hlastrdup2( $<idStr>3 );
+				lcID = hlastrdup2( $<neID.idStr>3 );
 				lowercase( lcID );
 				FieldList = $<v.Fields>1;
 				ValueIndex = 0;
@@ -8907,7 +8941,7 @@ RecordAdrs:
 				_if
 				( 
 						FieldList != NULL 
-					&&	_streq( $<idStr>3, FieldList->TrueName )
+					&&	_streq( $<neID.idStr>3, FieldList->TrueName )
 				)
 
 					
@@ -8988,7 +9022,7 @@ RecordAdrs:
 					ErrorNear
 					( 
 						"Undefined field name", 
-						$<idStr>3,
+						$<neID.idStr>3,
 						__LINE__,
 						__FILE__ 
 					);
@@ -9021,7 +9055,7 @@ RecordAdrs:
 				$<v.u.PtrToValue>$ = NULL;
 
 			_endif
-			free2( vss $<idStr>3 );
+			free2( vss $<neID.idStr>3 );
 		}
 	;
 
@@ -9615,7 +9649,7 @@ RecList:
 				// the array where we find the field we're interested in.
 				
 				
-				lcName = lowercase( hlastrdup2( $<idStr>3 ));
+				lcName = lowercase( hlastrdup2( $<neID.idStr>3 ));
 				f = NULL;
 				upCntr = 1;
 				_for( int i=cnt-2, i > 0, --i )
@@ -9630,7 +9664,7 @@ RecList:
 						f = v;
 						theField = s;
 						rIndex = i;
-						_if( _strne( $<idStr>3, s->TrueName ))
+						_if( _strne( $<neID.idStr>3, s->TrueName ))
 						
 							sprintf
 							(
@@ -9711,7 +9745,7 @@ RecList:
 					( 
 						msg, 
 						"Field %s was not found in anonymous union",
-						$<idStr>3
+						$<neID.idStr>3
 					);
 					yyerror( msg );
 					
@@ -9752,7 +9786,7 @@ RecList:
 					(
 						msg, 
 						"Type mismatch in field %s",
-						$<idStr>3
+						$<neID.idStr>3
 					);
 					yyerror( msg );
 
@@ -9773,13 +9807,13 @@ RecList:
 				(
 					msg,
 					"Expected an anonymous union with field %s",
-					$<idStr>3
+					$<neID.idStr>3
 				);
 				yyerror( msg );
 				
 			_endif
 			
-			free2( vss $<idStr>3 );
+			free2( vss $<neID.idStr>3 );
 			$<s>$ = next;
 			_here;
 		}
@@ -10152,7 +10186,7 @@ RecList:
 					// the array where we find the field we're interested in.
 					
 					
-					lcName = lowercase( hlastrdup2( $<idStr>3 ));
+					lcName = lowercase( hlastrdup2( $<neID.idStr>3 ));
 					f = NULL;
 					upCntr = 1;
 					_for( int i=cnt-2, i > 0, --i )
@@ -10167,7 +10201,7 @@ RecList:
 							f = v;
 							theField = s;
 							rIndex = i;
-							_if( _strne( $<idStr>3, s->TrueName ))
+							_if( _strne( $<neID.idStr>3, s->TrueName ))
 							
 								sprintf
 								(
@@ -10249,7 +10283,7 @@ RecList:
 						( 
 							msg, 
 							"Field %s was not found in anonymous union",
-							$<idStr>3
+							$<neID.idStr>3
 						);
 						yyerror( msg );
 						
@@ -10290,7 +10324,7 @@ RecList:
 						(
 							msg, 
 							"Type mismatch in field %s",
-							$<idStr>3
+							$<neID.idStr>3
 						);
 						yyerror( msg );
 
@@ -10312,12 +10346,12 @@ RecList:
 					(
 						msg,
 						"Expected an anonymous union with field %s",
-						$<idStr>3
+						$<neID.idStr>3
 					);
 					yyerror( msg );
 					
 				_endif
-				free2( vss $<idStr>3 );
+				free2( vss $<neID.idStr>3 );
 				$<s>$ = next;
 
 			_else
@@ -10332,7 +10366,7 @@ RecList:
 		}
 	;
 
-
+ 
 
 
 /*****************************************************/
@@ -12013,9 +12047,9 @@ RecDef:
 
 			
 				assert( $<idStr>1 != NULL );
-				assert( $<idStr>5 != NULL );
+				assert( $<neID.idStr>5 != NULL );
 
-				BaseType = lookup( $<idStr>5, 1 );
+				BaseType = $<neID.s>5;
 				_if( BaseType != NULL )
 
 					BaseType = GetBaseType( BaseType );
@@ -12054,7 +12088,7 @@ RecDef:
 				);
 				_if( BaseType == NULL )
 
-					Add2PtrList( SymbolTable, $<idStr>5 );
+					Add2PtrList( SymbolTable, $<neID.idStr>5 );
 
 				_endif
 
@@ -13718,7 +13752,7 @@ regexElement:
 		{
 			struct SymNode *s;
 			
-			s = lookup( $<idStr>6, 1 );
+			s = $<neID.s>6;
 			_if( s != NULL )
 			
 				_if( s->SymClass != cValue )
@@ -13729,21 +13763,21 @@ regexElement:
 					
 					ClrNewSym
 					(
-						$<idStr>6,	   // Name,
-						&string_ste,   // TheType
-						tString,	   // pType
-						cValue,		   // TheClass
-						0,			   // Arity
-						NULL,		   // Dimensions
-						0,			   // NumElements
-						4,			   // ObjectSize
-						0,			   // CurOffset
-						NULL,		   // StaticName
-						NULL,		   // Base
-						NULL,		   // Fields
-						0,			   // FieldCnt
-						NULL,		   // CurField
-						0			   // CurIndex
+						$<neID.idStr>6,		// Name,
+						&string_ste,   		// TheType
+						tString,	   		// pType
+						cValue,		   		// TheClass
+						0,			   		// Arity
+						NULL,		   		// Dimensions
+						0,			   		// NumElements
+						4,			   		// ObjectSize
+						0,			   		// CurOffset
+						NULL,		   		// StaticName
+						NULL,		   		// Base
+						NULL,		   		// Fields
+						0,			   		// FieldCnt
+						NULL,		   		// CurField
+						0			   		// CurIndex
 					);
 					s = SymbolTable;
 					
@@ -13753,21 +13787,21 @@ regexElement:
 			
 				ClrNewSym
 				(
-					$<idStr>6,	   // Name,
-					&string_ste,   // TheType
-					tString,	   // pType
-					cValue,		   // TheClass
-					0,			   // Arity
-					NULL,		   // Dimensions
-					0,			   // NumElements
-					4,			   // ObjectSize
-					0,			   // CurOffset
-					NULL,		   // StaticName
-					NULL,		   // Base
-					NULL,		   // Fields
-					0,			   // FieldCnt
-					NULL,		   // CurField
-					0			   // CurIndex
+					$<neID.idStr>6,		// Name,
+					&string_ste,   		// TheType
+					tString,	   		// pType
+					cValue,		   		// TheClass
+					0,			   		// Arity
+					NULL,		   		// Dimensions
+					0,			   		// NumElements
+					4,			   		// ObjectSize
+					0,			   		// CurOffset
+					NULL,		   		// StaticName
+					NULL,		   		// Base
+					NULL,		   		// Fields
+					0,			   		// FieldCnt
+					NULL,		   		// CurField
+					0			   		// CurIndex
 				);
 				s = SymbolTable;
 			
@@ -16055,7 +16089,7 @@ regexElement:
 
 				struct SymNode		 *s;
 				
-				s = lookup( $<idStr>3, 1 );
+				s = $<neID.s>3;
 				_if( s != NULL )
 				
 					_if( s->SymClass != cValue )
@@ -16066,7 +16100,7 @@ regexElement:
 						
 						ClrNewSym
 						(
-							$<idStr>3,	   // Name,
+							$<neID.idStr>3,// Name,
 							_ifx(s->pType == tText,&text_ste,&string_ste),// TheType
 							_ifx(s->pType == tText,tText,tString),	// pType
 							cValue,		   // TheClass
@@ -16090,21 +16124,21 @@ regexElement:
 				
 					ClrNewSym
 					(
-						$<idStr>3,	   // Name,
-						&string_ste,   // TheType
-						tString,	   // pType
-						cValue,		   // TheClass
-						0,			   // Arity
-						NULL,		   // Dimensions
-						0,			   // NumElements
-						4,			   // ObjectSize
-						0,			   // CurOffset
-						NULL,		   // StaticName
-						NULL,		   // Base
-						NULL,		   // Fields
-						0,			   // FieldCnt
-						NULL,		   // CurField
-						0			   // CurIndex
+						$<neID.idStr>3,	// Name,
+						&string_ste,   	// TheType
+						tString,	   	// pType
+						cValue,		   	// TheClass
+						0,			   	// Arity
+						NULL,		   	// Dimensions
+						0,			   	// NumElements
+						4,			   	// ObjectSize
+						0,			   	// CurOffset
+						NULL,		   	// StaticName
+						NULL,		   	// Base
+						NULL,		   	// Fields
+						0,			   	// FieldCnt
+						NULL,		   	// CurField
+						0			   	// CurIndex
 					);
 					s = SymbolTable;
 				
@@ -16652,7 +16686,7 @@ regexElement:
 			struct regexListType *rxl;
 			struct SymNode		 *s;
 			
-			s = lookup( $<idStr>4, 1 );
+			s = $<neID.s>4;
 			_if( s != NULL )
 			
 				_if( s->SymClass != cValue )
@@ -16663,21 +16697,21 @@ regexElement:
 					
 					ClrNewSym
 					(
-						$<idStr>4,	   // Name,
+						$<neID.idStr>4,	// Name,
 						_ifx(s->pType == tText,&text_ste,&string_ste),// TheType
 						_ifx(s->pType == tText,tText,tString),	// pType
-						cValue,		   // TheClass
-						0,			   // Arity
-						NULL,		   // Dimensions
-						0,			   // NumElements
-						4,			   // ObjectSize
-						0,			   // CurOffset
-						NULL,		   // StaticName
-						NULL,		   // Base
-						NULL,		   // Fields
-						0,			   // FieldCnt
-						NULL,		   // CurField
-						0			   // CurIndex
+						cValue,		   	// TheClass
+						0,			   	// Arity
+						NULL,		   	// Dimensions
+						0,			   	// NumElements
+						4,			   	// ObjectSize
+						0,			   	// CurOffset
+						NULL,		   	// StaticName
+						NULL,		   	// Base
+						NULL,		   	// Fields
+						0,			   	// FieldCnt
+						NULL,		   	// CurField
+						0			   	// CurIndex
 					);
 					s = SymbolTable;
 					
@@ -16687,21 +16721,21 @@ regexElement:
 			
 				ClrNewSym
 				(
-					$<idStr>4,	   // Name,
-					&string_ste,   // TheType
-					tString,	   // pType
-					cValue,		   // TheClass
-					0,			   // Arity
-					NULL,		   // Dimensions
-					0,			   // NumElements
-					4,			   // ObjectSize
-					0,			   // CurOffset
-					NULL,		   // StaticName
-					NULL,		   // Base
-					NULL,		   // Fields
-					0,			   // FieldCnt
-					NULL,		   // CurField
-					0			   // CurIndex
+					$<neID.idStr>4,	// Name,
+					&string_ste,   	// TheType
+					tString,	   	// pType
+					cValue,		   	// TheClass
+					0,			   	// Arity
+					NULL,		   	// Dimensions
+					0,			   	// NumElements
+					4,			   	// ObjectSize
+					0,			   	// CurOffset
+					NULL,		   	// StaticName
+					NULL,		   	// Base
+					NULL,		   	// Fields
+					0,			   	// FieldCnt
+					NULL,		   	// CurField
+					0			   	// CurIndex
 				);
 				s = SymbolTable;
 			
@@ -16753,7 +16787,7 @@ regexElement:
 			struct regexListType *rxl;
 			struct SymNode		 *s;
 			
-			s = lookup( $<idStr>3, 1 );
+			s = $<neID.s>3;
 			_if( s != NULL )
 			
 				_if( s->SymClass != cValue )
@@ -16764,21 +16798,21 @@ regexElement:
 					
 					ClrNewSym
 					(
-						$<idStr>3,		// Name,
-						&uns32_ste,		// TheType
-						tUns32,			// pType
-						cValue,			// TheClass
-						0,	   			// Arity
-						NULL,  			// Dimensions
-						0,	   			// NumElements
-						4,	   			// ObjectSize
-						0,	   			// CurOffset
-						NULL,  			// StaticName
-						NULL,  			// Base
-						NULL,  			// Fields
-						0,	   			// FieldCnt
-						NULL,  			// CurField
-						0	   			// CurIndex
+						$<neID.idStr>3,		// Name,
+						&uns32_ste,			// TheType
+						tUns32,				// pType
+						cValue,				// TheClass
+						0,	   				// Arity
+						NULL,  				// Dimensions
+						0,	   				// NumElements
+						4,	   				// ObjectSize
+						0,	   				// CurOffset
+						NULL,  				// StaticName
+						NULL,  				// Base
+						NULL,  				// Fields
+						0,	   				// FieldCnt
+						NULL,  				// CurField
+						0	   				// CurIndex
 					);
 					s = SymbolTable;
 					
@@ -16788,21 +16822,21 @@ regexElement:
 			
 				ClrNewSym
 				(
-					$<idStr>3, 		// Name,
-					&uns32_ste,		// TheType
-					tUns32,	   		// pType
-					cValue,	   		// TheClass
-					0,		   		// Arity
-					NULL,	   		// Dimensions
-					0,		   		// NumElements
-					4,		   		// ObjectSize
-					0,		   		// CurOffset
-					NULL,	   		// StaticName
-					NULL,	   		// Base
-					NULL,	   		// Fields
-					0,		   		// FieldCnt
-					NULL,	   		// CurField
-					0		   		// CurIndex
+					$<neID.idStr>3, 	// Name,
+					&uns32_ste,			// TheType
+					tUns32,	   			// pType
+					cValue,	   			// TheClass
+					0,		   			// Arity
+					NULL,	   			// Dimensions
+					0,		   			// NumElements
+					4,		   			// ObjectSize
+					0,		   			// CurOffset
+					NULL,	   			// StaticName
+					NULL,	   			// Base
+					NULL,	   			// Fields
+					0,		   			// FieldCnt
+					NULL,	   			// CurField
+					0		   			// CurIndex
 				);
 				s = SymbolTable;
 			
@@ -17500,7 +17534,7 @@ MacroParmList:
 			v.Type = &string_ste;
 			InsertSym
 			( 
-				$<idStr>1, 
+				$<neID.idStr>1, 
 				&text_ste,
 				tText, 
 				cValue, 
@@ -17544,7 +17578,7 @@ MacroParmList:
 				v.u.ArrayOfValues = NULL;
 				InsertSym
 				( 
-					$<idStr>1, 
+					$<neID.idStr>1, 
 					&string_ste,
 					tArray, 
 					cValue, 
@@ -17582,7 +17616,7 @@ MacroParmList:
 				v.Type = &string_ste;
 				InsertSym
 				( 
-					$<idStr>2, 
+					$<neID.idStr>2, 
 					&string_ste,
 					tString, 
 					cValue, 
@@ -17623,7 +17657,7 @@ MacroParmList:
 			v.Type = &string_ste;
 			InsertSym
 			( 
-				$<idStr>1, 
+				$<neID.idStr>1, 
 				&text_ste,
 				tText, 
 				cValue, 
@@ -17718,6 +17752,197 @@ procDcls:
 newProcs:
 		';'
 	;
+	
+	
+	
+// Handle procedure/iterator/method overloading here:
+
+procID:
+			LocalProcID
+			{
+				_here;
+				assert( $<s>1 != NULL );
+				$<s>$ = $<s>1;
+				_here;
+			}
+
+		|	LocalIterID
+			{
+				_here;
+				assert( $<s>1 != NULL );
+				$<s>$ = $<s>1;
+				_here;
+			}
+
+		|	LocalMethodID
+			{
+				_here;
+				assert( $<s>1 != NULL );
+				$<s>$ = $<s>1;
+				_here;
+			}
+		
+		|	NonLocalProcID
+			{
+				_here;
+				assert( $<s>1 != NULL );
+				$<s>$ = $<s>1;
+				_here;
+			}
+
+		|	NonLocalIterID
+			{
+				_here;
+				assert( $<s>1 != NULL );
+				$<s>$ = $<s>1;
+				_here;
+			}
+
+		|	NonLocalMethodID
+			{
+				_here;
+				assert( $<s>1 != NULL );
+				$<s>$ = $<s>1;
+				_here;
+			}
+
+		|	ClassProcID
+			{
+				_here;
+				assert( $<s>1 != NULL );
+				$<s>$ = $<s>1;
+				_here;
+			}
+
+		|	ClassIterID
+			{
+				_here;
+				assert( $<s>1 != NULL );
+				$<s>$ = $<s>1;
+				_here;
+			}
+
+		|	ClassMethodID
+			{
+				_here;
+				assert( $<s>1 != NULL );
+				$<s>$ = $<s>1;
+				_here;
+			}
+		;
+		
+
+newProcs:
+		UndefinedID		/* $1 */
+		':'				/* $2 */
+		overloadsTkn	/* $3 */
+		saveYYText		/* $4 */
+		procID			/* $5 */
+		OptionalStr		/* $6 */
+		Semicolon		/* $7 */
+		{
+			struct SymNode	*s;
+			struct SymNode	*parmPtr;
+			int				parmCnt;
+			
+			s = InsertSym
+				(
+					$<idStr>1,			//TrueName
+					NULL,				//Type
+					tOverloads,			//pType
+					cOverloads,			//TheClass
+					0,					//Arity
+					NULL,				//Dimensions,
+					0,					//NumElements,
+					NULL,				//TheValue,
+					0,					//ObjectSize,
+					0,					//Offset,
+					NULL,				//StaticName,
+					NULL,				//Base,
+					NULL,				//Fields,
+					0					//FieldCnt
+				);
+				
+			s->u.ovld.nextOvld	= NULL;
+			parmPtr				= $<s>5->u.proc.parms;
+			s->u.ovld.parms		= parmPtr;
+			parmCnt = 0;
+			_while( parmPtr->SymClass == cParm )
+			
+				parmPtr = parmPtr->Next;
+				++parmCnt;
+				
+			_endwhile;
+			s->u.ovld.numParms = parmCnt;
+			_if( *$<returns>6 != '\0' )
+			
+				s->u.ovld.procName = $<returns>6;
+			
+			_else
+			
+				s->u.ovld.procName = captureOverload( $<idStr>4 );
+				
+			_endif
+		} 
+	;
+	
+
+newProcs:
+		OverloadedID	/* $1 */
+		':'				/* $2 */
+		overloadsTkn	/* $3 */			
+		saveYYText		/* $4 */
+		procID			/* $5 */
+		OptionalStr		/* $6 */
+		Semicolon		/* $7 */
+		{
+			struct SymNode	*s;
+			struct SymNode	*parmPtr;
+			int				parmCnt;
+			
+			s = InsertSym
+				(
+					strdup( $<s>1->TrueName ),	//TrueName
+					NULL,						//Type
+					tOverloads,					//pType
+					cOverloads,					//TheClass
+					0,							//Arity
+					NULL,						//Dimensions,
+					0,							//NumElements,
+					NULL,						//TheValue,
+					0,							//ObjectSize,
+					0,							//Offset,
+					NULL,						//StaticName,
+					NULL,						//Base,
+					NULL,						//Fields,
+					0							//FieldCnt
+				);
+				
+			s->u.ovld.nextOvld	= $<s>1;
+			parmPtr				= $<s>5->u.proc.parms;
+			s->u.ovld.parms		= parmPtr;
+			parmCnt = 0;
+			_while( parmPtr->SymClass == cParm )
+			
+				parmPtr = parmPtr->Next;
+				++parmCnt;
+				
+			_endwhile;
+			s->u.ovld.numParms = parmCnt;
+			_if( *$<returns>6 != '\0' )
+			
+				s->u.ovld.procName = $<returns>6;
+				
+			_else
+			
+				s->u.ovld.procName = captureOverload( $<idStr>4 );
+				
+			_endif
+		}
+	;
+	
+
+	
 
 /**********************************************************/
 /*                                                        */
@@ -18262,9 +18487,9 @@ procs:
 				_endif
 
 
-				assert( $<idStr>13 != NULL );
+				assert( $<neID.idStr>13 != NULL );
 
-				_if( _strne( $<idStr>2, $<idStr>13 ))
+				_if( _strne( $<idStr>2, $<neID.idStr>13 ))
 
 					char msg[ 256 ];
 
@@ -18273,7 +18498,7 @@ procs:
 						msg,
 						"Identifier <<%s>> after 'begin' must match "
 						"procedure name <<%s>>",
-						$<idStr>13,
+						$<neID.idStr>13,
 						$<idStr>2
 					);
 
@@ -18296,7 +18521,7 @@ procs:
 				CheckPtrs();
 
 				CurrentContext = $<en.s>6;
-				free2( vss $<idStr>13 );
+				free2( vss $<neID.idStr>13 );
 
 
 				/*
@@ -18368,9 +18593,9 @@ procs:
 
 
 				_here;
-				assert( $<idStr>18 != NULL );
+				assert( $<neID.idStr>18 != NULL );
 
-				_if( _strne( $<idStr>2, $<idStr>18 ))
+				_if( _strne( $<idStr>2, $<neID.idStr>18 ))
 
 					char msg[ 256 ];
 
@@ -18379,7 +18604,7 @@ procs:
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"procedure name <<%s>>",
-						$<idStr>18,
+						$<neID.idStr>18,
 						$<idStr>2
 					);
 
@@ -18505,7 +18730,7 @@ procs:
 				_endif
 				EndProc( $<en.s>6->StaticName );
 				endCseg();
-				free2( vss $<idStr>18 );
+				free2( vss $<neID.idStr>18 );
 				
 				currentNS = $<en.cns>6;
 
@@ -19110,9 +19335,9 @@ newProcs:
 				_endif
 
 
-				assert( $<idStr>12 != NULL );
+				assert( $<neID.idStr>12 != NULL );
 
-				_if( _strne( $<idStr>2, $<idStr>12 ))
+				_if( _strne( $<idStr>2, $<neID.idStr>12 ))
 
 					char msg[ 256 ];
 
@@ -19121,7 +19346,7 @@ newProcs:
 						msg,
 						"Identifier <<%s>> after 'begin' must match "
 						"procedure name <<%s>>",
-						$<idStr>12,
+						$<neID.idStr>12,
 						$<idStr>2
 					);
 
@@ -19144,7 +19369,7 @@ newProcs:
 				CheckPtrs();
 
 				CurrentContext = $<en.s>6;
-				free2( vss $<idStr>12 );
+				free2( vss $<neID.idStr>12 );
 
 
 				/*
@@ -19216,9 +19441,9 @@ newProcs:
 
 
 				_here;
-				assert( $<idStr>17 != NULL );
+				assert( $<neID.idStr>17 != NULL );
 
-				_if( _strne( $<idStr>2, $<idStr>17 ))
+				_if( _strne( $<idStr>2, $<neID.idStr>17 ))
 
 					char msg[ 256 ];
 
@@ -19227,7 +19452,7 @@ newProcs:
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"procedure name <<%s>>",
-						$<idStr>17,
+						$<neID.idStr>17,
 						$<idStr>2
 					);
 
@@ -19353,7 +19578,7 @@ newProcs:
 				_endif
 				EndProc( $<en.s>6->StaticName );
 				endCseg();
-				free2( vss $<idStr>17 );
+				free2( vss $<neID.idStr>17 );
 				
 				currentNS = $<en.cns>6;
 
@@ -19378,7 +19603,7 @@ newProcs:
 	;
 	
 
-			 
+ 			 
 
 		
 			
@@ -19974,9 +20199,9 @@ newProcs:
 				_endif
 
 
-				assert( $<idStr>13 != NULL );
+				assert( $<neID.idStr>13 != NULL );
 
-				_if( _strne( $<idStr>1, $<idStr>13 ))
+				_if( _strne( $<idStr>1, $<neID.idStr>13 ))
 
 					char msg[ 256 ];
 
@@ -19985,7 +20210,7 @@ newProcs:
 						msg,
 						"Identifier <<%s>> after 'begin' must match "
 						"procedure name <<%s>>",
-						$<idStr>13,
+						$<neID.idStr>13,
 						$<idStr>1
 					);
 
@@ -20008,7 +20233,7 @@ newProcs:
 				CheckPtrs();
 
 				CurrentContext = $<en.s>8;
-				free2( vss $<idStr>13 );
+				free2( vss $<neID.idStr>13 );
 
 
 				/*
@@ -20080,9 +20305,9 @@ newProcs:
 
 
 				_here;
-				assert( $<idStr>18 != NULL );
+				assert( $<neID.idStr>18 != NULL );
 
-				_if( _strne( $<idStr>1, $<idStr>18 ))
+				_if( _strne( $<idStr>1, $<neID.idStr>18 ))
 
 					char msg[ 256 ];
 
@@ -20091,7 +20316,7 @@ newProcs:
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"procedure name <<%s>>",
-						$<idStr>18,
+						$<neID.idStr>18,
 						$<idStr>1
 					);
 
@@ -20219,7 +20444,7 @@ newProcs:
 				EndProc( $<en.s>8->StaticName );
 				endCseg();
 			
-				free2( vss $<idStr>18 );
+				free2( vss $<neID.idStr>18 );
 				
 				currentNS = $<en.cns>8;
 
@@ -20243,7 +20468,6 @@ newProcs:
 			}
 	;
 	
-
 
 
 
@@ -20786,9 +21010,9 @@ procs:
 
 
 
-			assert( $<idStr>13 != NULL );
+			assert( $<neID.idStr>13 != NULL );
 
-			_if( _strne( $<idStr>2, $<idStr>13 ))
+			_if( _strne( $<idStr>2, $<neID.idStr>13 ))
 
 				char msg[ 256 ];
 
@@ -20797,7 +21021,7 @@ procs:
 					msg,
 					"Identifier <<%s>> after 'begin' must match "
 					"iterator name <<%s>>",
-					$<idStr>13,
+					$<neID.idStr>13,
 					$<idStr>2
 				);
 
@@ -20820,7 +21044,7 @@ procs:
 			CheckPtrs();
 
 			CurrentContext = $<en.s>6;
-			free2( vss $<idStr>13 );
+			free2( vss $<neID.idStr>13 );
 
 			/*
 			** Emit the text associated with the _initialize_ string
@@ -20892,9 +21116,9 @@ procs:
 		{				/* $20 */
 
 			_here;
-			assert( $<idStr>18 != NULL );
+			assert( $<neID.idStr>18 != NULL );
 
-			_if( _strne( $<idStr>2, $<idStr>18 ))
+			_if( _strne( $<idStr>2, $<neID.idStr>18 ))
 
 				char msg[ 256 ];
 
@@ -20903,7 +21127,7 @@ procs:
 					msg,
 					"Identifier <<%s>> after 'end' must match "
 					"iterator name <<%s>>",
-					$<idStr>18,
+					$<neID.idStr>18,
 					$<idStr>2
 				);
 
@@ -21022,7 +21246,7 @@ procs:
 			_endif
 			EndProc( $<en.s>6->StaticName ); 
 			endCseg();
-			free2( vss $<idStr>18 );
+			free2( vss $<neID.idStr>18 );
 
 
 			/*
@@ -21600,9 +21824,9 @@ newProcs:
 
 
 
-			assert( $<idStr>12 != NULL );
+			assert( $<neID.idStr>12 != NULL );
 
-			_if( _strne( $<idStr>2, $<idStr>12 ))
+			_if( _strne( $<idStr>2, $<neID.idStr>12 ))
 
 				char msg[ 256 ];
 
@@ -21611,7 +21835,7 @@ newProcs:
 					msg,
 					"Identifier <<%s>> after 'begin' must match "
 					"iterator name <<%s>>",
-					$<idStr>12,
+					$<neID.idStr>12,
 					$<idStr>2
 				);
 
@@ -21634,7 +21858,7 @@ newProcs:
 			CheckPtrs();
 
 			CurrentContext = $<en.s>6;
-			free2( vss $<idStr>12 );
+			free2( vss $<neID.idStr>12 );
 
 			/*
 			** Emit the text associated with the _initialize_ string
@@ -21706,9 +21930,9 @@ newProcs:
 		{				/* $19 */
 
 			_here;
-			assert( $<idStr>17 != NULL );
+			assert( $<neID.idStr>17 != NULL );
 
-			_if( _strne( $<idStr>2, $<idStr>17 ))
+			_if( _strne( $<idStr>2, $<neID.idStr>17 ))
 
 				char msg[ 256 ];
 
@@ -21717,7 +21941,7 @@ newProcs:
 					msg,
 					"Identifier <<%s>> after 'end' must match "
 					"iterator name <<%s>>",
-					$<idStr>17,
+					$<neID.idStr>17,
 					$<idStr>2
 				);
 
@@ -21836,7 +22060,7 @@ newProcs:
 			_endif
 			EndProc( $<en.s>6->StaticName ); 
 			endCseg();
-			free2( vss $<idStr>17 );
+			free2( vss $<neID.idStr>17 );
 
 
 			/*
@@ -22398,9 +22622,9 @@ procs:		procedureTkn		/* $1 */
 
 
 
-				assert( $<idStr>17 != NULL );
+				assert( $<neID.idStr>17 != NULL );
 
-				_if( _strne( $<s>2->TrueName, $<idStr>17 ))
+				_if( _strne( $<s>2->TrueName, $<neID.idStr>17 ))
 
 					char msg[ 256 ];
 
@@ -22409,7 +22633,7 @@ procs:		procedureTkn		/* $1 */
 						msg,
 						"Identifier <<%s>> after 'begin' must match "
 						"procedure name <<%s>>",
-						$<idStr>17,
+						$<neID.idStr>17,
 						$<s>2->TrueName
 					);
 
@@ -22444,7 +22668,7 @@ procs:		procedureTkn		/* $1 */
 				** CurrentContext = $<s>2;
 				*/
 
-				free2( vss $<idStr>17 );
+				free2( vss $<neID.idStr>17 );
 
 
 				/*
@@ -22516,9 +22740,9 @@ procs:		procedureTkn		/* $1 */
 			{			/* $24 */
 
 				_here;
-				assert( $<idStr>22 != NULL );
+				assert( $<neID.idStr>22 != NULL );
 
-				_if( _strne( $<s>2->TrueName, $<idStr>22 ))
+				_if( _strne( $<s>2->TrueName, $<neID.idStr>22 ))
 
 					char msg[ 256 ];
 
@@ -22527,7 +22751,7 @@ procs:		procedureTkn		/* $1 */
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"procedure name <<%s>>",
-						$<idStr>22,
+						$<neID.idStr>22,
 						$<s>2->TrueName
 					);
 
@@ -22660,7 +22884,7 @@ procs:		procedureTkn		/* $1 */
 
 				CheckFwdRef();
 
-				free2( vss $<idStr>22 );
+				free2( vss $<neID.idStr>22 );
 
 				/*
 				** Restore currentNS:
@@ -22691,6 +22915,7 @@ procs:		procedureTkn		/* $1 */
 				_here;
 			}
 	;
+
 
 
 
@@ -23219,9 +23444,9 @@ newProcs:	ClassProcID			/* $1  */
 
 
 
-				assert( $<idStr>17 != NULL );
+				assert( $<neID.idStr>17 != NULL );
 
-				_if( _strne( $<s>1->TrueName, $<idStr>17 ))
+				_if( _strne( $<s>1->TrueName, $<neID.idStr>17 ))
 
 					char msg[ 256 ];
 
@@ -23230,7 +23455,7 @@ newProcs:	ClassProcID			/* $1  */
 						msg,
 						"Identifier <<%s>> after 'begin' must match "
 						"procedure name <<%s>>",
-						$<idStr>17,
+						$<neID.idStr>17,
 						$<s>1->TrueName
 					);
 
@@ -23265,7 +23490,7 @@ newProcs:	ClassProcID			/* $1  */
 				** CurrentContext = $<s>2;
 				*/
 
-				free2( vss $<idStr>17 );
+				free2( vss $<neID.idStr>17 );
 
 
 				/*
@@ -23337,9 +23562,9 @@ newProcs:	ClassProcID			/* $1  */
 			{			/* $24 */
 
 				_here;
-				assert( $<idStr>22 != NULL );
+				assert( $<neID.idStr>22 != NULL );
 
-				_if( _strne( $<s>1->TrueName, $<idStr>22 ))
+				_if( _strne( $<s>1->TrueName, $<neID.idStr>22 ))
 
 					char msg[ 256 ];
 
@@ -23348,7 +23573,7 @@ newProcs:	ClassProcID			/* $1  */
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"procedure name <<%s>>",
-						$<idStr>22,
+						$<neID.idStr>22,
 						$<s>1->TrueName
 					);
 
@@ -23481,7 +23706,7 @@ newProcs:	ClassProcID			/* $1  */
 
 				CheckFwdRef();
 
-				free2( vss $<idStr>22 );
+				free2( vss $<neID.idStr>22 );
 
 				/*
 				** Restore currentNS:
@@ -23512,6 +23737,7 @@ newProcs:	ClassProcID			/* $1  */
 				_here;
 			}
 	;
+
 
 			
 
@@ -24045,9 +24271,9 @@ procs:		methodTkn			/* $1 */
 
 
 
-				assert( $<idStr>17 != NULL );
+				assert( $<neID.idStr>17 != NULL );
 
-				_if( _strne( $<s>2->TrueName, $<idStr>17 ))
+				_if( _strne( $<s>2->TrueName, $<neID.idStr>17 ))
 
 					char msg[ 256 ];
 
@@ -24056,7 +24282,7 @@ procs:		methodTkn			/* $1 */
 						msg,
 						"Identifier <<%s>> after 'begin' must match "
 						"method name <<%s>>",
-						$<idStr>17,
+						$<neID.idStr>17,
 						$<s>2->TrueName
 					);
 
@@ -24088,7 +24314,7 @@ procs:		methodTkn			/* $1 */
 
 				CheckPtrs();
 
-				free2( vss $<idStr>17 );
+				free2( vss $<neID.idStr>17 );
 
 				/*
 				** Emit the text associated with the _initialize_ string
@@ -24161,9 +24387,9 @@ procs:		methodTkn			/* $1 */
 			{				/* $24 */
 
 				_here;
-				assert( $<idStr>22 != NULL );
+				assert( $<neID.idStr>22 != NULL );
 
-				_if( _strne( $<s>2->TrueName, $<idStr>22 ))
+				_if( _strne( $<s>2->TrueName, $<neID.idStr>22 ))
 
 					char msg[ 256 ];
 
@@ -24172,7 +24398,7 @@ procs:		methodTkn			/* $1 */
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"method name <<%s>>",
-						$<idStr>22,
+						$<neID.idStr>22,
 						$<s>2->TrueName
 					);
 
@@ -24297,7 +24523,7 @@ procs:		methodTkn			/* $1 */
 
 				CheckFwdRef();
 
-				free2( vss $<idStr>22 );
+				free2( vss $<neID.idStr>22 );
 
 
 				/*
@@ -24326,6 +24552,7 @@ procs:		methodTkn			/* $1 */
 				_here;
 			}
 	;
+
 
 
 
@@ -24858,9 +25085,9 @@ newProcs:	ClassMethodID	    /* $1  */
 
 
 
-				assert( $<idStr>17 != NULL );
+				assert( $<neID.idStr>17 != NULL );
 
-				_if( _strne( $<s>1->TrueName, $<idStr>17 ))
+				_if( _strne( $<s>1->TrueName, $<neID.idStr>17 ))
 
 					char msg[ 256 ];
 
@@ -24869,7 +25096,7 @@ newProcs:	ClassMethodID	    /* $1  */
 						msg,
 						"Identifier <<%s>> after 'begin' must match "
 						"method name <<%s>>",
-						$<idStr>17,
+						$<neID.idStr>17,
 						$<s>1->TrueName
 					);
 
@@ -24901,7 +25128,7 @@ newProcs:	ClassMethodID	    /* $1  */
 
 				CheckPtrs();
 
-				free2( vss $<idStr>17 );
+				free2( vss $<neID.idStr>17 );
 
 				/*
 				** Emit the text associated with the _initialize_ string
@@ -24974,9 +25201,9 @@ newProcs:	ClassMethodID	    /* $1  */
 			{				/* $24 */
 
 				_here;
-				assert( $<idStr>22 != NULL );
+				assert( $<neID.idStr>22 != NULL );
 
-				_if( _strne( $<s>1->TrueName, $<idStr>22 ))
+				_if( _strne( $<s>1->TrueName, $<neID.idStr>22 ))
 
 					char msg[ 256 ];
 
@@ -24985,7 +25212,7 @@ newProcs:	ClassMethodID	    /* $1  */
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"method name <<%s>>",
-						$<idStr>22,
+						$<neID.idStr>22,
 						$<s>1->TrueName
 					);
 
@@ -25110,7 +25337,7 @@ newProcs:	ClassMethodID	    /* $1  */
 
 				CheckFwdRef();
 
-				free2( vss $<idStr>22 );
+				free2( vss $<neID.idStr>22 );
 
 
 				/*
@@ -25701,9 +25928,9 @@ procs:
 
 
 
-			assert( $<idStr>17 != NULL );
+			assert( $<neID.idStr>17 != NULL );
 
-			_if( _strne( $<s>2->TrueName, $<idStr>17 ))
+			_if( _strne( $<s>2->TrueName, $<neID.idStr>17 ))
 
 				char msg[ 256 ];
 
@@ -25712,7 +25939,7 @@ procs:
 					msg,
 					"Identifier <<%s>> after 'begin' must match "
 					"iterator name <<%s>>",
-					$<idStr>17,
+					$<neID.idStr>17,
 					$<s>2->TrueName
 				);
 
@@ -25744,7 +25971,7 @@ procs:
 
 			CheckPtrs();
 
-			free2( vss $<idStr>17 );
+			free2( vss $<neID.idStr>17 );
 
 			/*
 			** Emit the text associated with the _initialize_ string
@@ -25816,9 +26043,9 @@ procs:
 		{				/* $24 */
 
 			_here;
-			assert( $<idStr>22 != NULL );
+			assert( $<neID.idStr>22 != NULL );
 
-			_if( _strne( $<s>2->TrueName, $<idStr>22 ))
+			_if( _strne( $<s>2->TrueName, $<neID.idStr>22 ))
 
 				char msg[ 256 ];
 
@@ -25827,7 +26054,7 @@ procs:
 					msg,
 					"Identifier <<%s>> after 'end' must match "
 					"iterator name <<%s>>",
-					$<idStr>22,
+					$<neID.idStr>22,
 					$<s>2->TrueName
 				);
 
@@ -25947,7 +26174,7 @@ procs:
 
 			CheckFwdRef();
 
-			free2( vss $<idStr>22 );
+			free2( vss $<neID.idStr>22 );
 
 
 			/*
@@ -26543,9 +26770,9 @@ newProcs:
 
 
 
-			assert( $<idStr>16 != NULL );
+			assert( $<neID.idStr>16 != NULL );
 
-			_if( _strne( $<s>2->TrueName, $<idStr>16 ))
+			_if( _strne( $<s>2->TrueName, $<neID.idStr>16 ))
 
 				char msg[ 256 ];
 
@@ -26586,7 +26813,7 @@ newProcs:
 
 			CheckPtrs();
 
-			free2( vss $<idStr>16 );
+			free2( vss $<neID.idStr>16 );
 
 			/*
 			** Emit the text associated with the _initialize_ string
@@ -26658,9 +26885,9 @@ newProcs:
 		{				/* $23 */
 
 			_here;
-			assert( $<idStr>21 != NULL );
+			assert( $<neID.idStr>21 != NULL );
 
-			_if( _strne( $<s>2->TrueName, $<idStr>21 ))
+			_if( _strne( $<s>2->TrueName, $<neID.idStr>21 ))
 
 				char msg[ 256 ];
 
@@ -26669,7 +26896,7 @@ newProcs:
 					msg,
 					"Identifier <<%s>> after 'end' must match "
 					"iterator name <<%s>>",
-					$<idStr>21,
+					$<neID.idStr>21,
 					$<s>2->TrueName
 				);
 
@@ -26789,7 +27016,7 @@ newProcs:
 
 			CheckFwdRef();
 
-			free2( vss $<idStr>21 );
+			free2( vss $<neID.idStr>21 );
 
 
 			/*
@@ -29416,9 +29643,9 @@ procs:		procedureTkn		/* $1  */
 
 
 
-				assert( $<idStr>15 != NULL );
+				assert( $<neID.idStr>15 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>15 ))
+				_if( _strne( $<s>5->TrueName, $<neID.idStr>15 ))
 
 					char msg[ 256 ];
 
@@ -29428,7 +29655,7 @@ procs:		procedureTkn		/* $1  */
 						"Identifier <<%s>> after 'begin' must match "
 						"procedure name <<%s>>",
 
-						$<idStr>15,
+						$<neID.idStr>15,
 						$<s>5->TrueName
 					);
 
@@ -29454,7 +29681,7 @@ procs:		procedureTkn		/* $1  */
 				** CurrentContext = $<s>5;
 				*/
 
-				free2( vss $<idStr>15 );
+				free2( vss $<neID.idStr>15 );
 
 
 				/*
@@ -29531,9 +29758,9 @@ procs:		procedureTkn		/* $1  */
 
 
 				_here;
-				assert( $<idStr>20 != NULL );
+				assert( $<neID.idStr>20 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>20 ))
+				_if( _strne( $<s>5->TrueName, $<neID.idStr>20 ))
 
 					char msg[ 256 ];
 
@@ -29542,7 +29769,7 @@ procs:		procedureTkn		/* $1  */
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"procedure name <<%s>>",
-						$<idStr>20,
+						$<neID.idStr>20,
 						$<s>5->TrueName
 					);
 
@@ -29671,7 +29898,7 @@ procs:		procedureTkn		/* $1  */
 				_endif
 				EndProc( $<s>5->StaticName );
 				endCseg();
-				free2( vss $<idStr>20 );
+				free2( vss $<neID.idStr>20 );
 
 				inProcedure = 0;
 
@@ -30099,9 +30326,9 @@ newProcs:	LocalProcID				/* $1  */
 
 
 
-				assert( $<idStr>14 != NULL );
+				assert( $<neID.idStr>14 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>14 ))
+				_if( _strne( $<s>5->TrueName, $<neID.idStr>14 ))
 
 					char msg[ 256 ];
 
@@ -30111,7 +30338,7 @@ newProcs:	LocalProcID				/* $1  */
 						"Identifier <<%s>> after 'begin' must match "
 						"procedure name <<%s>>",
 
-						$<idStr>14,
+						$<neID.idStr>14,
 						$<s>5->TrueName
 					);
 
@@ -30137,7 +30364,7 @@ newProcs:	LocalProcID				/* $1  */
 				** CurrentContext = $<s>5;
 				*/
 
-				free2( vss $<idStr>14 );
+				free2( vss $<neID.idStr>14 );
 
 
 				/*
@@ -30214,9 +30441,9 @@ newProcs:	LocalProcID				/* $1  */
 
 
 				_here;
-				assert( $<idStr>19 != NULL );
+				assert( $<neID.idStr>19 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>19 ))
+				_if( _strne( $<s>5->TrueName, $<neID.idStr>19 ))
 
 					char msg[ 256 ];
 
@@ -30225,7 +30452,7 @@ newProcs:	LocalProcID				/* $1  */
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"procedure name <<%s>>",
-						$<idStr>19,
+						$<neID.idStr>19,
 						$<s>5->TrueName
 					);
 
@@ -30354,7 +30581,7 @@ newProcs:	LocalProcID				/* $1  */
 				_endif
 				EndProc( $<s>5->StaticName );
 				endCseg();
-				free2( vss $<idStr>19 );
+				free2( vss $<neID.idStr>19 );
 
 				inProcedure = 0;
 
@@ -31000,9 +31227,9 @@ newProcs:	LocalProcID				/* $1  */
 
 
 
-				assert( $<idStr>15 != NULL );
+				assert( $<neID.idStr>15 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>15 ))
+				_if( _strne( $<s>5->TrueName, $<neID.idStr>15 ))
 
 					char msg[ 256 ];
 
@@ -31012,7 +31239,7 @@ newProcs:	LocalProcID				/* $1  */
 						"Identifier <<%s>> after 'begin' must match "
 						"procedure name <<%s>>",
 
-						$<idStr>15,
+						$<neID.idStr>15,
 						$<s>5->TrueName
 					);
 
@@ -31038,7 +31265,7 @@ newProcs:	LocalProcID				/* $1  */
 				** CurrentContext = $<s>5;
 				*/
 
-				free2( vss $<idStr>15 );
+				free2( vss $<neID.idStr>15 );
 
 
 				/*
@@ -31115,9 +31342,9 @@ newProcs:	LocalProcID				/* $1  */
 
 
 				_here;
-				assert( $<idStr>20 != NULL );
+				assert( $<neID.idStr>20 != NULL );
 
-				_if( _strne( $<s>6->TrueName, $<idStr>20 ))
+				_if( _strne( $<s>6->TrueName, $<neID.idStr>20 ))
 
 					char msg[ 256 ];
 
@@ -31126,7 +31353,7 @@ newProcs:	LocalProcID				/* $1  */
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"procedure name <<%s>>",
-						$<idStr>20,
+						$<neID.idStr>20,
 						$<s>6->TrueName
 					);
 
@@ -31255,7 +31482,7 @@ newProcs:	LocalProcID				/* $1  */
 				_endif
 				EndProc( $<s>6->StaticName );
 				endCseg();
-				free2( vss $<idStr>20 );
+				free2( vss $<neID.idStr>20 );
 
 				inProcedure = 0;
 
@@ -31917,9 +32144,9 @@ procs:		iteratorTkn			/* $1  */
 
 
 
-				assert( $<idStr>15 != NULL );
+				assert( $<neID.idStr>15 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>15 ))
+				_if( _strne( $<s>5->TrueName, $<neID.idStr>15 ))
 
 					char msg[ 256 ];
 
@@ -31928,7 +32155,7 @@ procs:		iteratorTkn			/* $1  */
 						msg,
 						"Identifier <<%s>> after 'begin' must match "
 						"iterator name <<%s>>",
-						$<idStr>15,
+						$<neID.idStr>15,
 						$<s>5->TrueName
 					);
 
@@ -31950,7 +32177,7 @@ procs:		iteratorTkn			/* $1  */
 
 				CheckPtrs();
 
-				free2( vss $<idStr>15 );
+				free2( vss $<neID.idStr>15 );
 
 
 
@@ -32026,9 +32253,9 @@ procs:		iteratorTkn			/* $1  */
 
 
 				_here;
-				assert( $<idStr>20 != NULL );
+				assert( $<neID.idStr>20 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>20 ))
+				_if( _strne( $<s>5->TrueName, $<neID.idStr>20 ))
 
 					char msg[ 256 ];
 
@@ -32037,7 +32264,7 @@ procs:		iteratorTkn			/* $1  */
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"iteator name <<%s>>",
-						$<idStr>20,
+						$<neID.idStr>20,
 						$<s>5->TrueName
 					);
 
@@ -32164,7 +32391,7 @@ procs:		iteratorTkn			/* $1  */
 				_endif
 				EndProc( $<s>5->StaticName );
 				endCseg();
-				free2( vss $<idStr>20 );
+				free2( vss $<neID.idStr>20 );
 
 				inIterator = 0;
 
@@ -32630,9 +32857,9 @@ newProcs:	LocalIterID				/* $1  */
 
 
 
-				assert( $<idStr>14 != NULL );
+				assert( $<neID.idStr>14 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>14 ))
+				_if( _strne( $<s>5->TrueName, $<neID.idStr>14 ))
 
 					char msg[ 256 ];
 
@@ -32641,7 +32868,7 @@ newProcs:	LocalIterID				/* $1  */
 						msg,
 						"Identifier <<%s>> after 'begin' must match "
 						"iterator name <<%s>>",
-						$<idStr>14,
+						$<neID.idStr>14,
 						$<s>5->TrueName
 					);
 
@@ -32663,7 +32890,7 @@ newProcs:	LocalIterID				/* $1  */
 
 				CheckPtrs();
 
-				free2( vss $<idStr>14 );
+				free2( vss $<neID.idStr>14 );
 
 
 
@@ -32739,9 +32966,9 @@ newProcs:	LocalIterID				/* $1  */
 
 
 				_here;
-				assert( $<idStr>19 != NULL );
+				assert( $<neID.idStr>19 != NULL );
 
-				_if( _strne( $<s>5->TrueName, $<idStr>19 ))
+				_if( _strne( $<s>5->TrueName, $<neID.idStr>19 ))
 
 					char msg[ 256 ];
 
@@ -32750,7 +32977,7 @@ newProcs:	LocalIterID				/* $1  */
 						msg,
 						"Identifier <<%s>> after 'end' must match "
 						"iteator name <<%s>>",
-						$<idStr>19,
+						$<neID.idStr>19,
 						$<s>5->TrueName
 					);
 
@@ -32877,7 +33104,7 @@ newProcs:	LocalIterID				/* $1  */
 				_endif
 				EndProc( $<s>5->StaticName );
 				endCseg();
-				free2( vss $<idStr>19 );
+				free2( vss $<neID.idStr>19 );
 
 				inIterator = 0;
 
@@ -32940,7 +33167,7 @@ procs:		methodTkn			/* $1 */
   			Semicolon			/* $13 */
  			{					/* $14 */
 
-				free2( vss $<idStr>12 );
+				free2( vss $<neID.idStr>12 );
 			}
 			Stmts				/* $15 */
 			endTkn 				/* $16 */
@@ -32955,7 +33182,7 @@ procs:		methodTkn			/* $1 */
 				ThisPtr = $<s>6;
 				$<s>2->u.proc.Locals = SymbolTable;
 				SymbolTable = $<s>9;
-				free2( vss $<idStr>17 );
+				free2( vss $<neID.idStr>17 );
 				_here;
 			}
 		;
@@ -33744,6 +33971,7 @@ FwdMethod:
 			free2( vss $<en.s>7->StaticName );
 			$<en.s>7->StaticName = hlastrdup2( "abstract" sympost );
 			HasAbstract = 1;
+			need_raise = 1;
 
 			/*
 			** Remove this methods's parameters from
@@ -33970,6 +34198,7 @@ newClassProc:
 			free2( vss $<en.s>7->StaticName );
 			$<en.s>7->StaticName = hlastrdup2( "abstract" sympost );
 			HasAbstract = 1;
+			need_raise = 1;
 
 			/*
 			** Remove this methods's parameters from
@@ -34051,6 +34280,118 @@ newClassProc:
 		}
 	;
 
+
+newClassProc:
+		UndefinedID		/* $1 */
+		':'				/* $2 */
+		overloadsTkn	/* $3 */
+		saveYYText		/* $4 */
+		procID			/* $5 */
+		OptionalStr		/* $6 */
+		Semicolon		/* $7 */
+		{
+			struct SymNode	*s;
+			struct SymNode	*parmPtr;
+			int				parmCnt;
+			
+			s = InsertSym
+				(
+					$<idStr>1,			//TrueName
+					NULL,				//Type
+					tOverloads,			//pType
+					cOverloads,			//TheClass
+					0,					//Arity
+					NULL,				//Dimensions,
+					0,					//NumElements,
+					NULL,				//TheValue,
+					0,					//ObjectSize,
+					0,					//Offset,
+					NULL,				//StaticName,
+					NULL,				//Base,
+					NULL,				//Fields,
+					0					//FieldCnt
+				);
+				
+			s->u.ovld.nextOvld	= NULL;
+			parmPtr				= $<s>5->u.proc.parms;
+			s->u.ovld.parms		= parmPtr;
+			parmCnt = 0;
+			_while( parmPtr->SymClass == cParm )
+			
+				parmPtr = parmPtr->Next;
+				++parmCnt;
+				
+			_endwhile;
+			s->u.ovld.numParms = parmCnt;
+			_if( *$<returns>6 != '\0' )
+			
+				s->u.ovld.procName = $<returns>6;
+			
+			_else
+			
+				s->u.ovld.procName = captureOverload( $<idStr>4 );
+				
+			_endif
+		} 
+	;
+	
+
+newClassProc:
+		OverloadedID	/* $1 */
+		':'				/* $2 */
+		overloadsTkn	/* $3 */			
+		saveYYText		/* $4 */
+		procID			/* $5 */
+		OptionalStr		/* $6 */
+		Semicolon		/* $7 */
+		{
+			struct SymNode	*s;
+			struct SymNode	*parmPtr;
+			int				parmCnt;
+			
+			s = InsertSym
+				(
+					strdup( $<s>1->TrueName ),	//TrueName
+					NULL,						//Type
+					tOverloads,					//pType
+					cOverloads,					//TheClass
+					0,							//Arity
+					NULL,						//Dimensions,
+					0,							//NumElements,
+					NULL,						//TheValue,
+					0,							//ObjectSize,
+					0,							//Offset,
+					NULL,						//StaticName,
+					NULL,						//Base,
+					NULL,						//Fields,
+					0							//FieldCnt
+				);
+				
+			s->u.ovld.nextOvld	= $<s>1;
+			parmPtr				= $<s>5->u.proc.parms;
+			s->u.ovld.parms		= parmPtr;
+			parmCnt = 0;
+			_while( parmPtr->SymClass == cParm )
+			
+				parmPtr = parmPtr->Next;
+				++parmCnt;
+				
+			_endwhile;
+			s->u.ovld.numParms = parmCnt;
+			_if( *$<returns>6 != '\0' )
+			
+				s->u.ovld.procName = $<returns>6;
+				
+			_else
+			
+				s->u.ovld.procName = captureOverload( $<idStr>4 );
+				
+			_endif
+		}
+	;
+	
+
+	
 
 
 
@@ -37309,6 +37650,15 @@ newClassProc:
 
 
 
+
+	
+
+
+
+
+
+
+
  /*
  ** Handle overriding a class procedure here.
  */
@@ -37884,7 +38234,7 @@ ProcessParameter:
 			char msg[ 256 ];
 
 			_here;
-			assert( $<idStr>-3 != NULL );
+			assert( $<neID.idStr>-3 != NULL );
 			assert( $<s>-5 != NULL );
 
 
@@ -37910,7 +38260,7 @@ ProcessParameter:
 					"definition (may have been a type symbol"
 					"that is indirectly a\n"
 					"procedure type, though)",
-					$<idStr>-3
+					$<neID.idStr>-3
 				);
 				yyerror( msg );
 
@@ -37927,7 +38277,7 @@ ProcessParameter:
 				(
 					msg,
 					"Parameter \"%s\" is not present in original definition",
-					$<idStr>-3
+					$<neID.idStr>-3
 				);
 				yyerror
 				(
@@ -37955,14 +38305,14 @@ ProcessParameter:
 				** Be sure the names are identical.
 				*/
 
-				_elseif( _strne( $<idStr>-3, $<s>-5->TrueName ))
+				_elseif( _strne( $<neID.idStr>-3, $<s>-5->TrueName ))
 
 				 	sprintf
 					(
 						msg,
 						"Identifier \"%s\" must be identical to "
 						" declaration \"%s\"",
-						$<idStr>-3,
+						$<neID.idStr>-3,
 						$<s>-5->TrueName
 					);
 					yyerror( msg );
@@ -37978,7 +38328,7 @@ ProcessParameter:
 						msg,
 						"Type (%s:%s) must match original "
 						"declaration (%s:%s)",
-						$<idStr>-3,
+						$<neID.idStr>-3,
 						$<s>-1->TrueName,
 						$<s>-5->TrueName,
 						$<s>-5->Type->TrueName
@@ -38210,7 +38560,7 @@ ProcessProcParm:
 			char msg[ 256 ];
 
 			_here;
-			assert( $<idStr>-4 != NULL );
+			assert( $<neID.idStr>-4 != NULL );
 			assert( $<s>-6 != NULL );
 
 			$<s>$ = $<s>-6;	/* Just in case there is an error */
@@ -38226,7 +38576,7 @@ ProcessProcParm:
 				(
 					msg,
 					"\"%s\" appears to be an extra parameter",
-					$<idStr>-4
+					$<neID.idStr>-4
 				);
 				yyerror
 				(
@@ -38253,13 +38603,13 @@ ProcessProcParm:
 				** original declaration.
 				*/
 
-				_elseif( _strne( $<idStr>-4, $<s>-6->TrueName ))
+				_elseif( _strne( $<neID.idStr>-4, $<s>-6->TrueName ))
 
 				 	sprintf
 					(
 						msg,
 						"Identifier (%s) must match original declaration (%s)",
-						$<idStr>-4,
+						$<neID.idStr>-4,
 						$<s>-6->TrueName
 					);
 					yyerror( msg );
@@ -38274,7 +38624,7 @@ ProcessProcParm:
 					(
 						msg,
 						"\"%s\" cannot be a procedure parameter",
-						$<idStr>-4
+						$<neID.idStr>-4
 					);
 					yyerror( msg );
 
@@ -38496,7 +38846,7 @@ Options:
 
 Options:
 		Options 
-		returnsTkn 
+		atreturnsTkn 
 		Lparen 
 		ConstOnlyExpr 
 		Rparen 
@@ -38844,7 +39194,7 @@ newOptions:
 		}
 		
 	|	newOptions 
-		returnsTkn 
+		atreturnsTkn 
 		Lparen 
 		ConstOnlyExpr 
 		Rparen
@@ -40487,12 +40837,12 @@ EnterName:
 				union YYSTYPE dummy;
 
 				_here;
-				assert( $<idStr>-3 != NULL );
-				sprintf( StaticName, "%s" sympost "%d", $<idStr>-3, LblCntr++ );
+				assert( $<neID.idStr>-3 != NULL );
+				sprintf( StaticName, "%s" sympost "%d", $<neID.idStr>-3, LblCntr++ );
 				sn = hlastrdup2( StaticName ); 
 				InsertProc
 				(
-					$<idStr>-3,
+					$<neID.idStr>-3,
 					sn
 				);
 
@@ -40520,7 +40870,7 @@ EnterName:
 				sn = hlastrdup2( StaticName );
 				InsertProc
 				(
-					hlastrdup2( $<idStr>-3 ),
+					hlastrdup2( $<neID.idStr>-3 ),
 					hlastrdup2( sn )
 				);
 				SymbolTable->u.proc.Forward = NULL;
@@ -40703,12 +41053,12 @@ EnterIterName:
 				union YYSTYPE dummy;
 
 				_here;
-				assert( $<idStr>-3 != NULL );
-				sprintf( StaticName, "%s" sympost "%d", $<idStr>-3, LblCntr++ );
+				assert( $<neID.idStr>-3 != NULL );
+				sprintf( StaticName, "%s" sympost "%d", $<neID.idStr>-3, LblCntr++ );
 				sn = hlastrdup2( StaticName ); 
 				InsertProc
 				(
-					$<idStr>-3,
+					$<neID.idStr>-3,
 					sn
 				);
 
@@ -40738,7 +41088,7 @@ EnterIterName:
 				sn = hlastrdup2( StaticName );
 				InsertProc
 				(
-					$<idStr>-3,
+					$<neID.idStr>-3,
 					sn
 				);
 				SymbolTable->u.proc.Forward = NULL;
@@ -41171,11 +41521,11 @@ TypeDef:	UndefinedID			/* $1 */
 				char	*UndefinedID = $<idStr>1;
 			
 				assert( UndefinedID != NULL );
-				assert( $<idStr>5 != NULL );
+				assert( $<neID.idStr>5 != NULL );
 
 
 				_here;
-				BaseType = lookup( $<idStr>5, 1 );
+				BaseType = $<neID.s>5;
 				_if( BaseType != NULL )
 
 					BaseType = GetBaseType( BaseType );
@@ -41200,7 +41550,7 @@ TypeDef:	UndefinedID			/* $1 */
 				);
 				_if( BaseType == NULL )
 				
-					Add2PtrList( SymbolTable, $<idStr>5 );
+					Add2PtrList( SymbolTable, $<neID.idStr>5 );
 
 				_endif
 
@@ -50958,7 +51308,7 @@ VariableDef:
 
 			
 				assert( $<idStr>1 != NULL );
-				assert( $<idStr>5 != NULL );
+				assert( $<neID.idStr>5 != NULL );
 
 				$<i>$ = CurOffset;
 				
@@ -50971,7 +51321,7 @@ VariableDef:
 				_endif
 
 				CurOffset = AlignVarOffset( CurOffset, 4, CurOffsetDir );
-				BaseType = lookup( $<idStr>5, 1 );
+				BaseType = $<neID.s>5;
 				_if( BaseType != NULL )
 
 					BaseType = GetBaseType( BaseType );
@@ -51003,7 +51353,7 @@ VariableDef:
 				);
 				_if( BaseType == NULL )
 
-					Add2PtrList( SymbolTable, $<idStr>5 );
+					Add2PtrList( SymbolTable, $<neID.idStr>5 );
 
 				_endif
 
@@ -53206,9 +53556,9 @@ StaticPtrToUser:
 			char	StaticName[ 256 ];
 
 			assert( $<idStr>1 != NULL );
-			assert( $<idStr>5 != NULL );
+			assert( $<neID.idStr>5 != NULL );
 
-			BaseType = lookup( $<idStr>5, 1 );
+			BaseType = $<neID.s>5;
 			_if( BaseType != NULL )
 
 				BaseType = GetBaseType( BaseType );
@@ -53262,7 +53612,7 @@ StaticPtrToUser:
 
 			_if( BaseType == NULL )
 
-				Add2PtrList( SymbolTable, $<idStr>5 );
+				Add2PtrList( SymbolTable, $<neID.idStr>5 );
 
 			_endif
 			FreeValue( YYS &$<v>7 );
@@ -53308,9 +53658,9 @@ StaticPtrToExtUser:
 			char	StaticName[ 256 ];
 
 			assert( $<idStr>1 != NULL );
-			assert( $<idStr>5 != NULL );
+			assert( $<neID.idStr>5 != NULL );
 
-			BaseType = lookup( $<idStr>5, 1 );
+			BaseType = $<neID.s>5;
 			_if( BaseType != NULL )
 
 				BaseType = GetBaseType( BaseType );
@@ -53353,7 +53703,7 @@ StaticPtrToExtUser:
 					ErrorNear
 					(
 						"External base type must match declared base type",
-						$<idStr>5,
+						$<neID.idStr>5,
 						__LINE__,
 						__FILE__
 					);
@@ -53375,7 +53725,7 @@ StaticPtrToExtUser:
 
 			_if( BaseType == NULL )
 
-				Add2PtrList( $<s>1, $<idStr>5 );
+				Add2PtrList( $<s>1, $<neID.idStr>5 );
 
 			_endif
 			FreeValue( YYS &$<v>7 );
@@ -54653,10 +55003,10 @@ StaticPtrToUserNoInit:
 			char	StaticName[ 256 ];
 
 			assert( $<idStr>1 != NULL );
-			assert( $<idStr>5 != NULL );
+			assert( $<neID.idStr>5 != NULL );
 
 			_here;
-			BaseType = lookup( $<idStr>5, 1 );
+			BaseType = $<neID.s>5;
 			_if( BaseType != NULL )
 
 				BaseType = GetBaseType( BaseType );
@@ -54746,7 +55096,7 @@ StaticPtrToUserNoInit:
 
 			_if( SymbolTable->Base == NULL )
 
-				Add2PtrList( SymbolTable, $<idStr>5 );
+				Add2PtrList( SymbolTable, $<neID.idStr>5 );
 
 			_endif
 			_here;
@@ -54777,7 +55127,7 @@ StaticPtrToUserExt:
 					specified_nostorage
 				|	specified_volatile 
 			);
-			BaseType = lookup( $<idStr>5, 1 );
+			BaseType = $<neID.s>5;
 			_if( BaseType != NULL )
 
 				BaseType = GetBaseType( BaseType );
@@ -54807,7 +55157,7 @@ StaticPtrToUserExt:
 					ErrorNear
 					(
 						"External base type must match declared base type",
-						$<idStr>5,
+						$<neID.idStr>5,
 						__LINE__,
 						__FILE__
 					);
@@ -54829,11 +55179,11 @@ StaticPtrToUserExt:
 
 			_if( BaseType == NULL )
 
-				Add2PtrList( $<s>1, $<idStr>5 );
+				Add2PtrList( $<s>1, $<neID.idStr>5 );
 
 			_endif
 
-			free2( vss $<idStr>5 );
+			free2( vss $<neID.idStr>5 );
 
 		}
 	;
@@ -57489,10 +57839,10 @@ EnterROPDef:
 			char	StaticName[ 256 ];
 
 			assert( $<idStr>-4 != NULL );
-			assert( $<idStr>0 != NULL );
+			assert( $<neID.idStr>0 != NULL );
 
 			_here;
-			BaseType = lookup( $<idStr>0, 1 );
+			BaseType = $<neID.s>0;
 			_if( BaseType != NULL )
 
 				BaseType = GetBaseType( BaseType );
@@ -57563,7 +57913,7 @@ ReadOnlyDef:
 
 			_if( $<s>6->Base == NULL )
 
-				Add2PtrList( $<s>6, $<idStr>5 );
+				Add2PtrList( $<s>6, $<neID.idStr>5 );
 
 			_endif
 			_here;
@@ -57626,7 +57976,7 @@ ReadOnlyDef:
 
 			_if( $<s>6 == NULL )
 			
-				Add2PtrList( SymbolTable, $<idStr>5 );
+				Add2PtrList( SymbolTable, $<neID.idStr>5 );
 
 			_endif
 		}
@@ -57678,7 +58028,7 @@ ReadOnlyDef:
 				);
 
 			_endif
-			BaseType = lookup( $<idStr>5, 1 );
+			BaseType = $<neID.s>5;
 			_if( BaseType != NULL )
 
 				BaseType = GetBaseType( BaseType );
@@ -57704,7 +58054,7 @@ ReadOnlyDef:
 					ErrorNear
 					(
 						"External base type must match declared base type",
-						$<idStr>5,
+						$<neID.idStr>5,
 						__LINE__,
 						__FILE__
 					);
@@ -57726,11 +58076,11 @@ ReadOnlyDef:
 
 			_if( BaseType == NULL )
 
-				Add2PtrList( $<s>1, $<idStr>5 );
+				Add2PtrList( $<s>1, $<neID.idStr>5 );
 				
 			_endif
 
-			free2( vss $<idStr>5 );
+			free2( vss $<neID.idStr>5 );
 
 		}
 	;
@@ -60207,11 +60557,11 @@ ConstExpr:
 				
 			_here;
 			assert( $<s>1 != NULL );
-			assert( $<idStr>3 != NULL );
+			assert( $<neID.idStr>3 != NULL );
 			
 			_if( $<s>1->pType == tUnion )
 
-				strcpy( lcName, $<idStr>3 );
+				strcpy( lcName, $<neID.idStr>3 );
 				lowercase( lcName );
 				
 				// We've got a union constant.
@@ -60272,14 +60622,14 @@ ConstExpr:
 						
 						// Handle case neutrality check:
 						
-						_if( _strne( $<idStr>3, field->TrueName ))
+						_if( _strne( $<neID.idStr>3, field->TrueName ))
 						
 							sprintf
 							(
 								msg,
 								"Mispelled identifier %s, perhaps "
 								"you meant %s",
-								$<idStr>3,
+								$<neID.idStr>3,
 								field->TrueName
 							);
 							yyerror( msg );
@@ -60308,7 +60658,7 @@ ConstExpr:
 					(
 						msg,
 						"Field %s is not a member of union %s",
-						$<idStr>3,
+						$<neID.idStr>3,
 						$<s>1->TrueName
 					);
 					
@@ -60415,10 +60765,11 @@ ConstExpr:
 				yyerror( msg );
 
 			_endif
-			free2( vss $<idStr>3 );
+			free2( vss $<neID.idStr>3 );
 			_here;
 		}
 	;
+
 
 
 /*
@@ -76651,9 +77002,351 @@ SingleStmt:
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
+// Handle overloaded procedure calls here:
 
 SingleStmt:
+		OverloadedID		/* $1 */
+		Lparen				/* $2 */
+		CollectParameters	/* $3 */
+		{					/* $4 */
+			char			*pbStmt;
+			struct	SymNode	*sig;
+			
+			_here;
+			$<returns>$ = NULL;
+			_if( langLevel <= low_level )
+			
+				yyerror
+				( 
+					"High-level procedure calls are illegal in low and machine\n"
+					"level language mode."
+				);
+				
+			_endif
+			
+			// Search for the matching signature:
+			
+			sig =	matchSignature
+					( 
+						$<s>1, 
+						$<collectedParms.parmCnt>3, 
+						$<collectedParms.types>3, 
+						$<collectedParms.pForm>3 
+					);
+					
+			_if( sig == NULL )
+			
+				yyerror
+				( 
+					"No matching signature/parameter list for overloaded call."
+				);
+				
+			_else	// We matched a signature
+			
+				// Emit the code to call the associated function:
+				
+				pbStmt = 	malloc2
+							( 
+								strlen( sig->u.ovld.procName ) +
+								strlen( $<collectedParms.parms>3 )
+								+4
+							);
+							
+				sprintf
+				(
+					pbStmt,
+					"%s %s )",
+					sig->u.ovld.procName,
+					$<collectedParms.parms>3
+				);
+				PushBackStr( pbStmt );
+				free( pbStmt );
+				
+			_endif
+			_if( $<collectedParms.parms>3 != NULL )
+			
+				free( $<collectedParms.parms>3 );
+				
+			_endif
+			_if( $<collectedParms.types>3 != NULL )
+			
+				free( $<collectedParms.types>3 );
+				
+			_endif
+			_here; 
+		}
+		Rparen			/* $5 */
+		
+		// Must reinvoke SingleStmt to process the
+		// string we just pushed back on the lexer input:
+		
+		callFunction	/* $6 */
+		{
+			$<returns>$ = $<returns>6;
+			(void) $<idStr>4;	// Shut up bison
+		}
+	;
 
+
+
+saveYYText:
+		{
+			_here;
+			$<idStr>$ = yytext;
+		}
+	;
+	
+CollectParameters:
+		saveYYText					/* $1 */
+		OptionalCollectParameters	/* $2 */
+		{
+			char	*parms;
+			
+			_here;
+			parms = captureYYText( $<idStr>1, yytext );
+			$<collectedParms>$ = $<collectedParms>2;
+			$<collectedParms.parms>$ = parms;
+			_here;
+		}
+	;
+
+OptionalCollectParameters:
+		Empty
+		{
+			_here;
+			$<collectedParms.parmCnt>$ = 0;
+			$<collectedParms.types>$ = NULL;
+			$<collectedParms.parms>$ = NULL;	// Filled in later
+		}
+		
+	|	OneOrMoreCollectParameters
+		{
+			_here;
+			$<collectedParms>$ = $<collectedParms>1;
+		}
+	;
+	
+	
+OneOrMoreCollectParameters:
+		OneCollectParameter
+		{
+			_here;
+			$<collectedParms>$ = $<collectedParms>1;
+		}
+
+	|	OneCollectParameter 		/* $1 */
+		','							/* $2 */
+		OneOrMoreCollectParameters	/* $3 */
+		{
+			_here;
+			$<collectedParms.parmCnt>$ = 
+				$<collectedParms.parmCnt>1 + $<collectedParms.parmCnt>3;
+				
+			$<collectedParms.types>$ = 
+				malloc2
+				( 
+					$<collectedParms.parmCnt>$ * sizeof( struct SymNode*)
+				);
+				
+			$<collectedParms.types>$[0] = $<collectedParms.types>1[0];	
+			memcpy
+			( 
+				&$<collectedParms.types>$[1],
+				$<collectedParms.types>3,
+				$<collectedParms.parmCnt>3 * sizeof( struct SymNode*)
+			);
+			free( $<collectedParms.types>3 );
+			$<collectedParms.parms>$ = NULL;	// Filled in later
+			_here; 
+		}
+	;
+
+
+
+OneCollectParameter:
+		fConstExpr
+		{
+			_here;
+			$<collectedParms.pForm>$ = parm_constant;
+			$<collectedParms.parmCnt>$ = 1;
+			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*) );
+			$<collectedParms.types>$[0] = $<v.Type>1;
+			$<collectedParms.parms>$ = NULL;	// Filled in later
+			_here; 
+		}
+	;
+	
+
+
+
+
+	/*
+	** Register parameters are easy to deal with.
+	** All we've got to do is verify the size is correct.
+	** For eight-bit registers, we also need to zero extend
+	** the value we push on the stack.  For 16-bit register,
+	** we need to zero extend the value if the minimum parm
+	** size is four bytes.
+	*/
+
+OneCollectParameter:
+		fRegister 
+		{
+			_here;
+			$<collectedParms.pForm>$ = parm_register;
+			$<collectedParms.parmCnt>$ = 1;
+			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
+			$<collectedParms.types>$[0] = $<reg.Type>1;
+			$<collectedParms.parms>$ = NULL;	// Filled in later
+			_here; 
+		}
+	;
+
+	
+OneCollectParameter:
+		edxeaxTkn 
+		{
+			_here;
+			$<collectedParms.pForm>$ = parm_register;
+			$<collectedParms.parmCnt>$ = 1;
+			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
+			$<collectedParms.types>$[0] = &qword_ste;
+			_here;
+		}
+	;
+
+	
+	
+
+OneCollectParameter:
+		dxaxTkn 
+		{
+			_here;
+			$<collectedParms.pForm>$ = parm_register;
+			$<collectedParms.parmCnt>$ = 1;
+			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
+			$<collectedParms.types>$[0] = &dword_ste;
+			_here;
+		}
+	;
+
+	
+	
+
+
+
+OneCollectParameter:
+		valTkn
+		fRegister
+		{
+			_here;
+			$<collectedParms.pForm>$ = parm_register;
+			$<collectedParms.parmCnt>$ = 1;
+			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
+			$<collectedParms.types>$[0] = $<reg.Type>2;
+			$<collectedParms.parms>$ = NULL;	// Filled in later
+			_here; 
+		}
+	;
+
+	
+	
+
+	/*
+	** Okay, memory is really miserable.  Not only do we have to
+	** deal with all the possible memory types, but we've also
+	** got to deal with the fact that parameters can be passed by
+	** value, by reference, by value/result, by result, by name,
+	** and by lazy evaluation.
+	*/	
+	
+OneCollectParameter:
+		fMemory
+		{
+			_here;
+			$<collectedParms.pForm>$ = parm_memory;
+			$<collectedParms.parmCnt>$ = 1;
+			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
+			$<collectedParms.types>$[0] = $<adrs.Type>1;
+			FreeAdrs( &$<adrs>1 );
+			_here;
+		}
+	;
+
+
+
+
+
+	
+OneCollectParameter:
+		valTkn
+		fMemory
+		{
+			_here;
+			$<collectedParms.pForm>$ = parm_memory;
+			$<collectedParms.parmCnt>$ = 1;
+			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
+			$<collectedParms.types>$[0] = $<adrs.Type>2;
+			FreeAdrs( &$<adrs>2 );
+			_here;
+		}
+	;
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+callFunction:
+		callLocalProc
+		{
+			$<returns>$ = $<returns>1;
+		}
+		
+	|	callNonLocalProc	
+		{
+			$<returns>$ = $<returns>1;
+		}
+		
+	|	callClassProc	
+		{
+			$<returns>$ = $<returns>1;
+		}
+		
+	|	IndirectCall1	
+		{
+			$<returns>$ = $<returns>1;
+		}
+		
+	|	IndirectCall2	
+		{
+			$<returns>$ = $<returns>1;
+		}
+		
+	|	IndirectCall3	
+		{
+			$<returns>$ = $<returns>1;
+		}
+		
+	|	IndirectCall4	
+		{
+			$<returns>$ = $<returns>1;
+		}
+	;
+
+
+
+callLocalProc:
 
 		/*
 		** Handle procedure calls via procname here.
@@ -76676,13 +77369,13 @@ SingleStmt:
 			_endif
 		}
 	;
-
+	
 		/*
 		** Handle procedure calls via procname here.
 		*/
 
 
-SingleStmt:
+callNonLocalProc:
 		NonLocalProcID
 		CallParameters
 		{
@@ -76703,12 +77396,11 @@ SingleStmt:
 	;
 
 
-
 		/*
 		** Handle class procedure calls via classname.u.procname here.
 		*/
 
-SingleStmt:
+callClassProc:
 		ClassProcID
 		CallParameters
 		{
@@ -76738,6 +77430,62 @@ SingleStmt:
 			_endif
 		}
 	;
+	
+
+SingleStmt:
+		callLocalProc
+		{
+			$<returns>$ = $<returns>1;
+		}
+	;
+
+SingleStmt:
+		callNonLocalProc
+		{
+			$<returns>$ = $<returns>1;
+		}
+	;
+
+
+SingleStmt:
+		callClassProc
+		{
+			$<returns>$ = $<returns>1;
+		}
+	;
+
+
+SingleStmt:
+		IndirectCall1
+		{
+			$<returns>$ = $<returns>1;
+		}
+	;
+
+
+SingleStmt:
+		IndirectCall2
+		{
+			$<returns>$ = $<returns>1;
+		}
+	;
+
+
+SingleStmt:
+		IndirectCall3
+		{
+			$<returns>$ = $<returns>1;
+		}
+	;
+
+
+SingleStmt:
+		IndirectCall4
+		{
+			$<returns>$ = $<returns>1;
+		}
+	;
+
 
 
 
@@ -76756,11 +77504,12 @@ SingleStmt:
  **						class objects, arrays of class object fields, etc. 	
  **		
  */
+ 
 
-SingleStmt:
-		SimpleMemoryVar
-		SMV0				/* $<s>2 contains $<adrs.Sym>1	*/
-		IndirectCallParameters
+IndirectCall1:
+		SimpleMemoryVar			/* $1 */
+		SMV0					/* $<s>2 contains $<adrs.Sym>1	*/
+		IndirectCallParameters	/* $3 */
 		{
 			char returns[ 256 ];
 
@@ -76945,9 +77694,8 @@ SingleStmt:
 			_here;
  		}
 	;
- 
 
-SingleStmt:
+IndirectCall2:
 		SimpleMemoryVar			/* $1 */
 		IndexAdrsMode			/* $2 */
 		SMVm1					/* $3 $<s>3 contains $<adrs.Sym>1 */
@@ -77140,15 +77888,150 @@ SingleStmt:
 // Handle procedure pointers that are members of a record or union
 // here.  Also handle calls to procedures and methods in a pointer
 // to a class.
+//
+// Giant kludge here. We might have an overloaded symbol in an object
+// reference sequence. If so, we have to push a special token to switch
+// the grammar to handle the overloaded ID pushback.
 
+parenPushBack:
+		'('
+		{
+			// Restore, so we can match the "real" (non-pushed-back)
+			// paren later:
+			
+			_yyless(0);
 
+			// First off, check to see if we have an overridden
+			// class symbol here:
+			
+			_if( $<adrs.Sym>0->pType == tOverloads )
+			
+				// This only happens from IndirectCall3:
+				//
+				// Bison's lookahead has already consumed the
+				// next symbol, push it back:
+				
+				PushBackStr( "\xde" );
+	
+			_else
+			
+				PushBackStr( "(" );
 
-SingleStmt:
+			_endif
+		}
+	;
+	
+Lparen2:
+		'('
+		{
+			union YYSTYPE yylval;
+			
+			// The following kludge is done to clear
+			// up the "(" that was pushed on the lexer
+			// input and return us back to the original
+			// lexer input stream.  This allows CollectParameters
+			// to work properly.
+			
+			yylex( &yylval );
+			_yyless(0);
+		}
+	;
+	
+		
+IndirectCall3:
 		SimpleMemoryVar			/* $1 */
 		FieldStuff				/* $2 */
-		SMV0					/* $3 = FieldStuff's adrs.sym field */
-		IndirectCallParameters	/* $4 */
-		{						/* $5 */
+		parenPushBack			/* $3 */
+		ovldClassTkn			/* $4 */
+		Lparen2					/* $5 */
+		CollectParameters		/* $6 */
+		{						/* $7 */
+			char			*pbStmt;
+			struct	SymNode	*sig;
+			
+			_here;
+			$<returns>$ = NULL;
+			_if( langLevel <= low_level )
+			
+				yyerror
+				( 
+					"High-level procedure calls are illegal in low and machine\n"
+					"level language mode."
+				);
+				
+			_endif
+			
+			// Search for the matching signature:
+			
+			sig =	matchSignature
+					( 
+						$<adrs.Sym>2, 
+						$<collectedParms.parmCnt>6, 
+						$<collectedParms.types>6, 
+						$<collectedParms.pForm>6 
+					);
+			_if( sig == NULL )
+			
+				yyerror
+				( 
+					"No matching signature/parameter list for overloaded call."
+				);
+				
+			_else	// We matched a signature
+			
+				// Emit the code to call the associated function:
+				
+				pbStmt = 	malloc2
+							( 
+								strlen( sig->u.ovld.procName ) +
+								strlen( $<collectedParms.parms>6 )
+								+4
+							);
+							
+				sprintf
+				(
+					pbStmt,
+					"%s( %s )",
+					sig->u.ovld.procName,
+					$<collectedParms.parms>6
+				);
+				PushBackStr( pbStmt );
+				free( pbStmt );
+				
+			_endif
+			_if( $<collectedParms.parms>6 != NULL )
+			
+				free( $<collectedParms.parms>6 );
+				
+			_endif
+			_if( $<collectedParms.types>6 != NULL )
+			
+				free( $<collectedParms.types>6 );
+				
+			_endif
+			_here; 
+		}
+		Rparen			/* $8 */
+		
+		// Must reinvoke SingleStmt to process the
+		// string we just pushed back on the lexer input:
+		
+		callFunction	/* $9 */
+		{
+			$<returns>$ = $<returns>9;
+			(void) $<idStr>7;	// Shut up bison
+		}
+	;
+
+
+IndirectCall3:
+		SimpleMemoryVar			/* $1 */
+		FieldStuff				/* $2 */
+		parenPushBack			/* $3 */
+		'('						/* $4 */
+		SMVm2					/* $5 = FieldStuff's adrs.sym field */
+		IndirectCallParameters	/* $6 */
+		{						/* $7 */
 
 			int  			useLEA    = 1;
 			int  			useOffset = 1;
@@ -77679,7 +78562,8 @@ SingleStmt:
 	** Same as above, except with an index into an array of pointers.
 	*/
 
-SingleStmt:
+		
+IndirectCall4:
 		SimpleMemoryVar			/* $1 */
 		FieldStuff				/* $2 */
 		IndexAdrsMode			/* $3 */
@@ -78243,6 +79127,21 @@ SingleStmt:
 
 
 
+  /* Get the attribute of a SimpleMemoryVar object at $-2 */
+
+SMVm2:	
+		{ 
+			_if( $<adrs.Sym>-2 == NULL )
+			
+				$<s>$ = $<adrs.Type>-2; 
+
+			_else
+			
+				$<s>$ = $<adrs.Sym>-2; 
+
+			_endif
+		};
+
   /* Get the attribute of a SimpleMemoryVar object at $-1 */
 
 SMVm1:	
@@ -78262,6 +79161,7 @@ SMVm1:
 
 SMV0:
 		{
+			_here;
 			_if( $<adrs.Sym>0 == NULL )
 			
 				$<s>$ = $<adrs.Type>0; 
@@ -78332,9 +79232,13 @@ IndirectCallParameters:
 			_here;
 			
 			assert( $<s>0 != NULL );			// Must have some symbol
-			assert( $<s>0->Type != NULL );			
 
-			_if( $<s>0->Type == NULL )
+			_if( $<s>0->pType == tOverloads  )
+			
+				pType = tOverloads;
+				$<s>$ = &dword_ste;
+
+			_elseif( $<s>0->Type == NULL )
 			
 				// It must be some primitive type that is not
 				// a function address.
@@ -89250,7 +90154,7 @@ SingleStmt:
 		jccTkns
 		AnyID
 		{
-			processCondJump( $<u>1, $<idStr>2, TrueLabel, FalseLabel );
+			processCondJump( $<u>1, $<neID.idStr>2, TrueLabel, FalseLabel );
 			$<returns>$ = NULL;
 		}
 	;
@@ -89261,7 +90165,7 @@ SingleStmt:
 		AnyID	/* $3 */
 		Rparen	/* $4 */
 		{
-			processCondJump( $<u>1, $<idStr>3, TrueLabel, FalseLabel );
+			processCondJump( $<u>1, $<neID.idStr>3, TrueLabel, FalseLabel );
 			$<returns>$ = NULL;
 		}
 	;
@@ -91399,6 +92303,8 @@ StartTry:
 			char label[ 256 ];
 			char mem[256];
 
+			_here;
+			need_raise = 1;
 			$<v.u.intval>$ = EndTryLabel;	/* Save current endtry lbl	*/
 			EndTryLabel = LblCntr++;	/* Label for the endtry		*/
 			++LblCntr;					/* Label for the 1st excptn	*/
@@ -91437,6 +92343,7 @@ StartTry:
 			_if( targetOS == windows_os )
 						
 				PushStaticAdrs( "HWexcept" sympost );
+				need_raise = 1;
 				fseg_prefix();
 				initAdrs( &adrs, -1, -1, 0, 0 );
 				push_mem( &adrs, 4 );
@@ -91473,6 +92380,7 @@ StartTry:
 				_endif 			
 
 			_endif
+			_here;
 		}
 	;
 
@@ -91483,6 +92391,7 @@ PopExcepts:
 		{
 			struct adrsYYS adrs;
 
+			_here;
 			_if( targetOS == windows_os )
 			
 				fseg_prefix();
@@ -91520,6 +92429,7 @@ PopExcepts:
 				_endif
 
 			_endif
+			_here;
 		}
 	;
 
@@ -91923,6 +92833,7 @@ SingleStmt:
 			_endif
 			EmitMov_c_r( $<v.u.unsval>3, reg_eax );
 			EmitJmpLabel( "Raise" sympost );
+			need_raise = 1;
 			$<returns>$ = NULL;
 		}
 
@@ -91942,7 +92853,8 @@ SingleStmt:
 
 			_endif
 			EmitJmpLabel( "Raise" sympost );
-			$<returns>$ = NULL;
+			need_raise = 1;
+		    $<returns>$ = NULL;
 		}
 
 
@@ -91968,6 +92880,7 @@ SingleStmt:
 			_endif
 			EmitJmpLabel( "Raise" sympost );
 			FreeAdrs( &$<adrs>3 );
+			need_raise = 1;
 			$<returns>$ = NULL;
 		}
 	;
@@ -92713,6 +93626,47 @@ PutContinueLbl:
 
 
 SingleStmt:
+		callIteratorID
+		{
+			$<returns>$ = NULL;
+		}
+	;
+	
+SingleStmt:
+		callIndirectIterator
+		{
+			$<returns>$ = NULL;
+		}
+	;
+	
+SingleStmt:
+		callIndexedIterator
+		{
+			$<returns>$ = NULL;
+		}
+	;
+	
+callIterators:
+		callIteratorID
+		{
+			$<returns>$ = NULL;
+		}
+		
+	|	callIndirectIterator
+		{
+			$<returns>$ = NULL;
+		}
+		
+	|	callIndexedIterator
+		{
+			$<returns>$ = NULL;
+		}
+	;
+		
+	
+		
+	
+callIteratorID:
 		foreachTkn			/* $1 */
 		IterID				/* $2 */
 		CallParameters		/* $3 */
@@ -92757,17 +93711,109 @@ SingleStmt:
 	;
 
 
+
+callIteratorID:
+		foreachTkn			/* $1 */
+		OverloadedID		/* $2 */
+		Lparen				/* $3 */
+		CollectParameters	/* $4 */
+		{					/* $5 */
+			char			*pbStmt;
+			struct	SymNode	*sig;
+			char			msg[256];
+			
+			_here;
+			$<returns>$ = NULL;
+			_if( langLevel <= low_level )
+			
+				yyerror
+				( 
+					"High-level procedure calls are illegal in low and machine\n"
+					"level language mode."
+				);
+				
+			_endif
+			
+			// Search for the matching signature:
+			
+			sig =	matchSignature
+					( 
+						$<s>2, 
+						$<collectedParms.parmCnt>4, 
+						$<collectedParms.types>4, 
+						$<collectedParms.pForm>4 
+					);
+					
+			_if( sig == NULL )
+			
+				yyerror
+				( 
+					"No matching signature/parameter list for overloaded call."
+				);
+				
+			_else	// We matched a signature
+			
+				// Emit the code to call the associated function:
+				
+				pbStmt = 	malloc2
+							( 
+								strlen( sig->u.ovld.procName ) +
+								strlen( $<collectedParms.parms>4 )
+								+16
+							);
+							
+				sprintf
+				(
+					pbStmt,
+					"foreach %s %s )",
+					sig->u.ovld.procName,
+					$<collectedParms.parms>4
+				);
+				PushBackStr( pbStmt );
+				free( pbStmt );
+				
+			_endif
+			_if( $<collectedParms.parms>4 != NULL )
+			
+				free( $<collectedParms.parms>4 );
+				
+			_endif
+			_if( $<collectedParms.types>4 != NULL )
+			
+				free( $<collectedParms.types>4 );
+				
+			_endif
+			_here; 
+		}
+		Rparen			/* $6 */
+		
+		// Must reinvoke SingleStmt to process the
+		// string we just pushed back on the lexer input:
+		
+		callIterators	/* $7 */
+		{
+			$<returns>$ = $<returns>7;
+			(void) $<idStr>5;	// Shut up bison
+		}
+	;
+
+
+
+
+
  /*
  ** Handle "foreach clsvar.iter(parms) do" here.
  */
 
-SingleStmt:
+callIndirectIterator:
 		foreachTkn				/* $1 */
 		SimpleMemoryVar			/* $2 */
 		FieldStuff				/* $3 */
-		SMV0					/* $4 = FieldStuff's adrs.sym field */
-		IndirectCallParameters	/* $5 */
-		{						/* $6 */
+		parenPushBack			/* $4 */
+		'('						/* $5 */
+		SMVm2					/* $6 = FieldStuff's adrs.sym field */
+		IndirectCallParameters	/* $7 */
+		{						/* $8 */
 
 			int  			useLEA = 1;
 			int	 			offset = 0;
@@ -92993,23 +94039,23 @@ SingleStmt:
 			_here;
 		}
 
-		SaveBreakLbl		/* $7  */
-		GetDoTkn			/* $8  */
-		Stmts				/* $9  */
-		endforTkn			/* $10 */
-		{					/* $11 */
+		SaveBreakLbl		/* $9  */
+		GetDoTkn			/* $10 */
+		Stmts				/* $11 */
+		endforTkn			/* $12 */
+		{					/* $13 */
 			_here;
 			EmitStmtLblNum( "continue" sympost "%d", abs( BreakLbl ) );
 			pop_r( reg_ebp );
 			ret_instr( 4 );
-			EmitStmtLblNum( "exitfor" sympost "%d", -$<v.u.intval>6 );
+			EmitStmtLblNum( "exitfor" sympost "%d", -$<v.u.intval>8 );
 			NewLn();
 
 			/*
 			** Restore the original BreakLbl value.
 			*/
 
-			BreakLbl = $<v.u.intval>7;
+			BreakLbl = $<v.u.intval>9;
 
 
 			$<returns>$ = NULL;
@@ -93021,13 +94067,103 @@ SingleStmt:
 
  
 
+
+callIndirectIterator:
+		foreachTkn				/* $1 */
+		SimpleMemoryVar			/* $2 */
+		FieldStuff				/* $3 */
+		parenPushBack			/* $4 */
+		ovldClassTkn			/* $5 */
+		Lparen2					/* $6 */
+		CollectParameters		/* $7 */
+		{						/* $8 */
+			char			*pbStmt;
+			struct	SymNode	*sig;
+			
+			_here;
+			$<returns>$ = NULL;
+			_if( langLevel <= low_level )
+			
+				yyerror
+				( 
+					"High-level procedure calls are illegal in low and machine\n"
+					"level language mode."
+				);
+				
+			_endif
+			
+			// Search for the matching signature:
+			
+			sig =	matchSignature
+					( 
+						$<adrs.Sym>3, 
+						$<collectedParms.parmCnt>7, 
+						$<collectedParms.types>7, 
+						$<collectedParms.pForm>7 
+					);
+			_if( sig == NULL )
+			
+				yyerror
+				( 
+					"No matching signature/parameter list for overloaded call."
+				);
+				
+			_else	// We matched a signature
+			
+				// Emit the code to call the associated function:
+				
+				pbStmt = 	malloc2
+							( 
+								strlen( sig->u.ovld.procName ) +
+								strlen( $<collectedParms.parms>7 )
+								+4
+							);
+							
+				sprintf
+				(
+					pbStmt,
+					"foreach %s( %s )",
+					sig->u.ovld.procName,
+					$<collectedParms.parms>7
+				);
+				PushBackStr( pbStmt );
+				free( pbStmt );
+				
+			_endif
+			_if( $<collectedParms.parms>7 != NULL )
+			
+				free( $<collectedParms.parms>7 );
+				
+			_endif
+			_if( $<collectedParms.types>7 != NULL )
+			
+				free( $<collectedParms.types>7 );
+				
+			_endif
+			_here; 
+		}
+		Rparen			/* $9 */
+		
+		// Must reinvoke SingleStmt to process the
+		// string we just pushed back on the lexer input:
+		
+		callIterators	/* $10 */
+		{
+			$<returns>$ = $<returns>10;
+			(void) $<idStr>8;	// Shut up bison
+		}
+	;
+
+
+ 
+
  /*
  ** foreach iter[index](parameters) do 
  ** is handled here.
  */
 
 
-SingleStmt:
+callIndexedIterator:
 		foreachTkn				/* $1 */
 		SimpleMemoryVar			/* $2 */
 		FieldStuff				/* $3 */
@@ -93410,13 +94546,13 @@ SingleStmt:
 			p = contextList;
 			_while( p != NULL )
 			
-				_if( _streq( $<idStr>2, p->label ))
+				_if( _streq( $<neID.idStr>2, p->label ))
 				
 					sprintf
 					(
 						msg,
 						"Context <<begin %s>> is already active",
-						$<idStr>2
+						$<neID.idStr>2
 					);
 					yyerror( msg );
 					break;
@@ -93437,7 +94573,7 @@ SingleStmt:
 				msg,
 				"exit" sympost "%d",
 				LblCntr++,
-				$<idStr>2
+				$<neID.idStr>2
 			);
 			
 			/*
@@ -93446,7 +94582,7 @@ SingleStmt:
 			
 			p = malloc2( sizeof( struct contextListType ));
 			p->Next = contextList;
-			p->label = $<idStr>2;
+			p->label = $<neID.idStr>2;
 			p->StaticName = hlastrdup2( msg );
 			p->LexLevel = CurLexLevel;
 			p->IsProc = 0;
@@ -93471,7 +94607,7 @@ SingleStmt:
 			** reserved words are the same.
 			*/
 			
-			_if( _strne( $<idStr>2, $<idStr>7 ))
+			_if( _strne( $<neID.idStr>2, $<idStr>7 ))
 			
 				char msg[ 256 ];
 				
@@ -93481,7 +94617,7 @@ SingleStmt:
 					msg,
 					"Context label <<begin %s>> must match "
 					"label <<end %s>>",
-					$<idStr>2, 
+					$<neID.idStr>2, 
 					$<idStr>7
 				);
 				yyerror( msg );
@@ -93509,15 +94645,16 @@ SingleStmt:
 			cNode = contextList;
 			contextList = cNode->Next;
 
-			assert( _streq( cNode->label, $<idStr>2 ));
+			assert( _streq( cNode->label, $<neID.idStr>2 ));
 			free2( vss cNode->StaticName );	/* frees $<idStr>4 */
-			free2( vss cNode->label );		/* frees $<idStr>2 */
+			free2( vss cNode->label );		/* frees $<neID.idStr>2 */
 			
 			free2( vss $<idStr>7 );
 			$<returns>$ = NULL;
 			_here;
 		}
 	;
+
 	
 	
  /*
@@ -93541,7 +94678,7 @@ SingleStmt:
 	
 			cNode = contextList;
 			AllHaveDisplays = 1;
-			_while( cNode != NULL && _strne( $<idStr>2, cNode->label ))
+			_while( cNode != NULL && _strne( $<neID.idStr>2, cNode->label ))
 			
 				AllHaveDisplays = AllHaveDisplays && cNode->HasDisplay;
 				cNode = cNode->Next;
@@ -93554,7 +94691,7 @@ SingleStmt:
 				(
 					"Attempt to exit from a set of nested procedures\n"
 					"but not all the (nested) procedures have a display",
-					$<idStr>2,
+					$<neID.idStr>2,
 					__LINE__,
 					__FILE__
 				);
@@ -93634,23 +94771,25 @@ SingleStmt:
 					msg,								 
 					"Currently not in context of <<begin %s>>..<<end %s>>\n"
 					"or 'NOFRAME' option is active",
-					$<idStr>2,
-					$<idStr>2
+					$<neID.idStr>2,
+					$<neID.idStr>2
 				);
 				ErrorNear
 				(
 					msg,
-					$<idStr>2,
+					$<neID.idStr>2,
 					__LINE__,
 					__FILE__
 				);
 				
 			_endif
-			free2( vss $<idStr>2 );
+			free2( vss $<neID.idStr>2 );
 			$<returns>$ = NULL;
 			_here;
 		}
 	;
+
+
 	
 
   /*
@@ -93679,7 +94818,7 @@ SingleStmt:
 			*/
 	
 			cNode = contextList;
-			_while( cNode != NULL && _strne( $<idStr>6, cNode->label ))
+			_while( cNode != NULL && _strne( $<neID.idStr>6, cNode->label ))
 			
 				cNode = cNode->Next;
 				
@@ -93762,13 +94901,13 @@ SingleStmt:
 					msg,								 
 					"Currently not in context of <<begin %s>>..<<end %s>>\n"
 					"or 'NOFRAME' option is active",
-					$<idStr>6,
-					$<idStr>6
+					$<neID.idStr>6,
+					$<neID.idStr>6
 				);
 				ErrorNear
 				(
 					msg,
-					$<idStr>6,
+					$<neID.idStr>6,
 					__LINE__,
 					__FILE__
 				);
@@ -93777,10 +94916,12 @@ SingleStmt:
 
 
 			$<returns>$ = NULL;
-			free2( vss $<idStr>6 );
+			free2( vss $<neID.idStr>6 );
 			_here;
 		}
 	;
+
+
 	
 GetLbl:
 		{
@@ -93819,7 +94960,7 @@ SingleStmt:
 			*/
 	
 			cNode = contextList;
-			_while( cNode != NULL && _strne( $<idStr>8, cNode->label ))
+			_while( cNode != NULL && _strne( $<neID.idStr>8, cNode->label ))
 			
 				cNode = cNode->Next;
 				
@@ -93893,13 +95034,13 @@ SingleStmt:
 					msg,								 
 					"Currently not in context of <<begin %s>>..<<end %s>>\n"
 					"or 'NOFRAME' option is active",
-					$<idStr>8,
-					$<idStr>8
+					$<neID.idStr>8,
+					$<neID.idStr>8
 				);
 				ErrorNear
 				(
 					msg,
-					$<idStr>8,
+					$<neID.idStr>8,
 					__LINE__,
 					__FILE__
 				);
@@ -93908,10 +95049,12 @@ SingleStmt:
 			TrueLabel = $<labels.l1.label1>4;
 			FalseLabel = $<labels.l2.label2>4;
 			$<returns>$ = NULL;
-			free2( vss $<idStr>8 );
+			free2( vss $<neID.idStr>8 );
 			_here;
 		}
 	;
+
+
 	
 exitifCode:
 		{
@@ -94283,7 +95426,7 @@ SingleStmt:
 			char 					target[ 256 ];
 
 
-			sym = lookup( $<idStr>8, 1 );
+			sym = $<neID.s>8;
 
 			/*
 			** See if "AnyID" ($8 above) is "true" or "false":
@@ -94404,7 +95547,7 @@ SingleStmt:
 				flist = FwdLabelsList;
 				_while( flist != NULL )
 
-					_breakif( _streq( $<idStr>8, flist->label ));
+					_breakif( _streq( $<neID.idStr>8, flist->label ));
 					flist = flist->Next;
 
 				_endwhile
@@ -94437,9 +95580,9 @@ SingleStmt:
 
 					temp = malloc2( sizeof( struct FwdRefLabelType ));
 					temp->Next = FwdLabelsList;
-					temp->label = hlastrdup2( $<idStr>8 );
+					temp->label = hlastrdup2( $<neID.idStr>8 );
 					temp->lexLevel = CurLexLevel;
-					sprintf( target, "%s" sympost "%d", $<idStr>8, LblCntr++ );
+					sprintf( target, "%s" sympost "%d", $<neID.idStr>8, LblCntr++ );
 					temp->StaticName = hlastrdup2( target );
 					temp->isExternal = 0;
 					temp->referenced = 0;
@@ -94466,7 +95609,6 @@ SingleStmt:
 
 
 
-
 SingleStmt:
 		jfTkn			/* $1  */
 		Lparen			/* $2  */
@@ -94480,7 +95622,7 @@ SingleStmt:
 
 			struct SymNode *sym;
 
-			sym = lookup( $<idStr>8, 1 );
+			sym = lookup( $<neID.idStr>8, 1 );
 
 			/*
 			** See if "AnyID" ($8 above) is "true" or "false":
@@ -94602,7 +95744,7 @@ SingleStmt:
 				flist = FwdLabelsList;
 				_while( flist != NULL )
 
-					_breakif( _streq( $<idStr>8, flist->label ));
+					_breakif( _streq( $<neID.idStr>8, flist->label ));
 					flist = flist->Next;
 
 				_endwhile
@@ -94638,11 +95780,11 @@ SingleStmt:
 
 					temp = malloc2( sizeof( struct FwdRefLabelType ));
 					temp->Next = FwdLabelsList;
-					temp->label = hlastrdup2( $<idStr>8 );
+					temp->label = hlastrdup2( $<neID.idStr>8 );
 					temp->lexLevel = CurLexLevel;
 					temp->isExternal = 0;
 					temp->referenced = 1;
-					sprintf( target, "%s" sympost "%d", $<idStr>8, LblCntr++ );
+					sprintf( target, "%s" sympost "%d", $<neID.idStr>8, LblCntr++ );
 					temp->StaticName = hlastrdup2( target );
 					FwdLabelsList = temp;
 					EmitBackPatchds
@@ -94665,7 +95807,8 @@ SingleStmt:
 		}
 	;
 
-
+ 
+ 
 
 jtfCode:
 		{
@@ -94714,9 +95857,9 @@ EmitJmp:
 			char					target[256];
 			char					tmpLabel[32];
 
-			assert( $<idStr>-1 != NULL );
+			assert( $<neID.idStr>-1 != NULL );
 
-			sym = lookup( $<idStr>-1, 1 );
+			sym = $<neID.s>-1;
 			_if
 			(
 					sym == &true_ste
@@ -94811,7 +95954,7 @@ EmitJmp:
 				flist = FwdLabelsList;
 				_while( flist != NULL )
 
-					_breakif( _streq( $<idStr>-1, flist->label ));
+					_breakif( _streq( $<neID.idStr>-1, flist->label ));
 					flist = flist->Next;
 
 				_endwhile
@@ -94834,7 +95977,7 @@ EmitJmp:
 					// See if this symbol is in the StaticList. Use the
 					// existing static name if it is:
 					
-					sList = searchStatic( $<idStr>-1 );
+					sList = searchStatic( $<neID.idStr>-1 );
 					_if( sList == NULL )
 					
 						/*
@@ -94845,11 +95988,17 @@ EmitJmp:
 
 						temp = malloc2( sizeof( struct FwdRefLabelType ));
 						temp->Next = FwdLabelsList;
-						temp->label = hlastrdup2( $<idStr>-1 );
+						temp->label = hlastrdup2( $<neID.idStr>-1 );
 						temp->lexLevel = CurLexLevel;
 						temp->isExternal = 0;
 						temp->referenced = 1;
-						sprintf( target, "%s" sympost "%d", $<idStr>-1, LblCntr++ );
+						sprintf
+						( 
+							target, 
+							"%s" sympost "%d", 
+							$<neID.idStr>-1, 
+							LblCntr++ 
+						);
 						temp->StaticName = hlastrdup2( target );
 						FwdLabelsList = temp;
 						
@@ -94878,7 +96027,7 @@ EmitJmp:
 				$<v.u.unsval>0
 			);
 
-			free2( vss $<idStr>-1 );
+			free2( vss $<neID.idStr>-1 );
 		}
 	;
 
@@ -98440,7 +99589,6 @@ AnonMem:
 
 SimpleMemoryVar:
 
-
 		/*
 		** Handle a single local identifier here.
 		*/
@@ -98725,7 +99873,7 @@ SimpleMemoryVar:
 SimpleMemoryVar:
 		AnyStaticID
 		{
-			_here;
+		_here;
 			SetReferenced( $<s>1 );
 			_if( $<s>1->Arity == 0 )
 
@@ -99677,7 +100825,6 @@ NotIntermediateVar:
 FieldStuff:
 		recFieldStuff
 		{
-
 			/*
 			** Merge the <adrs> fields of $1 with the <adrs> fields
 			** of $0 and return the combined values as $<adrs>$.
@@ -99686,7 +100833,6 @@ FieldStuff:
 			$<adrs.Size>$ = $<adrs.Size>1;
 			$<adrs.forcedSize>$ = 0;
 			$<adrs.ObjectSize>$ = $<adrs.Size>1;
-
 			_if
 			( 
 					IsStaticClass( $<adrs.SymClass>1 )
@@ -99731,7 +100877,7 @@ FieldStuff:
 				$<adrs.pClass>$ = $<adrs.pClass>1;
 
 			_elseif( IsStaticClass( $<adrs.SymClass>0 ))
-
+	   			
 				$<adrs.SymClass>$ = $<adrs.SymClass>0;
 				$<adrs.pClass>$ = $<adrs.pClass>0;
 
@@ -99931,7 +101077,7 @@ recFieldStuff:
 
 					char msg[ 256 ];
 
-					sprintf( msg, "Undefined field name <<%s>>", $<idStr>3 );
+					sprintf( msg, "Undefined field name <<%s>>", $<neID.idStr>3 );
 					yyerror( msg );
 					$<adrs.Size>$ = 1;
 					$<adrs.forcedSize>$ = 0;
@@ -99958,7 +101104,7 @@ recFieldStuff:
 
 			_endif
  
-			free2( vss $<idStr>3 );
+			free2( vss $<neID.idStr>3 );
 			FreeAdrs( &$<adrs>5 );
 			_here;
 		}
@@ -100034,9 +101180,8 @@ recFieldStuff:
 				// Okay, lookup the current symbol in the previous
 				// symbol's "Fields" symbol table.
 				
-				sym = lookupin( $<idStr>3, $<s>1 );
+				sym = lookupin( $<neID.idStr>3, $<s>1 );
 				_if( sym != NULL )
-
 
 					
 					// The symbol exists.  This is good!
@@ -100132,7 +101277,7 @@ recFieldStuff:
 
 					char msg[ 256 ];
 
-					sprintf( msg, "Undefined field name <<%s>>", $<idStr>3 );
+					sprintf( msg, "Undefined field name <<%s>>", $<neID.idStr>3 );
 					yyerror( msg );
 					$<adrs.Size>$ = 1;
 					$<adrs.forcedSize>$ = 0;
@@ -100145,7 +101290,12 @@ recFieldStuff:
 					$<adrs.Disp>$ = 0;
 					$<adrs.Sym>$ = $<adrs.Sym>0;
 					$<adrs.Type>$ = 
-						_ifx( $<adrs.Type>0 == NULL, $<adrs.Sym>0, $<adrs.Type>0 );
+						_ifx
+						( 
+							$<adrs.Type>0 == NULL, 
+							$<adrs.Sym>0, 
+							$<adrs.Type>0 
+						);
 					
 					$<adrs.pType>$ = $<adrs.pType>0;
 					$<adrs.pClass>$ = $<adrs.pClass>0;
@@ -100154,7 +101304,7 @@ recFieldStuff:
 				_endif
 
 			_endif
-			free2( vss $<idStr>3 );
+			free2( vss $<neID.idStr>3 );
 			_here;
 		}
 	;
@@ -104062,8 +105212,9 @@ _begin( main )
 	** Okay, process the source file
 	*/
 	
-
+	_here;
 	yyparse();
+	_here;
 	
 	_if( yyerrCount != 0 )
 	
@@ -104114,6 +105265,7 @@ _begin( main )
 
 	// Guarantee that source files end with a newline:
 
+	_here;
 	asmPuts( "\n" );
 	
 	
@@ -104224,7 +105376,9 @@ _begin( main )
 	
 		outputBuf	buffer;
 		
+		_here;
 		extPubIterator( &extBuf );
+		_here;
 		
 		buffer.offset = 0;
 		buffer.size =
@@ -104236,7 +105390,8 @@ _begin( main )
 			+	bssBuf.offset
 			+	constBuf.offset
 			+	16384;		// For the extra stuff we're going to tack on.
-		
+
+		_here;
 		buffer.base = malloc2( buffer.size );
 		asmBuf = &buffer;
 		

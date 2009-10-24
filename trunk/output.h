@@ -117,6 +117,7 @@ extern void cfasmMain
 extern int TrueLabel;
 extern int FalseLabel;
 
+extern int	need_raise;
 extern int	need_HLA_PUSH_EXCEPTIONPTR;	
 extern int	need_HLA_SET_EXCEPTIONPTR;	
 extern int	need_HLA_GET_EXCEPTIONPTREBP;
@@ -1995,6 +1996,7 @@ extern void PushStaticAdrs( char *theLabel );
 extern void EmitExceptionCode( int FullExceptions );
 extern void BeginMain( int CurOffset );
 extern void EndMain( void );
+extern void EndSourceFile( void );
 
 
 /*

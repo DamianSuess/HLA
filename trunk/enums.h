@@ -20,14 +20,15 @@ enum ClassType
 				cClassIter,		//10
 				cMethod,		//11
 				cMacro,			//12
-				cKeyword,		//13
-				cTerminator,	//14
-				cRegex,			//15
-				cProgram, 		//16
-				cNamespace,		//17
-				cSegment,		//18
-				cRegister,		//19
-				cNone			//20
+				cOverloads,		//13
+				cKeyword,		//14
+				cTerminator,	//15
+				cRegex,			//16
+				cProgram, 		//17
+				cNamespace,		//18
+				cSegment,		//19
+				cRegister,		//20
+				cNone			//21
 			};
 
 #define IsConstant(c) ((c) == cConstant || (c) == cValue)
@@ -120,15 +121,16 @@ enum PrimType
 				tIterator,	//41
 				tProgram,	//42
 				tMacro,		//43
-				tText,		//44
-				tRegexMac,	//45
+				tOverloads,	//44
+				tText,		//45
+				tRegexMac,	//46
 							
-				tNamespace,	//46
-				tSegment,   //47
-				tAnonRec,	//48
-				tAnonUnion,	//49
-				tVariant,	//50
-				tError		//51	Used to denote a cascading error.
+				tNamespace,	//47
+				tSegment,   //48
+				tAnonRec,	//49
+				tAnonUnion,	//50
+				tVariant,	//51
+				tError		//52	Used to denote a cascading error.
 			};
 
 #define CanBeConst(ptype) ((ptype) <= tRegex) 
@@ -166,7 +168,15 @@ enum PrimType
 #define IsProc(x) ((x) == tProc || (x) == tMethod || (x) == tClassProc || \
 					(x) == tIterator || (x) == tProcptr )
 
-
+enum ParmForm
+	{
+		parm_constant,	//0
+		parm_memory,	//1
+		parm_register,	//2
+		parm_thunk,		//3
+		parm_stmts,		//4
+		parm_none		//5
+	};
 
 enum ParmClass
 	 {
