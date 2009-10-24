@@ -2345,48 +2345,6 @@ _begin( SkeletalOutput )
 	_endswitch
 
 
-	_if( assembler != hla )
-	
-		EmitImmExtern( "abstract" sympost, tLabel ); 
-		EmitImmExtern( "Raise" sympost, tLabel );
-		_if( targetOS == windows_os ) 
-		
-			EmitImmExtern( "HWexcept" sympost, tLabel ); 
-			EmitImmExtern( "shortDfltExcept" sympost, tLabel ); 
-			EmitImmExtern( "__imp__ExitProcess@4", tDWord ); 
-			EmitImmExtern( "__imp__MessageBoxA@16", tDWord );
-			
-		_else
-		
-			// For Linux/BSD/MacOS, we need an external declaration for
-			// the ExceptionPtr$ variable:
-			
-			EmitImmExtern( "shortDfltExcept" sympost, tLabel );
-			EmitImmExtern( ExceptionPtr, tDWord ); 
-			
-	
-			// Try statements and the like need these external declarations:
-		
-//			_if( need_HLA_PUSH_EXCEPTIONPTR )
-			
-				EmitImmExtern( "_HLA_PUSH_EXCEPTIONPTR", tLabel );
-				
-//			_endif
-//			_if( need_HLA_SET_EXCEPTIONPTR )
-			
-				EmitImmExtern( "_HLA_SET_EXCEPTIONPTR", tLabel );
-				
-//			_endif
-//			_if( need_HLA_GET_EXCEPTIONPTREBP )
-			
-				EmitImmExtern( "_HLA_GET_EXCEPTIONPTREBP", tLabel );
-				
-//			_endif
-		
-		_endif	
-		asmPuts( "\n\n\n" );
-		
-	_endif
 	
 	
 	
@@ -2726,7 +2684,7 @@ _begin( extPubIterator )
 	asmPuts( "\n\n" );
 	asmBuf = save;
 	
-_here;
+	_here;
 
 _end( extPubIterator );
 
@@ -22428,6 +22386,73 @@ _begin( EndMain )
 _end( EndMain )
 
 
+// Called at the end of a program or a unit:
+
+void endSourceFile( void )
+_begin( endSourceFile )
+
+	_if( assembler != hla )
+	
+		_if( HasAbstract )
+		
+			EmitImmExtern( "abstract" sympost, tLabel );
+			
+		_endif
+		_if( need_raise )
+		 
+			EmitImmExtern( "Raise" sympost, tLabel );
+			
+		_endif
+		_if( targetOS == windows_os ) 
+		
+			_if( need_raise ) 
+			
+				EmitImmExtern( "HWexcept" sympost, tLabel );
+				EmitImmExtern( "shortDfltExcept" sympost, tLabel ); 
+				
+			_endif 
+			EmitImmExtern( "__imp__ExitProcess@4", tDWord ); 
+			EmitImmExtern( "__imp__MessageBoxA@16", tDWord );
+			
+		_else
+		
+			// For Linux/BSD/MacOS, we need an external declaration for
+			// the ExceptionPtr$ variable:
+			
+			_if( need_raise )
+			
+				EmitImmExtern( "shortDfltExcept" sympost, tLabel );
+				
+			_endif
+			EmitImmExtern( ExceptionPtr, tDWord ); 
+			
+	
+			// Try statements and the like need these external declarations:
+		
+//			_if( need_HLA_PUSH_EXCEPTIONPTR )
+			
+				EmitImmExtern( "_HLA_PUSH_EXCEPTIONPTR", tLabel );
+				
+//			_endif
+//			_if( need_HLA_SET_EXCEPTIONPTR )
+			
+				EmitImmExtern( "_HLA_SET_EXCEPTIONPTR", tLabel );
+				
+//			_endif
+//			_if( need_HLA_GET_EXCEPTIONPTREBP )
+			
+				EmitImmExtern( "_HLA_GET_EXCEPTIONPTREBP", tLabel );
+				
+//			_endif
+		
+		_endif	
+		asmPuts( "\n\n\n" );
+		
+	_endif
+
+_end( endSourceFile )
+
+
 
 
 
@@ -25542,7 +25567,11 @@ _begin( BuildVMT )
 	int	VMToffset;
 
 	EmitPublic( VMTname );
-	EmitTypedExtern( NULL, "abstract" sympost, tLabel );
+	_if( HasAbstract )
+	
+		EmitTypedExtern( NULL, "abstract" sympost, tLabel );
+		
+	_endif
 	EmitTypedLabel( VMTname, tDWord );
 	VMToffset = -4;
 	OutputVMT( ClassPtr->Fields, &VMToffset );

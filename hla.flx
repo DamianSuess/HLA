@@ -67,7 +67,8 @@
  ** 226/E2 - Used to inform the parser that we have a regex to compile.
  ** 225/E1 - Used to inform the lexer that it needs to record a #return expr.
  ** 240/E0 - Process #string( id ) .. #endstring block.               
- ** 239/DF - Process #match( id ) .. #endmatch block.               
+ ** 239/DF - Process #match( id ) .. #endmatch block.
+ ** 238/DE - Return "ovldClassTkn".               
  */
 
 
@@ -1274,7 +1275,8 @@ _orps           orps
 _out            out           
 _outsb          outsb         
 _outsd          outsd         
-_outsw          outsw         
+_outsw          outsw
+_overloads		overloads         
 _override       override    
 _overrides      overrides   
 _packssdw       packssdw 
@@ -5685,6 +5687,7 @@ _zstring		zstring
 {_downto}                               { testRW( downtoTkn );          }
 {_external}                             { testRW( externalTkn );        }
 {_abstract}                             { testRW( abstractTkn );        }
+{_overloads}                            { testRW( overloadsTkn );       }
 {_override}                             { testRW( overrideTkn );        }
 {_overrides}                            { testRW( overridesTkn );       }
 {_forward}                              { testRW( forwardTkn );         }
@@ -5723,6 +5726,7 @@ _zstring		zstring
 ~{_downto}                              { _return downtoTkn;        }
 ~{_external}                            { _return externalTkn;      }
 ~{_abstract}                            { _return abstractTkn;      }
+~{_overloads}                           { _return overloadsTkn;     }
 ~{_override}                            { _return overrideTkn;      }
 ~{_overrides}                           { _return overridesTkn;     }
 ~{_forward}                             { _return forwardTkn;       }
@@ -5750,7 +5754,7 @@ _zstring		zstring
 {a_pascal}                              { _return pascalTkn;        }
 {a_cdecl}                               { _return cdeclTkn;         }
 {a_stdcall}                             { _return stdcallTkn;       }
-{a_returns}                             { _return returnsTkn;       }
+{a_returns}                             { _return atreturnsTkn;     }
 {a_forward}                             { _return forwardTkn;       }
 {a_external}                            { _return externalTkn;      }
 {a_abstract}                            { _return abstractTkn;      }
@@ -8729,7 +8733,7 @@ _zstring		zstring
 
 
  /*
- ** If a 0xF5 byte comes along, we need to call the parse to
+ ** If a 0xF5 byte comes along, we need to call the parser to
  ** process an HLA identifier (generally, a class/object reference).
  */
 
@@ -8873,6 +8877,20 @@ _zstring		zstring
 		}
 
 
+
+
+ /*
+ ** If a 0xDE byte comes along, we need to return ovldClassTkn
+ ** so the parser can handle an overloaded class ID.
+ */
+
+\xDE    {
+            _here;
+            _return ovldClassTkn;
+        }
+
+
+
  /*
  ** Identifiers
  */
@@ -8999,6 +9017,7 @@ _zstring		zstring
                                 ||  Token == LocalMethodID 
                                 ||  Token == NonLocalProcID
                                 ||  Token == NonLocalMethodID 
+                                ||  Token == OverloadedID 
                             )
 
                                 /*
@@ -12186,6 +12205,8 @@ _begin( ProcessID )
             ClassIterID;
         _returnif( symbol->SymClass == cMethod ) 
             LocalMethodID;
+        _returnif( symbol->SymClass == cOverloads ) 
+            OverloadedID;
         _returnif( symbol->SymClass == cLabel ) 
             LocalLabelID;
         _return LocalID;
@@ -12215,6 +12236,8 @@ _begin( ProcessID )
         ClassIterID;
     _returnif( symbol->SymClass == cMethod ) 
         NonLocalMethodID;
+    _returnif( symbol->SymClass == cOverloads ) 
+        OverloadedID;
     _returnif( symbol->SymClass == cLabel ) 
         NonLocalLabelID;
     _return NonLocalID;
@@ -12247,6 +12270,15 @@ _begin( parseExpression )
         _here;
 
 _end( parseExpression )
+
+
+void
+_yyless( int n )
+_begin( _yyless )
+
+	yyless(n);
+	
+_end( _yyless );
 
 
 

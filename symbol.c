@@ -3501,6 +3501,10 @@ _begin( PrintSize )
 			fprintf( MsgOut, ", reg:%s", Sym->StaticName );
 
 		_endif
+		
+	_elseif( Sym->SymClass == cOverloads )
+	
+		fprintf( MsgOut, ", =>%s", Sym->u.ovld.procName );
 
 	_elseif( Sym->StaticName != NULL )
 			
@@ -4408,6 +4412,12 @@ _begin( DumpSym )
 				_case( cStatic )
 				
 					fprintf( MsgOut, "stat" );
+					
+				_endcase
+				
+				_case( cOverloads )
+				
+					fprintf( MsgOut, "ovld" );
 					
 				_endcase
 				
@@ -5620,6 +5630,24 @@ _begin( DumpSym )
 						"%s\n^^^^^^^^^macro body ^^^^^^^^\n"
 						"------------------------------------", 
 						SymbolTable->u.MacroData.Text
+					);
+				}
+				_endcase
+				
+
+
+
+
+				_case( tOverloads )
+				{
+					
+					_here;
+
+					fprintf
+					( 
+						MsgOut, 
+						"Overloads %s\n", 
+						SymbolTable->u.ovld.procName 
 					);
 				}
 				_endcase

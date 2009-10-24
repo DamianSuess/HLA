@@ -139,15 +139,16 @@ type
 				tIterator,	//41
 				tProgram,	//42
 				tMacro,		//43
-				tText,		//44
-				tRegexMac,	//45
+				tOverload,	//44
+				tText,		//45
+				tRegexMac,	//46
 							
-				tNamespace,	//46
-				tSegment,   //47
-				tAnonRec,	//48
-				tAnonUnion,	//49
-				tVariant,	//50
-				tError		//51	Used to denote a cascading error.
+				tNamespace,	//47
+				tSegment,   //48
+				tAnonRec,	//49
+				tAnonUnion,	//50
+				tVariant,	//51
+				tError		//52	Used to denote a cascading error.
 			};
 	
 	//  A symbol table entry in the C code (well, at least the

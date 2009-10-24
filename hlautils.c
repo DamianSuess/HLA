@@ -1648,6 +1648,7 @@ static unsigned classes[] =
 		cfy_IsMethod,					  /* cMethod,	 */
 		
 		cfy_IsMacro,					  /* cMacro,	 */
+		cfy_IsMacro,					  /* cOverloads	 */
 		cfy_IsMacro | cfy_IsKeyword,	  /* cKeyword,	 */
 		cfy_IsMacro | cfy_IsTerminator,	  /* cTerminator */
 		0,								  /* cRegex		 */
@@ -2706,7 +2707,6 @@ _begin( malloc2 )
 		
 	#endif		
 
-	
 	p = malloc( size );
 	#ifndef NDEBUG
 	
@@ -3796,6 +3796,365 @@ _begin( ObjFieldNames5 )
 	free2( vss id );
 
 _end( ObjFieldNames5 )
+
+
+
+
+// matchSignature-
+//
+//	Matches a calling signature for an overloaded
+// procedure, method, or iterator.
+
+static unsigned char byteCompat[ tLWord-tByte+1][tUns128-tUns8+1] =
+{
+	// tByte: tUns8..tUns128/tInt8..tInt128
+	
+	1, 1, 1, 1, 1,
+	
+	// tWord: tUns8..tUns128/tInt8..tInt128
+	
+	0, 1, 1, 1, 1,
+	
+	// tDWord: tUns8..tUns128/tInt8..tInt128
+	
+	0, 0, 1, 1, 1,
+	
+	// tQWord: tUns8..tUns128/tInt8..tInt128
+	
+	0, 0, 0, 1, 1,
+	
+	// tTByte: tUns8..tUns128/tInt8..tInt128
+	
+	0, 0, 0, 0, 1,
+	
+	// tLWord: tUns8..tUns128/tInt8..tInt128
+	
+	0, 0, 0, 0, 1
+};
+
+
+struct SymNode *
+matchSignature
+(
+	struct SymNode		*ovldID,
+	int					parmCnt,
+	struct	SymNode		**types,
+	enum	ParmForm	pForm
+)
+_begin( matchSignature )
+
+	struct	SymNode	*curType;
+	struct	SymNode	*saveOvldID;
+	int				sigMatched;
+	int				i;
+	
+	#define ctt curType->Type
+
+	saveOvldID = ovldID;
+	_while( ovldID != NULL )
+	
+	
+		// First, check to see if the number of actual parameters
+		// agrees with the current overloaded symbol:
+		
+		_if( ovldID->u.ovld.numParms == parmCnt )
+		
+			sigMatched = 1;
+			curType = ovldID->u.ovld.parms;
+			_for( i=0, i<parmCnt, ++i )
+			
+			
+				// If the number of symbols agrees, then we
+				// have to check the type of each of the
+				// parameters. On this first pass, require
+				// strict type matching on memory operands.
+				
+				_switch( pForm )
+				
+					_case( parm_constant )
+					
+						_if
+						(!(
+						
+								ctt == types[i]
+								
+							||	( 
+										IsUns( ctt->pType )
+									&&	IsUns( types[i]->pType )
+									&&	ctt->pType >= types[i]->pType
+								)
+								
+							||	( 
+										IsInt( ctt->pType )
+									&&	IsInt( types[i]->pType ) 
+									&&	ctt->pType >= types[i]->pType
+								)
+							
+							||	( 
+										IsBytes( ctt->pType )
+									&&	IsBytes( types[i]->pType ) 
+									&&	ctt->pType >= types[i]->pType
+								)
+								
+							||	( 
+										IsReal( ctt->pType )
+									&&	IsReal( types[i]->pType ) 
+									&&	ctt->pType >= types[i]->pType
+								)
+								
+						))
+							
+							sigMatched = 0;
+							
+						_endif
+						
+					
+					_endcase
+				
+					_case( parm_memory )
+					_case( parm_register )
+
+						_if( ctt != types[i] )
+						
+							sigMatched = 0;
+							
+						_endif
+					
+					_endcase
+										
+					_default
+					
+						yyerror
+						( 
+							"Unexpected parameter format in overloaded call\n"
+							"Only constants, registers, and memory variables are "
+							"legal here" 
+						);
+						sigMatched = 1;	// Just to exit for loop.
+						
+					_endcase
+					
+				_endswitch
+				curType = curType->Next;
+
+			_endfor
+			_breakif( sigMatched );
+		
+		_endif
+		ovldID = ovldID->u.ovld.nextOvld;
+	
+	_endwhile
+	
+	// If we didn't match in the above loop (using fair strict type
+	// checking), then try to relax the type checking a little bit
+	// and see if we get a match that way.
+	
+	_if( !sigMatched )
+	
+		sigMatched = 1;
+		ovldID = saveOvldID;
+		_while( ovldID != NULL )
+		
+		
+			// First, check to see if the number of actual parameters
+			// agrees with the current overloaded symbol:
+			
+			_if( ovldID->u.ovld.numParms == parmCnt )
+			
+				sigMatched = 1;
+				curType = ovldID->u.ovld.parms;
+				_for( i=0, i<parmCnt, ++i )
+				
+				
+					// If the number of symbols agrees, then we
+					// have to check the type of each of the
+					// parameters. On this first pass, require
+					// strict type matching on memory operands.
+					
+					_switch( pForm )
+					
+						_case( parm_constant )
+						
+
+							_if
+							(!(
+							
+									ctt == types[i]
+									
+								||	( 
+											IsUns( ctt->pType )
+										&&	IsUns( types[i]->pType ) 
+										&&	ctt->pType >= types[i]->pType
+									)
+									
+								||	( 
+											IsInt( ctt->pType )
+										&&	IsInt( types[i]->pType ) 
+										&&	ctt->pType >= types[i]->pType
+									)
+								
+								||	( 
+											IsBytes( ctt->pType )
+										&&	IsBytes( types[i]->pType ) 
+										&&	ctt->pType >= types[i]->pType
+									)
+									
+								||	( 
+											IsReal( ctt->pType )
+										&&	IsReal( types[i]->pType ) 
+										&&	ctt->pType >= types[i]->pType
+									)
+									
+								||	( 
+											IsBytes( ctt->pType )
+										&&	IsUns( types[i]->pType ) 
+										&&	byteCompat
+											[ 
+												ctt->pType - tByte, 
+												types[i]->pType - tUns8
+											]
+									)
+									
+								||	( 
+											IsUns( ctt->pType )
+										&&	IsBytes( types[i]->pType ) 
+										&&	byteCompat
+											[ 
+												types[i]->pType - tByte, 
+												ctt->pType - tUns8
+											]
+									)
+									
+								||	( 
+											IsBytes( ctt->pType )
+										&&	IsInt( types[i]->pType ) 
+										&&	byteCompat
+											[ 
+												ctt->pType - tByte, 
+												types[i]->pType - tInt8
+											]
+									)
+									
+								||	( 
+											IsInt( ctt->pType )
+										&&	IsBytes( types[i]->pType ) 
+										&&	byteCompat
+											[ 
+												types[i]->pType - tByte, 
+												ctt->pType - tInt8
+											]
+									)
+									
+								||	( 
+											IsInt( ctt->pType )
+										&&	IsUns( types[i]->pType ) 
+										&&	(ctt->pType + tUns8 - tInt8) >= 
+													types[i]->pType
+									)
+							))
+								
+								sigMatched = 0;
+								
+							_endif
+							
+						
+						_endcase
+					
+						_case( parm_memory )
+
+							_if
+							(!(
+									ctt == types[i]
+								||	( 
+											IsBytes( ctt->pType )
+										&&	IsUns( types[i]->pType ) 
+										&&	ctt->pType >= 
+													(types[i]->pType + 
+														tByte - tUns8)
+									)
+									
+								||	( 
+											IsUns( ctt->pType )
+										&&	IsBytes( types[i]->pType ) 
+										&&	(ctt->pType + tByte - tUns8) >= 
+													types[i]->pType
+									)
+									
+								||	( 
+											IsBytes( ctt->pType )
+										&&	IsInt( types[i]->pType ) 
+										&&	ctt->pType >= 
+													(types[i]->pType + 
+														tByte - tInt8)
+									)
+									
+								||	( 
+											IsInt( ctt->pType )
+										&&	IsBytes( types[i]->pType ) 
+										&&	(ctt->pType + tByte - tInt8) >= 
+													types[i]->pType
+									)
+									
+								||	(
+											ctt->pType == tPointer 
+										&&	types[i]->pType == tDWord
+									)
+									
+								||	(
+											ctt->pType == tDWord 
+										&&	types[i]->pType == tPointer
+									)
+									
+							))
+							
+								sigMatched = 0;
+								
+							_endif
+						
+						_endcase
+						
+						_case( parm_register )
+						
+							_if
+							(!( 
+									ctt->ObjectSize == types[i]->ObjectSize
+								&&	IsOrdinal( ctt->pType )
+							))
+							
+								sigMatched = 0;
+								
+							_endif
+						
+						_endcase
+						
+						_default
+						
+							yyerror
+							( 
+								"Unexpected parameter format in overloaded call\n"
+								"Only constants, registers, and memory variables are "
+								"legal here" 
+							);
+							sigMatched = 1;	// Just to exit for loop.
+							
+						_endcase
+						
+					_endswitch
+					curType = curType->Next;
+
+				_endfor
+				_breakif( sigMatched );
+			
+			_endif
+			ovldID = ovldID->u.ovld.nextOvld;
+		
+		_endwhile
+		
+	_endif
+	_return ovldID;
+
+_end( matchSignature ) 
+
 
 
 
