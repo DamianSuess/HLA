@@ -338,10 +338,11 @@ static  int                 IfState;
 */
 
         struct  SymNode     *LastMacroObject =  NULL;
-static  struct  SymNode     *CurSymTbl       =  NULL;
+		struct  SymNode     *CurSymTbl       =  NULL;
 static  struct  SymNode     *CurObject       =  NULL;
         struct  SymNode     *LastRefdObject  =  NULL;
 static          char        ClassID[ maxInputLineLen ];
+				char		CurNamespaceID[maxInputLineLen];
 
 
 /*
@@ -9155,7 +9156,7 @@ _zstring		zstring
             currentNS = CurSymTbl;
             saveSymTbl = SymbolTable;
             SymbolTable = CurSymTbl->Fields;
-            
+
             symbol = NSlookup( yytext + 1, 1, currentNS );
             
             SymbolTable = saveSymTbl;
@@ -10725,6 +10726,7 @@ _begin( PushBackStr )
         pushBufStack( FileName, LineCnt, NULL, 0 );
         _here;
         yy_scan_string( s );
+		_here;
 
     _endif
 

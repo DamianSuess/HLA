@@ -69812,7 +69812,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup( "" );
+						value.v.u.strval = hlastrdup2( "" );
 						
 					_endif
 								
@@ -69905,7 +69905,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup( "" );
+						value.v.u.strval = hlastrdup2( "" );
 						
 					_endif
 								
@@ -69999,7 +69999,7 @@ ConstFunc:
 							"Expected a string result for 'returns' operand" 
 						);
 						//FreeValue( &value );
-						value.v.u.strval = hlastrdup( "" );
+						value.v.u.strval = hlastrdup2( "" );
 						
 					_endif
 								
@@ -70144,7 +70144,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup( "" );
+						value.v.u.strval = hlastrdup2( "" );
 						
 					_endif
 								
@@ -70237,7 +70237,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup( "" );
+						value.v.u.strval = hlastrdup2( "" );
 						
 					_endif
 								
@@ -70332,7 +70332,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup( "" );
+						value.v.u.strval = hlastrdup2( "" );
 						
 					_endif
 								
@@ -70537,7 +70537,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup( "" );
+						value.v.u.strval = hlastrdup2( "" );
 						
 					_endif
 								
@@ -70641,7 +70641,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup( "" );
+						value.v.u.strval = hlastrdup2( "" );
 						
 					_endif
 								
@@ -70747,7 +70747,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup( "" );
+						value.v.u.strval = hlastrdup2( "" );
 						
 					_endif
 								
@@ -70915,7 +70915,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup( "" );
+						value.v.u.strval = hlastrdup2( "" );
 						
 					_endif
 								
@@ -71019,7 +71019,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup( "" );
+						value.v.u.strval = hlastrdup2( "" );
 						
 					_endif
 								
@@ -77049,18 +77049,18 @@ SingleStmt:
 							( 
 								strlen( sig->u.ovld.procName ) +
 								strlen( $<collectedParms.parms>3 )
-								+4
+								+256
 							);
 							
 				sprintf
 				(
 					pbStmt,
-					"%s %s )",
+					"%s( %s )",
 					sig->u.ovld.procName,
 					$<collectedParms.parms>3
 				);
 				PushBackStr( pbStmt );
-				free( pbStmt );
+				$<returns>$ = pbStmt;
 				
 			_endif
 			_if( $<collectedParms.parms>3 != NULL )
@@ -77083,7 +77083,11 @@ SingleStmt:
 		callFunction	/* $6 */
 		{
 			$<returns>$ = $<returns>6;
-			(void) $<idStr>4;	// Shut up bison
+			_if( $<returns>4 != NULL )
+			
+				free( $<returns>4 );
+				
+			_endif
 		}
 	;
 
@@ -77096,27 +77100,14 @@ saveYYText:
 		}
 	;
 	
-CollectParameters:
-		saveYYText					/* $1 */
-		OptionalCollectParameters	/* $2 */
-		{
-			char	*parms;
-			
-			_here;
-			parms = captureYYText( $<idStr>1, yytext );
-			$<collectedParms>$ = $<collectedParms>2;
-			$<collectedParms.parms>$ = parms;
-			_here;
-		}
-	;
 
-OptionalCollectParameters:
+CollectParameters:
 		Empty
 		{
 			_here;
 			$<collectedParms.parmCnt>$ = 0;
 			$<collectedParms.types>$ = NULL;
-			$<collectedParms.parms>$ = NULL;	// Filled in later
+			$<collectedParms.parms>$ = hlastrdup2( "" );
 		}
 		
 	|	OneOrMoreCollectParameters
@@ -77138,6 +77129,8 @@ OneOrMoreCollectParameters:
 		','							/* $2 */
 		OneOrMoreCollectParameters	/* $3 */
 		{
+			char *parms;
+			
 			_here;
 			$<collectedParms.parmCnt>$ = 
 				$<collectedParms.parmCnt>1 + $<collectedParms.parmCnt>3;
@@ -77155,8 +77148,27 @@ OneOrMoreCollectParameters:
 				$<collectedParms.types>3,
 				$<collectedParms.parmCnt>3 * sizeof( struct SymNode*)
 			);
+			free( $<collectedParms.types>1 );
 			free( $<collectedParms.types>3 );
-			$<collectedParms.parms>$ = NULL;	// Filled in later
+			parms = 
+				malloc2
+				( 
+						strlen( $<collectedParms.parms>1 ) 
+					+ 	strlen( $<collectedParms.parms>3 )
+					+	8
+				);
+				
+			sprintf
+			( 
+				parms, 
+				"%s, %s", 
+				$<collectedParms.parms>1, 
+				$<collectedParms.parms>3 
+			);
+			 
+			$<collectedParms.parms>$ = parms;
+			free( $<collectedParms.parms>1 );
+			free( $<collectedParms.parms>3 );
 			_here; 
 		}
 	;
@@ -77164,15 +77176,21 @@ OneOrMoreCollectParameters:
 
 
 OneCollectParameter:
+		saveYYText
 		fConstExpr
 		{
+			char	save;
+			
 			_here;
 			$<collectedParms.pForm>$ = parm_constant;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*) );
-			$<collectedParms.types>$[0] = $<v.Type>1;
-			$<collectedParms.parms>$ = NULL;	// Filled in later
-			_here; 
+			$<collectedParms.types>$[0] = $<v.Type>2;
+			save = *yytext;
+			*yytext = '\0';
+			$<collectedParms.parms>$ = hlastrdup2( $<idStr>1 );
+			*yytext = save;
+			_here;
 		}
 	;
 	
@@ -77190,14 +77208,20 @@ OneCollectParameter:
 	*/
 
 OneCollectParameter:
+		saveYYText
 		fRegister 
 		{
+			char	save;
+			
 			_here;
 			$<collectedParms.pForm>$ = parm_register;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
-			$<collectedParms.types>$[0] = $<reg.Type>1;
-			$<collectedParms.parms>$ = NULL;	// Filled in later
+			$<collectedParms.types>$[0] = $<reg.Type>2;
+			save = *yytext;
+			*yytext = '\0';
+			$<collectedParms.parms>$ = hlastrdup2( $<idStr>1 );
+			*yytext = save;
 			_here; 
 		}
 	;
@@ -77211,6 +77235,7 @@ OneCollectParameter:
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
 			$<collectedParms.types>$[0] = &qword_ste;
+			$<collectedParms.parms>$ = hlastrdup( "edx:eax" );
 			_here;
 		}
 	;
@@ -77226,6 +77251,7 @@ OneCollectParameter:
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
 			$<collectedParms.types>$[0] = &dword_ste;
+			$<collectedParms.parms>$ = hlastrdup( "dx:ax" );
 			_here;
 		}
 	;
@@ -77236,15 +77262,21 @@ OneCollectParameter:
 
 
 OneCollectParameter:
+		saveYYText
 		valTkn
 		fRegister
 		{
+			char	save;
+			
 			_here;
 			$<collectedParms.pForm>$ = parm_register;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
-			$<collectedParms.types>$[0] = $<reg.Type>2;
-			$<collectedParms.parms>$ = NULL;	// Filled in later
+			$<collectedParms.types>$[0] = $<reg.Type>3;
+			save = *yytext;
+			*yytext = '\0';
+			$<collectedParms.parms>$ = hlastrdup2( $<idStr>1 );
+			*yytext = save;
 			_here; 
 		}
 	;
@@ -77261,14 +77293,81 @@ OneCollectParameter:
 	*/	
 	
 OneCollectParameter:
+		saveYYText
 		fMemory
 		{
+			char	save;
+
 			_here;
 			$<collectedParms.pForm>$ = parm_memory;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
-			$<collectedParms.types>$[0] = $<adrs.Type>1;
-			FreeAdrs( &$<adrs>1 );
+			$<collectedParms.types>$[0] = $<adrs.Type>2;
+			FreeAdrs( &$<adrs>2 );
+			save = *yytext;
+			*yytext = '\0';
+			$<collectedParms.parms>$ =
+				malloc2
+				(
+						strlen( $<idStr>1 )
+					+	_ifx
+						( 
+							CurSymTbl != NULL && CurSymTbl->pType == tNamespace,
+							strlen( CurSymTbl->TrueName ),
+							0
+						)
+					+	16
+				);
+				
+			_if
+			( 
+					CurSymTbl != NULL		// Variable is from a namespace 
+				&&	CurSymTbl->pType == tNamespace )	// Var is from NS
+			
+				_if( NSGlobal == NULL )
+				
+				  	// We're not in a namespace, or we're in a different
+					// namespace than the ID's namespace:
+					
+					_if( *$<idStr>1 == '.' )
+					
+						sprintf
+						( 
+							$<collectedParms.parms>$, 
+							"@global:%s%s", 
+							CurSymTbl->TrueName,
+							$<idStr>1
+						);
+
+					_else
+					
+						strcpy
+						( 
+							$<collectedParms.parms>$, 
+							$<idStr>1 
+						);
+
+					_endif
+					
+					
+				_else
+					
+					// We're in the same namespace as the ID:
+					
+					strcpy
+					( 
+						$<collectedParms.parms>$, 
+						$<idStr>1 + (*$<idStr>1 == '.') 
+					);
+					
+				_endif
+				
+			_else
+			
+				strcpy( $<collectedParms.parms>$, $<idStr>1 );
+				
+			_endif 
+			*yytext = save;
 			_here;
 		}
 	;
@@ -77279,15 +77378,22 @@ OneCollectParameter:
 
 	
 OneCollectParameter:
+		saveYYText
 		valTkn
 		fMemory
 		{
+			char	save;
+			
 			_here;
 			$<collectedParms.pForm>$ = parm_memory;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
-			$<collectedParms.types>$[0] = $<adrs.Type>2;
-			FreeAdrs( &$<adrs>2 );
+			$<collectedParms.types>$[0] = $<adrs.Type>3;
+			FreeAdrs( &$<adrs>3 );
+			save = *yytext;
+			*yytext = '\0';
+			$<collectedParms.parms>$ = hlastrdup2( $<idStr>1 );
+			*yytext = save;
 			_here;
 		}
 	;
@@ -77505,7 +77611,6 @@ SingleStmt:
  **		
  */
  
-
 IndirectCall1:
 		SimpleMemoryVar			/* $1 */
 		SMV0					/* $<s>2 contains $<adrs.Sym>1	*/
@@ -77896,10 +78001,6 @@ IndirectCall2:
 parenPushBack:
 		'('
 		{
-			// Restore, so we can match the "real" (non-pushed-back)
-			// paren later:
-			
-			_yyless(0);
 
 			// First off, check to see if we have an overridden
 			// class symbol here:
@@ -77911,7 +78012,7 @@ parenPushBack:
 				// Bison's lookahead has already consumed the
 				// next symbol, push it back:
 				
-				PushBackStr( "\xde" );
+				PushBackStr( "\xde(" );
 	
 			_else
 			
@@ -77921,29 +78022,12 @@ parenPushBack:
 		}
 	;
 	
-Lparen2:
-		'('
-		{
-			union YYSTYPE yylval;
-			
-			// The following kludge is done to clear
-			// up the "(" that was pushed on the lexer
-			// input and return us back to the original
-			// lexer input stream.  This allows CollectParameters
-			// to work properly.
-			
-			yylex( &yylval );
-			_yyless(0);
-		}
-	;
-	
-		
 IndirectCall3:
 		SimpleMemoryVar			/* $1 */
 		FieldStuff				/* $2 */
 		parenPushBack			/* $3 */
 		ovldClassTkn			/* $4 */
-		Lparen2					/* $5 */
+		'('						/* $5 */
 		CollectParameters		/* $6 */
 		{						/* $7 */
 			char			*pbStmt;
@@ -77985,7 +78069,7 @@ IndirectCall3:
 							( 
 								strlen( sig->u.ovld.procName ) +
 								strlen( $<collectedParms.parms>6 )
-								+4
+								+256
 							);
 							
 				sprintf
@@ -77996,7 +78080,7 @@ IndirectCall3:
 					$<collectedParms.parms>6
 				);
 				PushBackStr( pbStmt );
-				free( pbStmt );
+				$<returns>$ = pbStmt;
 				
 			_endif
 			_if( $<collectedParms.parms>6 != NULL )
@@ -78019,7 +78103,11 @@ IndirectCall3:
 		callFunction	/* $9 */
 		{
 			$<returns>$ = $<returns>9;
-			(void) $<idStr>7;	// Shut up bison
+			_if( $<returns>7 != NULL )
+			
+				free( $<returns>7 );
+			
+			_endif
 		}
 	;
 
@@ -78028,10 +78116,9 @@ IndirectCall3:
 		SimpleMemoryVar			/* $1 */
 		FieldStuff				/* $2 */
 		parenPushBack			/* $3 */
-		'('						/* $4 */
-		SMVm2					/* $5 = FieldStuff's adrs.sym field */
-		IndirectCallParameters	/* $6 */
-		{						/* $7 */
+		SMVm1					/* $4 = FieldStuff's adrs.sym field */
+		IndirectCallParameters	/* $5 */
+		{						/* $6 */
 
 			int  			useLEA    = 1;
 			int  			useOffset = 1;
@@ -78555,7 +78642,6 @@ IndirectCall3:
 			_endif
 		}
 	;
-
 
 
 	/*
@@ -79126,21 +79212,6 @@ IndirectCall4:
 	;
 
 
-
-  /* Get the attribute of a SimpleMemoryVar object at $-2 */
-
-SMVm2:	
-		{ 
-			_if( $<adrs.Sym>-2 == NULL )
-			
-				$<s>$ = $<adrs.Type>-2; 
-
-			_else
-			
-				$<s>$ = $<adrs.Sym>-2; 
-
-			_endif
-		};
 
   /* Get the attribute of a SimpleMemoryVar object at $-1 */
 
@@ -93626,21 +93697,7 @@ PutContinueLbl:
 
 
 SingleStmt:
-		callIteratorID
-		{
-			$<returns>$ = NULL;
-		}
-	;
-	
-SingleStmt:
-		callIndirectIterator
-		{
-			$<returns>$ = NULL;
-		}
-	;
-	
-SingleStmt:
-		callIndexedIterator
+		callIterators
 		{
 			$<returns>$ = NULL;
 		}
@@ -93759,18 +93816,18 @@ callIteratorID:
 							( 
 								strlen( sig->u.ovld.procName ) +
 								strlen( $<collectedParms.parms>4 )
-								+16
+								+256
 							);
 							
 				sprintf
 				(
 					pbStmt,
-					"foreach %s %s )",
+					"foreach %s( %s )",
 					sig->u.ovld.procName,
 					$<collectedParms.parms>4
 				);
 				PushBackStr( pbStmt );
-				free( pbStmt );
+				$<returns>$ = pbStmt;
 				
 			_endif
 			_if( $<collectedParms.parms>4 != NULL )
@@ -93793,7 +93850,11 @@ callIteratorID:
 		callIterators	/* $7 */
 		{
 			$<returns>$ = $<returns>7;
-			(void) $<idStr>5;	// Shut up bison
+			_if( $<returns>5 != NULL )
+			
+				free( $<returns>5 );
+				
+			_endif
 		}
 	;
 
@@ -93810,10 +93871,9 @@ callIndirectIterator:
 		SimpleMemoryVar			/* $2 */
 		FieldStuff				/* $3 */
 		parenPushBack			/* $4 */
-		'('						/* $5 */
-		SMVm2					/* $6 = FieldStuff's adrs.sym field */
-		IndirectCallParameters	/* $7 */
-		{						/* $8 */
+		SMVm1					/* $5 = FieldStuff's adrs.sym field */
+		IndirectCallParameters	/* $6 */
+		{						/* $7 */
 
 			int  			useLEA = 1;
 			int	 			offset = 0;
@@ -94039,23 +94099,23 @@ callIndirectIterator:
 			_here;
 		}
 
-		SaveBreakLbl		/* $9  */
-		GetDoTkn			/* $10 */
-		Stmts				/* $11 */
-		endforTkn			/* $12 */
-		{					/* $13 */
+		SaveBreakLbl		/* $8  */
+		GetDoTkn			/* $9  */
+		Stmts				/* $10 */
+		endforTkn			/* $11 */
+		{					/* $12 */
 			_here;
 			EmitStmtLblNum( "continue" sympost "%d", abs( BreakLbl ) );
 			pop_r( reg_ebp );
 			ret_instr( 4 );
-			EmitStmtLblNum( "exitfor" sympost "%d", -$<v.u.intval>8 );
+			EmitStmtLblNum( "exitfor" sympost "%d", -$<v.u.intval>7 );
 			NewLn();
 
 			/*
 			** Restore the original BreakLbl value.
 			*/
 
-			BreakLbl = $<v.u.intval>9;
+			BreakLbl = $<v.u.intval>8;
 
 
 			$<returns>$ = NULL;
@@ -94074,9 +94134,10 @@ callIndirectIterator:
 		FieldStuff				/* $3 */
 		parenPushBack			/* $4 */
 		ovldClassTkn			/* $5 */
-		Lparen2					/* $6 */
+		'('						/* $6 */
 		CollectParameters		/* $7 */
-		{						/* $8 */
+		Rparen					/* $8 */
+		{						/* $9 */
 			char			*pbStmt;
 			struct	SymNode	*sig;
 			
@@ -94116,7 +94177,7 @@ callIndirectIterator:
 							( 
 								strlen( sig->u.ovld.procName ) +
 								strlen( $<collectedParms.parms>7 )
-								+4
+								+256
 							);
 							
 				sprintf
@@ -94127,7 +94188,7 @@ callIndirectIterator:
 					$<collectedParms.parms>7
 				);
 				PushBackStr( pbStmt );
-				free( pbStmt );
+				$<returns>$ = pbStmt;
 				
 			_endif
 			_if( $<collectedParms.parms>7 != NULL )
@@ -94142,7 +94203,6 @@ callIndirectIterator:
 			_endif
 			_here; 
 		}
-		Rparen			/* $9 */
 		
 		// Must reinvoke SingleStmt to process the
 		// string we just pushed back on the lexer input:
@@ -94150,7 +94210,11 @@ callIndirectIterator:
 		callIterators	/* $10 */
 		{
 			$<returns>$ = $<returns>10;
-			(void) $<idStr>8;	// Shut up bison
+			_if( $<returns>9 != NULL )
+			
+				free( $<returns>9 );
+				
+			_endif
 		}
 	;
 

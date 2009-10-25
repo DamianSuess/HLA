@@ -552,6 +552,7 @@ extern struct SymNode			*RecGlobal;
 extern struct SymNode			*ProcNS;
 extern struct SymNode			*ProcGlobal;
 extern int						inNamespace;
+extern struct SymNode			*CurSymTbl;
 
 extern int						StackSize;
 extern int						HasAbstract;

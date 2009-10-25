@@ -78,8 +78,10 @@ hlaparse.c: hlaparse.bsn
 	c:\cygwin\bin\bison -d -o hlaparse.c hlaparse.bsn
 	____
 						  
-lex.yy.obj: hla.flx hlaparse.c $(DBG) $(AH)
+lex.yy.c: hla.flx hlaparse.c $(DBG) $(AH)
 	flex -8 -i hla.flx
+	
+lex.yy.obj:lex.yy.c $(DBG) $(AH)
 	cl $(CARGS) $(INC) $(LIBR) -c lex.yy.c
 
 symbol.obj: symbol.c $(SYM) $(CMN) $(RATC) $(DBG) $(ENM) $(AH)
