@@ -32,6 +32,8 @@
 
 
 
+
+
  /*
  ** "Magic" token values in use:
  **
@@ -69,6 +71,7 @@
  ** 240/E0 - Process #string( id ) .. #endstring block.               
  ** 239/DF - Process #match( id ) .. #endmatch block.
  ** 238/DE - Return "ovldClassTkn".               
+ ** 237/DD - Sets "delayCollect" to zero.               
  */
 
 
@@ -116,6 +119,17 @@ typedef
 #define YYACCEPT return(0)
 #define YYABORT return(1)
 #define YYERROR goto yyerrlab
+
+
+char 	collectBuf[ 65536 ];
+int		doCollect 		= 0;
+int		collectIndex 	= 0;
+int		delayCollect 	= 0;
+
+static void collectYYtext( void );
+
+#define YY_USER_ACTION	if( doCollect ) collectYYtext();
+
 
 
 extern union YYSTYPE *yylval;
@@ -8893,6 +8907,17 @@ _zstring		zstring
 
 
  /*
+ ** If a 0xDD byte comes along, we need to set delayCollect to false.
+ */
+
+\xDD    {
+            _here;
+            delayCollect = 0;
+        }
+
+
+
+ /*
  ** Identifiers
  */
  
@@ -9127,7 +9152,6 @@ _zstring		zstring
                     
 [a-z_][a-z0-9_]*    { 
                         int Token;
-                        
                         Token = doID( yylval ); 
                         _returnif( Token >= 0 ) Token;
                     }
@@ -9146,15 +9170,18 @@ _zstring		zstring
 
             int             Token;
             int             LexLevel;
+			int				saveIndex;
             struct  SymNode *symbol;
             struct  SymNode *saveCurNS;
             struct  SymNode *saveSymTbl;
+            struct  SymNode *NS;
 
             _here;
 
-            saveCurNS = currentNS;
-            currentNS = CurSymTbl;
-            saveSymTbl = SymbolTable;
+            saveCurNS 	= currentNS;
+            currentNS 	= CurSymTbl;
+			NS			= CurSymTbl;
+            saveSymTbl 	= SymbolTable;
             SymbolTable = CurSymTbl->Fields;
 
             symbol = NSlookup( yytext + 1, 1, currentNS );
@@ -9184,6 +9211,7 @@ _zstring		zstring
             _else
 
                 BEGIN 0;
+				saveIndex = collectIndex;
                 Token = 
                     ProcessID
                     ( 
@@ -9194,6 +9222,15 @@ _zstring		zstring
                     );
 
                 _returnif( Token >= 0 ) Token;
+				
+				// If it was a text object delete the original namespace name:
+				
+				_if( Token == PIDtext && doCollect )
+				
+					collectIndex -= ( strlen( NS->TrueName ) + 1);
+					collectBuf[ collectIndex ] = '\0';
+					
+				_endif
 
             _endif
             _here;
@@ -10897,6 +10934,7 @@ _begin( ProcessMacro )
     _here;
     LocalVarMacParms = VarMacParms;
 
+
     /*
     ** Create a deep copy of the current symbol
     ** so we can make assignments to the local
@@ -11170,6 +11208,12 @@ _begin( ProcessMacro )
     ** can play back this macro.
     */
 
+	_if( doCollect )
+	
+		PushBackStr( "\xdd" );
+		delayCollect = 1;
+		
+	_endif
     PushBackStr( "\xff" );  // Mark the end of the macro expansion.
 
     ++MacroSP;
@@ -11714,7 +11758,6 @@ _begin( ProcessID )
     */
 
     _here;
-
     _if( symbol == NULL )
     
         yylval->idStr = hlastrdup2( yytext );
@@ -11769,6 +11812,15 @@ _begin( ProcessID )
             ) 
     )
 
+		// If it was a text constant ID, keep the ID in the
+		// collection buffer (rather than the expanded string):
+		
+		_if( doCollect )
+		
+			collectIndex -= strlen( ID );
+			collectBuf[ collectIndex ] = '\0';
+			
+		_endif
         PushBackStr( symbol->u.strval );
         _return PIDtext;
         
@@ -11834,6 +11886,12 @@ _begin( ProcessID )
         
         _if( cn.FullName == NULL || cn.Sym == NULL )
         
+			_if( doCollect )
+			
+				collectIndex -= yyleng;
+				collectBuf[ collectIndex ] = '\0';
+				
+			_endif
             PushBackStr( yytext );
             yylval->s = symbol;
             _returnif( symbol->LexLevel == CurLexLevel ) LocalID;
@@ -11842,7 +11900,7 @@ _begin( ProcessID )
         _endif
         
         yylval->s = cn.Sym;
-
+		
         /*
         ** Okay, return if it's a constant, macro, class procedure,
         ** or class method.
@@ -11861,16 +11919,20 @@ _begin( ProcessID )
                 ) 
         )
         
+				PushBackStr( "\xDD" );	// Don't collect the pushback.
+				delayCollect = 1;
                 PushBackStr( cn.Sym->u.strval );
                 _return PIDtext;
         
         _endif
 
-        _returnif( IsConstant( cn.Sym->SymClass )) LocalConstID;
+        _if( IsConstant( cn.Sym->SymClass )) 
+			_return LocalConstID;
+			
+		_endif
         _if( cn.Sym->pType == tMacro ) 
         
             LastMacroObject = SaveSymTbl;
-            
             _return ProcessMacro( cn.Sym );
             
         _endif
@@ -11930,6 +11992,8 @@ _begin( ProcessID )
         PushBackStr( "\xF5" );
         CurObject = symbol;
         yyparse();
+		PushBackStr( "\xDD" );	// Don't collect the pushback.
+		delayCollect = 1;		// Because we've already collected it.
         PushBackStr( yytext );  /* Look ahead eats the next symbol */
         
         yylval->s = cn.Sym;
@@ -12025,7 +12089,15 @@ _begin( ProcessID )
         LastRefdObject = symbol;
         SaveObject = symbol;
         yyparse();
-        PushBackStr( yytext );  /* Look ahead eats the next symbol */
+		
+		// Look ahead eats the next symbol 
+		
+		_if( doCollect )
+		
+			collectIndex -= yyleng;
+			collectBuf[ collectIndex ] = '\0';
+		_endif
+        PushBackStr( yytext );  
 
         /*
         ** Well, it could be that there is no sequence of
@@ -12073,6 +12145,8 @@ _begin( ProcessID )
                 ) 
         )
         
+				PushBackStr( "\xDD" );	// Don't collect the pushback.
+				delayCollect = 1;
                 PushBackStr( dn.Sym->u.strval );
                 _return PIDtext;
         
@@ -12108,6 +12182,8 @@ _begin( ProcessID )
         DotLocation = strchr( dn.FullName, '.' );
         _if( DotLocation != NULL )
         
+			PushBackStr( "\xDD" );	// Don't collect the pushback.
+			delayCollect = 1;		// Cause we already have it.
             PushBackStr( DotLocation );
             
         _endif
@@ -12284,6 +12360,61 @@ _end( _yyless );
 
 
 
+
+
+static void
+collectYYtext( void )
+{
+
+	if( !delayCollect )
+	{
+		switch( yyleng )
+		{
+			case 1:
+			
+				// Don't capture special codes!
+				
+				if( (unsigned char) *yytext < (unsigned char) 0x80 )
+				{
+					collectBuf[ collectIndex++ ]   = yytext[0];
+					collectBuf[ collectIndex ] = '\0';
+				}
+				return;
+			
+			case 2:
+			
+				collectBuf[ collectIndex ]   = yytext[0];
+				collectBuf[ collectIndex+1 ] = yytext[1];
+				collectIndex += 2;
+				collectBuf[ collectIndex ] = '\0';
+				return;
+			
+			case 3:
+			
+				collectBuf[ collectIndex ]   = yytext[0];
+				collectBuf[ collectIndex+1 ] = yytext[1];
+				collectBuf[ collectIndex+2 ] = yytext[2];
+				collectIndex += 3;
+				collectBuf[ collectIndex ] = '\0';
+				return;
+			
+			case 4:
+			
+				collectBuf[ collectIndex ]   = yytext[0];
+				collectBuf[ collectIndex+1 ] = yytext[1];
+				collectBuf[ collectIndex+2 ] = yytext[2];
+				collectBuf[ collectIndex+3 ] = yytext[3];
+				collectIndex += 4;
+				collectBuf[ collectIndex ] = '\0';
+				return;
+				
+			default:
+				memcpy( &collectBuf[ collectIndex ], yytext, yyleng );
+				collectIndex += yyleng;
+				collectBuf[ collectIndex ] = '\0';
+		}
+	}	
+}
 
 
 

@@ -81,7 +81,12 @@
 extern int  HLAerror( char *, int, char * );
 extern void  HLAWarning( char *, char*, int, char * );
 
+extern int		collectIndex;
+extern char 	collectBuf[ 65536 ];
+extern int		doCollect;
+extern int		delayCollect;
 
+extern int yyleng;
 extern int lexInput( void );
 extern void _yyless( int i );
 extern unsigned char ReservedWords[ 2048 ];
