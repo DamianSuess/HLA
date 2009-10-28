@@ -504,6 +504,7 @@ includeLibList_t *includeLibList = NULL;
 ** Various prototypes this code uses.
 */
 
+extern struct SymNode *LastRefdObject;
 
 static void ExpectedOrdinalConst( void );
 
@@ -825,50 +826,11 @@ _begin( getFileStr )
 _end( getFileStr )
 
 
-// captureYYText -
-//
-//	Used by the overloads declaration and other
-// code that needs to grab a sequence of characters
-// from startName to yytext:
-
-static char*
-captureYYText( char *startText, char *endText )
-_begin( captureYYText )
-
-		char	*result;
-		int		len;
-
-		len = endText-startText;
-		result = malloc2( len + 1 );
-		memcpy( result, startText, len );
-		result[ len ] = '\0';
-		_return( result );
-
-_end( captureYYText )
-
-
-
-static char*
-captureOverload( char *startName )
-_begin( captureOverload )
-
-		char	*result;
-		int		len;
-
-		startName += 9; //strlen( "overloads" );
-		_while( isspace( *startName ));
-		
-			++startName;
-			
-		_endwhile
-		_return( captureYYText( startName, yytext ) );
-
-_end( captureOverload )
 
 
 
 
-
+																	 
 
 
 
@@ -2679,6 +2641,13 @@ doTextParameters:
 		{				/* $5 */
 			
 			_here;
+			_if( doCollect )
+			
+				PushBackStr( "\xDD" );
+				delayCollect = 1;
+				
+			_endif
+			
 			doTextParameters5( YYS &$<v>3 );
 			YYACCEPT;
 		}
@@ -3369,7 +3338,6 @@ doMacroParameters:
 			_here;
 			(void) $<s>4;
 			YYACCEPT;
-
 		}
 	;
 
@@ -17845,6 +17813,7 @@ newProcs:
 			struct SymNode	*parmPtr;
 			int				parmCnt;
 			
+			doCollect = 0;
 			s = InsertSym
 				(
 					$<idStr>1,			//TrueName
@@ -17880,7 +17849,8 @@ newProcs:
 			
 			_else
 			
-				s->u.ovld.procName = captureOverload( $<idStr>4 );
+				collectBuf[ collectIndex-1 ] = '\0'; // Trim ';'
+				s->u.ovld.procName = hlastrdup2( collectBuf );
 				
 			_endif
 		} 
@@ -17900,6 +17870,7 @@ newProcs:
 			struct SymNode	*parmPtr;
 			int				parmCnt;
 			
+			doCollect = 0;
 			s = InsertSym
 				(
 					strdup( $<s>1->TrueName ),	//TrueName
@@ -17935,7 +17906,8 @@ newProcs:
 				
 			_else
 			
-				s->u.ovld.procName = captureOverload( $<idStr>4 );
+				collectBuf[ collectIndex-1 ] = '\0'; // Trim ';'
+				s->u.ovld.procName = hlastrdup2( collectBuf );
 				
 			_endif
 		}
@@ -34294,6 +34266,7 @@ newClassProc:
 			struct SymNode	*parmPtr;
 			int				parmCnt;
 			
+			doCollect = 0;
 			s = InsertSym
 				(
 					$<idStr>1,			//TrueName
@@ -34329,7 +34302,8 @@ newClassProc:
 			
 			_else
 			
-				s->u.ovld.procName = captureOverload( $<idStr>4 );
+				collectBuf[ collectIndex-1 ] = '\0'; // Trim ';'
+				s->u.ovld.procName = hlastrdup2( collectBuf );
 				
 			_endif
 		} 
@@ -34349,6 +34323,7 @@ newClassProc:
 			struct SymNode	*parmPtr;
 			int				parmCnt;
 			
+			doCollect = 0;
 			s = InsertSym
 				(
 					strdup( $<s>1->TrueName ),	//TrueName
@@ -34384,7 +34359,8 @@ newClassProc:
 				
 			_else
 			
-				s->u.ovld.procName = captureOverload( $<idStr>4 );
+				s->u.ovld.procName = hlastrdup( collectBuf );
+printf( "proc2: '%s'\n", s->u.ovld.procName );
 				
 			_endif
 		}
@@ -69812,7 +69788,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup2( "" );
+						value.v.u.strval = hlastrdup( "" );
 						
 					_endif
 								
@@ -69905,7 +69881,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup2( "" );
+						value.v.u.strval = hlastrdup( "" );
 						
 					_endif
 								
@@ -69999,7 +69975,7 @@ ConstFunc:
 							"Expected a string result for 'returns' operand" 
 						);
 						//FreeValue( &value );
-						value.v.u.strval = hlastrdup2( "" );
+						value.v.u.strval = hlastrdup( "" );
 						
 					_endif
 								
@@ -70144,7 +70120,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup2( "" );
+						value.v.u.strval = hlastrdup( "" );
 						
 					_endif
 								
@@ -70237,7 +70213,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup2( "" );
+						value.v.u.strval = hlastrdup( "" );
 						
 					_endif
 								
@@ -70332,7 +70308,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup2( "" );
+						value.v.u.strval = hlastrdup( "" );
 						
 					_endif
 								
@@ -70537,7 +70513,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup2( "" );
+						value.v.u.strval = hlastrdup( "" );
 						
 					_endif
 								
@@ -70641,7 +70617,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup2( "" );
+						value.v.u.strval = hlastrdup( "" );
 						
 					_endif
 								
@@ -70747,7 +70723,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup2( "" );
+						value.v.u.strval = hlastrdup( "" );
 						
 					_endif
 								
@@ -70915,7 +70891,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup2( "" );
+						value.v.u.strval = hlastrdup( "" );
 						
 					_endif
 								
@@ -71019,7 +70995,7 @@ ConstFunc:
 						FreeValue( &value );
 						value.v.pType =tString;
 						value.v.Type = &string_ste;
-						value.v.u.strval = hlastrdup2( "" );
+						value.v.u.strval = hlastrdup( "" );
 						
 					_endif
 								
@@ -72917,7 +72893,6 @@ ConstFunc:	baseregTkn
 ConstFunc:	curObjectNameTkn 
 			{
 				union YYSTYPE v;
-				extern struct SymNode *LastRefdObject;
 
 				_if
 				( 
@@ -76497,6 +76472,8 @@ fstmt:
 			
 				_if( *$<returns>1 != '\0' )
 			
+					delayCollect = 1;
+					PushBackStr( "\xDD" );	// Don't capture this text!
 					PushBackStr( $<returns>1 );
 				
 				_endif
@@ -77006,13 +76983,16 @@ SingleStmt:
 
 SingleStmt:
 		OverloadedID		/* $1 */
-		Lparen				/* $2 */
-		CollectParameters	/* $3 */
-		{					/* $4 */
+		'('					/* $2 */
+		saveYYText			/* $3 */
+		CollectParameters	/* $4 */
+		')'					/* $5 */
+		{					/* $6 */
 			char			*pbStmt;
 			struct	SymNode	*sig;
 			
 			_here;
+			LastRefdObject = $<s>3;
 			$<returns>$ = NULL;
 			_if( langLevel <= low_level )
 			
@@ -77029,9 +77009,9 @@ SingleStmt:
 			sig =	matchSignature
 					( 
 						$<s>1, 
-						$<collectedParms.parmCnt>3, 
-						$<collectedParms.types>3, 
-						$<collectedParms.pForm>3 
+						$<collectedParms.parmCnt>4, 
+						$<collectedParms.types>4, 
+						$<collectedParms.pForm>4 
 					);
 					
 			_if( sig == NULL )
@@ -77048,7 +77028,7 @@ SingleStmt:
 				pbStmt = 	malloc2
 							( 
 								strlen( sig->u.ovld.procName ) +
-								strlen( $<collectedParms.parms>3 )
+								strlen( $<collectedParms.parms>4 )
 								+256
 							);
 							
@@ -77057,35 +77037,34 @@ SingleStmt:
 					pbStmt,
 					"%s( %s )",
 					sig->u.ovld.procName,
-					$<collectedParms.parms>3
+					$<collectedParms.parms>4
 				);
 				PushBackStr( pbStmt );
 				$<returns>$ = pbStmt;
 				
 			_endif
-			_if( $<collectedParms.parms>3 != NULL )
+			_if( $<collectedParms.parms>4 != NULL )
 			
-				free( $<collectedParms.parms>3 );
+				free( $<collectedParms.parms>4 );
 				
 			_endif
-			_if( $<collectedParms.types>3 != NULL )
+			_if( $<collectedParms.types>4 != NULL )
 			
-				free( $<collectedParms.types>3 );
+				free( $<collectedParms.types>4 );
 				
 			_endif
 			_here; 
 		}
-		Rparen			/* $5 */
 		
 		// Must reinvoke SingleStmt to process the
 		// string we just pushed back on the lexer input:
 		
-		callFunction	/* $6 */
+		callFunction	/* $7 */
 		{
-			$<returns>$ = $<returns>6;
-			_if( $<returns>4 != NULL )
+			$<returns>$ = $<returns>7;
+			_if( $<returns>6 != NULL )
 			
-				free( $<returns>4 );
+				free( $<returns>6 ); 
 				
 			_endif
 		}
@@ -77096,18 +77075,57 @@ SingleStmt:
 saveYYText:
 		{
 			_here;
-			$<idStr>$ = yytext;
+			doCollect = 1;
+			collectIndex = 0;
+			delayCollect = 0;
+			collectBuf[0] = '\0';
+			$<s>$ = LastRefdObject;
 		}
 	;
 	
-
 CollectParameters:
+		OptionalCollectParameters	/* $1 */
+		{
+			char	*parms;
+			int		i;
+			int		j;
+			
+			_here;
+			
+			// Note: Lookahead has grabbed an extra token,
+			// so subtract the size of that lexeme in order
+			// to remove the lookahead symbol.
+			
+			collectIndex -= yyleng;
+			collectBuf[ collectIndex ] = '\0';
+			doCollect = 0;
+			i = collectBuf[0] == '(';
+			_while( isspace( collectBuf[i] ) )
+			
+				++i;
+				
+			_endwhile
+			j = collectIndex - 1;
+			_while( j > 0 &&  isspace(collectBuf[j])  )
+			
+				--j;
+				
+			_endwhile
+			collectBuf[ j+1 ] = '\0';	
+			parms = hlastrdup2( &collectBuf[i] );
+			$<collectedParms>$ = $<collectedParms>1;
+			$<collectedParms.parms>$ = parms;
+			_here;
+		}
+	;
+
+OptionalCollectParameters:
 		Empty
 		{
 			_here;
 			$<collectedParms.parmCnt>$ = 0;
 			$<collectedParms.types>$ = NULL;
-			$<collectedParms.parms>$ = hlastrdup2( "" );
+			$<collectedParms.parms>$ = NULL;	// Filled in later
 		}
 		
 	|	OneOrMoreCollectParameters
@@ -77129,8 +77147,6 @@ OneOrMoreCollectParameters:
 		','							/* $2 */
 		OneOrMoreCollectParameters	/* $3 */
 		{
-			char *parms;
-			
 			_here;
 			$<collectedParms.parmCnt>$ = 
 				$<collectedParms.parmCnt>1 + $<collectedParms.parmCnt>3;
@@ -77148,51 +77164,28 @@ OneOrMoreCollectParameters:
 				$<collectedParms.types>3,
 				$<collectedParms.parmCnt>3 * sizeof( struct SymNode*)
 			);
-			free( $<collectedParms.types>1 );
 			free( $<collectedParms.types>3 );
-			parms = 
-				malloc2
-				( 
-						strlen( $<collectedParms.parms>1 ) 
-					+ 	strlen( $<collectedParms.parms>3 )
-					+	8
-				);
-				
-			sprintf
-			( 
-				parms, 
-				"%s, %s", 
-				$<collectedParms.parms>1, 
-				$<collectedParms.parms>3 
-			);
-			 
-			$<collectedParms.parms>$ = parms;
-			free( $<collectedParms.parms>1 );
-			free( $<collectedParms.parms>3 );
+			$<collectedParms.parms>$ = NULL;	// Filled in later
 			_here; 
 		}
 	;
 
 
-
+	
 OneCollectParameter:
-		saveYYText
 		fConstExpr
 		{
-			char	save;
-			
 			_here;
 			$<collectedParms.pForm>$ = parm_constant;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*) );
-			$<collectedParms.types>$[0] = $<v.Type>2;
-			save = *yytext;
-			*yytext = '\0';
-			$<collectedParms.parms>$ = hlastrdup2( $<idStr>1 );
-			*yytext = save;
-			_here;
+			$<collectedParms.types>$[0] = $<v.Type>1;
+			_here; 
 		}
 	;
+
+	
+
 	
 
 
@@ -77208,20 +77201,14 @@ OneCollectParameter:
 	*/
 
 OneCollectParameter:
-		saveYYText
 		fRegister 
 		{
-			char	save;
-			
 			_here;
 			$<collectedParms.pForm>$ = parm_register;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
-			$<collectedParms.types>$[0] = $<reg.Type>2;
-			save = *yytext;
-			*yytext = '\0';
-			$<collectedParms.parms>$ = hlastrdup2( $<idStr>1 );
-			*yytext = save;
+			$<collectedParms.types>$[0] = $<reg.Type>1;
+			$<collectedParms.parms>$ = NULL;	// Filled in later
 			_here; 
 		}
 	;
@@ -77235,7 +77222,6 @@ OneCollectParameter:
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
 			$<collectedParms.types>$[0] = &qword_ste;
-			$<collectedParms.parms>$ = hlastrdup( "edx:eax" );
 			_here;
 		}
 	;
@@ -77251,7 +77237,6 @@ OneCollectParameter:
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
 			$<collectedParms.types>$[0] = &dword_ste;
-			$<collectedParms.parms>$ = hlastrdup( "dx:ax" );
 			_here;
 		}
 	;
@@ -77262,21 +77247,15 @@ OneCollectParameter:
 
 
 OneCollectParameter:
-		saveYYText
 		valTkn
 		fRegister
 		{
-			char	save;
-			
 			_here;
 			$<collectedParms.pForm>$ = parm_register;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
-			$<collectedParms.types>$[0] = $<reg.Type>3;
-			save = *yytext;
-			*yytext = '\0';
-			$<collectedParms.parms>$ = hlastrdup2( $<idStr>1 );
-			*yytext = save;
+			$<collectedParms.types>$[0] = $<reg.Type>2;
+			$<collectedParms.parms>$ = NULL;	// Filled in later
 			_here; 
 		}
 	;
@@ -77293,81 +77272,14 @@ OneCollectParameter:
 	*/	
 	
 OneCollectParameter:
-		saveYYText
 		fMemory
 		{
-			char	save;
-
 			_here;
 			$<collectedParms.pForm>$ = parm_memory;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
-			$<collectedParms.types>$[0] = $<adrs.Type>2;
-			FreeAdrs( &$<adrs>2 );
-			save = *yytext;
-			*yytext = '\0';
-			$<collectedParms.parms>$ =
-				malloc2
-				(
-						strlen( $<idStr>1 )
-					+	_ifx
-						( 
-							CurSymTbl != NULL && CurSymTbl->pType == tNamespace,
-							strlen( CurSymTbl->TrueName ),
-							0
-						)
-					+	16
-				);
-				
-			_if
-			( 
-					CurSymTbl != NULL		// Variable is from a namespace 
-				&&	CurSymTbl->pType == tNamespace )	// Var is from NS
-			
-				_if( NSGlobal == NULL )
-				
-				  	// We're not in a namespace, or we're in a different
-					// namespace than the ID's namespace:
-					
-					_if( *$<idStr>1 == '.' )
-					
-						sprintf
-						( 
-							$<collectedParms.parms>$, 
-							"@global:%s%s", 
-							CurSymTbl->TrueName,
-							$<idStr>1
-						);
-
-					_else
-					
-						strcpy
-						( 
-							$<collectedParms.parms>$, 
-							$<idStr>1 
-						);
-
-					_endif
-					
-					
-				_else
-					
-					// We're in the same namespace as the ID:
-					
-					strcpy
-					( 
-						$<collectedParms.parms>$, 
-						$<idStr>1 + (*$<idStr>1 == '.') 
-					);
-					
-				_endif
-				
-			_else
-			
-				strcpy( $<collectedParms.parms>$, $<idStr>1 );
-				
-			_endif 
-			*yytext = save;
+			$<collectedParms.types>$[0] = $<adrs.Type>1;
+			FreeAdrs( &$<adrs>1 );
 			_here;
 		}
 	;
@@ -77378,22 +77290,15 @@ OneCollectParameter:
 
 	
 OneCollectParameter:
-		saveYYText
 		valTkn
 		fMemory
 		{
-			char	save;
-			
 			_here;
 			$<collectedParms.pForm>$ = parm_memory;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
-			$<collectedParms.types>$[0] = $<adrs.Type>3;
-			FreeAdrs( &$<adrs>3 );
-			save = *yytext;
-			*yytext = '\0';
-			$<collectedParms.parms>$ = hlastrdup2( $<idStr>1 );
-			*yytext = save;
+			$<collectedParms.types>$[0] = $<adrs.Type>2;
+			FreeAdrs( &$<adrs>2 );
 			_here;
 		}
 	;
@@ -77611,6 +77516,7 @@ SingleStmt:
  **		
  */
  
+
 IndirectCall1:
 		SimpleMemoryVar			/* $1 */
 		SMV0					/* $<s>2 contains $<adrs.Sym>1	*/
@@ -78002,7 +77908,7 @@ parenPushBack:
 		'('
 		{
 
-			// First off, check to see if we have an overridden
+			// Next, check to see if we have an overridden
 			// class symbol here:
 			
 			_if( $<adrs.Sym>0->pType == tOverloads )
@@ -78012,28 +77918,31 @@ parenPushBack:
 				// Bison's lookahead has already consumed the
 				// next symbol, push it back:
 				
-				PushBackStr( "\xde(" );
-	
+				PushBackStr( "\xde" );
+				
 			_else
 			
 				PushBackStr( "(" );
-
+				
 			_endif
 		}
 	;
+	
 	
 IndirectCall3:
 		SimpleMemoryVar			/* $1 */
 		FieldStuff				/* $2 */
 		parenPushBack			/* $3 */
 		ovldClassTkn			/* $4 */
-		'('						/* $5 */
+		saveYYText				/* $5 */
 		CollectParameters		/* $6 */
-		{						/* $7 */
+		')'						/* $7 */
+		{						/* $8 */
 			char			*pbStmt;
 			struct	SymNode	*sig;
 			
 			_here;
+			LastRefdObject = $<s>5;
 			$<returns>$ = NULL;
 			_if( langLevel <= low_level )
 			
@@ -78054,6 +77963,7 @@ IndirectCall3:
 						$<collectedParms.types>6, 
 						$<collectedParms.pForm>6 
 					);
+					
 			_if( sig == NULL )
 			
 				yyerror
@@ -78095,7 +78005,6 @@ IndirectCall3:
 			_endif
 			_here; 
 		}
-		Rparen			/* $8 */
 		
 		// Must reinvoke SingleStmt to process the
 		// string we just pushed back on the lexer input:
@@ -78103,10 +78012,10 @@ IndirectCall3:
 		callFunction	/* $9 */
 		{
 			$<returns>$ = $<returns>9;
-			_if( $<returns>7 != NULL )
+			_if( $<returns>8 != NULL )
 			
-				free( $<returns>7 );
-			
+				free( $<returns>8 ); 
+				
 			_endif
 		}
 	;
@@ -78642,6 +78551,7 @@ IndirectCall3:
 			_endif
 		}
 	;
+
 
 
 	/*
@@ -79210,6 +79120,7 @@ IndirectCall4:
 			_here;
 		}
 	;
+
 
 
 
@@ -93697,7 +93608,21 @@ PutContinueLbl:
 
 
 SingleStmt:
-		callIterators
+		callIteratorID
+		{
+			$<returns>$ = NULL;
+		}
+	;
+	
+SingleStmt:
+		callIndirectIterator
+		{
+			$<returns>$ = NULL;
+		}
+	;
+	
+SingleStmt:
+		callIndexedIterator
 		{
 			$<returns>$ = NULL;
 		}
@@ -93772,15 +93697,18 @@ callIteratorID:
 callIteratorID:
 		foreachTkn			/* $1 */
 		OverloadedID		/* $2 */
-		Lparen				/* $3 */
-		CollectParameters	/* $4 */
-		{					/* $5 */
+		'('					/* $3 */
+		saveYYText			/* $4 */
+		CollectParameters	/* $5 */
+		')'					/* $6 */
+		{					/* $7 */
 			char			*pbStmt;
 			struct	SymNode	*sig;
 			char			msg[256];
 			
 			_here;
 			$<returns>$ = NULL;
+			LastRefdObject = $<s>4;
 			_if( langLevel <= low_level )
 			
 				yyerror
@@ -93796,9 +93724,9 @@ callIteratorID:
 			sig =	matchSignature
 					( 
 						$<s>2, 
-						$<collectedParms.parmCnt>4, 
-						$<collectedParms.types>4, 
-						$<collectedParms.pForm>4 
+						$<collectedParms.parmCnt>5, 
+						$<collectedParms.types>5, 
+						$<collectedParms.pForm>5 
 					);
 					
 			_if( sig == NULL )
@@ -93815,7 +93743,7 @@ callIteratorID:
 				pbStmt = 	malloc2
 							( 
 								strlen( sig->u.ovld.procName ) +
-								strlen( $<collectedParms.parms>4 )
+								strlen( $<collectedParms.parms>5 )
 								+256
 							);
 							
@@ -93824,35 +93752,34 @@ callIteratorID:
 					pbStmt,
 					"foreach %s( %s )",
 					sig->u.ovld.procName,
-					$<collectedParms.parms>4
+					$<collectedParms.parms>5
 				);
 				PushBackStr( pbStmt );
 				$<returns>$ = pbStmt;
 				
 			_endif
-			_if( $<collectedParms.parms>4 != NULL )
+			_if( $<collectedParms.parms>5 != NULL )
 			
-				free( $<collectedParms.parms>4 );
+				free( $<collectedParms.parms>5 );
 				
 			_endif
-			_if( $<collectedParms.types>4 != NULL )
+			_if( $<collectedParms.types>5 != NULL )
 			
-				free( $<collectedParms.types>4 );
+				free( $<collectedParms.types>5 );
 				
 			_endif
 			_here; 
 		}
-		Rparen			/* $6 */
 		
 		// Must reinvoke SingleStmt to process the
 		// string we just pushed back on the lexer input:
 		
-		callIterators	/* $7 */
+		callIterators	/* $8 */
 		{
-			$<returns>$ = $<returns>7;
-			_if( $<returns>5 != NULL )
+			$<returns>$ = $<returns>8;
+			_if( $<returns>7 != NULL )
 			
-				free( $<returns>5 );
+				free( $<returns>7 ); 
 				
 			_endif
 		}
@@ -94129,20 +94056,21 @@ callIndirectIterator:
 
 
 callIndirectIterator:
-		foreachTkn				/* $1 */
-		SimpleMemoryVar			/* $2 */
-		FieldStuff				/* $3 */
-		parenPushBack			/* $4 */
-		ovldClassTkn			/* $5 */
-		'('						/* $6 */
-		CollectParameters		/* $7 */
-		Rparen					/* $8 */
-		{						/* $9 */
+		foreachTkn				/* $1  */
+		SimpleMemoryVar			/* $2  */
+		FieldStuff				/* $3  */
+		parenPushBack			/* $4  */
+		ovldClassTkn			/* $5  */
+		saveYYText				/* $6  */
+		CollectParameters		/* $7  */
+		')'						/* $8  */
+		{						/* $9  */
 			char			*pbStmt;
 			struct	SymNode	*sig;
 			
 			_here;
 			$<returns>$ = NULL;
+			LastRefdObject = $<s>6;
 			_if( langLevel <= low_level )
 			
 				yyerror
@@ -94212,7 +94140,7 @@ callIndirectIterator:
 			$<returns>$ = $<returns>10;
 			_if( $<returns>9 != NULL )
 			
-				free( $<returns>9 );
+				free( $<returns>9 ); 
 				
 			_endif
 		}
@@ -99660,7 +99588,6 @@ SimpleMemoryVar:
 		LocalVarID
 		{
 			char *p;
-
 			_here;
 			SetReferenced( $<s>1 );			
 			_if
