@@ -3872,7 +3872,7 @@ _begin( matchSignature )
 				_switch( pForm )
 				
 					_case( parm_constant )
-					
+
 						_if
 						(!(
 						
@@ -3901,6 +3901,14 @@ _begin( matchSignature )
 									&&	IsReal( types[i]->pType ) 
 									&&	ctt->pType >= types[i]->pType
 								)
+							||	( 
+										ctt->pType == tPointer 
+									&&	types[i]->pType == tPointer 
+								) 
+							||	( 
+										ctt->pType == tString 
+									&&	types[i]->pType == tPointer 
+								) 
 								
 						))
 							
