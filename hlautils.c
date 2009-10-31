@@ -4124,9 +4124,13 @@ _begin( matchSignature )
 						_case( parm_register )
 						
 							_if
-							(!( 
+							(!(
+									 
 									ctt->ObjectSize == types[i]->ObjectSize
-								&&	IsOrdinal( ctt->pType )
+								&&	(
+											IsOrdinal( ctt->pType )
+										||	ctt->pType == tString
+									)
 							))
 							
 								sigMatched = 0;
