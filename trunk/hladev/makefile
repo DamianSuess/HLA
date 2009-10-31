@@ -15,7 +15,7 @@ hlaasm.gas:
 	
 	
 hlaasm.gasx:
-	hla -sourcemode -s -gasx -sourcemode -dmacosx hlaasm.hla
+	hla -macos -sourcemode -s -gasx -sourcemode -dmacosx hlaasm.hla
 	copy hlaasm.asm ..\hlaasm.gasx
 	
 	
@@ -36,7 +36,7 @@ hlabe.freeBSD.gas: hlabe.hla hlabe.hhf
 	
 	
 hlabe.gasx: hlabe.hla hlabe.hhf
-	hla -sourcemode -s -gasx -sourcemode -DUNIX -macos hlabe
+	hla -sourcemode -s -gasx -sourcemode -DUNIX -macos -dmacosx hlabe
 	copy hlabe.asm ..\hlabe.gasx
 	
 	
