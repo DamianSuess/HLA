@@ -11955,7 +11955,7 @@ _begin( ProcessID )
             _return ClassIterID;
             
         _endif
-        
+		
         _if( cn.Sym->SymClass == cMethod ) 
         
             yylval->s->u.proc.BaseClass = SaveSymTbl;
@@ -11964,6 +11964,14 @@ _begin( ProcessID )
         _endif
         
 
+        _if( cn.Sym->SymClass == cOverloads )
+		 
+            yylval->s->u.proc.BaseClass = SaveSymTbl;
+			_return OverloadedID;
+			
+		_endif
+		
+        
         _if( cn.Sym->SymClass == cStatic ) 
 
 			yylval->s = cn.Sym;
