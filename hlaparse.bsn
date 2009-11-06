@@ -967,7 +967,7 @@ extern int yylex( union YYSTYPE *yylval );
 		int					parmCnt;
 		struct	SymNode		**types;
 		char				*parms;
-		enum	ParmForm	pForm;
+		enum	ParmForm	*pForms;
 	} collectedParms;
 	
 	struct
@@ -77686,7 +77686,7 @@ SingleStmt:
 						$<s>1, 
 						$<collectedParms.parmCnt>4, 
 						$<collectedParms.types>4, 
-						$<collectedParms.pForm>4 
+						$<collectedParms.pForms>4 
 					);
 					
 			_if( sig == NULL )
@@ -77799,9 +77799,10 @@ OptionalCollectParameters:
 		Empty
 		{
 			_here;
-			$<collectedParms.parmCnt>$ = 0;
-			$<collectedParms.types>$ = NULL;
-			$<collectedParms.parms>$ = NULL;	// Filled in later
+			$<collectedParms.parmCnt>$ 	= 0;
+			$<collectedParms.types>$ 	= NULL;
+			$<collectedParms.pForms>$ 	= NULL;
+			$<collectedParms.parms>$ 	= NULL;	// Filled in later
 		}
 		
 	|	OneOrMoreCollectParameters
@@ -77841,6 +77842,21 @@ OneOrMoreCollectParameters:
 				$<collectedParms.parmCnt>3 * sizeof( struct SymNode*)
 			);
 			free( $<collectedParms.types>3 );
+				
+			$<collectedParms.pForms>$ = 
+				malloc2
+				( 
+					$<collectedParms.parmCnt>$ * sizeof( enum ParmForm )
+				);
+				
+			$<collectedParms.pForms>$[0] = $<collectedParms.pForms>1[0];	
+			memcpy
+			( 
+				&$<collectedParms.pForms>$[1],
+				$<collectedParms.pForms>3,
+				$<collectedParms.parmCnt>3 * sizeof( enum ParmForm )
+			);
+			free( $<collectedParms.pForms>3 );
 			$<collectedParms.parms>$ = NULL;	// Filled in later
 			_here; 
 		}
@@ -77852,9 +77868,10 @@ OneCollectParameter:
 		fConstExpr
 		{
 			_here;
-			$<collectedParms.pForm>$ = parm_constant;
+			$<collectedParms.pForms>$ = malloc2( sizeof( enum ParmForm ));
+			$<collectedParms.pForms>$[0] = parm_constant;
 			$<collectedParms.parmCnt>$ = 1;
-			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*) );
+			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode* ));
 			$<collectedParms.types>$[0] = $<v.Type>1;
 			_here; 
 		}
@@ -77880,7 +77897,8 @@ OneCollectParameter:
 		fRegister 
 		{
 			_here;
-			$<collectedParms.pForm>$ = parm_register;
+			$<collectedParms.pForms>$ = malloc2( sizeof( enum ParmForm ));
+			$<collectedParms.pForms>$[0] = parm_register;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
 			$<collectedParms.types>$[0] = $<reg.Type>1;
@@ -77894,7 +77912,8 @@ OneCollectParameter:
 		edxeaxTkn 
 		{
 			_here;
-			$<collectedParms.pForm>$ = parm_register;
+			$<collectedParms.pForms>$ = malloc2( sizeof( enum ParmForm ));
+			$<collectedParms.pForms>$[0] = parm_register;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
 			$<collectedParms.types>$[0] = &qword_ste;
@@ -77909,7 +77928,8 @@ OneCollectParameter:
 		dxaxTkn 
 		{
 			_here;
-			$<collectedParms.pForm>$ = parm_register;
+			$<collectedParms.pForms>$ = malloc2( sizeof( enum ParmForm ));
+			$<collectedParms.pForms>$[0] = parm_register;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
 			$<collectedParms.types>$[0] = &dword_ste;
@@ -77927,7 +77947,8 @@ OneCollectParameter:
 		fRegister
 		{
 			_here;
-			$<collectedParms.pForm>$ = parm_register;
+			$<collectedParms.pForms>$ = malloc2( sizeof( enum ParmForm ));
+			$<collectedParms.pForms>$[0] = parm_register;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
 			$<collectedParms.types>$[0] = $<reg.Type>2;
@@ -77951,7 +77972,8 @@ OneCollectParameter:
 		fMemory
 		{
 			_here;
-			$<collectedParms.pForm>$ = parm_memory;
+			$<collectedParms.pForms>$ = malloc2( sizeof( enum ParmForm ));
+			$<collectedParms.pForms>$[0] = parm_memory;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
 			$<collectedParms.types>$[0] = $<adrs.Type>1;
@@ -77970,7 +77992,8 @@ OneCollectParameter:
 		fMemory
 		{
 			_here;
-			$<collectedParms.pForm>$ = parm_memory;
+			$<collectedParms.pForms>$ = malloc2( sizeof( enum ParmForm ));
+			$<collectedParms.pForms>$[0] = parm_memory;
 			$<collectedParms.parmCnt>$ = 1;
 			$<collectedParms.types>$ = malloc2( sizeof( struct SymNode*));
 			$<collectedParms.types>$[0] = $<adrs.Type>2;
@@ -78654,7 +78677,7 @@ IndirectCall3:
 						$<adrs.Sym>2, 
 						$<collectedParms.parmCnt>6, 
 						$<collectedParms.types>6, 
-						$<collectedParms.pForm>6 
+						$<collectedParms.pForms>6 
 					);
 					
 			_if( sig == NULL )
@@ -94889,7 +94912,7 @@ callIteratorID:
 						$<s>2, 
 						$<collectedParms.parmCnt>5, 
 						$<collectedParms.types>5, 
-						$<collectedParms.pForm>5 
+						$<collectedParms.pForms>5 
 					);
 					
 			_if( sig == NULL )
@@ -95251,7 +95274,7 @@ callIndirectIterator:
 						$<adrs.Sym>3, 
 						$<collectedParms.parmCnt>7, 
 						$<collectedParms.types>7, 
-						$<collectedParms.pForm>7 
+						$<collectedParms.pForms>7 
 					);
 			_if( sig == NULL )
 			

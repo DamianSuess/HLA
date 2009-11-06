@@ -2256,7 +2256,7 @@ typedef union YYSTYPE
 		int					parmCnt;
 		struct	SymNode		**types;
 		char				*parms;
-		enum	ParmForm	pForm;
+		enum	ParmForm	*pForms;
 	} collectedParms;
 	
 	struct
