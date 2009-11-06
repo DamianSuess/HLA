@@ -3839,7 +3839,7 @@ matchSignature
 	struct SymNode		*ovldID,
 	int					parmCnt,
 	struct	SymNode		**types,
-	enum	ParmForm	pForm
+	enum	ParmForm	*pForm
 )
 _begin( matchSignature )
 
@@ -3869,7 +3869,7 @@ _begin( matchSignature )
 				// parameters. On this first pass, require
 				// strict type matching on memory operands.
 				
-				_switch( pForm )
+				_switch( pForm[i] )
 				
 					_case( parm_constant )
 
@@ -3963,7 +3963,7 @@ _begin( matchSignature )
 		ovldID = saveOvldID;
 		_while( ovldID != NULL )
 		
-		
+
 			// First, check to see if the number of actual parameters
 			// agrees with the current overloaded symbol:
 			
@@ -3973,13 +3973,12 @@ _begin( matchSignature )
 				curType = ovldID->u.ovld.parms;
 				_for( i=0, i<parmCnt, ++i )
 				
-				
 					// If the number of symbols agrees, then we
 					// have to check the type of each of the
 					// parameters. On this first pass, require
 					// strict type matching on memory operands.
 					
-					_switch( pForm )
+					_switch( pForm[i] )
 					
 						_case( parm_constant )
 						

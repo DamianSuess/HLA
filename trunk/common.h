@@ -599,7 +599,7 @@ extern struct SymNode *matchSignature
 	struct SymNode		*ovldID,
 	int					parmCnt,
 	struct	SymNode		**types,
-	enum	ParmForm	pForm
+	enum	ParmForm	*pForm
 ); 
 
 					
