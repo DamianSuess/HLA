@@ -61,15 +61,7 @@ hlaasm.obj: hladev\hlaasm.hla
 	nmake hlaasm.gas
 	nmake hlaasm.gasx
 	cd ..
-
-hlabe.obj: hladev\hlabe.hla
-	cd hladev
-	nmake hlabe.masm
-	nmake hlabe.linux.gas
-	nmake hlabe.freebsd.gas
-	nmake hlabe.gasx
-	cd ..
-
+	
 	____
 
 
