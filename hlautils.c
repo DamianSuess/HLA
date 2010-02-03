@@ -456,7 +456,11 @@ _begin( FreeRecord )
 	
 	_for( int i=0, i < Record->v.FieldCnt, ++i )
 
-		_if( Record->v.u.FieldValues[i].Type != NULL )
+		_if
+		( 
+				Record->v.u.FieldValues != NULL 
+			&&	Record->v.u.FieldValues[i].Type != NULL 
+		)
 
 			FreeValue( (union YYSTYPE *) &Record->v.u.FieldValues[i] );
 			
