@@ -18836,7 +18836,7 @@ procs:
 	;
 	
 
-	
+
 	
 newProcs:	
 		UndefinedID		/* $1 */
@@ -37807,6 +37807,52 @@ newClassProc:
 
 
 
+
+newClassProc:	
+		UndefinedID		/* $1 */
+		Colon			/* $2 */
+		forwardTkn		/* $3 */
+		Lparen			/* $4 */
+		UndefinedID		/* $5 */
+		Rparen			/* $6 */
+		Semicolon		/* $7 */
+		{				/* $8 */
+
+			union YYSTYPE v;
+
+			_here;
+			assert( $<idStr>1 != NULL );
+			assert( $<idStr>5 != NULL );
+
+			v.v.u.strval = $<idStr>1;
+			InsertSym
+			( 
+				$<idStr>5, 
+				&text_ste,
+				tText, 
+				cConstant, 
+				0,				/* arity 			*/
+				NULL,			/* NumDimensions	*/
+				0, 				/* NumElements		*/
+				YYS &v,
+				4,				/* ObjectSize		*/
+				0,
+				NULL,
+				NULL,			/* Base				*/
+				NULL,			/* Fields			*/
+				0				/* FieldCnt			*/ 
+			);
+
+			/*
+			** "Prime" fastLookup for the next identifier we encounter:
+			*/
+			
+			fastLookup = 1;
+			_here;
+		}
+	;
+
+			 
 
 
 

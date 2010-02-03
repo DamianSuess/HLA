@@ -1887,7 +1887,6 @@ _end( ClrObject )
 /* symbol's value.                                                   */
 /*                                                                   */
 /*********************************************************************/
-
 struct SymNode *
 ClrNewSym
 (
