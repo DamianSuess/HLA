@@ -65,6 +65,17 @@ hlaasm.obj: hladev\hlaasm.hla
 	____
 
 
+hlabe.obj: g:\hla\hlabe\hlabe.obj
+	cd g:\hla\hlabe\trunk
+	make
+	cd ..
+	copy hlabe.obj g:\hla\hlasrc\trunk\.
+	copy hlabe.gasx g:\hla\hlasrc\trunk\.
+	copy hlabe.linux.gas g:\hla\hlasrc\trunk\.
+	copy hlabe.freeBSD.gas g:\hla\hlasrc\trunk\.
+	copy hlabe.masm g:\hla\hlasrc\trunk\.
+	cd g:\hla\hlasrc\trunk
+	
 
 hlaparse.c: hlaparse.bsn
 	c:\cygwin\bin\bison -d -o hlaparse.c hlaparse.bsn
