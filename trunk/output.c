@@ -13841,7 +13841,7 @@ _begin( EmitGeneric_i_r )
 					assembler == hlabe 
 				||	assembler == masm 
 				||	assembler == fasm 
-				||	assembler == nasm 
+				//||	assembler == nasm 
 				||	isMLF 
 				||	(
 							assembler == nasm
