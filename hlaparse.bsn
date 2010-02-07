@@ -1385,6 +1385,7 @@ union	YYSTYPE	forReturnVal;
 %token continueifTkn
 					  
 %token tryTkn
+%token alwaysTkn
 %token unprotectedTkn
 %token exceptionTkn
 %token anyexceptionTkn
@@ -93672,6 +93673,56 @@ SingleStmt:
 			$<returns>$ = NULL;
 		}
 	;
+
+
+
+ /*
+ ** try..endtry block with only a single "always" block.
+ */
+
+SingleStmt:
+		tryTkn				/* $1 */
+		StartTry			/* $2 */
+		Stmts				/* $3 */
+		alwaysTkn			/* $4 */
+		PopExcepts			/* $5 */
+		{					/* $6 */
+
+			char label[ 256 ];
+
+			_here; 
+			sprintf( label, "tryAlways" sympost "%d", EndTryLabel );
+			EmitCallLabel( label );
+			sprintf( label, "endtry" sympost "%d", EndTryLabel );
+			EmitJmpLabel( label );
+			
+			EmitStmtLblNum( "exception" sympost "%d", EndTryLabel + 1 );
+			push_r( reg_eax );
+			sprintf( label, "tryAlways" sympost "%d", EndTryLabel );
+			EmitCallLabel( label );
+			pop_r( reg_eax );
+			EmitJmpLabel( "Raise" sympost );
+			need_raise = 1;
+			EmitStmtLblNum( "tryAlways" sympost "%d", EndTryLabel ); 
+			_here; 
+		}
+
+		Stmts				/* $7 */
+		endtryTkn			/* $8 */
+		{					/* $9 */
+
+			_here; 
+			ret_instr( -1 );
+			
+			EmitStmtLblNum( "endtry" sympost "%d", EndTryLabel ); 
+			EndTryLabel = $<v.u.intval>2;
+			$<returns>$ = NULL;
+			_here; 
+		}
+	;
+
+
+
 
 
 

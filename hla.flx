@@ -786,7 +786,8 @@ _addsubpd       addsubpd
 _addsubps       addsubps   
 _ah    			ah    
 _al    			al    
-_align          align       
+_align          align 
+_always			always      
 _and            and           
 _andnpd         andnpd     
 _andnps         andnps     
@@ -5835,6 +5836,7 @@ _zstring		zstring
 {_exit}            { testRW( exitTkn );        }
 {_exitif}          { testRW( exitifTkn );      }
 {_try}             { testRW( tryTkn );         }
+{_always}          { testRW( alwaysTkn );      }
 {_unprotected}     { testRW( unprotectedTkn ); }
 {_exception}       { testRW( exceptionTkn );   }
 {_anyexception}    { testRW( anyexceptionTkn );}
@@ -5873,6 +5875,7 @@ _zstring		zstring
 ~{_exit}          { _return exitTkn;          }
 ~{_exitif}        { _return exitifTkn;        }
 ~{_try}           { _return tryTkn;           }
+~{_always}        { _return alwaysTkn;        }
 ~{_unprotected}   { _return unprotectedTkn;   }
 ~{_exception}     { _return exceptionTkn;     }
 ~{_anyexception}  { _return anyexceptionTkn;  }
