@@ -138,6 +138,7 @@ int LineCnt = 1;
 int TotalLines = 1;
 
 int SkipLookup = 0;
+int superPrefix = 0;
 
 static int StartParm;
 
@@ -454,6 +455,7 @@ int AddIncFilesList( char *filename );
 %x recASM
 %x NameSpace
 %x ThisID
+%x SuperID
 
 %x InText
 %x InString
@@ -1524,7 +1526,8 @@ _sub            sub
 _subpd          subpd      
 _subps          subps      
 _subsd          subsd      
-_subss          subss 
+_subss          subss
+_super			super 
 _switch			switch     
 _sysenter       sysenter   
 _sysexit        sysexit    
@@ -9120,6 +9123,202 @@ _zstring		zstring
                         ErrorNear
                         ( 
                             "Illegal use of THIS keyword", 
+                            yytext,
+                            __LINE__,
+                            __FILE__ 
+                        );
+                        PushBackStr( yytext );
+                        BEGIN 0;
+                    }
+
+
+
+
+
+
+ 
+ /*
+ ** Handle the "super" keyword here.  "super" is valid only inside
+ ** a method or class procedure.  If we are inside such a program
+ ** unit, then the "ThisPtr" variable will be non-null and will
+ ** point at the class definition's symbol table entry.
+ */
+
+{_super}             {
+                        _here;
+                        _if( ThisPtr == NULL )
+
+                            yyerror
+                            ( 
+                                "Misuse of SUPER reserved word outside class" 
+                            );
+
+                        _else
+
+
+                            CurSymTbl = ThisPtr;
+                            CurObject = ThisPtr;
+                            BEGIN SuperID;
+
+                        _endif
+                        _here;
+                    }
+
+ 
+
+ /*
+ ** Handle fields of a class identifier down here.
+ **
+ ** Hack: This code needs to expand TEXT and MACRO IDs
+ ** directly but pass all other IDs to the parser for
+ ** further processing.  This code processes the field
+ ** names down to the first field that is not a class type.
+ ** If the specified object is a TEXT or MACRO object, then
+ ** this code directly expands that object.  If the first
+ ** non-class field is a constant, then this code returns
+ ** that constant (or value) object as though the lexer had
+ ** only seen a single identifier (no fields).  If we've got
+ ** some sort of variable access, this code pushes the string
+ ** it has scanned back onto the lexer input and leaves it
+ ** up to the parser to extract each field from this string.
+ ** This kludge is necessary in order to properly process
+ ** text and macro objects.
+ */
+
+
+<SuperID>"."[a-z_][a-z0-9_]* {
+
+                        int             Token;
+                        struct  SymNode *SaveSym;
+                        struct  SymNode *s;
+                        struct  SymNode *symbol;
+                        char            msg[ 256 ];
+
+                        
+                        /*
+                        ** Look up this field name in the local
+                        ** symbol table for the class.  CurSymTbl
+                        ** points at the last fieldname we've processed.
+                        ** yytext (+1) is pointing at the current field name.
+                        */
+
+                        _here;
+
+                        symbol = lookupthis( yytext+1, CurSymTbl->Fields );
+                        BEGIN 0;
+                        _if( symbol != NULL )
+
+
+                            /*
+                            ** If this is a macro or text object,
+                            ** expand it here.  If it is a constant,
+                            ** return a pointer to the constant's (or
+                            ** value's) symbol table entry. If it is
+                            ** not one of these classes, then reconstruct
+                            ** the id for reprocessing via the lexer.
+                            */
+
+                            Token = 
+                                ProcessID
+                                ( 
+                                    yytext+1, 
+                                    CurSymTbl->Fields->LexLevel,
+                                    symbol, 
+                                    yylval 
+                                );
+
+                        _else
+                        
+                            Token = -1;  // Arbitrary negative value to
+                                         // signal an error.
+
+                        _endif
+
+                        _if( Token >= 0 )
+
+							// Only method and procedure names are valid
+							// after "super"
+							
+                            _if
+                            (
+                                    Token == LocalMethodID 
+                                ||	Token == NonLocalMethodID 
+                                ||  Token == OverloadedID 
+                            )
+
+                                /*
+                                ** If it's a procedure name
+                                ** following "this.", then
+                                ** emit "(type classname [esi])."
+                                ** in place of "this."
+                                */
+
+                                sprintf
+                                (
+                                    msg,
+                                    "(type %s [esi])%s",
+                                    CurSymTbl->TrueName,
+                                    yytext
+                                );
+                                PushBackStr( msg );
+								
+								// Let the parser know that we've got a
+								// "super" prefix:
+								
+								superPrefix = 1;
+								
+							_else
+
+	                            /*
+	                            ** We've got something unexpected if we
+	                            ** get to this point.
+	                            */
+
+	                            sprintf
+	                            (
+	                                msg,
+	                                "Expected a method ID ('super.%s') "
+									"at line %d in lexer",
+	                                yytext+1,
+	                                __LINE__,
+	                                __FILE__
+	                            );
+	                            yyerror( msg );
+
+							_endif
+
+
+                        _else
+
+                            /*
+                            ** We've got something unexpected if we
+                            ** get to this point.
+                            */
+
+                            sprintf
+                            (
+                                msg,
+                                "Unexpected symbol 'super.%s' at line %d in lexer",
+                                yytext+1,
+                                __LINE__,
+                                __FILE__
+                            );
+                            yyerror( msg );
+
+                        _endif
+                        _here;
+                    }
+
+
+ /*
+ ** If we get down here, something other than a fieldname followed
+ ** the "super" keyword.
+ */
+
+<SuperID>(.|\n)      {
+                        ErrorNear
+                        ( 
+                            "Illegal use of SUPER keyword", 
                             yytext,
                             __LINE__,
                             __FILE__ 

@@ -2494,7 +2494,7 @@ _begin( EmitExternDataSymbols )
 					)
 				&&	CurSym->pType != tLabel 
 			)
-				
+
 				EmitExternDirective( CurSym, "2" );
 				
 			_endif
@@ -25551,7 +25551,15 @@ _begin( OutputVMT )
 			// in case we're inheriting fields from some class that
 			// isn't defined in the current module:
 			
-			extLookup( ClassPtr, ClassPtr->StaticName, tDWord, 0, 1, 0 );
+			extLookup
+			( 
+				ClassPtr, 
+				ClassPtr->StaticName, 
+				tLabel, //tDWord, 
+				0, 
+				1, 
+				0 
+			);
 
 		_endif
 
@@ -25565,13 +25573,44 @@ BuildVMT( struct SymNode *ClassPtr, char *VMTname )
 _begin( BuildVMT )
 
 	int	VMToffset;
-
+	
 	EmitPublic( VMTname );
 	_if( HasAbstract )
 	
 		EmitTypedExtern( NULL, "abstract" sympost, tLabel );
 		
 	_endif
+	
+	// Emit a pointer to the parent's VMT before the actual
+	// VMT so we have access to that VMT for nefarious purposes.
+	
+	EmitAdrs
+	(
+		_ifx
+		( 
+			ClassPtr->Base != NULL,
+			ClassPtr->Base->StaticName,
+			VMTname
+		)
+	);
+	 
+	// Add an "external" declaration for the parent symbol.
+	
+	_if( ClassPtr->Base != NULL )
+	
+		extLookup
+		( 
+			ClassPtr->Base, 
+			ClassPtr->Base->StaticName, 
+			tLabel, //tDWord, 
+			0, 
+			1, 
+			0 
+		);
+		
+	_endif
+	
+	
 	EmitTypedLabel( VMTname, tDWord );
 	VMToffset = -4;
 	OutputVMT( ClassPtr->Fields, &VMToffset );

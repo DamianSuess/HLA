@@ -2339,7 +2339,6 @@ _begin( MacroLookup )
 				
 						char	*SaveText;
 				struct	SymNode	*SaveNext;
-
 				SaveText = ActList->u.MacroData.Parent->u.MacroData.Text;
 				ActList->u.MacroData.Parent->u.MacroData.Text = 
 					ActList->u.MacroData.Text;
