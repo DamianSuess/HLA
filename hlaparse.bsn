@@ -3720,6 +3720,11 @@ OptMacroParms:
 			_if( $<s>0 == NULL )
 
 				yyerror( "Too many macro parameters" );
+				
+				// If we get to this point, must quit because
+				// continuing will cause the program to crash.
+				
+				exit( 1 );
 
 
 			_elseif( $<s>0->pType == tText )
@@ -3738,15 +3743,7 @@ OptMacroParms:
 		{
 
 			_here;
-			_if( $<s>0 == NULL )
-
-				/*
-				** Already printed this error message above.
-				**
-				**	yyerror( "Too many macro parameters" );
-				*/
-				
-			_elseif( $<v.u.ArrayOfValues>5 == NULL )
+			_if( $<v.u.ArrayOfValues>5 == NULL )
 			
 				yyerror( "Syntax error in macro parameter list" );
 
@@ -38371,6 +38368,10 @@ MatchParms:
 					$<s>0->u.proc.parms->TrueName
 				);
 				yyerror( msg );
+				
+				// Continuing may crash the program. So quit:
+				
+				exit( 1 );
 
 			_endif
 		}
@@ -55697,7 +55698,6 @@ StaticSingleType:
 						SymbolTable->u.proc.parms = &true_ste;
 
 					_endif
-
 
 					_if( !$<options.NoStorage>6 )
 
@@ -78799,6 +78799,7 @@ IndirectCall3:
 			struct SymNode	*classPtr;
 			struct SymNode	*typ;
 			struct SymNode	*s;
+			struct SymNode	*super;
 			char			name[ 256 ];
 			char 			returns[ 256 ];
 
@@ -79031,8 +79032,35 @@ IndirectCall3:
 					** currently pointing at the object).
 					*/
 
-					initAdrs1( &adrs, reg_esi, 0 );
-					EmitMov_m_r( &adrs, reg_edi, 4 );
+					_if( superPrefix )
+					
+						assert( ThisPtr != NULL );
+						_if( ThisPtr->Base == NULL )
+						
+							super = ThisPtr;
+							
+						_else
+						
+							super = ThisPtr->Base;
+							
+						_endif
+						assert( super->StaticName != NULL );
+						
+						// The pointer to the super's VMT is at
+						// the current VMT[-4]:
+						 
+						initAdrs2( &adrs, super->StaticName, -1, -1, 0, 0 ); 
+						EmitLea_m_r2( &adrs, reg_edi );
+						superPrefix = 0;	// Stop using super prefix.
+					
+					_else
+					
+						// Just use the current VMT:
+						
+						initAdrs1( &adrs, reg_esi, 0 );
+						EmitMov_m_r( &adrs, reg_edi, 4 );
+						
+					_endif
 
 					initAdrs1( &adrs, reg_edi, $<adrs.Sym>2->Offset );
 					EmitCall_m( &adrs );
@@ -79330,10 +79358,11 @@ IndirectCall4:
 		IndirectCallParameters	/* $5 */
 		{						/* $6 */
 
-			int	 useLEA = 1;
-			int	 useOffset = 1;
-			int	 hasBase;
-			char returns[ 256 ];
+			struct SymNode	*super;
+			int	 			useLEA = 1;
+			int	 			useOffset = 1;
+			int	 			hasBase;
+			char 			returns[ 256 ];
 
 			_here;
 			returns[ 0 ] = '\0';
@@ -79583,8 +79612,35 @@ IndirectCall4:
 					** currently pointing at the object).
 					*/
 
-					initAdrs1( &adrs, reg_esi, 0 );
-				   	EmitMov_m_r( &adrs, reg_edi, 4 ); 
+					_if( superPrefix )
+					
+						assert( ThisPtr != NULL );
+						_if( ThisPtr->Base == NULL )
+						
+							super = ThisPtr;
+							
+						_else
+						
+							super = ThisPtr->Base;
+							
+						_endif
+						assert( super->StaticName != NULL );
+						
+						// The pointer to the super's VMT is at
+						// the current VMT[-4]:
+						 
+						initAdrs2( &adrs, super->StaticName, -1, -1, 0, 0 ); 
+						EmitLea_m_r2( &adrs, reg_edi );
+						superPrefix = 0;	// Stop using super prefix.
+					
+					_else
+					
+						// Just use the current VMT:
+						
+						initAdrs1( &adrs, reg_esi, 0 );
+						EmitMov_m_r( &adrs, reg_edi, 4 );
+						
+					_endif
 
 					initAdrs1( &adrs, reg_edi, $<adrs.Sym>2->Offset );
 					EmitCall_m( &adrs );

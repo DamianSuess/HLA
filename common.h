@@ -95,6 +95,11 @@ extern int SkipLookup;
 
 extern char *regStrs[];
 
+// superPrefix is set to "true" when the "super." prefix is used (instead of
+// "this.")
+
+extern int				superPrefix;
+
 
 // Determine the "level" of the assembly language we're going to support.
 
