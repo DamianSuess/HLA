@@ -102796,8 +102796,7 @@ LookupSym:
 					_else
 
 						yyerror( "Illegal field specification" );
-						$<adrs.Sym>$ = NULL;	/* Denote an error */
-						$<adrs.Type>$ = NULL;
+						exit( 1 );
 
 					_endif
 
@@ -102807,8 +102806,7 @@ LookupSym:
 
 					sprintf( msg, "Undefined field name <<%s>>", $<idStr>0 );
 					yyerror( msg );
-					$<adrs.Sym>$ = NULL; /* Denote an error */
-					$<adrs.Type>$ = NULL;
+					exit( 1 );
 
 				_endif
 
