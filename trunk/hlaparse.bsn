@@ -12949,6 +12949,7 @@ RecDef:
 				__LINE__,
 				__FILE__ 
 			);
+			exit( 1 );
 
 		}
 	;
@@ -12969,10 +12970,7 @@ RecDef:
 				__LINE__,
 				__FILE__ 
 			);
-			inRecord = $<ru.inSave>3;
-			MinRecAlignment = $<ru.MinRecAlignment>3;
-			MaxRecAlignment = $<ru.MaxRecAlignment>3;
-			TempRecAlign = 1;
+			exit( 1 );
 
 		}
 	;
@@ -12990,6 +12988,8 @@ RecDef:
 				__LINE__,
 				__FILE__ 
 			);
+			exit( 1 );
+			
 		}
 	;
 
@@ -13009,6 +13009,7 @@ RecDef:
 				__LINE__,
 				__FILE__ 
 			);
+			exit( 1 );
 
 		}
 	;
@@ -13029,6 +13030,7 @@ RecDef:
 				__LINE__,
 				__FILE__ 
 			);
+			exit( 1 );
 
 		}
 	;
@@ -13046,6 +13048,7 @@ RecDef:
 				__LINE__,
 				__FILE__ 
 			);
+			exit( 1 );
 
 		}
 	;
@@ -13054,6 +13057,7 @@ RecDef:
 		error ';'
 		{
 			_here;
+			exit( 1 );
 		}
 	;
 
@@ -78826,14 +78830,29 @@ IndirectCall3:
 			// In no case should $<adrs.Sym>1 be NULL.  Even for anonymous
 			// memory objects, the Sym field is set to something legitimate.
 			
-			typ = 
-				GetCallType
-				( 
-					$<adrs.Sym>1, 
-					$<adrs.Type>1, 
-					$<adrs.pType>1, 
-					&isPointer 
-				);			
+			_if( $<adrs.Sym>1->Type == NULL )
+			
+				typ = 
+					GetCallType
+					( 
+						$<adrs.Sym>1, 
+						$<adrs.Type>2, 
+						$<adrs.pType>1, 
+						&isPointer 
+					);
+			
+			_else
+			
+				typ = 
+					GetCallType
+					( 
+						$<adrs.Sym>1, 
+						$<adrs.Type>1, 
+						$<adrs.pType>1, 
+						&isPointer 
+					);
+					
+			_endif			
 			
 			classPtr = NULL;
 			_if( typ->pType == tClass )
@@ -79101,7 +79120,7 @@ IndirectCall3:
 							"esi", 		// BaseReg
 							NULL, 		// IndexReg
 							0, 			// Scale
-							$<adrs.Sym>2->Offset, 	// Disp
+							$<adrs.Disp>2, 	// Disp (was $<adrs.Sym>2->Offset
 							NULL,		// Sym
 							&dword_ste,	// Type
 							tDWord,		// pType

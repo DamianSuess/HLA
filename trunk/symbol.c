@@ -1351,7 +1351,6 @@ _begin( GetCallType )
 	// memory objects, the Sym field is set to something legitimate.
 	
 	assert( Sym != NULL );
-	assert( Sym->Type != NULL );
 	assert( Type != NULL );
 	
 	// If $<adrs.pType>1 is tPointer but $<adrs.Sym>1->pType is not, this means
@@ -1373,6 +1372,7 @@ _begin( GetCallType )
 		
 			// If Sym is not a tPointer, get its base type:
 			
+			assert( Sym->Type != NULL );
 			typ = GetBaseType( Sym->Type );
 			
 		_endif
@@ -1388,6 +1388,7 @@ _begin( GetCallType )
 			
 		_else
 		
+			assert( Sym->Type != NULL );
 			typ = GetBaseType( Sym->Type );
 			
 		_endif
