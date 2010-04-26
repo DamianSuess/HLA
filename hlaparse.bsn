@@ -55974,7 +55974,7 @@ StaticSingleExt:
 							$<s>1->StaticName,
 							_ifx
 							( 
-								$<s>1->NumElements == 0, 
+								$<s>3->pType != tArray || $<s>1->NumElements == 0, 
 								$<s>3->ObjectSize, 
 								$<s>1->NumElements * $<s>3->ObjectSize 
 							)
