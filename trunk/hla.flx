@@ -556,7 +556,8 @@ a_elementsize		@elementsize
 a_enter             @enter          
 a_enumsize   		@enumsize   
 a_env        	    @env        
-a_eos         		@eos         
+a_eos         		@eos
+a_errorprefix		@errorprefix         
 a_eval              @eval
 a_exactlynchar   	@exactlynchar   
 a_exactlyncset   	@exactlyncset   
@@ -570,6 +571,7 @@ a_external          @external
 a_extract    	    @extract    
 a_fast              @fast           
 a_filename  		@filename  
+a_filenamestk  		@filenamestk  
 a_firstnchar     	@firstnchar     
 a_firstncset     	@firstncset     
 a_firstnichar     	@firstnichar     
@@ -614,6 +616,7 @@ a_leave             @leave
 a_length   			@length   
 a_lex        		@lex        
 a_linenumber		@linenumber
+a_linenumberstk		@linenumberstk
 a_localoffset		@localoffset
 a_localsyms  		@localsyms  
 a_log        	    @log        
@@ -8325,6 +8328,8 @@ _zstring		zstring
 {a_curobject}      { _return curObjectNameTkn;     }
 {a_linenumber}     { _return lineNumberTkn;        }
 {a_filename}       { _return filenameTkn;          }
+{a_linenumberstk}  { _return lineNumberStkTkn;     }
+{a_filenamestk}    { _return fileNameStkTkn;       }
 {a_section}        { _return sectionTkn;           }
 
  /*
@@ -8341,6 +8346,7 @@ _zstring		zstring
 {a_exceptions}     { _return exceptsTkn;           }
 {a_optstrings}     { _return optstringsTkn;        }
 {a_basereg}        { _return baseregTkn;           }
+{a_errorprefix}    { _return errorPrefixTkn;       }
 
  /*
  ** @text needs a little special handling.
@@ -11433,7 +11439,7 @@ _begin( ProcessMacro )
     pushBufStack( FileName, LineCnt, NULL, 0 );
         
     FileName = symbol->u.MacroData.Filename;
-    LineCnt = symbol->u.MacroData.LineCnt - 1; 
+    LineCnt = symbol->u.MacroData.LineCnt; 
 
     /*
     ** If this macro has an associated terminator,

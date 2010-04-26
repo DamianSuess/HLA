@@ -195,6 +195,9 @@ int		testMode 	= 0;	/* True if -test, but false if HLABE			*/
 int		testMode2	= 0;	/* True if -test								*/
 
 
+int		globalMacroLineCnt = 0;
+char	*globalMacroFilename = NULL;
+
  /*
  ** Variables used to deal with variable alignment.
  **
@@ -1138,6 +1141,12 @@ extern int yylex( union YYSTYPE *yylval );
 		int			*cases;
 	} caseVals;
 	
+	struct
+	{
+		int			LineCnt;
+		char		*FileName;
+	} macroInvocation;
+	
 }
   
 
@@ -1549,8 +1558,15 @@ union	YYSTYPE	forReturnVal;
  ** Assembly-time constants and variables
  */
 
-%token curLexTkn curOffsetTkn curDirTkn addOffset1stTkn lineNumberTkn
+%token curLexTkn 
+%token curOffsetTkn 
+%token curDirTkn 
+%token addOffset1stTkn 
+%token lineNumberTkn
+%token lineNumberStkTkn
+%token errorPrefixTkn
 %token filenameTkn
+%token fileNameStkTkn
 %token startParmOfsTkn
 %token startLclOfsTkn
 %token enumSizeTkn
@@ -3322,9 +3338,19 @@ ClassFieldName:
  ** for this call.
  */
 
+macroLParen:
+		'('
+		{
+			$<macroInvocation.LineCnt>$ = globalMacroLineCnt;
+			globalMacroLineCnt = LineCnt;
+			$<macroInvocation.FileName>$ = globalMacroFilename;
+			globalMacroFilename = hlastrdup2( FileName );
+		}
+	;
+	
 doMacroParameters:
 		MacroID
-		'(' 
+		macroLParen 
 		doMacParm 
 		{
 			_here;
@@ -3338,6 +3364,11 @@ doMacroParameters:
 		{
 			_here;
 			(void) $<s>4;
+			assert( globalMacroFilename != NULL );
+			free2( &globalMacroFilename );
+			globalMacroFilename = $<macroInvocation.FileName>2;
+			globalMacroLineCnt = $<macroInvocation.LineCnt>2;
+			
 			YYACCEPT;
 		}
 	;
@@ -3385,6 +3416,7 @@ OptMacroParms:
 		LastMacroParmTkn 
 		{
 			struct	SymNode	v;
+			char			msg[1200];
 
 			/*
 			** Have we exhausted all the formal parameters already?
@@ -3393,7 +3425,14 @@ OptMacroParms:
 			_here;
 			_if( $<s>0 == NULL )
 
-				yyerror( "Excessive macro parameters" );
+				sprintf
+				( 
+					msg, 
+					"Excessive macro parameters (%s:%d)",
+					globalMacroFilename,
+					globalMacroLineCnt
+				);
+				yyerror( msg );
 
 
 			/*
@@ -3413,10 +3452,18 @@ OptMacroParms:
 			)
 
 				struct SymNode *s;
+				char			msg[1200];
 
+				sprintf
+				( 
+					msg, 
+					"Too few macro parameters (%s:%d)",
+					globalMacroFilename,
+					globalMacroLineCnt
+				);
 				ErrorNear
 				( 
-					"Too few macro parameters", 
+					msg, 
 					$<v.u.strval>1, 
 					__LINE__,
 					__FILE__ 
@@ -3615,7 +3662,15 @@ OptMacroParms:
 
 				_else
 				
-					yyerror( "Internal HLA error -- unknown macro parm type" );
+					sprintf
+					( 
+						msg, 
+						"Internal HLA error -- unknown macro parm type (%s:%d)",
+						globalMacroFilename,
+						globalMacroLineCnt
+					);
+				
+					yyerror( msg );
 
 				_endif
 
@@ -3712,12 +3767,22 @@ OptMacroParms:
 		comma 
 		doMacParm 
 		{ 
+			char	msg[1200];
+			
 			/*
 			** Have we exhausted all the formal parameters already?
 			*/
 
 			_here;
 			_if( $<s>0 == NULL )
+
+				sprintf
+				( 
+					msg, 
+					"Too many macro parameters (%s:%d)",
+					globalMacroFilename,
+					globalMacroLineCnt
+				);
 
 				yyerror( "Too many macro parameters" );
 				
@@ -3741,11 +3806,20 @@ OptMacroParms:
 		} 
 		OptMacroParms 
 		{
-
+			char msg[1200];
+			
 			_here;
 			_if( $<v.u.ArrayOfValues>5 == NULL )
 			
-				yyerror( "Syntax error in macro parameter list" );
+				sprintf
+				( 
+					msg, 
+					"Syntax error in macro parameter list (%s:%d)",
+					globalMacroFilename,
+					globalMacroLineCnt
+				);
+			
+				yyerror( msg );
 
 			_elseif( VarMacParms > 0 )
 			
@@ -3817,7 +3891,15 @@ OptMacroParms:
 					
 				_else
 				
-					yyerror( "Internal HLA error processing macro parms" );
+					sprintf
+					( 
+						msg, 
+						"Internal HLA error processing macro parms (%s:%d)",
+						globalMacroFilename,
+						globalMacroLineCnt
+					);
+				
+					yyerror( msg );
 					
 				_endif
 
@@ -3863,8 +3945,9 @@ OptMacroParms:
 
 EmptyParmList:
 			{
-				struct SymNode v;
-
+				struct SymNode	v;
+				char			msg[1200];
+				
 				_here;
 				_if( $<s>0 != NULL )
 
@@ -3872,7 +3955,14 @@ EmptyParmList:
 
 						struct SymNode *s;
 
-						yyerror( "Macro invocation needs parameters" );
+						sprintf
+						( 
+							msg, 
+							"Macro invocation needs parameters (%s:%d)",
+							globalMacroFilename,
+							globalMacroLineCnt
+						);
+						yyerror( msg );
 
 						/*
 						** Okay, we don't have enough parameters, so let's
@@ -43357,6 +43447,7 @@ TypeDef:
 					0					/* FieldCnt		 */
 				);
 				EmitVMTExtern( SymbolTable, sn );
+				SymbolTable->IsExternal = 1;
 
 
 				v.u.strval = hlastrdup2( "_pVMT_" );
@@ -43382,7 +43473,8 @@ TypeDef:
 
 			_else
 
-
+				struct SymNode *vmt;
+				
 				/*
 				** Okay, we're inheriting fields.  Copy the fields
 				** from the base type to this class (we have to do
@@ -43392,8 +43484,12 @@ TypeDef:
 				*/
 
 				SymbolTable = CopySymbols( $<s>9->Fields, sn );
+				
+				// The first entry is always the VMT:
+				
+				EmitVMTExtern( SymbolTable->Fields, sn );
+				
 				CurOffset = $<s>9->ObjectSize;
-				EmitVMTExtern( SymbolTable, sn );
 
 				$<s>$->NumElements = $<s>9->NumElements;
 				$<s>$->Base = $<s>9;
@@ -43402,7 +43498,6 @@ TypeDef:
 				$<s>$->LexLevel = $<v.u.intval>6;
 				$<s>$->u.intval = CurOffset;
 				$<s>$->ObjectSize = CurOffset;
-
 
 
 			_endif
@@ -44882,6 +44977,38 @@ ValueDef:  UndefinedForward { _here; };
 			/*
 			** Built-in VAL objects
 			*/
+
+ValueDef:	errorPrefixTkn
+			assignTkn 
+			ConstOnlyExpr 
+			Semicolon
+			{
+				_here;
+				_if( $<v.pType>3 != tString )
+
+					yyerror( "Error prefix value must be a string expression" );
+					
+
+				_else
+
+					_if( errorPrefixMsg != NULL )
+					
+						free2( &errorPrefixMsg );
+						FreeValue( YYS &$<v>3 );
+						
+					_else
+					
+						errorPrefixMsg = $<v.u.strval>3;
+						
+					_endif
+
+				_endif
+				_here;
+					
+			}
+		;
+
+
 
 ValueDef:		startParmOfsTkn assignTkn ConstOnlyExpr Semicolon
 			{
@@ -47926,6 +48053,37 @@ ValueRedef:
 			/*
 			** Built-in VAL objects
 			*/
+			
+	|		errorPrefixTkn
+			assignTkn 
+			ConstOnlyExpr 
+			Semicolon
+			{
+				_here;
+				_if( $<v.pType>3 != tString )
+
+					yyerror( "Error prefix value must be a string expression" );
+					
+
+				_else
+
+					_if( errorPrefixMsg != NULL )
+					
+						free2( &errorPrefixMsg );
+						FreeValue( YYS &$<v>3 );
+						
+					_else
+					
+						errorPrefixMsg = $<v.u.strval>3;
+						
+					_endif
+
+				_endif
+				_here;
+					
+			}
+		;
+			
 
 	|		startParmOfsTkn assignTkn ConstOnlyExpr Semicolon
 			{
@@ -56872,7 +57030,7 @@ StaticDef:
 
 				_if( $<returns>6 == NULL )  // No "@external" on VMT.
 				
-					BuildVMT( $<s>3, $<s>3->StaticName );
+					BuildVMT( $<s>3, $<s>3->StaticName, NULL );
 					extLookup
 					( 
 						$<s>3, 				  // sym,
@@ -56926,7 +57084,8 @@ StaticDef:
 		Semicolon			/* $7 */
 		OptionalExternal	/* $8 */
 		{
-			char *sn;
+			char 			*sn;
+			struct SymNode	*sym;
 
 			/*
 			** Okay, the user wants to attach a label to this VMT.
@@ -56934,7 +57093,15 @@ StaticDef:
 			*/
 
 			_here;
-			sn = hlastrdup2( $<idStr>1 );
+			_if( $<returns>8 == NULL || *$<returns>8 == '\0' )
+			
+				sn = hlastrdup2( $<idStr>1 );
+				
+			_else
+			
+				sn = $<returns>8;
+				
+			_endif
 			InsertSym
 			( 
 				$<idStr>1,			/* Name			*/
@@ -56952,8 +57119,26 @@ StaticDef:
 				NULL,				/* Fields		*/
 				0					/* FieldCnt		*/
 			);
-			EmitTypedPublic( sn, tDWord );
-			EmitTypedLabel( sn, tDWord );
+			_if( $<returns>8 != NULL )
+			
+				EmitTypedExtern
+				( 
+					SymbolTable,
+					sn, 
+					tDWord 
+				);
+				SymbolTable->IsExternal = 1;
+
+			_else
+			
+				EmitTypedPublic
+				( 
+					sn, 
+					tDWord 
+				);
+				
+			_endif
+			
 
 			_if( $<s>5->pType == tClass )
 
@@ -56966,7 +57151,7 @@ StaticDef:
 
 				_if( $<returns>8 == NULL )
 				
-					BuildVMT( $<s>5, $<s>5->StaticName );
+					BuildVMT( $<s>5, $<s>5->StaticName, sn );
 					extLookup
 					( 
 						$<s>5, 				  // sym,
@@ -56977,7 +57162,7 @@ StaticDef:
 						1 					  // isVMT 
 					);
 					
-				_elseif( *$<returns>8 == '\0' ) // @external;
+				_else // @external;
 				
 					extLookup
 					( 
@@ -56988,25 +57173,57 @@ StaticDef:
 						0, 					  // ForceRef,
 						1 					  // isVMT 
 					);
-				
-				_else
-
-					extLookup
-					( 
-						$<s>3, 				  // sym,
-						$<returns>8,	 	  // theLabel, 
-						tDWord, 			  // theType, 
-						0, 					  // IsPublic,
-						0, 					  // ForceRef,
-						1 					  // isVMT 
-					);
-				
+								
 				_endif
 
 			_else
 
 				yyerror( "Expected a class type identifier" );
 
+			_endif
+			_here;
+		}
+		
+	|	AnyLocalID			/* $1 */ 
+		Colon 				/* $2 */
+		vmtTkn				/* $3 */
+		Lparen				/* $4 */
+		TypeID				/* $5 */
+		Rparen				/* $6 */
+		Semicolon			/* $7 */
+		{
+			struct SymNode	*sym;
+
+			/*
+			** Okay, the user wants to attach a label to this VMT.
+			** Automatically make it public.
+			*/
+
+			_here;
+			_if( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
+			
+				$<s>1->IsExternal = 0;
+				EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
+			
+				_if( $<s>5->pType == tClass )
+
+					/*
+					** Okay, build the Virtual Method Table for
+					** this class and adjust the offsets for each
+					** of the methods to reflect the index into the
+					** VMT.
+					*/
+
+					
+					BuildVMT( $<s>5, $<s>5->StaticName, $<s>1->StaticName );
+						
+
+				_else
+
+					yyerror( "Expected a class type identifier" );
+
+				_endif
+				
 			_endif
 			_here;
 		}
@@ -57477,7 +57694,7 @@ ReadOnlyDef:
 
 				_if( $<returns>6 == NULL )
 				
-					BuildVMT( $<s>3, $<s>3->StaticName );
+					BuildVMT( $<s>3, $<s>3->StaticName, NULL );
 					extLookup
 					( 
 						$<s>3, 				  // sym,
@@ -57536,7 +57753,8 @@ ReadOnlyDef:
 		Semicolon			/* $7 */
 		OptionalExternal	/* $8 */
 		{
-			char *sn;
+			char 			*sn;
+			struct SymNode	*sym;
 
 			/*
 			** Okay, the user wants to attach a label to this VMT.
@@ -57544,7 +57762,15 @@ ReadOnlyDef:
 			*/
 
 			_here;
-			sn = hlastrdup2( $<idStr>1 );
+			_if( $<returns>8 == NULL || *$<returns>8 == '\0' )
+			
+				sn = hlastrdup2( $<idStr>1 );
+				
+			_else
+			
+				sn = $<returns>8;
+				
+			_endif
 			InsertSym
 			( 
 				$<idStr>1,			/* Name			*/
@@ -57562,8 +57788,26 @@ ReadOnlyDef:
 				NULL,				/* Fields		*/
 				0					/* FieldCnt		*/
 			);
-			EmitTypedPublic( sn, tDWord );
-			EmitTypedLabel( sn, tDWord );
+			_if( $<returns>8 != NULL )
+			
+				EmitTypedExtern
+				( 
+					SymbolTable,
+					sn, 
+					tDWord 
+				);
+				SymbolTable->IsExternal = 1;
+
+			_else
+			
+				EmitTypedPublic
+				( 
+					sn, 
+					tDWord 
+				);
+				
+			_endif
+			
 
 			_if( $<s>5->pType == tClass )
 
@@ -57576,7 +57820,7 @@ ReadOnlyDef:
 
 				_if( $<returns>8 == NULL )
 				
-					BuildVMT( $<s>5, $<s>5->StaticName );
+					BuildVMT( $<s>5, $<s>5->StaticName, sn );
 					extLookup
 					( 
 						$<s>5, 				  // sym,
@@ -57598,17 +57842,6 @@ ReadOnlyDef:
 						0, 					  // ForceRef,
 						1 					  // isVMT 
 					);
-					_if( *$<returns>8 != '\0' )
-					
-						HLAWarning
-						( 
-							"Ignoring VMT external string", 
-							$<returns>8, 
-							__LINE__, 
-							__FILE__ 
-						);
-						
-					_endif
 								
 				_endif
 
@@ -57616,6 +57849,58 @@ ReadOnlyDef:
 
 				yyerror( "Expected a class type identifier" );
 
+			_endif
+			_here;
+		}
+	;
+
+
+
+
+
+
+
+ReadOnlyDef:
+		AnyLocalID			/* $1 */ 
+		Colon 				/* $2 */
+		vmtTkn				/* $3 */
+		Lparen				/* $4 */
+		TypeID				/* $5 */
+		Rparen				/* $6 */
+		Semicolon			/* $7 */
+		{
+			struct SymNode	*sym;
+
+			/*
+			** Okay, the user wants to attach a label to this VMT.
+			** Automatically make it public.
+			*/
+
+			_here;
+			_if( $<s>1->IsExternal && $<s>1->SymClass == cStatic )
+			
+				$<s>1->IsExternal = 0;
+				EmitTypedPublic( $<s>1->StaticName, $<s>1->pType );
+			
+				_if( $<s>5->pType == tClass )
+
+					/*
+					** Okay, build the Virtual Method Table for
+					** this class and adjust the offsets for each
+					** of the methods to reflect the index into the
+					** VMT.
+					*/
+
+					
+					BuildVMT( $<s>5, $<s>5->StaticName, $<s>1->StaticName );
+						
+
+				_else
+
+					yyerror( "Expected a class type identifier" );
+
+				_endif
+				
 			_endif
 			_here;
 		}
@@ -73100,6 +73385,101 @@ ConstFunc:
 /*                                                        */
 /**********************************************************/
 
+
+ConstFunc:	lineNumberStkTkn	// $1
+			Lparen				// $2 
+			ConstExpr			// $3
+			Rparen				// $4
+			{
+				int index;
+				
+				_here;
+				ClrConst
+				( 
+					YYS &$<v>$, 
+					tUns32, 
+					&uns32_ste
+				);
+				_if( !checkSmallUns( YYS &$<v>3 ) )
+
+					yyerror( "Type mismatch in operands" );
+					ClrConst
+					( 
+						YYS &$<v>$, 
+						tUns32, 
+						&uns32_ste
+					);
+					
+
+				_else
+					
+					index = 
+						_ifx( $<v.u.unsval>3 > BufSP, BufSP, $<v.u.unsval>3);
+					
+					index = BufSP - index;
+					_if( index == BufSP )
+					
+						$<v.u.unsval>$ = LineCnt;
+					
+					_else
+						
+						$<v.u.unsval>$ = BufferStack[ index ].LineCnt;
+							
+					_endif
+
+				_endif
+				_here;
+
+			};
+
+ConstFunc:	fileNameStkTkn		// $1
+			Lparen				// $2 
+			ConstExpr			// $3
+			Rparen				// $4
+			{
+				int index;
+				
+				_here;
+				ClrConst
+				( 
+					YYS &$<v>$, 
+					tString, 
+					&string_ste
+				);
+				_if( !checkSmallUns( YYS &$<v>3 ) )
+
+					yyerror( "Type mismatch in operands" );
+					ClrConst
+					( 
+						YYS &$<v>$, 
+						tString, 
+						&string_ste
+					);
+					$<v.u.strval>$ = hlastrdup2( "" );
+					
+
+				_else
+					
+					index = 
+						_ifx( $<v.u.unsval>3 > BufSP, BufSP, $<v.u.unsval>3);
+					
+					index = BufSP - index;
+					_if( index == BufSP )
+					
+						$<v.u.strval>$ = FileName;
+					
+					_else
+						
+						$<v.u.strval>$ = 
+							hlastrdup2( BufferStack[ index ].FileName );
+							
+					_endif
+
+				_endif
+				_here;
+
+			};
+
 ConstFunc:	lineNumberTkn
 			{
 				_here;
@@ -73125,6 +73505,29 @@ ConstFunc:	filenameTkn
 					&string_ste
 				);
 				$<v.u.strval>$ = hlastrdup2( FileName );
+			}
+		;
+
+
+			
+ConstFunc:	errorPrefixTkn
+			{
+				_here;
+				ClrConst
+				( 
+					YYS &$<v>$, 
+					tString, 
+					&string_ste
+				);
+				_if( errorPrefixMsg == NULL )
+				
+					$<v.u.strval>$ = hlastrdup2( "" );
+					
+				_else
+				
+					$<v.u.strval>$ = hlastrdup2( errorPrefixMsg );
+					
+				_endif
 			}
 		;
 

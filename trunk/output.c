@@ -19538,7 +19538,7 @@ _end( strLookup );
 /* "theLabel" is the LblCntr value to attach to this	*/ 
 /*   string.											*/
 /* Caller can refer to the string using the label       */
-/* "?%d_str" (substituting lbl's value for %d).         */
+/* "str__hla_%d_" (substituting lbl's value for %d).    */
 /*                                                      */
 /********************************************************/
 
@@ -25569,10 +25569,12 @@ _end( OutputVMT )
 
 
 void
-BuildVMT( struct SymNode *ClassPtr, char *VMTname )
+BuildVMT( struct SymNode *ClassPtr, char *VMTname, char *label )
 _begin( BuildVMT )
 
-	int	VMToffset;
+	int		VMToffset;
+	int 	strLabelNum;
+	char	strLabel[32];
 	
 	EmitPublic( VMTname );
 	_if( HasAbstract )
@@ -25581,19 +25583,42 @@ _begin( BuildVMT )
 		
 	_endif
 	
+	////////////////////////////////////////////////////////////////
+	// 
+	// Emit the meta-fields for a vmt record:
+	//
+	//	vmtRec:record := -8
+	//		className	:string;
+	//		objectSize	:dword;
+	//		parentPtr	:dword;
+	//  endrecord;
+	
+	// Emit the name of this class object as a string:
+
+	strLabelNum = EmitString( ClassPtr->TrueName );
+	sprintf( strLabel, "str" sympost "%d", strLabelNum );
+	EmitAdrs( strLabel );
+	 
+	// Emit the size of an object of this class type:
+	
+	EmitDwordConst( ClassPtr->ObjectSize, "" );
+	
+	
 	// Emit a pointer to the parent's VMT before the actual
 	// VMT so we have access to that VMT for nefarious purposes.
 	
-	EmitAdrs
-	(
-		_ifx
-		( 
-			ClassPtr->Base != NULL,
-			ClassPtr->Base->StaticName,
-			VMTname
-		)
-	);
-	 
+	_if( ClassPtr->Base == NULL )
+	
+		EmitDwordConst( 0, "" );
+	
+	_else
+	
+		EmitAdrs( ClassPtr->Base->StaticName );
+		
+	_endif
+	
+	////////////////////////////////////////////////////////////////
+	// 
 	// Add an "external" declaration for the parent symbol.
 	
 	_if( ClassPtr->Base != NULL )
@@ -25610,6 +25635,10 @@ _begin( BuildVMT )
 		
 	_endif
 	
+	
+	// If there is a user-specified label for this VMT, emit it here:
+	
+	EmitTypedLabel( label, tDWord );
 	
 	EmitTypedLabel( VMTname, tDWord );
 	VMToffset = -4;
