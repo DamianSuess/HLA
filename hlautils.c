@@ -637,6 +637,7 @@ _end( FreeValue )
 /*                                                            */
 /**************************************************************/
 
+char *errorPrefixMsg = NULL;
 
 static void
 PrintErrorStats
@@ -649,6 +650,22 @@ PrintErrorStats
 )
 _begin( PrintErrorStats )
 
+	char *saveErrorPrefix = errorPrefixMsg;
+
+	_if( errorPrefixMsg != NULL && *errorPrefixMsg != '\0' )
+	
+		// If a user-defined error message prefix is present,
+		// print it:
+		
+		fprintf
+		(
+			MsgOut,
+			"%s\n",
+			errorPrefixMsg
+		);
+		errorPrefixMsg = NULL;
+		
+	_endif
 	fprintf
 	(
 		MsgOut,
@@ -681,6 +698,7 @@ _begin( PrintErrorStats )
 		);
 		
 	_endif
+	errorPrefixMsg = saveErrorPrefix;
 		
 _end( PrintErrorStats )
 
@@ -811,6 +829,23 @@ PrintWarnStats
 )
 _begin( PrintWarnStats )
 
+
+	char *saveErrorPrefix = errorPrefixMsg;
+
+	_if( errorPrefixMsg != NULL && *errorPrefixMsg != '\0' )
+	
+		// If a user-defined error message prefix is present,
+		// print it:
+		
+		fprintf
+		(
+			MsgOut,
+			"%s\n",
+			errorPrefixMsg
+		);
+		errorPrefixMsg = NULL;
+		
+	_endif
 	fprintf
 	(
 		MsgOut,
@@ -843,6 +878,7 @@ _begin( PrintWarnStats )
 		);
 		
 	_endif
+	errorPrefixMsg = saveErrorPrefix;
 		
 _end( PrintWarnStats )
 
