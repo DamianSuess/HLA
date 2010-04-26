@@ -19146,7 +19146,6 @@ _begin( ReserveTypedStorage )
 	static char *sizeSuffixes[11] =
 		{ "", "b", "w", "", "d", "", "", "", "q", "", "t" };
 		
-	
 	assert( elements > 0 );
 	_switch( assembler )
 	
