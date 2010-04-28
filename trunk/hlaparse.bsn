@@ -79472,6 +79472,7 @@ IndirectCall3:
 						// the current VMT[-4]:
 						 
 						initAdrs2( &adrs, super->StaticName, -1, -1, 0, 0 ); 
+						SetReferenced( super );
 						EmitLea_m_r2( &adrs, reg_edi );
 						superPrefix = 0;	// Stop using super prefix.
 					
@@ -80048,10 +80049,11 @@ IndirectCall4:
 						_endif
 						assert( super->StaticName != NULL );
 						
-						// The pointer to the super's VMT is at
-						// the current VMT[-4]:
+						// Load EDI with the address of the parent's
+						// VMT:
 						 
 						initAdrs2( &adrs, super->StaticName, -1, -1, 0, 0 ); 
+						SetReferenced( super );
 						EmitLea_m_r2( &adrs, reg_edi );
 						superPrefix = 0;	// Stop using super prefix.
 					
