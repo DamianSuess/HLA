@@ -71,7 +71,7 @@ typedef
 
 
 
-extern struct SymNode d1ceReturnVal;
+extern SymNode_t d1ceReturnVal;
 
 
 /*
@@ -204,15 +204,15 @@ _end( BooleanFunc )
 void
 IntegerFunc
 ( 
-	union YYSTYPE *Result, 
-	union YYSTYPE *Value,
-	enum PrimType pType,
-	struct SymNode *Type 
+	union YYSTYPE 	*Result, 
+	union YYSTYPE 	*Value,
+	enum PrimType 	pType,
+	SymNode_t 		*Type 
 )
 _begin( IntegerFunc )
 
-	enum PrimType pt = pType;
-	struct SymNode *t = Type;
+	enum PrimType	pt = pType;
+	SymNode_t 		*t = Type;
                                                          
 	assert( Result != NULL );
 	assert( Value != NULL );
@@ -533,10 +533,10 @@ _end( IntegerFunc )
 void
 RealFunc
 ( 
-	union YYSTYPE *Result, 
-	union YYSTYPE *Value,
-	enum PrimType pType,
-	struct SymNode *Type 
+	union YYSTYPE 	*Result, 
+	union YYSTYPE 	*Value,
+	enum PrimType 	pType,
+	SymNode_t 		*Type 
 )
 _begin( RealFunc )
 
@@ -876,7 +876,7 @@ _end( StrFunc )
 /*************************************************/
 
 void
-CsetFunc( struct SymNode *Result, struct SymNode *Value )
+CsetFunc( SymNode_t *Result, SymNode_t *Value )
 _begin( CsetFunc )
 
 	char *s;
@@ -2968,15 +2968,15 @@ _end( SinFunc )
 
 
 
-extern struct SymNode d1ceReturnVal;
+extern SymNode_t d1ceReturnVal;
 
 static int
 lessThan
 (
 	union	YYSTYPE	*left,
 	union	YYSTYPE	*right, 
-	struct 	SymNode	*leftSym, 
-	struct 	SymNode	*rightSym, 
+	SymNode_t		*leftSym, 
+	SymNode_t		*rightSym, 
 	char 			*macroName 
 )
 _begin( lessThan )
@@ -3016,9 +3016,9 @@ _begin( swap )
 
 	union YYSTYPE temp;
 	
-	memcpy( &temp, item1, sizeof( union YYSTYPE ));
-	memcpy( item1, item2, sizeof( union YYSTYPE ));
-	memcpy( item2, &temp, sizeof( union YYSTYPE ));
+	memcpy( &temp, item1, sizeofYYSTYPE );
+	memcpy( item1, item2, sizeofYYSTYPE );
+	memcpy( item2, &temp, sizeofYYSTYPE );
 	
 _end( swap )
 
@@ -3029,8 +3029,8 @@ void SortArray
 	union 	YYSTYPE *Array,
 	int				low, 
 	int				high,
-	struct	SymNode	*left,
-	struct	SymNode	*right, 
+	SymNode_t		*left,
+	SymNode_t		*right, 
 	char			*macroName 
 )
 _begin( SortArray )
@@ -4263,14 +4263,14 @@ WithinString:
 	Result->v.LexLevel = CurLexLevel;
 	Result->v.IsExternal = 0;
 	Result->v.Arity = 1;
-	Result->v.Dimensions = malloc2( sizeof( int ));
+	Result->v.Dimensions = malloc2( sizeofInt );
 	*Result->v.Dimensions = StrIndex;
 	Result->v.NumElements = StrIndex;
 	Result->v.Fields = NULL;
 
 	Result->v.Base = NULL;
 	Result->v.FieldCnt = 0;
-	Result->v.u.ArrayOfValues = malloc2( StrIndex * sizeof( union YYSTYPE ));
+	Result->v.u.ArrayOfValues = malloc2( StrIndex * sizeofYYSTYPE );
 	_for( i=0, i < StrIndex, ++i )
 
 		value.v.u.strval = StrArray[ i ];
@@ -4525,11 +4525,11 @@ _end( UpperFunc )
 static int
 CheckTypes
 ( 
-	union YYSTYPE *String, 
-	union YYSTYPE *Value, 
-	enum PrimType pType,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value, 
+	enum PrimType 	pType,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( CheckTypes )
 
@@ -4606,12 +4606,12 @@ _end( CheckTypes )
 static int
 nCheckTypes
 ( 
-	union YYSTYPE *String, 
-	union YYSTYPE *Value, 
-	enum PrimType pType,
-	union YYSTYPE *n, 
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value, 
+	enum PrimType 	pType,
+	union YYSTYPE 	*n, 
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( nCheckTypes )
 
@@ -4647,13 +4647,13 @@ _end( nCheckTypes )
 static int
 nmCheckTypes
 ( 
-	union YYSTYPE *String, 
-	union YYSTYPE *Value, 
-	enum PrimType pType,
-	union YYSTYPE *n, 
-	union YYSTYPE *m, 
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value, 
+	enum PrimType 	pType,
+	union YYSTYPE 	*n, 
+	union YYSTYPE 	*m, 
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( nmCheckTypes )
 
@@ -4692,10 +4692,10 @@ _end( nmCheckTypes )
 static int
 CheckTypes2
 ( 
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	union YYSTYPE *Value, 
-	enum PrimType pType
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	union YYSTYPE 	*Value, 
+	enum PrimType 	pType
 )
 _begin( CheckTypes2 )
 
@@ -4778,11 +4778,11 @@ _end( CheckTypes2 )
 void 
 peekCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( peekCsetFunc )
 
@@ -4887,11 +4887,11 @@ _end( peekCsetFunc )
 void 
 oneCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( oneCsetFunc )
 
@@ -5002,11 +5002,11 @@ _end( oneCsetFunc )
 void 
 uptoCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( uptoCsetFunc )
 
@@ -5125,11 +5125,11 @@ _end( uptoCsetFunc )
 void 
 zeroOrOneCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( zeroOrOneCsetFunc )
 
@@ -5249,11 +5249,11 @@ _end( zeroOrOneCsetFunc )
 void 
 zeroOrMoreCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( zeroOrMoreCsetFunc )
 
@@ -5384,11 +5384,11 @@ _end( zeroOrMoreCsetFunc )
 void 
 oneOrMoreCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( oneOrMoreCsetFunc )
 
@@ -5511,12 +5511,12 @@ _end( oneOrMoreCsetFunc )
 void 
 exactlynCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( exactlynCsetFunc )
 
@@ -5640,12 +5640,12 @@ _end( exactlynCsetFunc )
 void 
 firstnCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( firstnCsetFunc )
 
@@ -5773,12 +5773,12 @@ _end( firstnCsetFunc )
 void 
 norlessCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( norlessCsetFunc )
 
@@ -5907,12 +5907,12 @@ _end( norlessCsetFunc )
 void 
 normoreCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( normoreCsetFunc )
 
@@ -6044,13 +6044,13 @@ _end( normoreCsetFunc )
 void 
 ntomCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	union YYSTYPE *m,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	union YYSTYPE 	*m,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( ntomCsetFunc )
 
@@ -6187,13 +6187,13 @@ _end( ntomCsetFunc )
 void 
 exactlyntomCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	union YYSTYPE *m,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	union YYSTYPE 	*m,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( exactlyntomCsetFunc )
 
@@ -6330,11 +6330,11 @@ _end( exactlyntomCsetFunc )
 void 
 peekCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( peekCharFunc )
 
@@ -6425,11 +6425,11 @@ _end( peekCharFunc )
 void 
 peekiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( peekiCharFunc )
 
@@ -6540,11 +6540,11 @@ _end( peekiCharFunc )
 void 
 oneCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( oneCharFunc )
 
@@ -6636,11 +6636,11 @@ _end( oneCharFunc )
 void 
 oneiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( oneiCharFunc )
 
@@ -6755,11 +6755,11 @@ void
 uptoCharFunc
 
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( uptoCharFunc )
 
@@ -6866,11 +6866,11 @@ _end( uptoCharFunc )
 void 
 uptoiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( uptoiCharFunc )
 
@@ -6998,11 +6998,11 @@ _end( uptoiCharFunc )
 void 
 zerooroneCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( zerooroneCharFunc )
 
@@ -7104,11 +7104,11 @@ _end( zerooroneCharFunc )
 void 
 zerooroneiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( zerooroneiCharFunc )
 
@@ -7228,11 +7228,11 @@ _end( zerooroneiCharFunc )
 void 
 zeroormoreCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( zeroormoreCharFunc )
 
@@ -7333,11 +7333,11 @@ _end( zeroormoreCharFunc )
 void 
 zeroormoreiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( zeroormoreiCharFunc )
 
@@ -7456,11 +7456,11 @@ _end( zeroormoreiCharFunc )
 void 
 oneormoreCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( oneormoreCharFunc )
 
@@ -7561,11 +7561,11 @@ _end( oneormoreCharFunc )
 void 
 oneormoreiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( oneormoreiCharFunc )
 
@@ -7679,12 +7679,12 @@ _end( oneormoreiCharFunc )
 void 
 exactlynCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( exactlynCharFunc )
 
@@ -7788,12 +7788,12 @@ _end( exactlynCharFunc )
 void 
 exactlyniCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( exactlyniCharFunc )
 
@@ -7910,12 +7910,12 @@ _end( exactlyniCharFunc )
 void 
 firstnCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( firstnCharFunc )
 
@@ -8019,12 +8019,12 @@ _end( firstnCharFunc )
 void 
 firstniCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( firstniCharFunc )
 
@@ -8141,12 +8141,12 @@ _end( firstniCharFunc )
 void 
 norlessCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( norlessCharFunc )
 
@@ -8250,12 +8250,12 @@ _end( norlessCharFunc )
 void 
 norlessiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( norlessiCharFunc )
 
@@ -8372,12 +8372,12 @@ _end( norlessiCharFunc )
 void 
 normoreCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( normoreCharFunc )
 
@@ -8480,12 +8480,12 @@ _end( normoreCharFunc )
 void 
 normoreiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( normoreiCharFunc )
 
@@ -8611,13 +8611,13 @@ _end( normoreiCharFunc )
 void 
 ntomCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	union YYSTYPE *m,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	union YYSTYPE 	*m,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( ntomCharFunc )
 
@@ -8719,13 +8719,13 @@ _end( ntomCharFunc )
 void 
 ntomiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	union YYSTYPE *m,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	union YYSTYPE 	*m,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( ntomiCharFunc )
 
@@ -8847,13 +8847,13 @@ _end( ntomiCharFunc )
 void 
 exactlyntomCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	union YYSTYPE *m,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	union YYSTYPE 	*m,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( exactlyntomCharFunc )
 
@@ -8952,13 +8952,13 @@ _end( exactlyntomCharFunc )
 void 
 exactlyntomiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	union YYSTYPE *m,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	union YYSTYPE 	*m,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( exactlyntomiCharFunc )
 
@@ -9080,11 +9080,11 @@ _end( exactlyntomiCharFunc )
 void 
 matchStrFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( matchStrFunc )
 
@@ -9177,11 +9177,11 @@ _end( matchStrFunc )
 void 
 matchiStrFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( matchiStrFunc )
 
@@ -9288,11 +9288,11 @@ _end( matchiStrFunc )
 void 
 uptoStrFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( uptoStrFunc )
 
@@ -9408,11 +9408,11 @@ _end( uptoStrFunc )
 void 
 uptoiStrFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( uptoiStrFunc )
 
@@ -9548,11 +9548,11 @@ _end( uptoiStrFunc )
 void 
 matchtoStrFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( matchtoStrFunc )
 
@@ -9669,11 +9669,11 @@ _end( matchtoStrFunc )
 void 
 matchtoiStrFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 )
 _begin( matchtoiStrFunc )
 
@@ -9812,9 +9812,9 @@ _end( matchtoiStrFunc )
 void 
 zeroOrMoreWSFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output
 )
 _begin( zeroOrMoreWSFunc )
 
@@ -9924,9 +9924,9 @@ _end( zeroOrMoreWSFunc )
 void 
 oneOrMoreWSFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output
 )
 _begin( oneOrMoreWSFunc )
 
@@ -10038,9 +10038,9 @@ _end( oneOrMoreWSFunc )
 void 
 WSorEOSFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output
 )
 _begin( WSorEOSFunc )
 
@@ -10134,9 +10134,9 @@ _end( WSorEOSFunc )
 void 
 WSthenEOSFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output
 )
 _begin( WSthenEOSFunc )
 
@@ -10234,9 +10234,9 @@ _end( WSthenEOSFunc )
 void 
 peekWSFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output
 )
 _begin( peekWSFunc )
 
@@ -10316,9 +10316,9 @@ _end( peekWSFunc )
 void 
 eosFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output
 )
 _begin( eosFunc )
 
@@ -10411,10 +10411,10 @@ _end( eosFunc )
 void 
 matchIDFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *ID
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*ID
 )
 _begin( matchIDFunc )
 
@@ -10540,10 +10540,10 @@ _end( strip_ )
 void 
 matchIntConstFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *intConst
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*intConst
 )
 _begin( matchIntConstFunc )
 
@@ -10661,10 +10661,10 @@ _end( matchIntConstFunc )
 void 
 matchRealConstFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *realConst
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*realConst
 )
 _begin( matchRealConstFunc )
 
@@ -10860,10 +10860,10 @@ _end( matchRealConstFunc )
 void 
 matchNumericConstFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *numericConst
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*numericConst
 )
 _begin( matchNumericConstFunc )
 
@@ -11351,10 +11351,10 @@ _end( AddStr )
 void 
 matchStrConstFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *stringConst
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*stringConst
 )
 _begin( matchStrConstFunc )
 
@@ -11507,10 +11507,10 @@ _end( matchStrConstFunc )
 void 
 matchRegFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *regstr
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*regstr
 )
 _begin( matchRegFunc )
 
@@ -11645,10 +11645,10 @@ _end( matchRegFunc )
 void 
 matchReg8Func
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *reg8str
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*reg8str
 )
 _begin( matchReg8Func )
 
@@ -11766,10 +11766,10 @@ _end( matchReg8Func )
 void 
 matchReg16Func
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *reg16str
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*reg16str
 )
 _begin( matchReg16Func )
 
@@ -11890,10 +11890,10 @@ _end( matchReg16Func )
 void 
 matchReg32Func
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *reg32str
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*reg32str
 )
 _begin( matchReg32Func )
 
@@ -12049,8 +12049,8 @@ _begin( pushRX )
 			realloc
 			( 
 				*stk, 
-					sizeof( struct regexStack ) 
-				+	sizeof( struct regexListType ) * (*stk)->size 
+					sizeofRegexStack 
+				+	sizeofRegexListType * (*stk)->size 
 			);
 			
 		assert( *stk != NULL );
@@ -12425,7 +12425,7 @@ _begin( compileAndMatchRegex)
 	char			*result;
 	int				bufSize;
 	char			*regexBuf;
-	struct	SymNode *s;
+	SymNode_t 		*s;
 	union	YYSTYPE	v;
 	union	YYSTYPE	v2;
 	
@@ -12597,7 +12597,7 @@ _begin( precompiledMatchRegex)
 	int				posn;
 	int				len;
 	char			*result;
-	struct	SymNode *s;
+	SymNode_t 		*s;
 	union	YYSTYPE	v2;
 	
 	
@@ -12762,8 +12762,8 @@ _begin( subExpr)
 		localRstk = 
 			malloc2
 			( 
-					sizeof( struct regexStack ) 
-				+	sizeof( struct regexListType )*16 
+					sizeofRegexStack 
+				+	sizeofRegexListType*16 
 			);
 			
 		localRstk->rxSP = 0;
@@ -12924,7 +12924,7 @@ _begin( subExpr)
 			// Begin by allocating storage for the result stack.
 
 			resultStkSize = min( min( rx->minCnt+1, rx->maxCnt )*2, 16 );
-			resultStk = malloc2( resultStkSize * sizeof( char *));
+			resultStk = malloc2( resultStkSize * sizeofCharPtr );
 			resultSP = 1;
 			resultStk[0] = result;
 
@@ -12971,8 +12971,8 @@ _begin( subExpr)
 						realloc
 						( 
 							resultStk, 
-								sizeof( struct regexStack ) 
-							+	sizeof( struct regexListType )*resultStkSize 
+								sizeofRegexStack 
+							+	sizeofRegexListType*resultStkSize 
 						);
 					
 				_endif
@@ -15582,7 +15582,7 @@ stringList
 )
 _begin( stringList)
 
-	struct SymNode	*a;
+	SymNode_t		*a;
 	int				elements;
 	int				i;
 	int				len;
@@ -16023,7 +16023,7 @@ static void
 dumpNode( struct regexListType *rx, char *str2Match )
 _begin( dumpNode )
 
-	extern void PrintValues( struct SymNode *Value);
+	extern void PrintValues( SymNode_t *Value);
 
 	// The following is for debugging purposes.
 	
@@ -16825,9 +16825,9 @@ matchRegex
 ( 
 	char 					*s, 
 	struct regexListType	*rx,
-	struct SymNode			*remainder,
-	struct SymNode			*matched, 
-	struct SymNode			*returnStr 
+	SymNode_t				*remainder,
+	SymNode_t				*matched, 
+	SymNode_t				*returnStr 
 )
 _begin( matchRegex )
 
@@ -16891,8 +16891,8 @@ _begin( matchRegex )
 	rxs = 
 		malloc2
 		( 
-				sizeof( struct regexStack ) 
-			+	sizeof( struct regexListType )*256 
+				sizeofRegexStack 
+			+	sizeofRegexListType*256 
 		);
 		
 	rxs->rxSP = 1;
@@ -17000,9 +17000,9 @@ matchRegex2
 ( 
 	char 					*s, 
 	struct regexListType	*rx,
-	struct SymNode			*remainder,
-	struct SymNode			*matched, 
-	struct SymNode			*returnStr 
+	SymNode_t				*remainder,
+	SymNode_t				*matched, 
+	SymNode_t				*returnStr 
 )
 _begin( matchRegex2 )
 
@@ -17065,8 +17065,8 @@ _begin( matchRegex2 )
 	rxs = 
 		malloc2
 		( 
-				sizeof( struct regexStack ) 
-			+	sizeof( struct regexListType )*256 
+				sizeofRegexStack 
+			+	sizeofRegexListType*256 
 		);
 		
 	rxs->rxSP = 1;

@@ -29,8 +29,8 @@
 #include <ctype.h>
 
 #include "enums.h"
+#include "symbol.h"
 
-#define	CSetSizeInBytes 16
 #define PointerSize 4
 
 
@@ -334,26 +334,17 @@ extern includeLibList_t *includeLibList;
 //////////////
 
 
-struct SymNode;
+SymNode_t;
 typedef struct adrsYYS *padrsYYS;
 
-struct flt80
-{
-	union
-	{
-		char 	x[16];  // Really just 10 bytes, add six bytes for padding.
-		double	d;
-		float	f;
-	}f;
-};
 				  
 							
 							
 struct StaticListType
 {
 	struct	StaticListType	*Next;
-	struct	SymNode			*Context;
-	struct	SymNode			*DefinedSym;
+	SymNode_t				*Context;
+	SymNode_t				*DefinedSym;
 	char					*Name;
 	char					*StaticName;
 	int						LineNumber;
@@ -370,7 +361,7 @@ struct PointerListType
 struct RefListType
 {
 	struct	RefListType		*Next;
-	struct	SymNode			*Symbol;
+	SymNode_t				*Symbol;
 	int						LineNumber;
 	char					*FileName;
 };
@@ -379,15 +370,15 @@ struct RefListType
 struct PatchListType
 {
 	struct	PatchListType	*Next;
-	struct	SymNode			*Symbol;
+	SymNode_t				*Symbol;
 };
 
 
 struct MethodListType
 {
 	struct MethodListType	*Next;
-	struct SymNode			*ClassSym;
-	struct SymNode			*MethodSym;
+	SymNode_t				*ClassSym;
+	SymNode_t				*MethodSym;
 	int						LexLevel;
 };
 
@@ -444,23 +435,10 @@ extern ParmLine_t *ParmLine;
 
 struct MacroStkType
 {
-	struct	SymNode		*Macro;
+	SymNode_t			*Macro;
 			char		*text;
 			int			cnt;
 			int			SourceBufIndex;
-};
-
-
-struct MacroType
-{
-			char			*Text;
-	struct	SymNode			*Parent;
-	struct	SymNode			*Terminator;
-	struct	SymNode			*Parameters;
-	struct	SymNode			*Locals;
-	struct	SymNode			*NameSpace;
-			int				LineCnt;
-			char			*Filename;
 };
 
 
@@ -476,8 +454,8 @@ struct WhlListType
 
 struct ForListType
 {
-	struct	SymNode		*loopControlVar;
-	struct	SymNode		*inVal;
+	SymNode_t			*loopControlVar;
+	SymNode_t			*inVal;
 			char		*line;
 			int			LineCnt;
 			int			ParenCnt;
@@ -510,7 +488,7 @@ struct contextListType
 #define YY_CHAR unsigned char
 #define YYS (union YYSTYPE *)
 #define AYYS (struct adrsYYS *)
-#define SSN (struct SymNode *)
+#define SSN (SymNode_t *)
  
 extern FILE *yyin;
 extern FILE *MsgOut;
@@ -541,7 +519,7 @@ extern char GlobalCset[ CSetSizeInBytes ];
 extern struct	FwdRefLabelType	*FwdLabelsList;
 extern struct	PointerListType *PointerList;
 extern struct	PatchListType	*PatchBaseList;
-extern struct	SymNode			*LastMacroObject;
+extern SymNode_t				*LastMacroObject;
 extern  struct	StaticListType	*StaticList;
 
 #define maxNestedMacros 8192
@@ -550,20 +528,20 @@ extern struct MacroStkType		MacroStack[ maxNestedMacros ];
 extern struct MethodListType	*MethodList;
 extern int						MacroSP;
 extern int						W4TermSP;
-extern struct SymNode			*Wait4Term[ maxNestedMacros ];
-extern struct SymNode			*ActiveMacros;
+extern SymNode_t				*Wait4Term[ maxNestedMacros ];
+extern SymNode_t				*ActiveMacros;
 extern int						VarMacParms;
 extern int						LblCntr;
 extern int						InDSEG;
-extern struct SymNode			*ThisPtr;
-extern struct SymNode			*NSGlobal;
-extern struct SymNode			*currentNS;
-extern struct SymNode			*RecNS;
-extern struct SymNode			*RecGlobal;
-extern struct SymNode			*ProcNS;
-extern struct SymNode			*ProcGlobal;
+extern SymNode_t				*ThisPtr;
+extern SymNode_t				*NSGlobal;
+extern SymNode_t				*currentNS;
+extern SymNode_t				*RecNS;
+extern SymNode_t				*RecGlobal;
+extern SymNode_t				*ProcNS;
+extern SymNode_t				*ProcGlobal;
 extern int						inNamespace;
-extern struct SymNode			*CurSymTbl;
+extern SymNode_t				*CurSymTbl;
 
 extern int						StackSize;
 extern int						HasAbstract;
@@ -592,19 +570,19 @@ extern void ErrorNear
 	char *FileName 
 );
 
-extern void CopyParms( struct SymNode *proc );
-extern void copyProcPtrParms( struct SymNode *parms );
+extern void CopyParms( SymNode_t *proc );
+extern void copyProcPtrParms( SymNode_t *parms );
 extern void Add2PtrList
 ( 
-	struct SymNode *reference, 
-	char *undefdID 
+	SymNode_t	*reference, 
+	char 		*undefdID 
 );
 
-extern struct SymNode *matchSignature
+extern SymNode_t *matchSignature
 (
-	struct SymNode		*ovldID,
+	SymNode_t			*ovldID,
 	int					parmCnt,
-	struct	SymNode		**types,
+	SymNode_t			**types,
 	enum	ParmForm	*pForm
 ); 
 
@@ -618,8 +596,8 @@ extern void doRecRegex( void );
 extern char *doRecordReturn( void );
 extern void doRecMac( void );
 extern void doMacParm( void );
-extern void processMacroID( struct SymNode *symbol );
-extern int  ProcessRegex( struct SymNode *symbol, union YYSTYPE *yylval );
+extern void processMacroID( SymNode_t *symbol );
+extern int  ProcessRegex( SymNode_t *symbol, union YYSTYPE *yylval );
 extern void parseExpression( char *s, union YYSTYPE *v);
 
 extern void startGetTextBlock( void );
@@ -628,13 +606,13 @@ extern void startGetMatchBlock( void );
 extern void startUnprocessedID( void );
 extern void Begin0( void );
 extern void setClassification( union YYSTYPE *v, char *id );
-extern void setClassification_sym( union YYSTYPE *v, struct SymNode *s );
+extern void setClassification_sym( union YYSTYPE *v, SymNode_t *s );
 extern void setMemoryClassification( union YYSTYPE *v, char *id );
-extern void setMemoryClassification_sym( union YYSTYPE *v, struct SymNode *s );
+extern void setMemoryClassification_sym( union YYSTYPE *v, SymNode_t *s );
 extern void unArray( union YYSTYPE *v );
 
 
-extern struct SymNode *MakeAnyCompat
+extern SymNode_t *MakeAnyCompat
 ( 
 	union YYSTYPE *left, 
 	union YYSTYPE *right 
@@ -652,13 +630,13 @@ extern int  fastNamespace;
 extern int  fastLookup;
 extern int  parmLookup;
 
-extern int	e80Valid( struct flt80 theConst );
+extern int	e80Valid( flt80_t theConst );
 extern char *lowercase( char *str );
 extern void CheckLegalOptions( int options, int allowed );
-extern int FieldsAreCompatible( struct SymNode *Type, union YYSTYPE *Field );
+extern int FieldsAreCompatible( SymNode_t *Type, union YYSTYPE *Field );
 extern void AddGlobalCset( char );
-extern struct flt80 MakeReal( union YYSTYPE *Value );
-extern void FreeSym( struct SymNode *symbol );
+extern flt80_t MakeReal( union YYSTYPE *Value );
+extern void FreeSym( SymNode_t *symbol );
 extern void CheckStatic( struct StaticListType *StaticList, int MainPgm );
 extern struct StaticListType *searchStatic( char *symbolToFind );
 extern void CheckPtrs( void );
@@ -667,18 +645,18 @@ extern void ClrArray( union YYSTYPE *d );
 extern void FreeArray( union YYSTYPE *Array );
 extern void FreeRecord( union YYSTYPE *Record );
 extern void FreeValue( union YYSTYPE *Value );
-extern int* DupDims( struct SymNode *Object );
-extern int  IsCompatible( struct SymNode *Type, union YYSTYPE *Val );
-extern int	Compatible( struct SymNode *Type, union YYSTYPE *Val );
-extern int	RecordsAreCompatible( struct SymNode *Type, union YYSTYPE *Val );
+extern int* DupDims( SymNode_t *Object );
+extern int  IsCompatible( SymNode_t *Type, union YYSTYPE *Val );
+extern int	Compatible( SymNode_t *Type, union YYSTYPE *Val );
+extern int	RecordsAreCompatible( SymNode_t *Type, union YYSTYPE *Val );
 extern int  ArraysAreCompatible( union YYSTYPE *Type, union YYSTYPE *Val );
 extern void TurnIntoArray( union YYSTYPE *Array );
-extern void DeepCopy( struct SymNode *DestObj, struct SymNode *SrcObj );
-extern void CheckForwardDecls( struct SymNode *CurProc );
+extern void DeepCopy( SymNode_t *DestObj, SymNode_t *SrcObj );
+extern void CheckForwardDecls( SymNode_t *CurProc );
 extern void CheckFwdRef( void );
-extern void NullTerminate( struct SymNode *list, struct SymNode *Last );
-extern void BuildVMT( struct SymNode *ClassPtr, char *VMTname, char *label );
-extern void UpdateVMTOffsets( struct SymNode *ClassPtr );
+extern void NullTerminate( SymNode_t *list, SymNode_t *Last );
+extern void BuildVMT( SymNode_t *ClassPtr, char *VMTname, char *label );
+extern void UpdateVMTOffsets( SymNode_t *ClassPtr );
 extern char *CheckOrdinal( union YYSTYPE *value, unsigned size );
 extern int  CheckOrdinalSize( union YYSTYPE *value, unsigned size );
 extern char *CheckUnsigned( union YYSTYPE *value, unsigned size );
@@ -715,14 +693,14 @@ extern int checkSmallUns( union YYSTYPE *value );
 extern int numBits( union YYSTYPE *value );
 extern int numBits32( union YYSTYPE *value );
 
-extern int MakeCompatible( struct SymNode *LeftOp, struct SymNode  *RightOp );
+extern int MakeCompatible( SymNode_t *LeftOp, SymNode_t  *RightOp );
 
-extern struct SymNode *CreatePtrToProc
+extern SymNode_t *CreatePtrToProc
 ( 
-	char *newName, 
-	struct SymNode *existingProc,
-	char *staticName,
-	enum ClassType eType 
+	char 			*newName, 
+	SymNode_t		*existingProc,
+	char 			*staticName,
+	enum ClassType	eType 
 );
 
 extern int  AlignVarOffset( int offset, unsigned size, int dir );
@@ -731,11 +709,11 @@ extern void	AlignTo( int *offset, int minAlign, int maxAlign, int objSize );
 extern void MakeMemStr( char *address, padrsYYS adrs, int EmitSize );
 extern void MakeMemStrSize( char *address, padrsYYS adrs, int size );
 
-extern void SetReferenced(struct	SymNode	*sym);
+extern void SetReferenced(SymNode_t	*sym);
 
 extern void extLookup
 ( 
-	struct	SymNode		*sym, 
+	SymNode_t			*sym, 
 	char				*theLabel, 
 	enum 	PrimType	theType, 
 	char				IsPublic,
@@ -754,27 +732,27 @@ extern void ConstTooBig( void );
 extern void SizeMismatch( void );
 							   
 
-extern void CopyValResParms( struct SymNode *ParmList );
-extern void StoreValResParms( struct SymNode *ParmList );
+extern void CopyValResParms( SymNode_t *ParmList );
+extern void StoreValResParms( SymNode_t *ParmList );
 
 extern void CombineAddresses( padrsYYS dest, padrsYYS src );
 
 
-extern struct SymNode *CopySymbols
+extern SymNode_t *CopySymbols
 ( 
-	struct SymNode *SymbolsToCopy,
-	char *VMTName
+	SymNode_t	*SymbolsToCopy,
+	char 		*VMTName
 );
 
-extern struct SymNode*
-CopyRecSymbols( struct SymNode *SymbolsToCopy );
+extern SymNode_t*
+CopyRecSymbols( SymNode_t *SymbolsToCopy );
 
 
 extern void SetConst
 (
 	union	YYSTYPE		*dest,
 	enum	PrimType	pType,
-	struct	SymNode		*Type,
+	SymNode_t			*Type,
 	union	YYSTYPE		*Value
 );
 
@@ -788,7 +766,7 @@ extern void ClrConst
 (
 	union	YYSTYPE		*dest,
 	enum	PrimType	pType,
-	struct	SymNode		*Type
+	SymNode_t			*Type
 );
 
 extern int  CoerceArrays
@@ -816,18 +794,18 @@ extern int ComputeOffset
 extern void BooleanFunc( union YYSTYPE *Result, union YYSTYPE *Value );
 extern void IntegerFunc
 ( 
-	union YYSTYPE *Result, 
-	union YYSTYPE *Value,
-	enum PrimType pType,
-	struct SymNode *Type 
+	union YYSTYPE 	*Result, 
+	union YYSTYPE 	*Value,
+	enum PrimType 	pType,
+	SymNode_t 		*Type 
 );
 
 extern void RealFunc
 ( 
-	union YYSTYPE *Result, 
-	union YYSTYPE *Value,
-	enum PrimType pType,
-	struct SymNode *Type 
+	union YYSTYPE 	*Result, 
+	union YYSTYPE 	*Value,
+	enum PrimType 	pType,
+	SymNode_t 		*Type 
 );
 
 extern void real80to64( void *Value );
@@ -836,7 +814,7 @@ extern void real80to32( void *Value );
 extern void CharFunc( union YYSTYPE *Result, union YYSTYPE *Value );
 extern void StrFunc( union YYSTYPE *Result, union YYSTYPE *Value );
 
-extern void CsetFunc( struct SymNode *Result, struct SymNode *Value );
+extern void CsetFunc( SymNode_t *Result, SymNode_t *Value );
 
 
 
@@ -879,8 +857,8 @@ extern void SortArray
 	union 	YYSTYPE *Array, 
 	int				low,
 	int				high,
-	struct	SymNode	*left,
-	struct	SymNode	*right, 
+	SymNode_t		*left,
+	SymNode_t		*right, 
 	char			*macroName 
 );
 extern void SqrtFunc( union YYSTYPE *Result, union YYSTYPE *Value );
@@ -1008,118 +986,118 @@ extern void UpperFunc
 
 extern void peekCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void oneCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void uptoCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void zeroOrOneCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void zeroOrMoreCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void oneOrMoreCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void exactlynCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void firstnCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void norlessCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void normoreCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void ntomCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	union YYSTYPE *m,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	union YYSTYPE 	*m,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void exactlyntomCsetFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	union YYSTYPE *m,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	union YYSTYPE 	*m,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 
@@ -1127,417 +1105,417 @@ extern void exactlyntomCsetFunc
 
 extern void peekCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void peekiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void oneCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void oneiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void uptoCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void uptoiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void zerooroneCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void zerooroneiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void zeroormoreCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void zeroormoreiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void oneormoreCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void oneormoreiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void exactlynCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void exactlyniCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void firstnCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void firstniCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void norlessCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void norlessiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void normoreCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void normoreiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void ntomCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	union YYSTYPE *m,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	union YYSTYPE 	*m,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void ntomiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	union YYSTYPE *m,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	union YYSTYPE 	*m,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void exactlyntomCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	union YYSTYPE *m,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	union YYSTYPE 	*m,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void exactlyntomiCharFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	union YYSTYPE *n,
-	union YYSTYPE *m,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	union YYSTYPE 	*n,
+	union YYSTYPE 	*m,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 
 extern void matchStrFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void matchiStrFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void uptoStrFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void uptoiStrFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void matchtoStrFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 extern void matchtoiStrFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	union YYSTYPE *Value,
-	struct SymNode *output,
-	struct SymNode *extract
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	union YYSTYPE 	*Value,
+	SymNode_t 		*output,
+	SymNode_t 		*extract
 );
 
 
 
 extern void matchIDFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *ID
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*ID
 );
 
 
 extern void matchIntConstFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *intConst
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*intConst
 );
 
 
 
 extern void matchRealConstFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *realConst
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*realConst
 );
 
 extern void matchNumericConstFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *numericConst
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*numericConst
 );
 
 extern void matchStrConstFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *stringConst
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*stringConst
 );
 
 
 
 extern void matchRegFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *regstr
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*regstr
 );
 
 
 extern void matchReg8Func
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *reg8str
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*reg8str
 );
 
 
 extern void matchReg16Func
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *reg16str
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*reg16str
 );
 
 
 extern void matchReg32Func
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output,
-	struct SymNode *reg32str
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output,
+	SymNode_t 		*reg32str
 );
 
 
 extern void zeroOrMoreWSFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t		*output
 );
 
 extern void oneOrMoreWSFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output
 );
 
 extern void WSorEOSFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output
 );
 
 extern void WSthenEOSFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output
 );
 
 
 extern void peekWSFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output
 );
 
 
 
 extern void eosFunc
 ( 
-	union YYSTYPE *Result,
-	union YYSTYPE *String, 
-	struct SymNode *output
+	union YYSTYPE 	*Result,
+	union YYSTYPE 	*String, 
+	SymNode_t 		*output
 );
 
 
@@ -1554,20 +1532,20 @@ extern union YYSTYPE forReturnVal;
 
 extern void doCTForLoop9
 ( 
-	struct SymNode *s3, 
-	union YYSTYPE *v5, 
-	union YYSTYPE *v7,
-	int byVal 
+	SymNode_t 		*s3, 
+	union YYSTYPE 	*v5, 
+	union YYSTYPE 	*v7,
+	int 			byVal 
 );
 
-extern void doCTForLoop7( struct SymNode *s3, union YYSTYPE *v5 );
+extern void doCTForLoop7( SymNode_t *s3, union YYSTYPE *v5 );
 extern void doTextParameters5( union YYSTYPE *v3 );
 extern void doTextBlock7( char *, union YYSTYPE * ); 
-extern void doTextBlock7a( struct SymNode *, union YYSTYPE * ); 
+extern void doTextBlock7a( SymNode_t *, union YYSTYPE * ); 
 extern void PrintList2( union YYSTYPE * );
 extern void doStringBlock( char *, union YYSTYPE * ); 
-extern void doStringBlocka( struct SymNode *, union YYSTYPE * ); 
-extern void doMatchBlock( struct SymNode *, union YYSTYPE * ); 
+extern void doStringBlocka( SymNode_t *, union YYSTYPE * ); 
+extern void doMatchBlock( SymNode_t *, union YYSTYPE * ); 
 
 extern void EmitExit( void );
 

@@ -39,8 +39,28 @@ enum ClassType
 #define StaticProc(v) ((v) == cProc || (v) == cClassProc)
 #define CanBePtrConst(v) (((v) >= cStatic) && ((v) <= cClassProc ))
 
-#define sizeofSymNode sizeof( struct SymNode )
-#define sizeofYYSTYPE sizeof( union YYSTYPE )
+#define sizeofSymNodePtr      sizeof( SymNode_t *)
+#define sizeofSymNode         sizeof( SymNode_t )
+#define sizeofYYSTYPE         sizeof( union YYSTYPE )
+#define sizeofValuesSize      sizeof( union ValuesSize )
+#define sizeofInt             sizeof( int )
+#define sizeofUns             sizeof( unsigned )
+#define sizeofCharPtr         sizeof( char *)
+#define sizeofContextListType sizeof( struct contextListType )
+#define sizeofPatchListType   sizeof( struct PatchListType )
+#define sizeofRegexListType   sizeof( struct regexListType )
+#define sizeofMethodListType  sizeof( struct MethodListType )
+#define sizeofFwdRefLabelType sizeof( struct FwdRefLabelType )
+#define sizeofStaticListType  sizeof( struct StaticListType )
+#define sizeof_fileList       sizeof( struct _fileList )
+#define sizeofParmForm        sizeof( enum ParmForm )
+#define sizeofRegexStack      sizeof( struct regexStack )
+#define sizeofMallocHeader_t  sizeof( mallocHeader_t )
+#define sizeofPointerListType sizeof( struct PointerListType )
+#define sizeofRefListType     sizeof( struct RefListType )
+#define sizeofExtRecs         sizeof( struct extRecs )
+
+
 
 #define EndOfTypeList(typ) ((typ)->Type == NULL )
 #define SetEndOfTypeList(typ) (typ)->Next = NULL

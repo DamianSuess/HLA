@@ -38,7 +38,7 @@
 
 
 
-void DumpFields( struct SymNode *Type, struct SymNode *Value, int comma );
+void DumpFields( SymNode_t *Type, SymNode_t *Value, int comma );
 
 
 
@@ -46,66 +46,66 @@ void DumpFields( struct SymNode *Type, struct SymNode *Value, int comma );
 // Predefined Symbol table entries:
 
 
-struct SymNode thunk_ste;
-struct SymNode pointer_ste;
-struct SymNode int8_ste;
-struct SymNode int16_ste;
-struct SymNode int32_ste;
-struct SymNode int64_ste;
-struct SymNode int128_ste;
-struct SymNode uns8_ste;
-struct SymNode uns16_ste;
-struct SymNode uns32_ste;
-struct SymNode uns64_ste;
-struct SymNode uns128_ste;
-struct SymNode byte_ste;
-struct SymNode word_ste;
-struct SymNode dword_ste;
-struct SymNode qword_ste;
-struct SymNode tbyte_ste;
-struct SymNode lword_ste;
-struct SymNode real32_ste;
-struct SymNode real64_ste;
-struct SymNode real80_ste;
+SymNode_t thunk_ste;
+SymNode_t pointer_ste;
+SymNode_t int8_ste;
+SymNode_t int16_ste;
+SymNode_t int32_ste;
+SymNode_t int64_ste;
+SymNode_t int128_ste;
+SymNode_t uns8_ste;
+SymNode_t uns16_ste;
+SymNode_t uns32_ste;
+SymNode_t uns64_ste;
+SymNode_t uns128_ste;
+SymNode_t byte_ste;
+SymNode_t word_ste;
+SymNode_t dword_ste;
+SymNode_t qword_ste;
+SymNode_t tbyte_ste;
+SymNode_t lword_ste;
+SymNode_t real32_ste;
+SymNode_t real64_ste;
+SymNode_t real80_ste;
 
 int real128_32_dims[1] = {4};
 int real128_64_dims[1] = {2};
 
-struct SymNode real128_32_ste;
-struct SymNode real128_64_ste;
-struct SymNode real128_lword_ste;
-struct SymNode real128_ste;
+SymNode_t real128_32_ste;
+SymNode_t real128_64_ste;
+SymNode_t real128_lword_ste;
+SymNode_t real128_ste;
 
-struct SymNode wchar_ste;
-struct SymNode char_ste;
-struct SymNode boolean_ste;
-struct SymNode wstring_ste;
-struct SymNode string_ste;
-struct SymNode zstring_ste;
-struct SymNode cset_ste;
-struct SymNode regex_ste;
-struct SymNode text_ste;
-struct SymNode false_ste;
-struct SymNode true_ste;
-struct SymNode forctrlvar_ste;
-struct SymNode error_ste;
-struct SymNode static_ste;
-struct SymNode pgmID_ste;
-struct SymNode procID_ste;
-struct SymNode iterID_ste;
-struct SymNode classprocID_ste;
-struct SymNode classiterID_ste;
-struct SymNode methodID_ste;
-struct SymNode namespace_ste;
-struct SymNode proctype_ste;
-struct SymNode dummyProc2_ste;
-struct SymNode dummyProc_ste;
-struct SymNode dummyVar_ste;
-struct SymNode dummyType_ste;
-struct SymNode variant_ste;
-struct SymNode UndefinedType;
-struct SymNode dummy_ste;
-struct SymNode dummyField_ste;
+SymNode_t wchar_ste;
+SymNode_t char_ste;
+SymNode_t boolean_ste;
+SymNode_t wstring_ste;
+SymNode_t string_ste;
+SymNode_t zstring_ste;
+SymNode_t cset_ste;
+SymNode_t regex_ste;
+SymNode_t text_ste;
+SymNode_t false_ste;
+SymNode_t true_ste;
+SymNode_t forctrlvar_ste;
+SymNode_t error_ste;
+SymNode_t static_ste;
+SymNode_t pgmID_ste;
+SymNode_t procID_ste;
+SymNode_t iterID_ste;
+SymNode_t classprocID_ste;
+SymNode_t classiterID_ste;
+SymNode_t methodID_ste;
+SymNode_t namespace_ste;
+SymNode_t proctype_ste;
+SymNode_t dummyProc2_ste;
+SymNode_t dummyProc_ste;
+SymNode_t dummyVar_ste;
+SymNode_t dummyType_ste;
+SymNode_t variant_ste;
+SymNode_t UndefinedType;
+SymNode_t dummy_ste;
+SymNode_t dummyField_ste;
 
 
 
@@ -117,21 +117,21 @@ struct SymNode dummyField_ste;
 void
 InsertStaticSym
 (
-	struct	SymNode	 *DestEntry,
-	char			 *Name,
-	struct	SymNode  *TheType,
-	enum	PrimType pType,
-	int				 TheClass,
-	int				 Arity,
-	int				 *Dimensions,
-	int				 NumElements,
-	union	YYSTYPE  *TheValue,
-	unsigned		 ObjectSize,
-	int				 CurOffset,
-	char			 *StaticName,
-	struct	SymNode	 *Base,
-	struct	SymNode	 *Fields,
-	int				 FieldCnt
+	SymNode_t	 		*DestEntry,
+	char			 	*Name,
+	SymNode_t  			*TheType,
+	enum	PrimType 	pType,
+	int				 	TheClass,
+	int				 	Arity,
+	int				 	*Dimensions,
+	int				 	NumElements,
+	union	YYSTYPE  	*TheValue,
+	unsigned		 	ObjectSize,
+	int				 	CurOffset,
+	char			 	*StaticName,
+	SymNode_t	 		*Base,
+	SymNode_t	 		*Fields,
+	int				 	FieldCnt
 );
 
 
@@ -148,9 +148,9 @@ _begin( initSymbolTable )
 
 	union 	YYSTYPE 	zero;
 	union 	YYSTYPE 	one;
-	struct	SymNode	 	*Real128Fields;
+	SymNode_t	 		*Real128Fields;
 	
-	static struct SymNode	*dummy;
+	static SymNode_t	*dummy;
 	
 	// We need to create a dummy "u.proc.Locals" variable to use
 	// until the main program's ID is entered into the symbol table:
@@ -1244,8 +1244,8 @@ _end( initSymbolTable )
 static void PrintItem
 ( 
 	enum	ClassType	TheClass, 
-	struct	SymNode		*TheType, 
-	struct	SymNode		TheValue,
+	SymNode_t			*TheType, 
+	SymNode_t			TheValue,
 	int					NumElements,
 	int					Arity,
 	int 				*Dimensions
@@ -1284,8 +1284,8 @@ extern int strcpylc( char *dest, char *src, int *hash );
 /*                                          */
 /********************************************/
 
-struct SymNode*
-GetBaseType( struct SymNode *typ )
+SymNode_t*
+GetBaseType( SymNode_t *typ )
 _begin( GetBaseType )
 
 	assert( typ != NULL );
@@ -1321,17 +1321,17 @@ _end( GetBaseType )
 //	Used to determine the base type of a variable that contains a function
 // pointer.  Used by procedure pointers, classes, and stuff like that.
 
-struct SymNode*
+SymNode_t*
 GetCallType
 ( 
-	struct SymNode 	*Sym, 
-	struct SymNode	*Type, 
+	SymNode_t 		*Sym, 
+	SymNode_t		*Type, 
 	enum PrimType	pType,
 	int				*isPointer 
 )
 _begin( GetCallType )
 
-	struct	SymNode	*typ;
+	SymNode_t	*typ;
 	
 	// Note: Sym1->Type is usually equal to Type
 	// They are different for parameters passed by address. In that
@@ -1441,21 +1441,21 @@ _end( GetCallType )
 void
 InsertStaticSym
 (
-	struct	SymNode	 *DestEntry,
-	char			 *Name,
-	struct	SymNode  *TheType,
-	enum	PrimType pType,
-	int				 TheClass,
-	int				 Arity,
-	int				 *Dimensions,
-	int				 NumElements,
-	union	YYSTYPE  *TheValue,
-	unsigned		 ObjectSize,
-	int				 CurOffset,
-	char			 *StaticName,
-	struct	SymNode	 *Base,
-	struct	SymNode	 *Fields,
-	int				 FieldCnt
+	SymNode_t	 		*DestEntry,
+	char			 	*Name,
+	SymNode_t  			*TheType,
+	enum	PrimType 	pType,
+	int				 	TheClass,
+	int				 	Arity,
+	int				 	*Dimensions,
+	int				 	NumElements,
+	union	YYSTYPE  	*TheValue,
+	unsigned		 	ObjectSize,
+	int				 	CurOffset,
+	char			 	*StaticName,
+	SymNode_t	 		*Base,
+	SymNode_t	 		*Fields,
+	int				 	FieldCnt
 )
 _begin( InsertStaticSym )
 
@@ -1508,7 +1508,7 @@ _begin( InsertStaticSym )
 		( 
 			&DestEntry->u.StartOfValues, 
 			&TheValue->v.u.StartOfValues, 
-			sizeof( union ValuesSize ) 
+			sizeofValuesSize 
 		);
 		
 	_endif
@@ -1529,31 +1529,31 @@ _end( InsertStaticSym )
 /********************************************************************/
 
 
-struct SymNode *
+SymNode_t *
 InsertSym
 (
-	char			 *Name,
-	struct	SymNode  *TheType,
-	enum	PrimType pType,
-	int				 TheClass,
-	int				 Arity,
-	int				 *Dimensions,
-	int				 NumElements,
-	union	YYSTYPE  *TheValue,
-	unsigned		 ObjectSize,
-	int				 CurOffset,
-	char			 *StaticName,
-	struct	SymNode	 *Base,
-	struct	SymNode	 *Fields,
-	int				 FieldCnt
+	char			 	*Name,
+	SymNode_t  			*TheType,
+	enum	PrimType 	pType,
+	int				 	TheClass,
+	int				 	Arity,
+	int				 	*Dimensions,
+	int				 	NumElements,
+	union	YYSTYPE  	*TheValue,
+	unsigned		 	ObjectSize,
+	int				 	CurOffset,
+	char			 	*StaticName,
+	SymNode_t	 		*Base,
+	SymNode_t	 		*Fields,
+	int				 	FieldCnt
 )
 _begin( InsertSym )
 
-	struct SymNode	*NewEntry;
-	struct SymNode	*lastHash;
-	char			*lcName;
-	int				hash;
-	int				length;
+	SymNode_t	*NewEntry;
+	SymNode_t	*lastHash;
+	char		*lcName;
+	int			hash;
+	int			length;
 	
 	
 	assert( Name != NULL );
@@ -1610,7 +1610,7 @@ _begin( InsertSym )
 		( 
 			&NewEntry->u.StartOfValues, 
 			&TheValue->v.u.StartOfValues, 
-			sizeof( union ValuesSize ) 
+			sizeofValuesSize 
 		);
 		
 		
@@ -1660,22 +1660,22 @@ _end( InsertSym )
 void
 SetSym
 (
-	struct	SymNode	 *Name,
-	struct	SymNode  *TheType,
-	enum	PrimType pType,
-	int				 Arity,
-	int				 *Dimensions,
-	int				 NumElements,
-	union	YYSTYPE  *TheValue,
-	unsigned		 ObjectSize,
-	int				 CurOffset,
-	char			 *StaticName,
-	struct	SymNode	 *Base,
+	SymNode_t			*Name,
+	SymNode_t			*TheType,
+	enum	PrimType 	pType,
+	int				 	Arity,
+	int				 	*Dimensions,
+	int				 	NumElements,
+	union	YYSTYPE  	*TheValue,
+	unsigned		 	ObjectSize,
+	int				 	CurOffset,
+	char			 	*StaticName,
+	SymNode_t	 		*Base,
 
-	struct	SymNode	 *Fields,
-	int				 FieldCnt,
-	struct	SymNode	 *CurField,
-	int				 CurIndex
+	SymNode_t	 		*Fields,
+	int				 	FieldCnt,
+	SymNode_t	 		*CurField,
+	int				 	CurIndex
 )
 _begin( SetSym )
 
@@ -1734,7 +1734,7 @@ _begin( SetSym )
 			( 
 				&Name->u.StartOfValues, 
 				&TheValue->v.u.StartOfValues, 
-				sizeof( union ValuesSize ) 
+				sizeofValuesSize 
 			);
 			
 		_endif
@@ -1767,7 +1767,7 @@ _end( SetSym )
 /****************************************************/
 
 static void
-ClrObject( struct SymNode *ClrThis )
+ClrObject( SymNode_t *ClrThis )
 _begin( ClrObject )
 
 	assert( ClrThis != NULL );
@@ -1783,8 +1783,8 @@ _begin( ClrObject )
 
 	_elseif( ClrThis->pType == tRecord )
 
-		struct	SymNode		*CurField;
-		struct	SymNode		*FieldData;
+		SymNode_t		*CurField;
+		SymNode_t		*FieldData;
 
 		
 		_if( IsConstant( ClrThis->SymClass ))
@@ -1817,8 +1817,8 @@ _begin( ClrObject )
 
 	_elseif( ClrThis->pType == tUnion )
 
-		struct	SymNode		*CurField;
-		struct	SymNode		*FieldData;
+		SymNode_t		*CurField;
+		SymNode_t		*FieldData;
 
 		
 		_if( IsConstant( ClrThis->SymClass ))
@@ -1854,7 +1854,7 @@ _begin( ClrObject )
 		** and initialize them all to appropriate values.
 		*/
 
-		struct	SymNode	*ArrayData;
+		SymNode_t	*ArrayData;
 
 		ArrayData = malloc2( ClrThis->NumElements * sizeofSymNode );
 		memcpy( ArrayData, ClrThis->Type, sizeofSymNode );
@@ -1871,7 +1871,7 @@ _begin( ClrObject )
 
 	_else
 
-		memset( &ClrThis->u.StartOfValues, '\0', sizeof( union ValuesSize ));
+		memset( &ClrThis->u.StartOfValues, '\0', sizeofValuesSize);
 
 	_endif
 				
@@ -1888,32 +1888,32 @@ _end( ClrObject )
 /* symbol's value.                                                   */
 /*                                                                   */
 /*********************************************************************/
-struct SymNode *
+SymNode_t *
 ClrNewSym
 (
-	char			 *Name,
-	struct	SymNode  *TheType,
-	enum	PrimType pType,
-	int				 TheClass,
-	int				 Arity,
-	int				 *Dimensions,
-	int				 NumElements,
-	unsigned		 ObjectSize,
-	int				 CurOffset,
-	char			 *StaticName,
-	struct	SymNode	 *Base,
-	struct	SymNode	 *Fields,
-	int				 FieldCnt,
-	struct	SymNode	 *CurField,
-	int				 CurIndex
+	char			 	*Name,
+	SymNode_t  			*TheType,
+	enum	PrimType 	pType,
+	int				 	TheClass,
+	int				 	Arity,
+	int				 	*Dimensions,
+	int				 	NumElements,
+	unsigned		 	ObjectSize,
+	int				 	CurOffset,
+	char			 	*StaticName,
+	SymNode_t	 		*Base,
+	SymNode_t	 		*Fields,
+	int				 	FieldCnt,
+	SymNode_t	 		*CurField,
+	int				 	CurIndex
 )
 _begin( ClrNewSym )
 
-	struct	SymNode	*NewEntry;
-	struct	SymNode	*lastHash;
-	char			*LCName;
-	int				length;
-	int				hash;
+	SymNode_t	*NewEntry;
+	SymNode_t	*lastHash;
+	char		*LCName;
+	int			length;
+	int			hash;
 	
 	assert( Name != NULL );
 	
@@ -2000,20 +2000,20 @@ _end( ClrNewSym )
 void
 ClrSym
 (
-	struct	SymNode	 *Name,
-	struct	SymNode  *TheType,
-	enum	PrimType pType,
-	int				 Arity,
-	int				 *Dimensions,
-	int				 NumElements,
-	unsigned		 ObjectSize,
-	int				 CurOffset,
-	char			 *StaticName,
-	struct	SymNode	 *Base,
-	struct	SymNode	 *Fields,
-	int				 FieldCnt,
-	struct	SymNode	 *CurField,
-	int				 CurIndex
+	SymNode_t			*Name,
+	SymNode_t			*TheType,
+	enum	PrimType 	pType,
+	int				 	Arity,
+	int				 	*Dimensions,
+	int				 	NumElements,
+	unsigned		 	ObjectSize,
+	int				 	CurOffset,
+	char			 	*StaticName,
+	SymNode_t	 		*Base,
+	SymNode_t	 		*Fields,
+	int				 	FieldCnt,
+	SymNode_t	 		*CurField,
+	int				 	CurIndex
 )
 _begin( ClrSym )
 
@@ -2090,7 +2090,7 @@ _end( ClrSym )
 /************************************************************/
 
 
-struct SymNode *
+SymNode_t *
 InsertProc
 (
 	char	*Name,
@@ -2098,11 +2098,11 @@ InsertProc
 )
 _begin( InsertProc )
 
-	struct SymNode *lastHash;
-	struct SymNode *NewEntry;
-	char			*lcName;
-	int				hash;
-	int				length;
+	SymNode_t *lastHash;
+	SymNode_t *NewEntry;
+	char	  *lcName;
+	int		  hash;
+	int		  length;
 	
 	
 	assert( Name != NULL );
@@ -2140,7 +2140,7 @@ _begin( InsertProc )
 	NewEntry->CurIndex		= 0;
 	NewEntry->regnum		= -1;
 
-	memset( &NewEntry->u.StartOfValues, 0, sizeof( union ValuesSize ));
+	memset( &NewEntry->u.StartOfValues, 0, sizeofValuesSize);
 	NewEntry->u.proc.returns	= "";
 	NewEntry->u.proc.use        = NULL;
 
@@ -2198,15 +2198,15 @@ _end( InsertProc )
 /*                                                                	*/
 /********************************************************************/
 
-struct SymNode *SearchNextb
+SymNode_t *SearchNextb
 (
-	struct SymNode	*s, 
-	char 			*n, 
-	int 			len, 
-	struct SymNode	*NameSpace
+	SymNode_t	*s, 
+	char 		*n, 
+	int 		len, 
+	SymNode_t	*NameSpace
 )
 {
-	struct SymNode	*cur;
+	SymNode_t	*cur;
 	
 	cur = s;
 	_do
@@ -2228,20 +2228,20 @@ struct SymNode *SearchNextb
 }
 
 
-static struct SymNode*
+static SymNode_t*
 MacroLookup
 ( 
-	char			*src, 
-	char			*lcSrc, 
-	struct SymNode	*ActList, 
-	struct SymNode	*NameSpace,
-	int				hash 
+	char		*src, 
+	char		*lcSrc, 
+	SymNode_t	*ActList, 
+	SymNode_t	*NameSpace,
+	int			hash 
 )
 _begin( MacroLookup )
 
-	struct SymNode	*cur;
-	int				MPindex;
-	char			msg[ 256 ];
+	SymNode_t	*cur;
+	int			MPindex;
+	char		msg[ 256 ];
 
 
 	/*
@@ -2338,8 +2338,9 @@ _begin( MacroLookup )
 				** this.
 				*/
 				
-						char	*SaveText;
-				struct	SymNode	*SaveNext;
+				char		*SaveText;
+				SymNode_t	*SaveNext;
+				
 				SaveText = ActList->u.MacroData.Parent->u.MacroData.Text;
 				ActList->u.MacroData.Parent->u.MacroData.Text = 
 					ActList->u.MacroData.Text;
@@ -2416,26 +2417,26 @@ _end( MacroLookup )
 /*                                                                     */
 /***********************************************************************/
 
-struct SymNode*
-SearchNexta(struct SymNode	*s, char *n, int len )
+SymNode_t*
+SearchNexta(SymNode_t	*s, char *n, int len )
 {
 	_here;
 	_return SearchNext( s, n, len );
 }
 
-struct SymNode	*SearchHasha(struct SymNode	*s, char *n, int len)
+SymNode_t	*SearchHasha(SymNode_t	*s, char *n, int len)
 {
 	
 	_here;
 	_return SearchHash( s, n, len );
 }
 
-static struct SymNode*
+static SymNode_t*
 rawlookup( char *src, int doCaseTest, char *lcName, int length, int hash )
 _begin( rawlookup )
 
-	struct SymNode	*cur;
-	char			msg[256];
+	SymNode_t	*cur;
+	char		msg[256];
 
 	_here;
 	assert( src != NULL );
@@ -2543,7 +2544,7 @@ _begin( rawlookup )
 
 		_if( ThisPtr != NULL )
 
-			struct SymNode *SaveSN;
+			SymNode_t *SaveSN;
 
 			SaveSN = SymbolTable;
 			SymbolTable = ThisPtr;
@@ -2577,10 +2578,10 @@ _begin( rawlookup )
 			
 		_elseif( RecGlobal != NULL )
 		
-			struct SymNode *saveSym;
-			struct SymNode *saveRecNS;
-			struct SymNode *saveRecGlobal;
-			struct SymNode *saveCurNS;
+			SymNode_t *saveSym;
+			SymNode_t *saveRecNS;
+			SymNode_t *saveRecGlobal;
+			SymNode_t *saveCurNS;
 
 			saveSym = SymbolTable;
 			saveRecGlobal = RecGlobal;
@@ -2614,10 +2615,10 @@ _begin( rawlookup )
 
 		_elseif( ProcGlobal != NULL )
 		
-			struct SymNode *saveSym;
-			struct SymNode *saveProcNS;
-			struct SymNode *saveProcGlobal;
-			struct SymNode *saveCurNS;
+			SymNode_t *saveSym;
+			SymNode_t *saveProcNS;
+			SymNode_t *saveProcGlobal;
+			SymNode_t *saveCurNS;
 
 			saveSym = SymbolTable;
 			saveProcGlobal = ProcGlobal;
@@ -2658,15 +2659,15 @@ _end( rawlookup )
 
 
 
-struct SymNode*
+SymNode_t*
 lookup( char *src, int doCaseTest )
 _begin( lookup )
 
-	struct SymNode	*cur;
-	char			msg[256];
-	char			lcName[256];
-	int				length;
-	int				hash;
+	SymNode_t	*cur;
+	char		msg[256];
+	char		lcName[256];
+	int			length;
+	int			hash;
 
 	_here;
 	assert( src != NULL );
@@ -2692,15 +2693,15 @@ _end( lookup )
 
 
 
-struct SymNode*
-NSlookup( char *src, int doCaseTest, struct SymNode *NameSpace )
+SymNode_t*
+NSlookup( char *src, int doCaseTest, SymNode_t *NameSpace )
 _begin( NSlookup )
 
-	struct SymNode	*cur;
-	char			msg[256];
-	char			lcName[256];
-	int				length;
-	int				hash;
+	SymNode_t	*cur;
+	char		msg[256];
+	char		lcName[256];
+	int			length;
+	int			hash;
 
 	_here;
 	assert( src != NULL );
@@ -2734,13 +2735,13 @@ _end( NSlookup )
 /***************************************************/
 
 
-struct SymNode*
-lookupin( char *src, struct SymNode *table )
+SymNode_t*
+lookupin( char *src, SymNode_t *table )
 _begin( lookupin )
 
-	struct	SymNode	*SaveSymTable;
-	struct	SymNode	*result;
-	struct	SymNode *saveCurNS;
+	SymNode_t	*SaveSymTable;
+	SymNode_t	*result;
+	SymNode_t	*saveCurNS;
 
 
 	SaveSymTable = SymbolTable;
@@ -2777,14 +2778,14 @@ _end( lookupin )
 /*******************************************************/
 
 
-struct SymNode*
-lookupthis( char *src, struct SymNode *table )
+SymNode_t*
+lookupthis( char *src, SymNode_t *table )
 _begin( lookupin )
 
-	struct	SymNode	*SaveSymTable;
-	struct	SymNode	*SaveThis;
-	struct	SymNode	*result;
-	struct	SymNode *saveCurNS;
+	SymNode_t	*SaveSymTable;
+	SymNode_t	*SaveThis;
+	SymNode_t	*result;
+	SymNode_t	*saveCurNS;
 
 
 	SaveSymTable	= SymbolTable;
@@ -2832,13 +2833,13 @@ _end( lookupin )
 
 
 
-struct SymNode*
-ClassifyLookup( char *src, struct SymNode *table )
+SymNode_t*
+ClassifyLookup( char *src, SymNode_t *table )
 _begin( ClassifyLookup )
 
-	char			*dotPosn;
-	struct	SymNode	*rtnResult;
-	char			LeftID[ 256 ];
+	char		*dotPosn;
+	SymNode_t	*rtnResult;
+	char		LeftID[ 256 ];
 
 
 	_here;
@@ -2949,11 +2950,11 @@ _end( ClassifyLookup )
 
 
 void 
-CheckForwardDecls( struct SymNode *CurProc )
+CheckForwardDecls( SymNode_t *CurProc )
 _begin( CheckForwardDecls )
 
-	struct	SymNode	*CurSym;
-	char	msg[ 256 ];
+	SymNode_t	*CurSym;
+	char		msg[ 256 ];
 
 	CurSym = SymbolTable;
 
@@ -2995,18 +2996,18 @@ _end( CheckForwardDecls )
 /*                                                     */
 /*******************************************************/
 
-struct SymNode *recCopyParms( struct SymNode *toCopy );
+SymNode_t *recCopyParms( SymNode_t *toCopy );
 
 void
-CopyParms( struct SymNode *proc )
+CopyParms( SymNode_t *proc )
 _begin( CopyParms )
 
-	int				lexlevel;
-	struct	SymNode	*plist;
-	struct	SymNode	*bt;
-	struct	SymNode	*_parms_;
-	struct	SymNode	*symsave;
-	struct	SymNode	value;
+	int			lexlevel;
+	SymNode_t	*plist;
+	SymNode_t	*bt;
+	SymNode_t	*_parms_;
+	SymNode_t	*symsave;
+	SymNode_t	value;
 
 	assert( proc != NULL );
 	bt = proc;
@@ -3067,12 +3068,12 @@ _end( CopyParms )
 
 
 
-struct SymNode*
-recCopyParms( struct SymNode *toCopy )
+SymNode_t*
+recCopyParms( SymNode_t *toCopy )
 _begin( recCopyParms )
 
-	struct SymNode *temp;
-	struct SymNode *prevItem;
+	SymNode_t *temp;
+	SymNode_t *prevItem;
 	
 	assert( toCopy != NULL );
 
@@ -3097,12 +3098,12 @@ _end( recCopyParms )
 
 
 
-struct SymNode*
-recCopyParms2( struct SymNode *toCopy, struct SymNode *endCopy )
+SymNode_t*
+recCopyParms2( SymNode_t *toCopy, SymNode_t *endCopy )
 _begin( recCopyParms2 )
 
-	struct SymNode *temp;
-	struct SymNode *prevItem;
+	SymNode_t *temp;
+	SymNode_t *prevItem;
 	
 	assert( toCopy != NULL );
 
@@ -3125,7 +3126,7 @@ _end( recCopyParms2 )
 
 
 void
-copyProcPtrParms( struct SymNode *parms )
+copyProcPtrParms( SymNode_t *parms )
 _begin( copyProcPtrParms )
 
 	SymbolTable = recCopyParms2( parms->u.proc.parms, parms );
@@ -3145,21 +3146,21 @@ _end( copyProcPtrParms )
 /*************************************************************/
 
 
-struct SymNode*
-CopySymbols( struct SymNode *SymbolsToCopy, char *VMTName )
+SymNode_t*
+CopySymbols( SymNode_t *SymbolsToCopy, char *VMTName )
 _begin( CopySymbols )
 
-	struct	SymNode	*temp;
-	struct	SymNode	*NextItem;
-	char			msg[ 256 ];
-	struct	SymNode value;
+	SymNode_t	*temp;
+	SymNode_t	*NextItem;
+	char		msg[ 256 ];
+	SymNode_t 	value;
 
 
 	assert( VMTName != NULL );
 
 	_if( SymbolsToCopy == NULL )
 
-		struct SymNode *Save;
+		SymNode_t *Save;
 
 		Save = SymbolTable;
 		sprintf
@@ -3309,12 +3310,12 @@ _end( CopySymbols )
 /*************************************************************/
 
 
-struct SymNode*
-CopyRecSymbols( struct SymNode *SymbolsToCopy )
+SymNode_t*
+CopyRecSymbols( SymNode_t *SymbolsToCopy )
 _begin( CopyRecSymbols )
 
-	struct	SymNode	*temp;
-	struct	SymNode	*NextItem;
+	SymNode_t	*temp;
+	SymNode_t	*NextItem;
 
 	/*
 	** Recursively call this function until we reach the
@@ -3376,7 +3377,7 @@ _end( CopyRecSymbols )
 /***************************************************************/
 
 void 
-NullTerminate( struct SymNode *list, struct SymNode *Last )
+NullTerminate( SymNode_t *list, SymNode_t *Last )
 _begin( NullTerminate )
 
 	assert( list != NULL );
@@ -3474,7 +3475,7 @@ _end( PrintDimensions )
 static void
 PrintSize
 ( 
-	struct	SymNode	*Sym 
+	SymNode_t	*Sym 
 )
 _begin( PrintSize )
 
@@ -3533,7 +3534,7 @@ _end( PrintSize )
 void
 PrintValues
 ( 
-	struct	SymNode		*Value
+	SymNode_t		*Value
 )
 _begin( PrintValues )
 
@@ -4116,7 +4117,7 @@ _begin( PrintValues )
 
 			_case( tUnion )
 			{
-				struct	SymNode		*field;
+				SymNode_t		*field;
 
 				/*
 				** Print the single data object associated with
@@ -4166,12 +4167,12 @@ _end( PrintValues )
 /****************************************************************/
 
 void
-DumpFields( struct SymNode *Type, struct SymNode *Value, int comma )
+DumpFields( SymNode_t *Type, SymNode_t *Value, int comma )
 _begin( DumpFields )
 
-	int		fldToPrt;
-	struct	SymNode	*s;
-	struct	SymNode	*v;
+	int			fldToPrt;
+	SymNode_t	*s;
+	SymNode_t	*v;
 
 	_returnif( Type == NULL );
 
@@ -4267,8 +4268,8 @@ _end( DumpFields )
 void   
 DumpSym
 ( 
-	struct SymNode *SymbolTable, 
-	int indent 
+	SymNode_t	*SymbolTable, 
+	int 		indent 
 )
 _begin( DumpSym )
 
@@ -4782,8 +4783,8 @@ _begin( DumpSym )
 
 				_case( tProcptr )
 				{
-					struct SymNode *s;
-					struct SymNode *restore;
+					SymNode_t *s;
+					SymNode_t *restore;
 					char   *TheType = "ProcPtr";
 
 					_if
@@ -4897,8 +4898,8 @@ _begin( DumpSym )
 
 				_case( tProc )
 				{
-					struct SymNode *s;
-					struct SymNode *restore = SymbolTable;
+					SymNode_t *s;
+					SymNode_t *restore = SymbolTable;
 
 					s =	_ifx
 						( 
@@ -5001,8 +5002,8 @@ _begin( DumpSym )
 
 				_case( tIterator )
 				{
-					struct SymNode *s;
-					struct SymNode *restore = SymbolTable;
+					SymNode_t *s;
+					SymNode_t *restore = SymbolTable;
 
 					s =	_ifx
 						( 
@@ -5105,8 +5106,8 @@ _begin( DumpSym )
 
 				_case( tClassProc )
 				{
-					struct SymNode *s = SymbolTable->u.proc.Locals;
-					struct SymNode *restore = SymbolTable;
+					SymNode_t *s = SymbolTable->u.proc.Locals;
+					SymNode_t *restore = SymbolTable;
 
 					/*
 					** Must NULL terminate the entry that points at
@@ -5204,8 +5205,8 @@ _begin( DumpSym )
 
 				_case( tClassIter )
 				{
-					struct SymNode *s = SymbolTable->u.proc.Locals;
-					struct SymNode *restore = SymbolTable;
+					SymNode_t *s = SymbolTable->u.proc.Locals;
+					SymNode_t *restore = SymbolTable;
 
 					/*
 					** Must NULL terminate the entry that points at
@@ -5303,8 +5304,8 @@ _begin( DumpSym )
 
 				_case( tMethod )
 				{
-					struct SymNode *s = SymbolTable->u.proc.Locals;
-					struct SymNode *restore = SymbolTable;
+					SymNode_t *s = SymbolTable->u.proc.Locals;
+					SymNode_t *restore = SymbolTable;
 
 					/*
 					** Must NULL terminate the entry that points at
@@ -5402,7 +5403,7 @@ _begin( DumpSym )
 
 				_case( tNamespace )
 				{
-					struct SymNode *restore = SymbolTable;
+					SymNode_t *restore = SymbolTable;
 
 					_if( SymbolTable->Fields != NULL )
 
@@ -5494,7 +5495,7 @@ _begin( DumpSym )
 
 				_case( tRegexMac )
 				{
-					struct SymNode *s = SymbolTable->u.MacroData.Locals;
+					SymNode_t *s = SymbolTable->u.MacroData.Locals;
 					
 					_here;
 					_if( s == NULL )
@@ -5539,7 +5540,7 @@ _begin( DumpSym )
 
 				_case( tRegex )
 				{
-					struct SymNode *s = SymbolTable->u.MacroData.Locals;
+					SymNode_t *s = SymbolTable->u.MacroData.Locals;
 					
 					_here;
 					_if( s == NULL )
@@ -5589,7 +5590,7 @@ _begin( DumpSym )
 
 				_case( tMacro )
 				{
-					struct SymNode *s = SymbolTable->u.MacroData.Terminator;
+					SymNode_t *s = SymbolTable->u.MacroData.Terminator;
 					
 					_here;
 					_if( s == NULL )
@@ -5707,8 +5708,8 @@ void
 dumpRegex( struct regexListType *r2p )
 _begin( dumpRegex )
 
-	struct SymNode	*s;
-	int				cnt;
+	SymNode_t	*s;
+	int			cnt;
 	
 	_if( r2p == NULL )
 		

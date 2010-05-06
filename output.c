@@ -83,7 +83,7 @@ char* needsOffsetStr( int needsOffset );
 static void OutPaddedValue
 ( 
 	char			*Name, 
-	struct	SymNode *Type, 
+	SymNode_t 		*Type, 
 	union	YYSTYPE *Value 
 );
 
@@ -425,7 +425,7 @@ char *closeCmnt[numAssemblers]=
 **	A pType is an index into this table, returning the base type.
 */
 
-struct SymNode *ptype2type[] =
+SymNode_t *ptype2type[] =
 {
 	&boolean_ste,   //  tBoolean,	//0 
 	&byte_ste,	    //  tEnum,		//1
@@ -2559,7 +2559,7 @@ _begin( extPubIterator )
 	struct		bpList_t 	*curBP;
 	struct		bpList_t 	*freeBP;
 	outputBuf				*save = asmBuf;
-	struct		SymNode		*sym;
+	SymNode_t				*sym;
 	
 	_here;
 	
@@ -14821,7 +14821,7 @@ processCondJump( enum jcc_instrs instr, char *target, int TrueLabel, int FalseLa
 _begin( processCondJump )
 
 	struct StaticListType	*sList;
-	struct SymNode			*sym;
+	SymNode_t				*sym;
 	char					label[ 256 ];
 	struct FwdRefLabelType	*temp;
 	struct FwdRefLabelType	*flist;
@@ -14949,7 +14949,7 @@ _begin( processCondJump )
 				*/
 
 
-				temp = malloc2( sizeof( struct FwdRefLabelType ));
+				temp = malloc2( sizeofFwdRefLabelType );
 				temp->Next = FwdLabelsList;
 				temp->label = hlastrdup( target );
 				temp->lexLevel = CurLexLevel;
@@ -15990,7 +15990,7 @@ _end( EmitIntMul_c_m_r )
 void 
 call_proc
 ( 
-	struct SymNode *proc 
+	SymNode_t *proc 
 )
 _begin( call_proc )
 
@@ -16149,7 +16149,7 @@ _begin( callUndefSym )
 	struct StaticListType	*sList;
 	struct FwdRefLabelType	*flist;
 	struct FwdRefLabelType	*temp;
-	struct SymNode			*sym;
+	SymNode_t				*sym;
 	char					label[ 256 ];
 	char					sn[ 256 ];
 
@@ -16233,7 +16233,7 @@ _begin( callUndefSym )
 				** list, so add it to that list.
 				*/
 
-				temp = malloc2( sizeof( struct FwdRefLabelType ));
+				temp = malloc2( sizeofFwdRefLabelType );
 				temp->Next = FwdLabelsList;
 				temp->label = hlastrdup2( undefSym );
 				temp->lexLevel = CurLexLevel;
@@ -16472,7 +16472,7 @@ void
 jmpTargetID( char *jmpSym  )
 _begin( jmpTargetID )
 
-	struct SymNode 			*sym;
+	SymNode_t 				*sym;
 	struct StaticListType	*sList;
 	char					label[ 256 ];
 	struct FwdRefLabelType	*flist;
@@ -16598,7 +16598,7 @@ _begin( jmpTargetID )
 				struct FwdRefLabelType *temp;
 				char sn[ 256 ];
 
-				temp = malloc2( sizeof( struct FwdRefLabelType ));
+				temp = malloc2( sizeofFwdRefLabelType );
 				temp->Next = FwdLabelsList;
 				temp->label = hlastrdup2( jmpSym );
 				temp->lexLevel = CurLexLevel;
@@ -16981,7 +16981,7 @@ _end( EmitImmExtern )
 void
 EmitExtern
 ( 
-	struct SymNode *sym, 
+	SymNode_t *sym, 
 	unsigned size 
 )
 _begin( EmitExtern )
@@ -17017,7 +17017,7 @@ _end( EmitExtern )
 void
 EmitTypedExtern
 ( 
-	struct SymNode	*sym,
+	SymNode_t		*sym,
 	char 			*theSymbol, 
 	enum PrimType	labelType 
 )
@@ -17032,8 +17032,8 @@ _end( EmitTypedExtern )
 void
 EmitVMTExtern
 ( 
-	struct SymNode *sym,
-	char *theSymbol 
+	SymNode_t	*sym,
+	char 		*theSymbol 
 )
 _begin( EmitTypedExtern )
 
@@ -18164,7 +18164,7 @@ _end( EmitReal8Const )
 
 
 void
-EmitLabelledReal10Const( char *label, struct flt80 theConst )
+EmitLabelledReal10Const( char *label, flt80_t theConst )
 _begin( EmitLabelledReal10Const )
 
 	char realStr[32];
@@ -18304,7 +18304,7 @@ _end( EmitLabelledReal10Const )
 
 
 void
-EmitReal10Const( struct flt80 theConst )
+EmitReal10Const( flt80_t theConst )
 _begin( EmitReal8Const )
 
 	EmitLabelledReal10Const( "", theConst );
@@ -19136,12 +19136,12 @@ _end( ReserveStorage )
 
 
 void
-ReserveTypedStorage( char *theVar, struct SymNode *theType, int elements )
+ReserveTypedStorage( char *theVar, SymNode_t *theType, int elements )
 _begin( ReserveTypedStorage )
 
-	int	pType;
-	int size;
-	struct SymNode *newType;
+	int			pType;
+	int 		size;
+	SymNode_t	*newType;
 	
 	static char *sizeSuffixes[11] =
 		{ "", "b", "w", "", "d", "", "", "", "q", "", "t" };
@@ -19785,9 +19785,9 @@ EmitBackPatchss
 )
 _begin( EmitBackPatchss )
 
-	char	bp[256];
+	char				bp[256];
 	struct	bpList_t	*thisBP;
-	struct	SymNode		*eqSym;
+	SymNode_t			*eqSym;
 
 	// Force a reference of equals:
 	
@@ -20164,7 +20164,7 @@ _end( RtnOperand )
 //EmitConstValue
 //( 
 //	char *comment, 
-//	struct SymNode *v
+//	SymNode_t *v
 //)
 //_begin( EmitConstValue )
 //
@@ -22564,7 +22564,7 @@ _end( EmitData )
 //
 //
 static enum PrimType
-RtnBaseType( struct SymNode *Type )
+RtnBaseType( SymNode_t *Type )
 _begin( RtnBaseType )
 
 	Type = GetBaseType( Type );
@@ -22670,7 +22670,7 @@ _end( RtnBaseType )
 
 
 void 
-OutStaticConst( char *StaticName, struct SymNode *type, union YYSTYPE *value )
+OutStaticConst( char *StaticName, SymNode_t *type, union YYSTYPE *value )
 _begin( OutStaticConst )
 
 	int				needsOffset;
@@ -22798,14 +22798,14 @@ _end( OutStaticConst )
 /**********************************************************/
 
 static int
-EmitFields( struct SymNode *Fields, union YYSTYPE *Values )
+EmitFields( SymNode_t *Fields, union YYSTYPE *Values )
 _begin( EmitFields )
 
 	int				offset;
 	int				fOffset;
 	int				size;
 	int				FieldCnt;
-	struct	SymNode	*f;
+	SymNode_t  		*f;
 	union	YYSTYPE	*v;
 
 	_returnif( Fields == NULL ) 0;
@@ -22882,14 +22882,14 @@ void
 OutValue
 ( 
 	char			*Name, 
-	struct SymNode	*Type, 
+	SymNode_t		*Type, 
 	union YYSTYPE	*Value 
 )
 _begin( OutValue )
 
 	int				lastAlign;
 	enum   PrimType	BaseType;
-	struct SymNode	*realType;
+	SymNode_t		*realType;
 	
 	char			label[ 32 ];
 
@@ -23119,7 +23119,7 @@ _begin( OutValue )
 			// strLbls array will hold the numeric labels for the
 			// strings we emit:
 			
-			strLbls = malloc2( Value->v.NumElements * sizeof( int ) );
+			strLbls = malloc2( Value->v.NumElements * sizeofInt );
 			
 			// If it is a string array, we've got to use special
 			// code because we've got to emit pointers and the
@@ -23294,7 +23294,7 @@ _begin( OutValue )
 					)
 			)
 			
-				memcpy( &v, CurValue, sizeof( union YYSTYPE ));
+				memcpy( &v, CurValue, sizeofYYSTYPE);
 				
 				_switch( size )
 				
@@ -23456,7 +23456,7 @@ _begin( OutValue )
 		EmitTypedLabel( Name, tByte );
 		_if( Value->v.pType != tError && Value->v.Type != NULL )
 			
-			struct	SymNode	*save;
+			SymNode_t	*save;
 
 			assert(	Value->v.u.FieldValues != NULL );
 			OutValue
@@ -23806,7 +23806,7 @@ _end( HexToStr128 )
 */
 
 int 
-StaticConstToStr( struct SymNode *type, union YYSTYPE *value, char *dest )
+StaticConstToStr( SymNode_t *type, union YYSTYPE *value, char *dest )
 _begin( StaticConstToStr )
 
 	char msg[ 128 ];
@@ -25522,7 +25522,7 @@ _end( FreeAdrs2 )
 
 
 static void
-OutputVMT( struct SymNode *ClassPtr, int *Offset )
+OutputVMT( SymNode_t *ClassPtr, int *Offset )
 _begin( OutputVMT )
 
 	_if( ClassPtr != NULL )
@@ -25568,7 +25568,7 @@ _end( OutputVMT )
 
 
 void
-BuildVMT( struct SymNode *ClassPtr, char *VMTname, char *label )
+BuildVMT( SymNode_t *ClassPtr, char *VMTname, char *label )
 _begin( BuildVMT )
 
 	int		VMToffset;
@@ -25800,13 +25800,13 @@ _end( IteratorExit )
 
 
 void 
-CopyValResParms( struct SymNode *ParmList )
+CopyValResParms( SymNode_t *ParmList )
 _begin( CopyValResParms )
 
-	struct	SymNode	*s;
-	struct	SymNode	*d;
-	int 	NeedsMOVS = 0;
-	char	adrs[128];
+	SymNode_t	*s;
+	SymNode_t	*d;
+	int 		NeedsMOVS = 0;
+	char		adrs[128];
 
 
 	assert( ParmList != NULL );
@@ -26104,14 +26104,14 @@ _end( CopyValResParms )
 
 
 void 
-StoreValResParms( struct SymNode *ParmList )
+StoreValResParms( SymNode_t *ParmList )
 _begin( StoreValResParms )
 
-	struct	SymNode	*s;
-	struct	SymNode	*d;
-	char			adrs[6][16];
-	int 			NeedsMOVS 		= 0;
-	int				HadPassByValRes = 0;
+	SymNode_t	*s;
+	SymNode_t	*d;
+	char		adrs[6][16];
+	int 		NeedsMOVS 		= 0;
+	int			HadPassByValRes = 0;
 
 
 
@@ -26413,7 +26413,7 @@ _end( StoreValResParms )
 */
 
 void 
-PassValpConst( struct SymNode *sym, union YYSTYPE *value )
+PassValpConst( SymNode_t *sym, union YYSTYPE *value )
 _begin( EmitValpConst )
 
 	int		Lbl;
@@ -26722,11 +26722,11 @@ _begin( EmitValpConst )
 
 		_if( ArraysAreCompatible( (union YYSTYPE *) sym, value ))
 
-			char name[ 32 ];
-			char bytes[ 64 ];
-			int	 Size;
-			int	 i;
-			struct SymNode *s;
+			char 		name[ 32 ];
+			char 		bytes[ 64 ];
+			int	 		Size;
+			int	 		i;
+			SymNode_t	*s;
 
 			// If we're passing 64 bytes or fewer as a constant,
 			// then simply emit the pushes for these constants.
@@ -26946,7 +26946,7 @@ static void
 OutPaddedValue
 ( 
 	char			*Name, 
-	struct	SymNode *Type, 
+	SymNode_t 		*Type, 
 	union	YYSTYPE *Value 
 )
 _begin( OutPaddedValue )
@@ -27336,17 +27336,17 @@ _end( PushActualValue )
 void 
 OutputMemParm
 ( 
-	struct SymNode	*theProc, 
-	struct SymNode	*formal, 
+	SymNode_t		*theProc, 
+	SymNode_t		*formal, 
 	struct adrsYYS	*actual,
 	int				valPrefix 
 )
 _begin( OutputMemParm )
 
-	struct	SymNode		*abt;
-	struct	SymNode 	*fbt;
+	SymNode_t			*abt;
+	SymNode_t 			*fbt;
 	enum	PrimType 	apType;
-	struct	SymNode		*aType;
+	SymNode_t			*aType;
 	unsigned			aSize;
 	unsigned			fSize;
 	int 				regnum;
@@ -28792,7 +28792,7 @@ _begin( OutputMemParm )
 
 			_elseif( actual->SymClass == cParm )
 
-				struct SymNode *abt = actual->BaseType;
+				SymNode_t *abt = actual->BaseType;
 
 				
 				/*

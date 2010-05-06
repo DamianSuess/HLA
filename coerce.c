@@ -52,7 +52,7 @@
 /**************************************************************************/
 
 int  
-MakeCompatible( struct SymNode  *LeftOp, struct SymNode  *RightOp )
+MakeCompatible( SymNode_t  *LeftOp, SymNode_t  *RightOp )
 _begin( MakeCompatible )
 
 	int result;
@@ -106,7 +106,7 @@ _end( MakeCompatible )
 /**************************************************************************/
 
 int  
-IsCompatible( struct SymNode *Type, union YYSTYPE *Val )
+IsCompatible( SymNode_t *Type, union YYSTYPE *Val )
 _begin( IsCompatible )
 
 	assert( Type != NULL );
@@ -202,7 +202,7 @@ _end( IsCompatible )
 /**************************************************************************/
 
 int  
-FieldsAreCompatible( struct SymNode *Type, union YYSTYPE *Field )
+FieldsAreCompatible( SymNode_t *Type, union YYSTYPE *Field )
 _begin( FieldsAreCompatible )
 
 	union YYSTYPE yType;
@@ -327,15 +327,15 @@ _end( FieldsAreCompatible )
 /*******************************************************************/
 
 int  
-RecordsAreCompatible( struct SymNode *Type, union YYSTYPE *Fields )
+RecordsAreCompatible( SymNode_t *Type, union YYSTYPE *Fields )
 _begin( RecordsAreCompatible )
 
 	int				iField;
 	int				selField;
 	int				Compatible;
 	int				FAC;
-	struct	SymNode	*CurFieldType;
-	struct	SymNode	*fieldToChk;
+	SymNode_t		*CurFieldType;
+	SymNode_t		*fieldToChk;
 	union	YYSTYPE	*FieldValues;
 	char			msg[128];
 
@@ -496,7 +496,7 @@ ArraysAreCompatible( union YYSTYPE *Type, union YYSTYPE *Val )
 _begin( ArraysAreCompatible )
 
 	enum	PrimType	tp, vp;
-	struct	SymNode		*tType, *vType;
+	SymNode_t			*tType, *vType;
 	int					tNum, vNum;
 	
 	assert( Type != NULL );
@@ -649,8 +649,8 @@ _begin( CoerceArrays )
 	enum	PrimType	newlp;
 	enum	PrimType	rp;
 	enum	PrimType	newrp;
-	struct	SymNode		*lt;
-	struct	SymNode		*rt;
+	SymNode_t			*lt;
+	SymNode_t			*rt;
 	
 
 	assert( Left != NULL );
@@ -815,7 +815,7 @@ _end( CoerceArrays )
 /*                                               */
 /*************************************************/
 
-struct SymNode *
+SymNode_t *
 MakeAnyCompat( union YYSTYPE *left, union YYSTYPE *right )
 _begin( MakeAnyCompat )
 
@@ -836,7 +836,7 @@ _begin( MakeAnyCompat )
 		r.v.pType = right->cls.type->pType;
 		r.v.Type = right->cls.type;
 
-		_if( MakeCompatible( (struct SymNode *) &l, (struct SymNode *) &r ))
+		_if( MakeCompatible( (SymNode_t *) &l, (SymNode_t *) &r ))
 
 			_return l.v.Type;
 

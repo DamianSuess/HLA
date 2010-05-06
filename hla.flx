@@ -219,14 +219,14 @@ int         RegexIndex = 0;
 int                         MacroSP  = -1;
 struct MacroStkType         MacroStack[ maxNestedMacros ];
 int                         W4TermSP = -1;
-struct SymNode              *Wait4Term[ maxNestedMacros ];
+SymNode_t		            *Wait4Term[ maxNestedMacros ];
 
-struct SymNode              *ActiveMacros = NULL;
+SymNode_t              		*ActiveMacros = NULL;
 
 ParmLine_t                  *ParmLine;
 
 
-static  struct SymNode      *yySymbol;
+static  SymNode_t      		*yySymbol;
 static  int                 MacroCntr = 0;
 
 static  void    EndMacroExpansion( void );
@@ -352,12 +352,12 @@ static  int                 IfState;
 ** The following are needed to process namespace and class objects;
 */
 
-        struct  SymNode     *LastMacroObject =  NULL;
-		struct  SymNode     *CurSymTbl       =  NULL;
-static  struct  SymNode     *CurObject       =  NULL;
-        struct  SymNode     *LastRefdObject  =  NULL;
-static          char        ClassID[ maxInputLineLen ];
-				char		CurNamespaceID[maxInputLineLen];
+        SymNode_t	*LastMacroObject =  NULL;
+		SymNode_t	*CurSymTbl       =  NULL;
+static  SymNode_t	*CurObject       =  NULL;
+        SymNode_t	*LastRefdObject  =  NULL;
+static  char        ClassID[ maxInputLineLen ];
+		char		CurNamespaceID[maxInputLineLen];
 
 
 /*
@@ -379,7 +379,7 @@ extern  union   YYSTYPE     forReturnVal;
 static void  strip_( void );
 static char* MakeStr( void );
 static char* MakeUStr( void );
-static void  SetArray( YYSTYPE *, struct SymNode * );
+static void  SetArray( YYSTYPE *, SymNode_t * );
 static void  AppendMacroLine( void );
 static void  AppendRegexLine( void );
 static void  AppendForLine( void );
@@ -390,13 +390,13 @@ static int   ParmTooLong( union YYSTYPE *);
 static void  RsvdWordErr( char *RW );
 static int   ProcessID
 ( 
-            char    *ID, 
-            int     symLexLevel, 
-    struct  SymNode *symbol, 
-            YYSTYPE *yylval 
+    char    	*ID, 
+    int     	symLexLevel, 
+    SymNode_t 	*symbol, 
+    YYSTYPE 	*yylval 
 );
 
-static int ProcessMacro( struct SymNode *symbol );
+static int ProcessMacro( SymNode_t *symbol );
 
 static void prefixName( char *filename, char *result );
 
@@ -2415,7 +2415,7 @@ _zstring		zstring
                                            
 <MacroParm>[a-z_][a-z0-9_]* {
 
-                        struct  SymNode *symbol;
+                        SymNode_t *symbol;
                         
                         _here;
                         symbol = lookup( yytext, 1 );
@@ -3556,7 +3556,7 @@ _zstring		zstring
                 ForStack[ ForSP ].LineCnt = LineCnt;
                 
                 ForStack[ ForSP ].inVal = 
-                    (struct SymNode *)forReturnVal.forInfo.inVal;
+                    (SymNode_t *)forReturnVal.forInfo.inVal;
                     
                 ForStack[ ForSP ].pType = forReturnVal.forInfo.pType;
 
@@ -3758,7 +3758,7 @@ _zstring		zstring
                         
                             _case( tRecord )
                             {
-                                struct  SymNode *f;
+                                SymNode_t *f;
                             
                                 // Extract a field from the record:
 
@@ -3930,7 +3930,7 @@ _zstring		zstring
                     
                     _else // We got a #for( var in expr ) loop:
                     
-                        struct  SymNode *s;
+                        SymNode_t 		*s;
                         union   YYSTYPE v;
 
                         _switch( ForStack[ ForSP ].pType )
@@ -4092,7 +4092,7 @@ _zstring		zstring
                         
                             _case( tRecord )
                             {
-                                struct  SymNode *f;
+                                SymNode_t *f;
                             
                                 // Extract a field from the record:
 
@@ -8399,7 +8399,7 @@ _zstring		zstring
 
 <UnprocessedID>[a-z_][a-z0-9_]*(\.[a-z_][a-z0-9_]*)* {
         
-        struct SymNode *s;
+        SymNode_t *s;
 
         s=ClassifyLookup( yytext, SymbolTable );
         _if( s != NULL )
@@ -8455,12 +8455,12 @@ _zstring		zstring
  
 {a_string}:[a-z_][a-z0-9_]* {
 
-            int     LastWasGraph = 0;
-            int     CurIsGraph;
-            char    *s;
-            char    DestStr[ maxInputLineLen ];
-            char    temp[ maxInputLineLen ];
-            struct  SymNode *sym;
+            int     	LastWasGraph = 0;
+            int     	CurIsGraph;
+            char    	*s;
+            char    	DestStr[ maxInputLineLen ];
+            char    	temp[ maxInputLineLen ];
+            SymNode_t	*sym;
 
             _here;
             sym = lookup( yytext + 8, 1 );
@@ -8540,11 +8540,11 @@ _zstring		zstring
  
 {a_tostring}:[a-z_][a-z0-9_]* {
 
-            int     CurIsGraph;
-            char    *s;
-            char    DestStr[ maxInputLineLen ];
-            char    temp[ maxInputLineLen ];
-            struct  SymNode *sym;
+            int     	CurIsGraph;
+            char    	*s;
+            char    	DestStr[ maxInputLineLen ];
+            char    	temp[ maxInputLineLen ];
+            SymNode_t	*sym;
 
             _here;
             sym = lookup( yytext + 10, 1 );
@@ -8585,11 +8585,11 @@ _zstring		zstring
             
         _else // We're currently in a namespace.
         
-            struct  SymNode *symbol;
-            int             Token;
-            int             symLexLevel;
+            SymNode_t *symbol;
+            int       Token;
+            int       symLexLevel;
 
-            int             saveInNamespace = inNamespace;
+            int       saveInNamespace = inNamespace;
         
 
             /*
@@ -8984,11 +8984,11 @@ _zstring		zstring
 
 <ThisID>"."[a-z_][a-z0-9_]* {
 
-                        int             Token;
-                        struct  SymNode *SaveSym;
-                        struct  SymNode *s;
-                        struct  SymNode *symbol;
-                        char            msg[ 256 ];
+                        int   		Token;
+                        SymNode_t 	*SaveSym;
+                        SymNode_t 	*s;
+                        SymNode_t 	*symbol;
+                        char		msg[ 256 ];
 
                         
                         /*
@@ -9194,11 +9194,11 @@ _zstring		zstring
 
 <SuperID>"."[a-z_][a-z0-9_]* {
 
-                        int             Token;
-                        struct  SymNode *SaveSym;
-                        struct  SymNode *s;
-                        struct  SymNode *symbol;
-                        char            msg[ 256 ];
+                        int         Token;
+                        SymNode_t 	*SaveSym;
+                        SymNode_t 	*s;
+                        SymNode_t 	*symbol;
+                        char        msg[ 256 ];
 
                         
                         /*
@@ -9376,13 +9376,13 @@ _zstring		zstring
 
 <NameSpace>"."[a-z_][a-z0-9_]* {
 
-            int             Token;
-            int             LexLevel;
-			int				saveIndex;
-            struct  SymNode *symbol;
-            struct  SymNode *saveCurNS;
-            struct  SymNode *saveSymTbl;
-            struct  SymNode *NS;
+            int         Token;
+            int         LexLevel;
+			int			saveIndex;
+            SymNode_t 	*symbol;
+            SymNode_t 	*saveCurNS;
+            SymNode_t 	*saveSymTbl;
+            SymNode_t 	*NS;
 
             _here;
 
@@ -10347,12 +10347,12 @@ _end( doMacParm )
 */
 
 void
-RmvActiveMacro( struct SymNode *mac2rmv )
+RmvActiveMacro( SymNode_t *mac2rmv )
 _begin( RmvActiveMacro )
 
-    struct  SymNode *LclSym;
-    struct  SymNode *tmp;
-    struct  SymNode **AList;
+    SymNode_t *LclSym;
+    SymNode_t *tmp;
+    SymNode_t **AList;
 
     assert( ActiveMacros != NULL );
     assert( mac2rmv != NULL );
@@ -10492,8 +10492,8 @@ _begin( EndMacroExpansion )
 
     _if( MacroStack[ MacroSP ].Macro->SymClass == cTerminator )
 
-                char    msg[ 256 ];
-        struct  SymNode *s;
+        char		msg[ 256 ];
+        SymNode_t	*s;
 
         _if( W4TermSP < 0 )
 
@@ -10576,9 +10576,9 @@ _begin( EndMacroExpansion )
             **      to the parent's local symbols.
             */
 
-            struct  SymNode *parent;
-            struct  SymNode *pLocals;
-            struct  SymNode *AMList;
+            SymNode_t *parent;
+            SymNode_t *pLocals;
+            SymNode_t *AMList;
 
             parent = MacroStack[ MacroSP ].Macro->u.MacroData.Parent;
             pLocals = parent->u.MacroData.Terminator->Next;
@@ -10651,7 +10651,7 @@ _begin( EndMacroExpansion )
         ** to remove it later on.  
         */
         
-        struct SymNode  *CurMac;
+        SymNode_t  *CurMac;
 
         CurMac = ActiveMacros;
         _while( CurMac != NULL && CurMac != MacroStack[ MacroSP ].Macro )
@@ -10993,8 +10993,8 @@ _end( PushBackStr )
 static void
 SetArray
 (
-            YYSTYPE *dest,
-    struct  SymNode *src
+    YYSTYPE		*dest,
+    SymNode_t	*src
 
 )
 _begin( SetArray )
@@ -11088,7 +11088,7 @@ _end( RsvdWordErr )
 /*************************************************************/
 
 void
-processMacroID( struct SymNode *symbol )
+processMacroID( SymNode_t *symbol )
 _begin( processMacroID )
 
     yySymbol = symbol;
@@ -11111,7 +11111,7 @@ _end( processMacroID )
 
 
 static int
-ProcessMacro( struct SymNode *symbol )
+ProcessMacro( SymNode_t *symbol )
 _begin( ProcessMacro )
 
     /*
@@ -11122,16 +11122,16 @@ _begin( ProcessMacro )
     */
 
 
-            int     CurMacCntr;
-            int     LocalVarMacParms;
-            char    ThisLbl[256];
-    struct  SymNode *LocalIDs;
-    struct  SymNode v;
-    struct  SymNode *MacroListItem;
-    struct  SymNode *LclSym;
-    struct  SymNode *NewSym;
-    struct  SymNode *LastSym;
-    struct  SymNode *AMList;
+    int     	CurMacCntr;
+    int     	LocalVarMacParms;
+    char    	ThisLbl[256];
+    SymNode_t 	*LocalIDs;
+    SymNode_t 	v;
+    SymNode_t 	*MacroListItem;
+    SymNode_t 	*LclSym;
+    SymNode_t 	*NewSym;
+    SymNode_t 	*LastSym;
+    SymNode_t 	*AMList;
 
     /*
     ** Save the global object VarMacParms
@@ -11506,7 +11506,7 @@ _end( ProcessMacro )
 
 
 int
-ProcessRegex( struct SymNode *symbol, union YYSTYPE *yylval )
+ProcessRegex( SymNode_t *symbol, union YYSTYPE *yylval )
 _begin( ProcessRegex )
 
     /*
@@ -11517,15 +11517,15 @@ _begin( ProcessRegex )
     */
 
 
-            int     CurMacCntr;
-            char    ThisLbl[256];
-    struct  SymNode *LocalIDs;
-    struct  SymNode v;
-    struct  SymNode *RegexListItem;
-    struct  SymNode *LclSym;
-    struct  SymNode *NewSym;
-    struct  SymNode *LastSym;
-    struct  SymNode *ARList;
+    int     	CurMacCntr;
+    char    	ThisLbl[256];
+    SymNode_t 	*LocalIDs;
+    SymNode_t 	v;
+    SymNode_t 	*RegexListItem;
+    SymNode_t 	*LclSym;
+    SymNode_t 	*NewSym;
+    SymNode_t 	*LastSym;
+    SymNode_t 	*ARList;
     
     _here;
 
@@ -11810,9 +11810,9 @@ static int
 doID( YYSTYPE *yylval )
 _begin( doID )
 
-    struct  SymNode *symbol;
-    struct  SymNode *temp;
-    int             Token;
+    SymNode_t 	*symbol;
+    SymNode_t 	*temp;
+    int         Token;
 
 
     
@@ -11953,10 +11953,10 @@ _end( doID )
 static int
 ProcessID
 ( 
-            char    *ID, 
-            int     symLexLevel, 
-    struct  SymNode *symbol, 
-            YYSTYPE *yylval
+    char    	*ID, 
+    int     	symLexLevel, 
+    SymNode_t 	*symbol, 
+    YYSTYPE 	*yylval
 )
 _begin( ProcessID )
 
@@ -12072,9 +12072,9 @@ _begin( ProcessID )
         ** directly.
         */
 
-        struct  SymNode *SaveSymTbl;
-                char    *DotLocation;
-                char    msg[ 256 ];
+        SymNode_t	*SaveSymTbl;
+        char		*DotLocation;
+        char		msg[ 256 ];
                 
         #define cn d1dnReturnVal.dotName
 
@@ -12295,8 +12295,8 @@ _begin( ProcessID )
         &&  IsVar( symbol->SymClass )
     )
     
-        struct  SymNode *SaveObject;
-                char    *DotLocation;
+        SymNode_t	*SaveObject;
+        char		*DotLocation;
                 
         #define dn d1dnReturnVal.dotName
 

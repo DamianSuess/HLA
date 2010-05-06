@@ -13,7 +13,7 @@ extern void compactType
 ( 
 	void *data, 
 	enum PrimType *pType, 
-	struct SymNode **type 
+	SymNode_t **type 
 );
 
 extern void UnsToStr( char *buf, void *unsval );
@@ -25,7 +25,7 @@ extern void notval
 	void *src,
 	enum PrimType vpt, 
 	enum PrimType *vpta,
-	struct SymNode **vt
+	SymNode_t **vt
 );
 
 
@@ -35,7 +35,7 @@ extern void negval
 	void *src,
 	enum PrimType vpt, 
 	enum PrimType *vpta,
-	struct SymNode **vt
+	SymNode_t **vt
 );
 
 
@@ -45,7 +45,7 @@ extern void addval
 	void *dest,
 	void *src,
 	enum PrimType *vpt,
-	struct SymNode **typ
+	SymNode_t **typ
 	
 );
 
@@ -55,7 +55,7 @@ extern void subval
 	void *dest,
 	void *src,
 	enum PrimType *vpt,
-	struct SymNode **typ
+	SymNode_t **typ
 	
 );
 
@@ -65,7 +65,7 @@ extern void mulval
 	void *dest,
 	void *src,
 	enum PrimType *vpt,
-	struct SymNode **typ
+	SymNode_t **typ
 	
 );
 
@@ -75,7 +75,7 @@ extern void divval
 	void *dest,
 	void *src,
 	enum PrimType *vpt,
-	struct SymNode **typ
+	SymNode_t **typ
 	
 );
 
@@ -85,7 +85,7 @@ extern void modval
 	void *dest,
 	void *src,
 	enum PrimType *vpt,
-	struct SymNode **typ
+	SymNode_t **typ
 	
 );
 
@@ -95,7 +95,7 @@ extern void shlval
 	void *dest,
 	void *src,
 	enum PrimType *vpt,
-	struct SymNode **typ
+	SymNode_t **typ
 	
 );
 
@@ -105,7 +105,7 @@ extern void shrval
 	void *dest,
 	void *src,
 	enum PrimType *vpt,
-	struct SymNode **typ
+	SymNode_t **typ
 	
 );
 
@@ -133,14 +133,14 @@ extern int InRange
 	enum PrimType tpt, 
 	enum PrimType vpt, 
 	enum PrimType *vpta,
-	struct SymNode **vt
+	SymNode_t **vt
 );
 
 extern void DecStrToInt
 ( 
 	char *numstr, 
 	void *dest,
-	struct SymNode **Type,
+	SymNode_t **Type,
 	enum PrimType *pType
 );
 
@@ -148,7 +148,7 @@ extern void BinStrToInt
 ( 
 	char *numstr, 
 	void *dest,
-	struct SymNode **Type,
+	SymNode_t **Type,
 	enum PrimType *pType
 );
 
@@ -156,7 +156,7 @@ extern void HexStrToInt
 ( 
 	char *numstr, 
 	void *dest,
-	struct SymNode **Type,
+	SymNode_t **Type,
 	enum PrimType *pType
 );
 
@@ -165,8 +165,8 @@ extern int MakeCompAsm
 ( 
 	enum PrimType *lpType, 
 	enum PrimType *rpType, 
-	struct SymNode **lType, 
-	struct SymNode **rType, 
+	SymNode_t **lType, 
+	SymNode_t **rType, 
 	void *lData, 
 	void *rData
 );
@@ -178,39 +178,39 @@ extern int MakeCompAsm
 */
 
 
-extern void fadd80( struct flt80 *dest, struct flt80 l, struct flt80 r );
-extern void fsub80( struct flt80 *dest, struct flt80 l, struct flt80 r );
-extern void fmul80( struct flt80 *dest, struct flt80 l, struct flt80 r );
-extern void fdiv80( struct flt80 *dest, struct flt80 l, struct flt80 r );
+extern void fadd80( flt80_t *dest, flt80_t l, flt80_t r );
+extern void fsub80( flt80_t *dest, flt80_t l, flt80_t r );
+extern void fmul80( flt80_t *dest, flt80_t l, flt80_t r );
+extern void fdiv80( flt80_t *dest, flt80_t l, flt80_t r );
 
-extern void fmax80( struct flt80 *dest, struct flt80 l, struct flt80 r );
-extern void fmin80( struct flt80 *dest, struct flt80 l, struct flt80 r );
+extern void fmax80( flt80_t *dest, flt80_t l, flt80_t r );
+extern void fmin80( flt80_t *dest, flt80_t l, flt80_t r );
 
-extern void fneg80( struct flt80 *dest, struct flt80 l );
-extern void fabs80( struct flt80 *dest, struct flt80 l );
+extern void fneg80( flt80_t *dest, flt80_t l );
+extern void fabs80( flt80_t *dest, flt80_t l );
 
-extern int  feq80 ( struct flt80 l, struct flt80 r );
-extern int  fne80 ( struct flt80 l, struct flt80 r );
-extern int  flt80 ( struct flt80 l, struct flt80 r );
-extern int  fle80 ( struct flt80 l, struct flt80 r );
-extern int  fgt80 ( struct flt80 l, struct flt80 r );
-extern int  fge80 ( struct flt80 l, struct flt80 r );
+extern int  feq80 ( flt80_t l, flt80_t r );
+extern int  fne80 ( flt80_t l, flt80_t r );
+extern int  flt80 ( flt80_t l, flt80_t r );
+extern int  fle80 ( flt80_t l, flt80_t r );
+extern int  fgt80 ( flt80_t l, flt80_t r );
+extern int  fge80 ( flt80_t l, flt80_t r );
 
-extern void f80int( struct flt80 src, void *dest );
-extern void unsf80( void *src, struct flt80 *dest );
+extern void f80int( flt80_t src, void *dest );
+extern void unsf80( void *src, flt80_t *dest );
 
-extern void atold( struct flt80 *dest, char *a );
-extern void e80Str( char *dest, struct flt80 value );
+extern void atold( flt80_t *dest, char *a );
+extern void e80Str( char *dest, flt80_t value );
  
-extern void ceil80( struct flt80 *dest, struct flt80 x );
-extern void floor80( struct flt80 *dest, struct flt80 x );
-extern void cos80( struct flt80 *dest, struct flt80 x );
-extern void sin80( struct flt80 *dest, struct flt80 x );
-extern void tan80( struct flt80 *dest, struct flt80 x );
-extern void exp80( struct flt80 *dest, struct flt80 x );
-extern void log80( struct flt80 *dest, struct flt80 x );
-extern void log1080( struct flt80 *dest, struct flt80 x );
-extern void sqrt80( struct flt80 *dest, struct flt80 x );
+extern void ceil80( flt80_t *dest, flt80_t x );
+extern void floor80( flt80_t *dest, flt80_t x );
+extern void cos80( flt80_t *dest, flt80_t x );
+extern void sin80( flt80_t *dest, flt80_t x );
+extern void tan80( flt80_t *dest, flt80_t x );
+extern void exp80( flt80_t *dest, flt80_t x );
+extern void log80( flt80_t *dest, flt80_t x );
+extern void log1080( flt80_t *dest, flt80_t x );
+extern void sqrt80( flt80_t *dest, flt80_t x );
 
 
 
