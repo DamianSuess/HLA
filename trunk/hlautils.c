@@ -88,7 +88,7 @@
 //	Returns true if the 80-bit FP value passed to it is valid.
 
 int
-e80Valid( struct flt80 theConst )
+e80Valid( flt80_t theConst )
 _begin( e80Valid )
 
 	_if
@@ -126,18 +126,18 @@ _end( e80Valid )
 int *
 DupDims
 (
-	struct SymNode *Object
+	SymNode_t *Object
 )
 _begin( DupDims )
 
 	int *Dims;
 
-	Dims = malloc2( Object->Arity * sizeof( int ));
+	Dims = malloc2( Object->Arity * sizeofInt);
 	memcpy
 	(
 		Dims,
 		Object->Dimensions,
-		Object->Arity * sizeof( int )
+		Object->Arity * sizeofInt
 	);
 	_return Dims;
 	
@@ -164,7 +164,7 @@ SetConst
 (
 	union	YYSTYPE		*dest,
 	enum	PrimType	pType,
-	struct	SymNode		*Type,
+	SymNode_t			*Type,
 	union	YYSTYPE		*Value
 )
 _begin( SetConst )
@@ -178,7 +178,7 @@ _begin( SetConst )
 	** much work).
 	*/
 
-	memcpy( dest, Value, sizeof(union YYSTYPE) );
+	memcpy( dest, Value, sizeofYYSTYPE );
 
 	/*
 	** Set up the type and class info (might not be the same as Value ).
@@ -207,7 +207,7 @@ ClrConst
 (
 	union	YYSTYPE		*dest,
 	enum	PrimType	pType,
-	struct	SymNode		*Type
+	SymNode_t			*Type
 )
 _begin( ClrConst )
 
@@ -330,7 +330,7 @@ _end( IntRange );
 /*                                                      */
 /********************************************************/
 
-struct flt80
+flt80_t
 MakeReal( union	YYSTYPE *Value )
 _begin( MakeReal )
 
@@ -370,7 +370,7 @@ _end( MakeReal )
 void
 FreeSym
 (
-	struct SymNode *symbol
+	SymNode_t *symbol
 )
 _begin( FreeSym )
 
@@ -555,8 +555,8 @@ _begin( FreeRegex )
 	_endif
 	_if( rx->nodeType == nt_Regex )
 	
-		struct SymNode *s;
-		struct SymNode *t;
+		SymNode_t *s;
+		SymNode_t *t;
 		
 		s = rx->v.u.MacroData.Parameters;
 		_while( s != NULL )
@@ -1238,8 +1238,8 @@ _begin( deepCopyRegex )
 	struct regexListType *rgx;
 	struct regexListType *rgxtemp;
 	
-	*DestObj = malloc2( sizeof( struct regexListType ));
-	memcpy( *DestObj, SrcObj, sizeof( struct regexListType ));
+	*DestObj = malloc2( sizeofRegexListType);
+	memcpy( *DestObj, SrcObj, sizeofRegexListType);
 	_if( SrcObj->nodeType == nt_String )
 		
 		(*DestObj)->v.u.strval = hlastrdup( SrcObj->v.u.strval );
@@ -1274,8 +1274,8 @@ _end( deepCopyRegex )
 void
 DeepCopy
 (
-	struct SymNode *DestObj,
-	struct SymNode *SrcObj
+	SymNode_t *DestObj,
+	SymNode_t *SrcObj
 )
 _begin( DeepCopy )
 
@@ -1309,12 +1309,12 @@ _begin( DeepCopy )
 				// Note: the first entry is always a "start of regex" entry,
 				// so we don't have to worry about a deep copy on it.
 				
-				DestObj->u.rx = malloc2( sizeof( struct regexListType ));
+				DestObj->u.rx = malloc2( sizeofRegexListType);
 				memcpy
 				( 
 					DestObj->u.rx, 
 					SrcObj->u.rx, 
-					sizeof( struct regexListType )
+					sizeofRegexListType
 				);
 				
 				// Handle the rest of the regular expression:
@@ -1341,12 +1341,12 @@ _begin( DeepCopy )
 
 		_if( SrcObj->Arity > 0 ) 
 		
-			DestObj->Dimensions = malloc2( SrcObj->Arity * sizeof( int ));
+			DestObj->Dimensions = malloc2( SrcObj->Arity * sizeofInt);
 			memcpy
 			( 
 				DestObj->Dimensions, 
 				SrcObj->Dimensions,
-				SrcObj->Arity * sizeof( int )
+				SrcObj->Arity * sizeofInt
 			);
 
 			/*
@@ -1381,7 +1381,7 @@ _begin( DeepCopy )
 		
 			// Create dummy data just to keep things consistent.
 			
-			DestObj->Dimensions = malloc2( sizeof(int) );
+			DestObj->Dimensions = malloc2( sizeofInt );
 			DestObj->Dimensions[0] = 0;
 			DestObj->u.ArrayOfValues = malloc2( sizeofSymNode );
 			DeepCopy( DestObj->u.ArrayOfValues, &boolean_ste );			
@@ -1702,7 +1702,7 @@ static unsigned classes[] =
 
 
 void
-setClassification_sym( union YYSTYPE *v, struct SymNode	*s )
+setClassification_sym( union YYSTYPE *v, SymNode_t	*s )
 _begin( setClassification_sym )
 
 	unsigned		pt;
@@ -1804,7 +1804,7 @@ void
 setClassification( union YYSTYPE *v, char *id )
 _begin( setClassification )
 
-	struct SymNode *s;
+	SymNode_t *s;
 	
 	s = ClassifyLookup( id, SymbolTable );
 	setClassification_sym( v, s );
@@ -1818,7 +1818,7 @@ _end( setClassification )
 
 
 void 
-setMemoryClassification_sym( union YYSTYPE *v, struct SymNode *s )
+setMemoryClassification_sym( union YYSTYPE *v, SymNode_t *s )
 _begin( setMemoryClassification_sym )
 
 	setClassification_sym( v, s );
@@ -1898,8 +1898,8 @@ void
 unArray( union YYSTYPE *v )
 _begin( unArray )
 
-	struct	SymNode	*s;
-	unsigned		pt;
+	SymNode_t	*s;
+	unsigned	pt;
 
 
 	/*
@@ -2064,11 +2064,11 @@ _end( CombineAttrs )
 /***************************************************************/
 
 
-struct	SymNode* 
+SymNode_t* 
 CreatePtrToProc
 ( 
 	char 			*newName, 
-	struct SymNode	*existingProc,
+	SymNode_t		*existingProc,
 	char 			*staticName,
 	enum ClassType 	ct 
 )
@@ -2076,12 +2076,12 @@ _begin( CreatePtrToProc )
 
 	#define s existingProc
 	
-	int				offset;
-	struct SymNode *beforeS;
-	struct SymNode *sprev;
-	struct SymNode *saveSyms;
-	struct SymNode *dummy;
-	struct SymNode temp;
+	int			offset;
+	SymNode_t 	*beforeS;
+	SymNode_t 	*sprev;
+	SymNode_t 	*saveSyms;
+	SymNode_t 	*dummy;
+	SymNode_t 	temp;
 
 	saveSyms = NULL;
 	
@@ -2660,11 +2660,11 @@ static void *maxAdrs = (void *) 0L;
 			hdr->next,
 			hdr->prev,
 			hdr->signature,
-			&blk[hdr->size + sizeof(mallocHeader_t)]
+			&blk[hdr->size + sizeofMallocHeader_t]
 		);
-		_for( i=0, i<((hdr->size<64)?hdr->size:64) && blk[sizeof(mallocHeader_t) + i] != 0, ++i )
+		_for( i=0, i<((hdr->size<64)?hdr->size:64) && blk[sizeofMallocHeader_t + i] != 0, ++i )
 		
-			ch = blk[sizeof(mallocHeader_t) + i];
+			ch = blk[sizeofMallocHeader_t + i];
 			_if
 			( 
 				ch >= 0x20 && ch <= 0x7e ||
@@ -2743,7 +2743,7 @@ _begin( malloc2 )
 	
 
 	
-		size += sizeof( mallocHeader_t ) + 16;
+		size += sizeofMallocHeader_t + 16;
 		
 	#endif		
 
@@ -2780,7 +2780,7 @@ _begin( malloc2 )
 		endAlloc = startAlloc + size;
 		lastMallocLine = line;
 		lastMallocFile = file;
-		mp->size = size - 16 - sizeof( mallocHeader_t );
+		mp->size = size - 16 - sizeofMallocHeader_t;
 		mp->line       = line;
 		mp->file       = file;
 		mp->freedLine  = 0;
@@ -2828,11 +2828,11 @@ _begin( malloc2 )
 					(
 						(
 								startAlloc >= (char *) curMHT
-							&&	startAlloc <= ((char*)curMHT + sizeof(mallocHeader_t) + 16)
+							&&	startAlloc <= ((char*)curMHT + sizeofMallocHeader_t + 16)
 						)
 					  ||(
 								endAlloc >= (char *) curMHT
-					  		&&	endAlloc <= ((char*)curMHT + sizeof(mallocHeader_t) + 16)
+					  		&&	endAlloc <= ((char*)curMHT + sizeofMallocHeader_t + 16)
 						)
 					)
 			)
@@ -2861,7 +2861,7 @@ _begin( malloc2 )
 			curMHT = curMHT->next;
 		
 		}
-		(char *) p += sizeof( mallocHeader_t );
+		(char *) p += sizeofMallocHeader_t;
 		
 	#endif
 	return p;
@@ -2880,8 +2880,8 @@ _begin( realloc2 )
 	mallocHeader_t	*bblk;
 
 	p = _malloc2( size, line, file );
-	bp =  (mallocHeader_t*) ((char*) p - sizeof( mallocHeader_t ));
-	bblk = (mallocHeader_t*) ((char*) blk - sizeof( mallocHeader_t ));
+	bp =  (mallocHeader_t*) ((char*) p - sizeofMallocHeader_t);
+	bblk = (mallocHeader_t*) ((char*) blk - sizeofMallocHeader_t);
 	dataSize = (bblk->size > bp->size) ? bp->size : bblk->size;
 	memcpy( p, blk, dataSize );
 	_free2( vss blk, line, file );
@@ -3023,8 +3023,8 @@ _begin( free2 )
 	#ifdef debugMalloc
 
 		pp = *p;
-		pp -= sizeof( mallocHeader_t );
-		pp2 = pp + mpp->size + sizeof( mallocHeader_t );
+		pp -= sizeofMallocHeader_t;
+		pp2 = pp + mpp->size + sizeofMallocHeader_t;
 		if
 		( 
 				(unsigned) pp < (unsigned) minAdrs 
@@ -3169,10 +3169,10 @@ _end( free2 )
 void
 doCTForLoop9
 ( 
-	struct SymNode *s3, 
-	union YYSTYPE *v5, 
-	union YYSTYPE *v7,
-	int byVal
+	SymNode_t 		*s3, 
+	union YYSTYPE 	*v5, 
+	union YYSTYPE 	*v7,
+	int 			byVal
 )
 _begin( doCTForLoop9 )
 	
@@ -3218,8 +3218,8 @@ _end( doCTForLoop9 )
 void
 doCTForLoop7
 ( 
-	struct SymNode *s3, 
-	union YYSTYPE *v5
+	SymNode_t 		*s3, 
+	union YYSTYPE	*v5
 )
 _begin( doCTForLoop7 )
 	
@@ -3325,7 +3325,7 @@ _end( doTextBlock7 )
 // doTextBlock7a - Handles #text..#endtext with a defined ID
 
 
-void doTextBlock7a( struct SymNode *s3, union YYSTYPE *v6 )
+void doTextBlock7a( SymNode_t *s3, union YYSTYPE *v6 )
 _begin( doTextBlock7a )
 
 	_if( s3->SymClass != cValue )
@@ -3394,7 +3394,7 @@ _end( doStringBlock )
 // doStringBlocka - Handles #string..#endstring with a defined ID
 
 
-void doStringBlocka( struct SymNode *s3, union YYSTYPE *v )
+void doStringBlocka( SymNode_t *s3, union YYSTYPE *v )
 _begin( doStringBlocka )
 
 	_if( s3->SymClass != cValue )
@@ -3432,13 +3432,13 @@ _end( doStringBlocka )
 // doMatchBlock - Handles #match..#endmatch with a defined regex ID
 
 
-void doMatchBlock( struct SymNode *s3, union YYSTYPE *v )
+void doMatchBlock( SymNode_t *s3, union YYSTYPE *v )
 _begin( doMatchBlock )
 
-	int		matchResult;
-	int		len;
-	char	*resultStr;
-	struct	SymNode	returnsStr;
+	int			matchResult;
+	int			len;
+	char		*resultStr;
+	SymNode_t	returnsStr;
 
 	_if( !IsConstant( s3->SymClass) || s3->pType != tRegex )
 
@@ -3746,10 +3746,10 @@ _end( PrintList2 )
 void 
 ObjFieldNames5
 ( 
-	struct SymNode *s, 
-	char *id, 
-	union YYSTYPE *v, 
-	union YYSTYPE *result 
+	SymNode_t 		*s, 
+	char 			*id, 
+	union YYSTYPE 	*v, 
+	union YYSTYPE 	*result 
 )
 _begin( ObjFieldNames5 )
 
@@ -3873,20 +3873,20 @@ static unsigned char byteCompat[ tLWord-tByte+1][tUns128-tUns8+1] =
 };
 
 
-struct SymNode *
+SymNode_t *
 matchSignature
 (
-	struct SymNode		*ovldID,
+	SymNode_t			*ovldID,
 	int					parmCnt,
-	struct	SymNode		**types,
+	SymNode_t			**types,
 	enum	ParmForm	*pForm
 )
 _begin( matchSignature )
 
-	struct	SymNode	*curType;
-	struct	SymNode	*saveOvldID;
-	int				sigMatched;
-	int				i;
+	SymNode_t	*curType;
+	SymNode_t	*saveOvldID;
+	int			sigMatched;
+	int			i;
 	
 	#define ctt curType->Type
 

@@ -2,7 +2,38 @@
 #define symbol_h
 
 #include "enums.h"
-#include "common.h"
+
+
+// Some stuff we need to define before SymNode_t:
+
+struct extRecs;
+struct _SymNode;
+
+#define	CSetSizeInBytes 16
+
+typedef struct
+{
+	union
+	{
+		char 	x[16];  // Really just 10 bytes, add six bytes for padding.
+		double	d;
+		float	f;
+	}f;
+	
+} flt80_t;
+
+
+typedef struct 
+{
+			char			*Text;
+	struct 	_SymNode		*Parent;
+	struct 	_SymNode		*Terminator;
+	struct 	_SymNode		*Parameters;
+	struct 	_SymNode		*Locals;
+	struct 	_SymNode		*NameSpace;
+			int				LineCnt;
+			char			*Filename;
+} MacroType_t;
 
 
 
@@ -15,16 +46,14 @@
 /****************************************************/
 
 
-struct extRecs;
-
-struct SymNode 
+typedef struct _SymNode 
 {
 	/*
 	** Next points at the previous symbol in the current local
 	** symbol table.
 	*/
 
-	struct	SymNode		*Next;
+	struct	_SymNode		*Next;
 	
 	
 	/*
@@ -34,7 +63,7 @@ struct SymNode
 	
 	union
 	{
-		struct	SymNode		*hashList;
+		struct	_SymNode		*hashList;
 	} h;
 	
 	
@@ -78,7 +107,7 @@ struct SymNode
 	**	field.
 	*/
 
-	struct	SymNode		*Type;
+	struct	_SymNode	*Type;
 	enum	PrimType	pType;
 
 
@@ -163,9 +192,9 @@ struct SymNode
 	** references.
 	*/
 
-	struct	SymNode		*Fields;
-	struct	SymNode		*Base;
-	struct	SymNode		*Parent;
+	struct	_SymNode	*Fields;
+	struct	_SymNode	*Base;
+	struct	_SymNode	*Parent;
 	int					FieldCnt;
 
 
@@ -175,7 +204,7 @@ struct SymNode
 	** an index into the array of field constants for that field.
 	*/
 	
-	struct	SymNode		*CurField;
+	struct	_SymNode	*CurField;
 	int					CurIndex;
 	
 	
@@ -200,7 +229,7 @@ struct SymNode
 	{
 		char						StartOfValues;
 		
-		struct		SymNode			**hashTable;	// Pts at namespace hash tbls
+		struct		_SymNode		**hashTable;	// Pts at namespace hash tbls
 		
 		unsigned	char			bytes[16];
 		unsigned	short			words[8];
@@ -211,38 +240,38 @@ struct SymNode
 		unsigned					charval;
 		unsigned					qwordval[2];
 		unsigned					lwordval[4];			
-		struct		flt80			fltval;			
+		flt80_t						fltval;			
 		char						*strval;
 		unsigned	char			csetval[ CSetSizeInBytes ]; 		
-		struct		SymNode			*ArrayOfValues;	/* Should really be YYSTYPE */
-		struct		SymNode			*FieldValues;	/* Should really be YYSTYPE */
-		struct		SymNode			*PtrToValue;
-		struct		MacroType		MacroData;
+		struct		_SymNode		*ArrayOfValues;	/* Should really be YYSTYPE */
+		struct		_SymNode		*FieldValues;	/* Should really be YYSTYPE */
+		struct		_SymNode		*PtrToValue;
+		MacroType_t					MacroData;
 		struct		regexListType	*rx;
 		
 		struct
 		{
 					char			*returns;
 					char			*use;
-			struct	SymNode			*parms;
-			struct	SymNode			*Locals;
-			struct	SymNode			*Forward;
-			struct	SymNode			*BaseClass;
+			struct	_SymNode		*parms;
+			struct	_SymNode		*Locals;
+			struct	_SymNode		*Forward;
+			struct	_SymNode		*BaseClass;
 					unsigned		ParmSize;
 			enum	CallSeq			cs;
 		} proc;
 		
 		struct
 		{
-			struct	SymNode			*nextOvld;	// Linked list of ovld entries
-			struct	SymNode			*parms;		// Signature for this proc
+			struct	_SymNode		*nextOvld;	// Linked list of ovld entries
+			struct	_SymNode		*parms;		// Signature for this proc
 					int				numParms;	// Signature for this proc
 					char			*procName;	// Proc to call if sig matches.
 		}ovld;
 	}u;
 	
 
-};
+} SymNode_t;
 
 
 /*
@@ -258,7 +287,7 @@ union ValuesSize
 {
 		char						StartOfValues;
 		
-		struct		SymNode			**hashTable;	// Pts at namespace hash tbls
+		SymNode_t					**hashTable;	// Pts at namespace hash tbls
 		
 		unsigned	char			bytes[16];
 		unsigned	short			words[8];
@@ -269,31 +298,31 @@ union ValuesSize
 		unsigned					charval;
 		unsigned					qwordval[2];
 		unsigned					lwordval[4];			
-		struct		flt80			fltval;			
+		flt80_t						fltval;			
 		char						*strval;
 		unsigned	char			csetval[ CSetSizeInBytes ]; 		
-		struct		SymNode			*ArrayOfValues;	/* Should really be YYSTYPE */
-		struct		SymNode			*FieldValues;	/* Should really be YYSTYPE */
-		struct		SymNode			*PtrToValue;
-		struct		MacroType		MacroData;
+		SymNode_t					*ArrayOfValues;	/* Should really be YYSTYPE */
+		SymNode_t					*FieldValues;	/* Should really be YYSTYPE */
+		SymNode_t					*PtrToValue;
+		MacroType_t					MacroData;
 		struct		regexListType	*rx;
 		
 		struct
 		{
 			char					*returns;
 			char					*use;
-			struct	SymNode			*parms;
-			struct	SymNode			*Locals;
-			struct	SymNode			*Forward;
-			struct	SymNode			*BaseClass;
+			SymNode_t				*parms;
+			SymNode_t				*Locals;
+			SymNode_t				*Forward;
+			SymNode_t				*BaseClass;
 					unsigned		ParmSize;
 			enum	CallSeq			cs;
 		} proc;
 		
 		struct
 		{
-			struct	SymNode			*nextOvld;	// Linked list of ovld entries
-			struct	SymNode			*parms;		// Signature for this proc
+			SymNode_t				*nextOvld;	// Linked list of ovld entries
+			SymNode_t				*parms;		// Signature for this proc
 					int				numParms;	// Signature for this proc
 					char			*procName;	// Proc to call if sig matches.
 		}ovld;
@@ -309,7 +338,7 @@ union ValuesSize
 struct extRecs
 {
 	struct	extRecs		*Next;
-	struct	SymNode		*theSym;
+	SymNode_t			*theSym;
 			char		*Name;
 	enum 	PrimType	pType;
 			char		IsPublic;
@@ -331,13 +360,13 @@ struct adrsYYS
 	unsigned			Scale;
 	int					Disp;
 	int					regnum;
-	struct	SymNode		*Sym;
-	struct	SymNode		*Type;
+	SymNode_t			*Sym;
+	SymNode_t			*Type;
 	enum	PrimType	pType;
 	enum	ClassType	SymClass;
 	enum	ParmClass	pClass;
 	char				forcedSize;
-	struct	SymNode		*BaseType;
+	SymNode_t			*BaseType;
 };
 
 
@@ -411,7 +440,7 @@ struct regYYS
 {
 	unsigned			Size;
 	int					IsSigned;
-	struct	SymNode		*Type;
+	SymNode_t			*Type;
 	enum	PrimType	pType;
 	enum	regnums		encoding;
 };
@@ -429,7 +458,7 @@ struct operandYYS
 	{
 		struct	regYYS	*reg;
 		struct	adrsYYS	*adrs;
-		struct	SymNode	v;
+		SymNode_t		v;
 	}o;
 
 };
@@ -468,73 +497,73 @@ struct opnodeYYS
 /*                                                                   */
 /*********************************************************************/
 
-extern struct  SymNode	*SymbolTable;
-extern struct  SymNode	*CurrentContext;
-extern struct  SymNode	**MainLocals;
+extern SymNode_t	*SymbolTable;
+extern SymNode_t	*CurrentContext;
+extern SymNode_t	**MainLocals;
 
-extern struct  SymNode boolean_ste;
+extern SymNode_t 	boolean_ste;
 
-extern struct  SymNode uns8_ste;
-extern struct  SymNode uns16_ste;
-extern struct  SymNode uns32_ste;
-extern struct  SymNode uns64_ste;
-extern struct  SymNode uns128_ste;
+extern SymNode_t 	uns8_ste;
+extern SymNode_t 	uns16_ste;
+extern SymNode_t 	uns32_ste;
+extern SymNode_t 	uns64_ste;
+extern SymNode_t 	uns128_ste;
 
-extern struct  SymNode int8_ste;
-extern struct  SymNode int16_ste;
-extern struct  SymNode int32_ste;
-extern struct  SymNode int64_ste;
-extern struct  SymNode int128_ste;
+extern SymNode_t 	int8_ste;
+extern SymNode_t 	int16_ste;
+extern SymNode_t 	int32_ste;
+extern SymNode_t 	int64_ste;
+extern SymNode_t 	int128_ste;
 
-extern struct  SymNode byte_ste;
-extern struct  SymNode word_ste;
-extern struct  SymNode dword_ste;
-extern struct  SymNode qword_ste;
-extern struct  SymNode tbyte_ste;
-extern struct  SymNode lword_ste;
+extern SymNode_t 	byte_ste;
+extern SymNode_t 	word_ste;
+extern SymNode_t 	dword_ste;
+extern SymNode_t 	qword_ste;
+extern SymNode_t 	tbyte_ste;
+extern SymNode_t 	lword_ste;
 
-extern struct  SymNode real32_ste;
-extern struct  SymNode real64_ste;
-extern struct  SymNode real80_ste;
-extern struct  SymNode real128_ste;
+extern SymNode_t 	real32_ste;
+extern SymNode_t 	real64_ste;
+extern SymNode_t 	real80_ste;
+extern SymNode_t 	real128_ste;
 
-extern struct  SymNode char_ste;
-extern struct  SymNode wchar_ste;
+extern SymNode_t 	char_ste;
+extern SymNode_t 	wchar_ste;
 
-extern struct  SymNode cset_ste;
-extern struct  SymNode string_ste;
-extern struct  SymNode zstring_ste;
-extern struct  SymNode wstring_ste;
-extern struct  SymNode text_ste;
-extern struct  SymNode regex_ste;
+extern SymNode_t 	cset_ste;
+extern SymNode_t 	string_ste;
+extern SymNode_t 	zstring_ste;
+extern SymNode_t 	wstring_ste;
+extern SymNode_t 	text_ste;
+extern SymNode_t 	regex_ste;
 
-extern struct  SymNode false_ste;
-extern struct  SymNode true_ste; 
-extern struct  SymNode error_ste;
-extern struct  SymNode forctrlvar_ste;
+extern SymNode_t 	false_ste;
+extern SymNode_t 	true_ste; 
+extern SymNode_t 	error_ste;
+extern SymNode_t 	forctrlvar_ste;
 
-extern struct  SymNode undefined_ste;
-extern struct  SymNode dummy_ste;
-extern struct  SymNode dummyField_ste;
-extern struct  SymNode dummyType_ste;
-extern struct  SymNode dummyProc_ste;
-extern struct  SymNode dummyProc2_ste;
+extern SymNode_t 	undefined_ste;
+extern SymNode_t 	dummy_ste;
+extern SymNode_t 	dummyField_ste;
+extern SymNode_t 	dummyType_ste;
+extern SymNode_t 	dummyProc_ste;
+extern SymNode_t 	dummyProc2_ste;
 
-extern struct  SymNode pgmID_ste;
-extern struct  SymNode procID_ste;
-extern struct  SymNode iterID_ste;
-extern struct  SymNode classprocID_ste;
-extern struct  SymNode classiterID_ste;
-extern struct  SymNode proctype_ste;
-extern struct  SymNode thunk_ste;
+extern SymNode_t 	pgmID_ste;
+extern SymNode_t 	procID_ste;
+extern SymNode_t 	iterID_ste;
+extern SymNode_t 	classprocID_ste;
+extern SymNode_t 	classiterID_ste;
+extern SymNode_t 	proctype_ste;
+extern SymNode_t 	thunk_ste;
 
-extern struct  SymNode record_ste;
-extern struct  SymNode union_ste;
-extern struct  SymNode pointer_ste;
-extern struct  SymNode static_ste;
-extern struct  SymNode variant_ste;
-extern struct  SymNode namespace_ste;
-extern struct  SymNode UndefinedType;
+extern SymNode_t 	record_ste;
+extern SymNode_t 	union_ste;
+extern SymNode_t 	pointer_ste;
+extern SymNode_t 	static_ste;
+extern SymNode_t 	variant_ste;
+extern SymNode_t 	namespace_ste;
+extern SymNode_t 	UndefinedType;
 
 
 
@@ -559,10 +588,10 @@ extern struct  SymNode UndefinedType;
 
 
 
-extern struct SymNode* InsertSym
+extern SymNode_t* InsertSym
 (
 	char				*Name,
-	struct	SymNode		*TheType,
+	SymNode_t			*TheType,
 	enum	PrimType	pType,
 	int					TheClass,
 	int					Arity,
@@ -572,8 +601,8 @@ extern struct SymNode* InsertSym
 	unsigned			ObjectSize,
 	int					Offset,
 	char				*StaticName,
-	struct	SymNode		*Base,
-	struct	SymNode		*Fields,
+	SymNode_t			*Base,
+	SymNode_t			*Fields,
 	int					FieldCnt
 );
 
@@ -581,8 +610,8 @@ extern struct SymNode* InsertSym
 extern void SetSym
 (
 
-	struct	SymNode		*Name,
-	struct	SymNode		*TheType,
+	SymNode_t			*Name,
+	SymNode_t			*TheType,
 	enum	PrimType	pType,
 	int					Arity,
 	int					*Dimensions,
@@ -591,17 +620,17 @@ extern void SetSym
 	unsigned			ObjectSize,
 	int					Offset,
 	char				*StaticName,
-	struct	SymNode		*Base,
-	struct	SymNode		*Fields,
+	SymNode_t			*Base,
+	SymNode_t			*Fields,
 	int					FieldCnt,
-	struct	SymNode		*CurField,
+	SymNode_t			*CurField,
 	int					CurIndex
 );
 
-extern struct SymNode *ClrNewSym
+extern SymNode_t *ClrNewSym
 (
 	char				*Name,
-	struct	SymNode		*TheType,
+	SymNode_t			*TheType,
 	enum	PrimType	pType,
 	int					TheClass,
 	int					Arity,
@@ -610,18 +639,18 @@ extern struct SymNode *ClrNewSym
 	unsigned			ObjectSize,
 	int					Offset,
 	char				*StaticName,
-	struct	SymNode		*Base,
-	struct	SymNode		*Fields,
+	SymNode_t			*Base,
+	SymNode_t			*Fields,
 	int					FieldCnt,
-	struct	SymNode		*CurField,
+	SymNode_t			*CurField,
 	int					CurIndex
 );
 
 
 extern void ClrSym
 (
-	struct	SymNode		*Name,
-	struct	SymNode		*TheType,
+	SymNode_t			*Name,
+	SymNode_t			*TheType,
 	enum	PrimType	pType,
 	int					Arity,
 	int					*Dimensions,
@@ -629,10 +658,10 @@ extern void ClrSym
 	unsigned			ObjectSize,
 	int					Offset,
 	char				*StaticName,
-	struct	SymNode		*Base,
-	struct	SymNode		*Fields,
+	SymNode_t			*Base,
+	SymNode_t			*Fields,
 	int					FieldCnt,
-	struct	SymNode		*CurField,
+	SymNode_t			*CurField,
 	int					CurIndex
 );
 
@@ -640,41 +669,41 @@ extern void ClrSym
 
 
 
-extern struct SymNode *InsertProc
+extern SymNode_t *InsertProc
 (
 	char	*Name,
 	char	*StaticName
 );
 
 
-extern struct SymNode* SearchNext
+extern SymNode_t* SearchNext
 ( 
-	struct SymNode	*s, 
+	SymNode_t		*s, 
 	char			*lcName, 
 	int 			length 
 );
-extern struct SymNode* SearchHash( struct SymNode *, char *, int );
-extern struct SymNode*	lookup( char *, int );
-extern struct SymNode*	NSlookup( char *, int, struct SymNode* );
-extern struct SymNode*	ClassifyLookup( char *, struct SymNode *table );
-extern struct SymNode*	lookupin( char *, struct SymNode *table );
-extern struct SymNode*	lookupthis( char *, struct SymNode *table );
+extern SymNode_t* 	SearchHash( SymNode_t *, char *, int );
+extern SymNode_t*	lookup( char *, int );
+extern SymNode_t*	NSlookup( char *, int, SymNode_t* );
+extern SymNode_t*	ClassifyLookup( char *, SymNode_t *table );
+extern SymNode_t*	lookupin( char *, SymNode_t *table );
+extern SymNode_t*	lookupthis( char *, SymNode_t *table );
 
-extern void				DumpSym( struct SymNode *SymbolTable, int indent );
-extern void 			initSymbolTable( void );
+extern void			DumpSym( SymNode_t *SymbolTable, int indent );
+extern void 		initSymbolTable( void );
 
 
-static struct SymNode aValue;
+static SymNode_t aValue;
 #define setval(x)	\
-	((struct SymNode*)(memcpy( &aValue, (x), sizeofSymNode )))
+	((SymNode_t*)(memcpy( &aValue, (x), sizeofSymNode )))
 
 
 
-extern struct SymNode *GetBaseType( struct SymNode *object );
-extern struct SymNode *GetCallType
+extern SymNode_t *GetBaseType( SymNode_t *object );
+extern SymNode_t *GetCallType
 ( 
-	struct SymNode 	*Sym, 
-	struct SymNode 	*Type, 
+	SymNode_t 		*Sym, 
+	SymNode_t 		*Type, 
 	enum PrimType 	pType,
 	int				*isPointer 
 );
@@ -689,12 +718,12 @@ extern void BuildAdrs
 	char				*IndexReg,
 	unsigned			Scale,
 	int					Disp,
-	struct	SymNode		*Sym,
-	struct	SymNode		*Type,
+	SymNode_t			*Sym,
+	SymNode_t			*Type,
 	enum	PrimType	pType,
 	enum	ClassType	SymClass,
 	enum	ParmClass	pClass,
-	struct	SymNode		*BaseType
+	SymNode_t			*BaseType
 );
 
 
@@ -831,8 +860,8 @@ struct regexListType
 	int						maxCnt;
 	int						lazy;
 	char					*returns;
-	struct	SymNode			*id;
-	struct	SymNode			v;
+	SymNode_t				*id;
+	SymNode_t				v;
 };
 
 
@@ -850,18 +879,18 @@ extern char *matchRegex
 ( 
 	char 					*s, 
 	struct regexListType	*rx,
-	struct SymNode			*remainder,
-	struct SymNode			*matched, 
-	struct SymNode			*returnStr 
+	SymNode_t				*remainder,
+	SymNode_t				*matched, 
+	SymNode_t				*returnStr 
 );
 
 extern char *matchRegex2
 ( 
 	char 					*s, 
 	struct regexListType	*rx,
-	struct SymNode			*remainder,
-	struct SymNode			*matched, 
-	struct SymNode			*returnStr 
+	SymNode_t				*remainder,
+	SymNode_t				*matched, 
+	SymNode_t				*returnStr 
 );
 
 #endif

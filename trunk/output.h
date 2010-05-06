@@ -145,8 +145,8 @@ extern char *rtnScale( struct adrsYYS *adrs );
 
 extern void OutputMemParm
 ( 
-	struct SymNode	*theProc,
-	struct SymNode	*formal, 
+	SymNode_t		*theProc,
+	SymNode_t		*formal, 
 	struct adrsYYS	*actual,
 	int				valPrefix 
 );
@@ -1544,7 +1544,7 @@ extern void EmitIntMul_m_r( struct adrsYYS *adrs, int dest );
 extern void EmitIntMul_c_r_r( int cnst, int src, int dest );
 extern void EmitIntMul_c_m_r( int cnst, struct adrsYYS *adrs, int dest );
 
-extern void call_proc( struct SymNode *proc );
+extern void call_proc( SymNode_t *proc );
 extern void call_thunk( struct adrsYYS *adrs );
 extern void EmitCallLabel( char *label );
 extern void EmitCall_m( struct adrsYYS *adrs );
@@ -1753,7 +1753,7 @@ extern void sseg_prefix( void );
 
 
 
-extern void PassValpConst( struct SymNode *sym, union YYSTYPE *value );
+extern void PassValpConst( SymNode_t *sym, union YYSTYPE *value );
 extern enum regnums RegStrToReg( char *reg );
 
 void PushActualValue( struct adrsYYS *actual, int useReg );
@@ -1805,14 +1805,14 @@ extern void SkeletalOutput( void );
 extern void EmitLabel( char *theLabel, unsigned size );
 extern void EmitTypedLabel( char *theLabel, enum PrimType pType );
 extern void EmitTypedLabelNum( char *theLabel, char *labelType, int num );
-extern void EmitExtern( struct SymNode *sym, unsigned size );
+extern void EmitExtern( SymNode_t *sym, unsigned size );
 extern void EmitTypedExtern
 ( 
-	struct SymNode	*sym, 
+	SymNode_t		*sym, 
 	char 			*theSymbol, 
 	enum PrimType	labelType 
 );
-extern void EmitVMTExtern( struct SymNode *sym, char *theSymbol );
+extern void EmitVMTExtern( SymNode_t *sym, char *theSymbol );
 extern void EmitPublic( char *theLabel );
 extern void EmitTypedPublic( char *theLabel, enum PrimType pType );
 extern void EmitAdrs( char *theLabel );
@@ -1832,7 +1832,7 @@ extern void EmitWordConst( unsigned theConst );
 extern void EmitByteConst( unsigned theConst, char *comment );
 extern void EmitReal4Const( float theConst );
 extern void EmitReal8Const( double theConst );
-extern void EmitReal10Const( struct flt80 theConst );
+extern void EmitReal10Const( flt80_t theConst );
 extern void EmitArrayConst( enum PrimType pType, int elements, unsigned value );
 extern void EmitData( char *label, enum PrimType pType, char* Operand );
 
@@ -1845,9 +1845,9 @@ extern void EmitByte( void );
 extern void EmitArray( enum PrimType pType, int elements );
 extern void ReserveTypedStorage
 ( 
-	char			*theVar, 
-	struct SymNode	*theType, 
-	int 			elements 
+	char		*theVar, 
+	SymNode_t	*theType, 
+	int 		elements 
 );
 extern void ReserveUntypedStorage( char *theVar, int bytes );
 extern void ReserveStorage( unsigned size );
@@ -1859,26 +1859,26 @@ extern void EmitWString( char *theStr, int theLabel );
 extern void EmitLabeledString( char *theStr, char *theLabel );
 
 
-//extern enum PrimType OutName( char *StaticName, struct SymNode *Type );
-//extern void OutNameAndType( char *StaticName, struct SymNode *Type );
+//extern enum PrimType OutName( char *StaticName, SymNode_t *Type );
+//extern void OutNameAndType( char *StaticName, SymNode_t *Type );
 extern void OutValue
 ( 
-	char *Name, 
-	struct SymNode *Type, 
-	union YYSTYPE *Value 
+	char			*Name, 
+	SymNode_t		*Type, 
+	union YYSTYPE	*Value 
 );
 extern void OutStaticConst
 ( 
-	char *StaticName, 
-	struct SymNode *sym, 
-	union YYSTYPE *val 
+	char 			*StaticName, 
+	SymNode_t 		*sym, 
+	union YYSTYPE 	*val 
 );
 
 extern int StaticConstToStr
 ( 
-	struct SymNode *type, 
-	union YYSTYPE *value, 
-	char *dest 
+	SymNode_t 		*type, 
+	union YYSTYPE 	*value, 
+	char 			*dest 
 );
 
 

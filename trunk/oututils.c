@@ -474,9 +474,9 @@ CheckStatic
 )
 _begin( CheckStatic )
 
-	char					msg[ 256 ];
-	struct	SymNode			*StaticSymEntry;
-	struct	SymNode			*SaveSymTbl = SymbolTable;
+	char				msg[ 256 ];
+	SymNode_t			*StaticSymEntry;
+	SymNode_t			*SaveSymTbl = SymbolTable;
 
 	_while( StaticList != NULL )
 
@@ -626,8 +626,8 @@ _end( searchStatic )
 void
 Add2PtrList
 ( 
-	struct SymNode *reference, 
-	char *undefdID 
+	SymNode_t	*reference, 
+	char 		*undefdID 
 )
 _begin( Add2PtrList )
 
@@ -673,10 +673,10 @@ _begin( Add2PtrList )
 			*/
 
 			ptrList = 
-				malloc2( sizeof( struct PointerListType ));
+				malloc2( sizeofPointerListType );
 
 			ref = 
-				malloc2( sizeof( struct RefListType ));
+				malloc2( sizeofRefListType );
 			
 			ptrList->Next = NULL;
 			ptrList->ReferenceList = ref;
@@ -706,7 +706,7 @@ _begin( Add2PtrList )
 
 			_endwhile
 			NewRef =
-				malloc2( sizeof( struct RefListType ));
+				malloc2( sizeofRefListType);
 			
 			NewRef->Next = NULL;
 			NewRef->Symbol = reference; // Was SymbolTable;
@@ -723,7 +723,7 @@ _begin( Add2PtrList )
 		** symbol to the list.
 		*/
 
-		ref = malloc2( sizeof( struct RefListType ));
+		ref = malloc2( sizeofRefListType);
 		
 		ref->Next = NULL;
 		ref->Symbol = reference; // WasvSymbolTable;
@@ -731,7 +731,7 @@ _begin( Add2PtrList )
 		ref->FileName = FileName;
 
 		PointerList = 
-			malloc2( sizeof( struct PointerListType ));
+			malloc2( sizeofPointerListType );
 
 		PointerList->Next = NULL;
 		PointerList->ReferenceList = ref;
@@ -763,7 +763,7 @@ _begin( CheckPtrs )
 	struct	RefListType		*ref;
 	struct	PointerListType	*FreeMe;
 	struct	RefListType		*FreeRef;
-	struct	SymNode			*s;
+	SymNode_t				*s;
 	struct	PatchListType	*lastPBL;
 
 	_while( PointerList != NULL )
@@ -869,7 +869,7 @@ _begin( PatchPtrs )
 	struct	PointerListType **prev;
 	struct	PointerListType *cur;
 	struct	RefListType		*FreeRef;
-	struct	SymNode			*s;
+	SymNode_t				*s;
 
 	cur = PointerList;
 	prev = &PointerList;
@@ -931,7 +931,7 @@ _begin( CheckFwdRef )
 	struct FwdRefLabelType	*flist;
 	struct FwdRefLabelType	**prev;
 	struct FwdRefLabelType	*f;
-	struct SymNode			*s;
+	SymNode_t				*s;
 	
 
 	flist = FwdLabelsList;
@@ -1028,7 +1028,7 @@ _end( CheckFwdRef )
 /*************************************************/
 
 static void
-SetVMTOffsets( struct SymNode *ClassPtr, int *Offset )
+SetVMTOffsets( SymNode_t *ClassPtr, int *Offset )
 _begin( SetVMTOffsets )
 
 	_if( ClassPtr != NULL )
@@ -1051,7 +1051,7 @@ _end( SetVMTOffsets )
 
 
 void
-UpdateVMTOffsets( struct SymNode *ClassPtr )
+UpdateVMTOffsets( SymNode_t *ClassPtr )
 _begin( UpdateVMTOffsets )
 
 	int VMToffset = -4;
@@ -1486,12 +1486,12 @@ BuildAdrs
 	char				*IndexReg,
 	unsigned			Scale,
 	int					Disp,
-	struct	SymNode		*Sym,
-	struct	SymNode		*Type,
+	SymNode_t			*Sym,
+	SymNode_t			*Type,
 	enum	PrimType	pType,
 	enum	ClassType	SymClass,
 	enum	ParmClass	pClass,
-	struct	SymNode		*BaseType
+	SymNode_t			*BaseType
 )
 _begin( BuildAdrs )
 
@@ -1685,7 +1685,7 @@ _end( mergeMem )
 
 
 void
-SetReferenced( struct SymNode *sym  )
+SetReferenced( SymNode_t *sym  )
 _begin( SetReferenced )
 
 	_if( sym != NULL )
@@ -1720,7 +1720,7 @@ _end( SetReferenced )
 void
 extLookup
 ( 
-	struct	SymNode	*sym, 
+	SymNode_t		*sym, 
 	char			*theLabel, 
 	enum PrimType 	pType, 
 	char			IsPublic,
@@ -1769,7 +1769,7 @@ _begin( extLookup )
 		// We're in business.  There is no hash entry so there
 		// cannot be an instance of this symbol yet.
 
-		extHashTable[ index ] = malloc2( sizeof( struct extRecs));
+		extHashTable[ index ] = malloc2( sizeofExtRecs );
 		extHashTable[ index ]->Next = NULL;
 		extHashTable[ index ]->Name = hlastrdup2( theLabel );
 		extHashTable[ index ]->pType = pType;
@@ -1799,7 +1799,7 @@ _begin( extLookup )
 			// Didn't find the symbol.  So enter it into
 			// the Hash Table and return true.
 
-			CurSym = malloc2( sizeof( struct extRecs));
+			CurSym = malloc2( sizeofExtRecs );
 			CurSym->Next = extHashTable[ index ];
 			extHashTable[ index ] = CurSym;
 			CurSym->Name = hlastrdup2( theLabel );

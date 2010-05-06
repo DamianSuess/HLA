@@ -2242,9 +2242,9 @@ typedef union YYSTYPE
 	int						i;
 	char					*idStr;
 	char					*returns;
-	struct	SymNode			*s;
-	struct	SymNode			v;
-	struct	MacroType		m;
+	SymNode_t				*s;
+	SymNode_t				v;
+	MacroType_t				m;
 	struct	adrsYYS			adrs;
 	struct	memYYS			mem;
 	struct	adrsYYS			*adrsPtr;
@@ -2256,13 +2256,13 @@ typedef union YYSTYPE
 	struct
 	{
 				char	*idStr;		// Must be first!
-		struct	SymNode	*s;
+		SymNode_t *s;
 	} neID;  // For anyID ("n" "e" ID :-) )
 	
 	struct
 	{
 		int					parmCnt;
-		struct	SymNode		**types;
+		SymNode_t			**types;
 		char				*parms;
 		enum	ParmForm	*pForms;
 	} collectedParms;
@@ -2288,13 +2288,13 @@ typedef union YYSTYPE
 
 	struct
 	{
-		struct	SymNode	*s;
-		struct	SymNode	*cns;
+		SymNode_t *s;
+		SymNode_t *cns;
 	}en;
 	
 	struct
 	{
-		struct	SymNode	*type;
+		SymNode_t 		*type;
 		char			*idStr;
 	}nameAndType;
 	
@@ -2302,7 +2302,7 @@ typedef union YYSTYPE
 	{
 		int				ints[4];
 		unsigned		unss[4];
-		struct	SymNode	*syms[4];
+		SymNode_t 		*syms[4];
 	}save;
 	
 		
@@ -2312,13 +2312,13 @@ typedef union YYSTYPE
 	
 	struct
 	{
-		struct SymNode *endFields;
-		struct SymNode *base;
-		struct SymNode *saveCurNS;
-		struct SymNode *saveRecNS;
-		struct SymNode *saveRecGlobal;
-		struct SymNode *saveProcNS;
-		struct SymNode *saveProcGlobal;
+		SymNode_t *endFields;
+		SymNode_t *base;
+		SymNode_t *saveCurNS;
+		SymNode_t *saveRecNS;
+		SymNode_t *saveRecGlobal;
+		SymNode_t *saveProcNS;
+		SymNode_t *saveProcGlobal;
 		int MinRecAlignment;
 		int MaxRecAlignment;
 		int TempRecAlign;
@@ -2352,16 +2352,16 @@ typedef union YYSTYPE
 
 	struct
 	{
-				int			Disp;
-		char				*FullName;
-		struct	SymNode		*Sym;
-		char				*StaticName;
+		int				Disp;
+		char			*FullName;
+		SymNode_t		*Sym;
+		char			*StaticName;
 	}dotName;
 
 	struct
 	{
-		struct	SymNode		*sym;
-		struct	SymNode		*type;
+		SymNode_t			*sym;
+		SymNode_t			*type;
 		unsigned			ObjectSize;
 		unsigned			cls;
 		unsigned			arity;
@@ -2395,7 +2395,7 @@ typedef union YYSTYPE
 	
 	struct
 	{
-		struct	SymNode		*ControlVar;
+				SymNode_t	*ControlVar;
 		union	YYSTYPE		*inVal;
 				int			endVal;
 				int			byVal;
