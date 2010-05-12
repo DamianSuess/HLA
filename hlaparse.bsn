@@ -931,7 +931,7 @@ _end( getFileStr )
 
 #endif
 
-extern int yylex( union YYSTYPE *yylval );		
+//extern int yylex( union YYSTYPE *yylval );		
 
 
 %}
@@ -2594,24 +2594,24 @@ ValID:
 			
 			_here;
 			dummy.v.u.intval = 0;
-			InsertSym
-			( 
-				$<idStr>1, 
-				&int32_ste,		/* Default is int32 object.		*/
-				tInt32,
-				cValue, 
-				0,				/* Arity						*/
-				NULL,			/* Dimensions					*/
-				0, 				/* NumElements					*/
-				YYS &dummy,		/* Initially, no initialization	*/
-				0,				/* Object size					*/
-				0,				/* Offset						*/
-				NULL,			/* Static Name					*/
-				NULL,			/* Base							*/
-				NULL,			/* Fields						*/
-				0				/* FieldCnt						*/
-			);
-			$<s>$ = SymbolTable;
+			$<s>$ = 
+				InsertSym
+				( 
+					$<idStr>1, 
+					&int32_ste,		/* Default is int32 object.		*/
+					tInt32,
+					cValue, 
+					0,				/* Arity						*/
+					NULL,			/* Dimensions					*/
+					0, 				/* NumElements					*/
+					YYS &dummy,		/* Initially, no initialization	*/
+					0,				/* Object size					*/
+					0,				/* Offset						*/
+					NULL,			/* Static Name					*/
+					NULL,			/* Base							*/
+					NULL,			/* Fields						*/
+					0				/* FieldCnt						*/
+				);
 			_here;
 		}
 	
@@ -5234,27 +5234,28 @@ unit:
 			*/
 
 			CurLexLevel = 0;
-			InsertSym
-			(
-				hlastrdup2( yytext ),
-				&pgmID_ste,
-				tProgram,
-				cProgram,
-				0,
-				NULL,
-				0,
-				YYS &dummy,
-				0,
-				0,
-				NULL,
-				NULL,
-				NULL,
-				0
-			);
-			$<s>$ = SymbolTable;
-			CurrentContext = SymbolTable;
-			CurrentContext->u.proc.Locals =  SymbolTable->Next;
-			MainLocals = &CurrentContext->u.proc.Locals;
+			$<s>$ = 
+				InsertSym
+				(
+					$<idStr>2,
+					&pgmID_ste,
+					tProgram,
+					cProgram,
+					0,
+					NULL,
+					0,
+					YYS &dummy,
+					0,
+					0,
+					NULL,
+					NULL,
+					NULL,
+					0
+				);
+
+			CurrentContext = $<s>$;
+			$<s>$->u.proc.Locals =  $<s>$->Next;
+			MainLocals = &$<s>$->u.proc.Locals;
 			CurOffset = -4;		/* Make room for display */
 			CurOffsetDir = -1;
 			_here;
@@ -5600,7 +5601,7 @@ pgm:
 		CurLexLevel = 0;
 		InsertSym
 		(
-			hlastrdup2( yytext ),
+			$<idStr>2,
 			&pgmID_ste,
 			tProgram,
 			cProgram,
