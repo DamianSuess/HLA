@@ -334,7 +334,6 @@ extern includeLibList_t *includeLibList;
 //////////////
 
 
-SymNode_t;
 typedef struct adrsYYS *padrsYYS;
 
 				  

@@ -8,6 +8,7 @@
 
 struct extRecs;
 struct _SymNode;
+union  YYSTYPE;
 
 #define	CSetSizeInBytes 16
 

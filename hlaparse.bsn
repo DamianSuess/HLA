@@ -3365,7 +3365,7 @@ doMacroParameters:
 			_here;
 			(void) $<s>4;
 			assert( globalMacroFilename != NULL );
-			free2( &globalMacroFilename );
+			free2( vss globalMacroFilename );
 			globalMacroFilename = $<macroInvocation.FileName>2;
 			globalMacroLineCnt = $<macroInvocation.LineCnt>2;
 			
@@ -44994,7 +44994,7 @@ ValueDef:	errorPrefixTkn
 
 					_if( errorPrefixMsg != NULL )
 					
-						free2( &errorPrefixMsg );
+						free2( vss errorPrefixMsg );
 						FreeValue( YYS &$<v>3 );
 						
 					_else
@@ -48070,7 +48070,7 @@ ValueRedef:
 
 					_if( errorPrefixMsg != NULL )
 					
-						free2( &errorPrefixMsg );
+						free2( vss errorPrefixMsg );
 						FreeValue( YYS &$<v>3 );
 						
 					_else
