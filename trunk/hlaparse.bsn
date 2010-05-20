@@ -1531,6 +1531,7 @@ union	YYSTYPE		forReturnVal;
 %token	insertTkn	  
 %token	lengthTkn	  
 %token	lowercaseTkn
+%token	replaceTkn
 %token	rindexTkn	  
 %token	strbrkTkn	  
 %token	strsetTkn	  
@@ -3113,7 +3114,6 @@ ObjFieldNames:
 			** However, that situation is handled elsewhere.
 			*/
 
-			assert( $<s>1 != NULL );
 			_if( $<s>1 != NULL )
 
 				/*
@@ -37561,7 +37561,6 @@ ClassProc:
 			sym = lookupin( $<en.s>7->TrueName, $<en.s>7->u.proc.parms );
 			_if( sym != NULL )
 
-				//free2( vss sym->StaticName ); not a unique ptr!
 				sym->StaticName = hlastrdup2( $<idStr>13 );
 
 			_endif
@@ -37944,6 +37943,9 @@ newClassProc:
 			_here;
 		}
 	;
+
+
+
 
 			 
 
@@ -67028,6 +67030,28 @@ ConstFunc:	lowercaseTkn Lparen error Rparen
 
 
 ConstFunc:	
+		replaceTkn		/* $1 							*/ 
+		Lparen 			/* $2 							*/
+		ConstOnlyExpr 	/* $3 -- string to scan			*/
+		comma 			/* $4 							*/
+		ConstOnlyExpr 	/* $5 -- String to search for	*/
+		comma 			/* $6 							*/
+		ConstOnlyExpr 	/* $7 -- Replacement string		*/
+		Rparen			/* $8 							*/
+		{
+			_here;
+			ReplaceFunc
+			( 
+				YYS &$<v>$, 
+				YYS &$<v>3, 
+				YYS &$<v>5, 
+				YYS &$<v>7 
+			);
+			_here;
+		}
+	;
+
+ConstFunc:	
 		rindexTkn 
 		Lparen 
 		ConstOnlyExpr 
@@ -76565,7 +76589,7 @@ hlaFields:
 		SingleFieldName
 		{
 			_here;
-			memcpy( &$<dotName>$, &$<dotName>1, sizeofYYSTYPE);
+			$<dotName>$ = $<dotName>1;
 			_here;
 		}
 	;
@@ -76587,7 +76611,7 @@ hlaFields:
 			_here;
 
 			assert( $<dotName.FullName>5 != NULL );
-			assert( $<s>3 != NULL );
+			assert( $<idStr>3 != NULL );
 			_if( $<s>1 == NULL || $<dotName.Sym>5 == NULL )
 
 				/*
@@ -76613,8 +76637,9 @@ hlaFields:
 				$<dotName.Sym>$ = NULL;
 				$<dotName.Disp>$ = 0;
 				$<dotName.StaticName>$ = NULL;
+				$<dotName.FullName>$ = name;
 
-			_else /* Names to the left and right of ArbID are defined */
+			_else /* Names to the left and right of simpleID are defined */
 
 				_if( $<dotName.Sym>4 != NULL )
 
@@ -76638,6 +76663,15 @@ hlaFields:
 					strcpy(	$<dotName.FullName>$+1, $<idStr>3 );
 					strcat( $<dotName.FullName>$+1, $<dotName.FullName>5 );
 
+					// Check to see if the identifier in the middle is a
+					// class name.  If so, change curClass to that.
+					
+					_if( $<dotName.Sym>4->pType == tClass )
+					
+						CurObject =  $<dotName.Sym>4;
+					
+					_endif
+					
 					/*
 					** If the stuff to the right of ArbID has a static
 					** name, then this becomes the static name and we
@@ -76827,7 +76861,6 @@ hlaLookup:
 					$<idStr>0, 
 					$<s>-2 
 				);
-
 
 			_if( $<dotName.Sym>$ != NULL )
 
@@ -78669,6 +78702,82 @@ SingleStmt:
 
 
 
+SimpleRegVar:
+		'('			/* $1 */
+		typeTkn		/* $2 */
+		TypeID		/* $3 */
+		fReg32		/* $4 */
+		Rparen		/* $5 */
+		{
+			char 		StaticName[ 256 ];
+			char 		*sn;
+			SymNode_t	*saveNS;
+			SymNode_t	*s;
+
+			
+			// Create a dummy symbol table entry:
+			
+			_here;
+
+			sprintf
+			( 
+				StaticName, 
+				" (reg %d indirect %d) ", 
+				$<reg.encoding>4, 
+				LblCntr++ 
+			);
+			sn = hlastrdup2( StaticName );
+			InsertSym
+			( 
+				sn,
+				$<s>3,			/* GetBaseType( $<s>3 ), */
+				$<s>3->pType, 
+				cStatic, 
+				0,
+				NULL,
+				0, 
+				NULL,
+				4,
+				0,
+				sn,
+				NULL,
+				NULL,
+				0
+			);
+			_if( $<s>3->pType == tProcptr )
+			
+				// Copy parameter info if a proc ptr.
+				
+				memcpy
+				( 
+					&SymbolTable->u, 
+					&$<s>3->u, 
+					sizeofValuesSize
+				);
+				
+			_endif
+
+			s = SymbolTable;
+
+			
+			// Create an address to return in order to make this
+			// indirect call.
+			
+			$<adrs.ObjectSize>$ = 4;
+			$<adrs.forcedSize>$ = 4;
+			$<adrs.StaticName>$ = NULL;
+			$<adrs.regnum>$ = $<reg.encoding>4;
+			$<adrs.BaseReg>$ = NULL;
+			$<adrs.IndexReg>$ = NULL;
+			$<adrs.Scale>$ = 0;
+			$<adrs.Disp>$ = 0;
+			$<adrs.Sym>$ = s;
+			$<adrs.Type>$ = $<s>3;
+			$<adrs.pType>$ = $<s>3->pType;
+			$<adrs.pClass>$ = $<s>3->pClass;
+			$<adrs.SymClass>$ = $<s>3->SymClass;
+		
+		}
 
 
  /*
@@ -78686,7 +78795,6 @@ SingleStmt:
  **		
  */
  
-
 IndirectCall1:
 		SimpleMemoryVar			/* $1 */
 		SMV0					/* $<s>2 contains $<adrs.Sym>1	*/
@@ -78824,6 +78932,83 @@ IndirectCall1:
 
 
 				EmitCall_m( &$<adrs>1 );
+						
+				/*
+				** Look up the "returns" value for this
+				** procedure parameter.
+				*/
+
+				_if( $<adrs.Sym>1 != NULL )
+
+					_if
+					( 
+							$<adrs.Sym>1->Type != NULL 
+						&&	$<adrs.Sym>1->Type->u.proc.returns != NULL 
+					)
+
+						strcpy
+						(
+							returns,
+							$<adrs.Sym>1->Type->u.proc.returns
+						);
+
+					_elseif( $<adrs.Sym>1->u.proc.returns != NULL ) 
+ 
+						strcpy
+						(
+							returns,
+							$<adrs.Sym>1->u.proc.returns
+						);
+
+					_endif
+
+				_endif
+
+			_else
+
+				yyerror( "Variable must point at a procedure or method" );
+
+			_endif
+			FreeAdrs( &$<adrs>1 );
+			$<returns>$ = hlastrdup2( returns );
+			_if( langLevel <= low_level )
+			
+				yyerror
+				( 
+					"High-level indirect procedure calls are illegal in low- and\n"
+					"machine-level language mode."
+				);
+				
+			_endif
+			_here;
+ 		}
+	;
+
+IndirectCall1:
+		SimpleRegVar			/* $1 */
+		SMV0					/* $<s>2 contains $<adrs.Sym>1	*/
+		IndirectCallParameters	/* $3 */
+		{
+			char returns[ 256 ];
+
+			_here;
+			returns[0] = '\0';
+			/*
+			** If it's not a thunk or a parameter, see if it's a
+			** procedure variable.
+			*/
+
+			_if
+			( 
+					$<adrs.pType>1 == tProcptr 
+				||	(
+							$<adrs.pType>1 == tArray
+						&&	GetBaseType( $<adrs.Type>1 )->pType == tProcptr
+					)
+			)
+
+
+				EmitCall_r( $<adrs.regnum>1 );
 						
 				/*
 				** Look up the "returns" value for this
@@ -79066,6 +79251,91 @@ IndirectCall2:
 
 
 
+IndirectCall2:
+		SimpleRegVar			/* $1 */
+		IndexAdrsMode			/* $2 */
+		SMVm1					/* $3 $<s>3 contains $<adrs.Sym>1 */
+		IndirectCallParameters	/* $4 */
+		{
+			char returns[ 256 ];
+
+			_here;
+			returns[ 0 ] = '\0';
+
+			/*
+			** Merge the base name with the index to get the
+			** name plus the adjusted offsets.
+			*/
+
+			CombineAddresses( &$<adrs>1, &$<adrs>2 );
+
+			/*
+			** If it's not a thunk or a parameter, see if it's a
+			** procedure variable.
+			*/
+
+			_if
+			( 
+					$<adrs.pType>1 == tProcptr 
+				||	(
+							$<adrs.pType>1 == tArray
+						&&	GetBaseType( $<adrs.Type>1 )->pType == tProcptr
+					)
+			)
+
+				EmitCall_r( $<adrs.regnum>1 );
+
+				/*
+				** Look up the "returns" value for this
+				** procedure parameter.  Note: a "returns"
+				** value can only exist if this procedure
+				** pointer is of some user-defined type.
+				*/
+
+				_if( $<adrs.Sym>1 != NULL )
+
+					_if
+					( 
+							$<adrs.Sym>1->Type != NULL 
+						&&	$<adrs.Sym>1->Type->u.proc.returns != NULL 
+					)
+
+						strcpy
+						(
+							returns,
+							$<adrs.Sym>1->Type->u.proc.returns
+						);
+
+					_endif
+
+				_endif
+
+			_else
+
+				yyerror( "Variable must point at a procedure or method" );
+
+			_endif
+			SetReferenced( $<adrs.Sym>1 );
+			FreeAdrs( &$<adrs>2 );
+			FreeAdrs( &$<adrs>1 );
+			$<returns>$ = hlastrdup2( returns );
+			_if( langLevel <= low_level )
+			
+				yyerror
+				( 
+					"High-level indirect procedure calls are illegal in low- and\n"
+					"machine-level language mode."
+				);
+				
+			_endif
+			_here;
+ 		}
+	;
+
+
+
+
+
 // Handle procedure pointers that are members of a record or union
 // here.  Also handle calls to procedures and methods in a pointer
 // to a class.
@@ -79192,6 +79462,7 @@ IndirectCall3:
 	;
 
 
+
 IndirectCall3:
 		SimpleMemoryVar			/* $1 */
 		FieldStuff				/* $2 */
@@ -79284,6 +79555,22 @@ IndirectCall3:
 				** (for class vars) vs. "mov" (for class pointers).
 				*/
 
+
+				_if
+				( 
+						$<adrs.Sym>2->pType == tMethod
+					||	$<adrs.Sym>2->pType == tClassProc
+					||	$<adrs.Sym>2->pType == tClassIter
+				)
+				
+					s = lookupin( $<adrs.Sym>2->TrueName, classPtr->Fields );
+					_if( s == NULL ) 
+					
+						yyerror( "Must manually reference nested class object" );
+						
+					_endif
+					
+				_endif
 				_if( isPointer )
 
 					useLEA = 0;
@@ -79766,6 +80053,7 @@ IndirectCall3:
 			_endif
 		}
 	;
+
 
 
 
@@ -80364,6 +80652,9 @@ IndirectCall4:
 			_here;
 		}
 	;
+
+
+
 
 
 

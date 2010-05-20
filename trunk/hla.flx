@@ -354,7 +354,7 @@ static  int                 IfState;
 
         SymNode_t	*LastMacroObject =  NULL;
 		SymNode_t	*CurSymTbl       =  NULL;
-static  SymNode_t	*CurObject       =  NULL;
+		SymNode_t	*CurObject       =  NULL;
         SymNode_t	*LastRefdObject  =  NULL;
 static  char        ClassID[ maxInputLineLen ];
 		char		CurNamespaceID[maxInputLineLen];
@@ -713,6 +713,7 @@ a_reg16 			@reg16
 a_reg32 			@reg32 
 a_reg8  			@reg8  
 a_regex				@regex
+a_replace			@replace
 a_returns           @returns        
 a_rindex   			@rindex   
 a_s				    @s
@@ -8187,6 +8188,7 @@ _zstring		zstring
 {a_insert}         { _return insertTkn;            }
 {a_length}         { _return lengthTkn;            }
 {a_lowercase}      { _return lowercaseTkn;         }
+{a_replace}        { _return replaceTkn;		   }
 {a_rindex}         { _return rindexTkn;            }
 {a_strbrk}         { _return strbrkTkn;            }
 {a_strset}         { _return strsetTkn;            }

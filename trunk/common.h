@@ -251,6 +251,11 @@ extern int	inRegex     ;
 
 
 
+// Pointer to the symbol table entry for the current object:
+
+extern SymNode_t	*CurObject;
+
+
 /*
 ** Constants used to defined bit fields of the $<v.unsval>$ return
 ** field for the Classify production.
@@ -911,6 +916,14 @@ extern void LowerFunc
 	union YYSTYPE *StartPos
 );
 
+
+extern void ReplaceFunc
+( 
+	union	YYSTYPE *Result, 
+	union	YYSTYPE *Source, 
+	union	YYSTYPE *SearchFor,
+	union	YYSTYPE *Replacement 
+);
 
 extern void RIndexFunc
 ( 
