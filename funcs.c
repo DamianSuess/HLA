@@ -2757,6 +2757,138 @@ _end( RandomizeFunc )
 
 /******************************************************************/
 /*                                                                */
+/* ReplaceFunc-                                                   */
+/*                                                                */
+/* Scans a source string and replaces all occurrences of a second */
+/* string with a third string and returns the string result.      */
+/*                                                                */
+/******************************************************************/
+
+void
+ReplaceFunc
+( 
+	union	YYSTYPE *Result, 
+	union	YYSTYPE *Source, 
+	union	YYSTYPE *SearchFor,
+	union	YYSTYPE *Replacement 
+)
+_begin( ReplaceFunc )
+
+			char	*cursor;
+			char	*newStr;
+			char	*temp;
+			int		len1;
+			int		len2;
+			int		len3;
+			int		newLen;
+			int		lenAdjust;
+	union	YYSTYPE	value;
+
+
+	assert( Result != NULL );
+	assert( Source != NULL );
+	assert( SearchFor != NULL );
+	assert( Replacement != NULL );
+
+
+	/*
+	** Assume we don't find the substring in the source string.
+	*/
+
+	ClrConst
+	( 
+		Result, 
+		tString, 
+		&string_ste
+	);
+	
+
+	
+	// This code searches for the last occurrence of one
+	// string within another.
+
+	_if
+	( 
+			IsStr( Source->v.pType ) 
+		&&	IsStr( SearchFor->v.pType )
+		&&	IsStr( Replacement->v.pType )
+	)
+
+		// lenAdjust is the difference is size between the "searchFor" and
+		// replacement strings:
+		
+		len1 = strlen( Source->v.u.strval );
+		len2 = strlen( SearchFor->v.u.strval );
+		len3 = strlen( Replacement->v.u.strval );
+		lenAdjust = len3 - len2;
+		
+		_if( len2 == 0 )
+		
+			yyerror( "@replace 'search for' string must not be empty" );
+			Result->v.u.strval = "";	// To prevent cascading errors.
+			FreeValue( Source );
+			 
+		_else 
+		
+		
+			cursor = Source->v.u.strval;
+			newStr = Source->v.u.strval;
+
+			_while( (cursor = strstr( cursor, SearchFor->v.u.strval)) != NULL  )
+			
+				newLen	= len1 + lenAdjust;
+				temp = malloc2( newLen + 1 );
+				strncpy( temp, newStr, cursor-newStr );
+				strncpy( temp + (cursor-newStr), Replacement->v.u.strval, len3 );
+				strncpy
+				( 
+					temp + (cursor-newStr) + len3, 
+					cursor+len2, 
+					len1-(cursor-newStr)-len2 + 1
+				);
+				temp[ newLen ] = '\0';
+				
+				// Point "cursor" just beyond the string we just found,
+				// but in the new string we've created.
+				
+				cursor = temp + (cursor-newStr) + len2 + lenAdjust;
+				
+				// Free the old string. Note that the first time through,
+				// this will free the Source string, which is why we don't
+				// call "FreeValue" on Source at the end of this function.
+				 
+				free( newStr );
+				
+				// Replace the old "newStr" with the one we just created:
+				
+				newStr = temp;
+				len1 = newLen;
+				  
+			_endwhile
+			Result->v.u.strval = newStr;
+
+		_endif
+
+	_else
+
+		yyerror( "Type mismatch in operands" );
+		Result->v.u.strval = "";	// To prevent cascading errors.
+		FreeValue( Source );
+
+	_endif
+	//FreeValue( Source );  // Don't do this because we've already freed it
+	FreeValue( SearchFor );
+	FreeValue( Replacement );
+	
+				
+_end( ReplaceFunc )
+
+
+
+
+
+/******************************************************************/
+/*                                                                */
 /* RIndexFunc-                                                    */
 /*                                                                */
 /* Searches for the last occurrence of one string within another. */

@@ -16086,6 +16086,7 @@ EmitCall_m( padrsYYS adrs )
 _begin( EmitCall_m )
 
 	assert( adrs != NULL );
+	
 	_if( assembler == nasm )
 	
 		adrs->forcedSize = 0;
@@ -16110,6 +16111,7 @@ _begin( EmitCall_m )
 		SetReferenced( adrs->Sym );
 		
 	_endif
+	
 	
 _end( EmitCall_m )
 

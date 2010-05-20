@@ -3172,34 +3172,8 @@ _begin( CopySymbols )
 			__FILE__
 		);
 		yyerror( msg );
+		exit( 1 );
 
-		/*
-		** Create a dummy entry to return to prevent
-		** system crashes.
-		*/
-
-		value.u.unsval = 0;
-		temp = 
-			InsertSym
-			( 
-				"_dummy_", 
-				&uns32_ste,
-				tUns32, 
-				cConstant, 
-				0,
-				NULL,
-				0, 
-				YYS &value,
-				4,
-				0,
-				NULL,
-				NULL,
-				NULL,
-				0
-			);
-
-		SymbolTable = Save;
-		_return temp;
 
 	_endif
 	assert( SymbolsToCopy != NULL );
