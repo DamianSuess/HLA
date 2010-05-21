@@ -2839,14 +2839,25 @@ _begin( ReplaceFunc )
 				newLen	= len1 + lenAdjust;
 				temp = malloc2( newLen + 1 );
 				strncpy( temp, newStr, cursor-newStr );
-				strncpy( temp + (cursor-newStr), Replacement->v.u.strval, len3 );
+				_if( len3 > 0 )
+				
+					strncpy
+					( 
+						temp + (cursor-newStr), 
+						Replacement->v.u.strval, 
+						len3 
+					);
+					
+				_endif
 				strncpy
 				( 
 					temp + (cursor-newStr) + len3, 
 					cursor+len2, 
 					len1-(cursor-newStr)-len2 + 1
 				);
+
 				temp[ newLen ] = '\0';
+
 				
 				// Point "cursor" just beyond the string we just found,
 				// but in the new string we've created.

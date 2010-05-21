@@ -28831,6 +28831,10 @@ _begin( OutputMemParm )
 						(
 								formal->Type == &variant_ste
 							||	(
+										actual->BaseType == NULL
+									&&	actual->Type == &pointer_ste
+								)
+							||	(
 										fbt == abt
 									&&	fSize == 
 											actual->BaseType->ObjectSize
