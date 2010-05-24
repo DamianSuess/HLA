@@ -543,6 +543,7 @@ a_curdir    		@curdir
 a_curlex    		@curlex    
 a_curobject 		@curobject 
 a_curoffset 		@curoffset 
+a_curvar	 		@curvar 
 a_date       	    @date       
 a_debughla		    @debughla
 a_defined    		@defined    
@@ -612,7 +613,9 @@ a_l				    @l
 a_label				@label
 a_lastobject		@lastobject
 a_le			    @le
-a_leave             @leave          
+a_leave             @leave 
+a_left				@left
+a_leftdel			@leftdel         
 a_length   			@length   
 a_lex        		@lex        
 a_linenumber		@linenumber
@@ -714,7 +717,9 @@ a_reg32 			@reg32
 a_reg8  			@reg8  
 a_regex				@regex
 a_replace			@replace
-a_returns           @returns        
+a_returns           @returns
+a_right				@right
+a_rightdel			@rightdel        
 a_rindex   			@rindex   
 a_s				    @s
 a_section   		@section   
@@ -8186,9 +8191,13 @@ _zstring		zstring
 {a_delete}         { _return deleteTkn;            }
 {a_index}          { _return indexTkn;             }
 {a_insert}         { _return insertTkn;            }
+{a_left}		   { _return leftTkn;			   }
+{a_leftdel}		   { _return leftdelTkn;		   }
 {a_length}         { _return lengthTkn;            }
 {a_lowercase}      { _return lowercaseTkn;         }
 {a_replace}        { _return replaceTkn;		   }
+{a_right}		   { _return rightTkn;			   }
+{a_rightdel}	   { _return rightdelTkn;		   }
 {a_rindex}         { _return rindexTkn;            }
 {a_strbrk}         { _return strbrkTkn;            }
 {a_strset}         { _return strsetTkn;            }
@@ -8328,6 +8337,7 @@ _zstring		zstring
 {a_curdir}         { _return curDirTkn;            }
 {a_lastobject}     { _return lastMacroObjectTkn;   }
 {a_curobject}      { _return curObjectNameTkn;     }
+{a_curvar}	       { _return curVarTkn;            }
 {a_linenumber}     { _return lineNumberTkn;        }
 {a_filename}       { _return filenameTkn;          }
 {a_linenumberstk}  { _return lineNumberStkTkn;     }

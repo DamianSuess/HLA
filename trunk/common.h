@@ -255,6 +255,10 @@ extern int	inRegex     ;
 
 extern SymNode_t	*CurObject;
 
+// Pointer to a string representing the current memory variable
+
+extern char			*CurVar;
+
 
 /*
 ** Constants used to defined bit fields of the $<v.unsval>$ return
@@ -740,6 +744,7 @@ extern void CopyValResParms( SymNode_t *ParmList );
 extern void StoreValResParms( SymNode_t *ParmList );
 
 extern void CombineAddresses( padrsYYS dest, padrsYYS src );
+extern void CreateIndexStr( char *dest, padrsYYS src );
 
 
 extern SymNode_t *CopySymbols
@@ -925,6 +930,13 @@ extern void ReplaceFunc
 	union	YYSTYPE *Replacement 
 );
 
+extern void ReplaceFunc2
+( 
+	union	YYSTYPE *Result, 
+	union	YYSTYPE *Source, 
+	union	YYSTYPE *SearchAndReplace 
+);
+
 extern void RIndexFunc
 ( 
 	union	YYSTYPE *Result, 
@@ -964,6 +976,40 @@ extern void SubstrFunc
 	union	YYSTYPE *Start,
 	union	YYSTYPE *Length 
 );
+
+
+extern void LeftFunc
+( 
+	union	YYSTYPE *Result, 
+	union	YYSTYPE *Source, 
+	union	YYSTYPE *Length 
+);
+
+
+extern void LeftDelFunc
+( 
+	union	YYSTYPE *Result, 
+	union	YYSTYPE *Source, 
+	union	YYSTYPE *Length 
+);
+
+
+extern void RightFunc
+( 
+	union	YYSTYPE *Result, 
+	union	YYSTYPE *Source, 
+	union	YYSTYPE *Length 
+);
+
+
+extern void RightDelFunc
+( 
+	union	YYSTYPE *Result, 
+	union	YYSTYPE *Source, 
+	union	YYSTYPE *Length 
+);
+
+
 
 extern void TokenizeFunc
 ( 
