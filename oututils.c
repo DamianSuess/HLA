@@ -1436,6 +1436,83 @@ _end( CombineAddresses )
 
 
 
+// CreateIndexStr
+//
+//	Creates a compilable string equivalent of an indexed addressing mode:
+
+void CreateIndexStr( char *dest, padrsYYS src )
+_begin( CreateIndexStr )
+	
+	_if
+	(
+			( src->BaseReg != NULL )
+		&&	( src->IndexReg != NULL )
+	)
+	
+		sprintf
+		(
+			dest,
+			"[%s+%s*%d%s%d]",
+			src->BaseReg,
+			src->IndexReg,		
+			src->Scale,
+			_ifx( src->Disp < 0, "", "+" ),
+			src->Disp
+		);
+		
+	_elseif
+	(
+			( src->BaseReg != NULL )
+	)
+	
+		sprintf
+		(
+			dest,
+			"[%s%s%d]",
+			src->BaseReg,
+			_ifx( src->Disp < 0, "", "+" ),
+			src->Disp
+		);
+		
+	_elseif
+	(
+		( src->IndexReg != NULL )
+	)
+	
+		sprintf
+		(
+			dest,
+			"[%s*%d%s%d]",
+			src->IndexReg,
+			src->Scale,
+			_ifx( src->Disp < 0, "", "+" ),
+			src->Disp
+		);
+		
+		
+	_elseif
+	(
+		( src->Disp != 0 )
+	)
+	
+		sprintf
+		(
+			dest,
+			"[%d]",
+			src->Disp
+		);
+		
+	_else
+	
+		*dest = '\0';
+		
+	_endif
+		
+
+_end( CreateIndexStr )
+
+
+
 
 // CheckDisp-
 //	Checks a displacement associated with an addressing mode

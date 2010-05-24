@@ -2764,6 +2764,90 @@ _end( RandomizeFunc )
 /*                                                                */
 /******************************************************************/
 
+
+void
+ReplaceStr( char **Result, char *Source, char *SearchFor, char *ReplaceBy )
+_begin( ReplaceStr )
+
+	int 	len1;
+	int 	len2;
+	int 	len3;
+	int		newLen;
+	int 	lenAdjust;
+	char	*cursor;
+	char	*newStr;
+	char	*temp;
+
+	// lenAdjust is the difference is size between the "searchFor" and
+	// replacement strings:
+	
+	len1 = strlen( Source );
+	len2 = strlen( SearchFor );
+	len3 = strlen( ReplaceBy );
+	lenAdjust = len3 - len2;
+	
+	_if( len2 == 0 )
+	
+		yyerror( "@replace 'search for' string must not be empty" );
+		*Result = hlastrdup2("");		// To prevent cascading errors.
+		_return;
+		 
+	_else 
+	
+	
+		newStr = hlastrdup2( Source );
+		cursor = newStr;
+
+		_while( (cursor = strstr( cursor, SearchFor)) != NULL  )
+		
+			newLen	= len1 + lenAdjust;
+			temp = malloc2( newLen + 1 );
+			strncpy( temp, newStr, cursor-newStr );
+			_if( len3 > 0 )
+			
+				strncpy
+				( 
+					temp + (cursor-newStr), 
+					ReplaceBy, 
+					len3 
+				);
+				
+			_endif
+			strncpy
+			( 
+				temp + (cursor-newStr) + len3, 
+				cursor+len2, 
+				len1-(cursor-newStr)-len2 + 1
+			);
+
+			temp[ newLen ] = '\0';
+
+			
+			// Point "cursor" just beyond the string we just found,
+			// but in the new string we've created.
+			
+			cursor = temp + (cursor-newStr) + len2 + lenAdjust;
+			
+			// Free the old string. Note that the first time through,
+			// this will free the Source string, which is why we don't
+			// call "FreeValue" on Source at the end of this function.
+			 
+			free( newStr );
+			
+			// Replace the old "newStr" with the one we just created:
+			
+			newStr = temp;
+			len1 = newLen;
+			  
+		_endwhile
+		*Result = newStr;
+
+	_endif
+
+_end( ReplaceStr )
+
+
+
 void
 ReplaceFunc
 ( 
@@ -2814,85 +2898,128 @@ _begin( ReplaceFunc )
 		&&	IsStr( Replacement->v.pType )
 	)
 
-		// lenAdjust is the difference is size between the "searchFor" and
-		// replacement strings:
-		
-		len1 = strlen( Source->v.u.strval );
-		len2 = strlen( SearchFor->v.u.strval );
-		len3 = strlen( Replacement->v.u.strval );
-		lenAdjust = len3 - len2;
-		
-		_if( len2 == 0 )
-		
-			yyerror( "@replace 'search for' string must not be empty" );
-			Result->v.u.strval = "";	// To prevent cascading errors.
-			FreeValue( Source );
-			 
-		_else 
-		
-		
-			cursor = Source->v.u.strval;
-			newStr = Source->v.u.strval;
 
-			_while( (cursor = strstr( cursor, SearchFor->v.u.strval)) != NULL  )
-			
-				newLen	= len1 + lenAdjust;
-				temp = malloc2( newLen + 1 );
-				strncpy( temp, newStr, cursor-newStr );
-				_if( len3 > 0 )
-				
-					strncpy
-					( 
-						temp + (cursor-newStr), 
-						Replacement->v.u.strval, 
-						len3 
-					);
-					
-				_endif
-				strncpy
-				( 
-					temp + (cursor-newStr) + len3, 
-					cursor+len2, 
-					len1-(cursor-newStr)-len2 + 1
-				);
-
-				temp[ newLen ] = '\0';
-
-				
-				// Point "cursor" just beyond the string we just found,
-				// but in the new string we've created.
-				
-				cursor = temp + (cursor-newStr) + len2 + lenAdjust;
-				
-				// Free the old string. Note that the first time through,
-				// this will free the Source string, which is why we don't
-				// call "FreeValue" on Source at the end of this function.
+		ReplaceStr
+		( 
+			&Result->v.u.strval,
+			Source->v.u.strval,
+			SearchFor->v.u.strval,
+			Replacement->v.u.strval
+		);
 				 
-				free( newStr );
-				
-				// Replace the old "newStr" with the one we just created:
-				
-				newStr = temp;
-				len1 = newLen;
-				  
-			_endwhile
-			Result->v.u.strval = newStr;
-
-		_endif
 
 	_else
 
 		yyerror( "Type mismatch in operands" );
-		Result->v.u.strval = "";	// To prevent cascading errors.
-		FreeValue( Source );
+		Result->v.u.strval = hlastrdup2("");	// To prevent cascading errors.
 
 	_endif
-	//FreeValue( Source );  // Don't do this because we've already freed it
+	FreeValue( Source );
 	FreeValue( SearchFor );
 	FreeValue( Replacement );
-	
 				
 _end( ReplaceFunc )
+
+
+
+
+
+// ReplaceFunc2-
+//
+//	Given a source string and an array of search/replace string pairs,
+// this function searches for each search string in the source and
+// replaces it by the corresponding replacement string.	The SearchAndReplace
+// argument must be an array of strings with an even number of elements.
+// Each pair of elements forms a search/replace pair.
+
+void
+ReplaceFunc2
+( 
+	union	YYSTYPE *Result, 
+	union	YYSTYPE *Source, 
+	union	YYSTYPE *SearchAndReplace 
+)
+_begin( ReplaceFunc2 )
+
+	int		i;
+
+	assert( Result != NULL );
+	assert( Source != NULL );
+	assert( SearchAndReplace != NULL );
+
+
+	/*
+	** Assume we don't find the substring in the source string.
+	*/
+
+	ClrConst
+	( 
+		Result, 
+		tString, 
+		&string_ste
+	);
+	
+
+	_if
+	(  
+			SearchAndReplace->v.pType != tArray
+		||	SearchAndReplace->v.Type->pType != tString 
+	)
+	
+		yyerror
+		(
+			"@replace function's second argument must be a string array"
+		);
+		Result->v.u.strval = hlastrdup2("");	// To prevent cascading errors.
+		FreeValue( Source );
+		
+	_elseif
+	( 
+			SearchAndReplace->v.Arity != 1
+		||	(SearchAndReplace->v.NumElements & 1) != 0
+	)
+	
+		yyerror
+		(
+			"@replace function's second argument must be a single-dimension "
+			"array with an even number of elements"
+		);
+		Result->v.u.strval = hlastrdup2("");	// To prevent cascading errors.
+		FreeValue( Source );
+		
+			
+	// This code searches for the last occurrence of one
+	// string within another.
+
+	_elseif( !IsStr( Source->v.pType ))
+	
+		yyerror( "@replace function's first argument must be a string" );
+		Result->v.u.strval = hlastrdup2("");	// To prevent cascading errors.
+		FreeValue( Source );
+		
+	_else
+	
+		// For each pair of strings, do the replacement operation
+		  
+		_for( i = 0, i < SearchAndReplace->v.NumElements, i+=2 )
+		
+			ReplaceStr
+			( 
+				&Source->v.u.strval,
+				Source->v.u.strval,
+				SearchAndReplace->v.u.ArrayOfValues[i].u.strval,
+				SearchAndReplace->v.u.ArrayOfValues[i+1].u.strval
+			);
+					
+			
+		_endfor
+		Result->v.u.strval = Source->v.u.strval;
+
+	_endif
+	FreeValue( SearchAndReplace );
+	
+				
+_end( ReplaceFunc2 )
 
 
 
@@ -3659,7 +3786,7 @@ SubstrFunc
 	union	YYSTYPE *Start,
 	union	YYSTYPE *Length 
 )
-_begin( IndexFunc )
+_begin( SubstrFunc )
 
 
 	assert( Result != NULL );
@@ -3681,7 +3808,7 @@ _begin( IndexFunc )
 		||  !checkSmallUns( Length )
 	)
 
-		yyerror( "Parameter type mismatch (str,int,int)" );
+		yyerror( "Parameter type mismatch: @substr(str,uns,uns)" );
 		Result->v.u.strval = hlastrdup2( "" );
 
 	_else
@@ -3724,6 +3851,298 @@ _begin( IndexFunc )
 	FreeValue( Length );
 
 _end( SubstrFunc )
+
+
+
+// LeftFunc-
+//
+//	Extracts the leftmost "Length" characters from "Source" and
+// returns the resulting string. 
+
+
+
+void
+LeftFunc
+( 
+	union	YYSTYPE *Result, 
+	union	YYSTYPE *Source, 
+	union	YYSTYPE *Length 
+)
+_begin( LeftFunc )
+
+
+	assert( Result != NULL );
+	assert( Source != NULL );
+	assert( Length != NULL );
+	
+	ClrConst
+	( 
+		Result, 
+		tString, 
+		&string_ste
+	);
+	
+	_if
+	( 
+			!IsStr( Source->v.pType )
+		||  !checkSmallUns( Length )
+	)
+
+		yyerror( "Parameter type mismatch: @left(str,uns)" );
+		Result->v.u.strval = hlastrdup2( "" );
+
+	_else
+
+		int len;
+		int NewLength;
+		
+		assert( Source->v.u.strval != NULL );
+		len = strlen( Source->v.u.strval );
+		NewLength = min( len, Length->v.u.unsval );
+
+		Result->v.u.strval = malloc2( NewLength + 1 );
+		strncpy
+		( 
+			Result->v.u.strval, 
+			Source->v.u.strval,
+			NewLength
+		);
+		Result->v.u.strval[ NewLength ] = '\0';
+
+
+	_endif
+
+	FreeValue( Source );
+	FreeValue( Length );
+
+_end( LeftFunc )
+
+
+
+
+
+
+
+
+// LeftDelFunc-
+//
+//	Deletes the leftmost "Length" characters from "Source" and
+// returns the result in "Result". 
+
+
+
+void
+LeftDelFunc
+( 
+	union	YYSTYPE *Result, 
+	union	YYSTYPE *Source, 
+	union	YYSTYPE *Length 
+)
+_begin( LeftDelFunc )
+
+
+	assert( Result != NULL );
+	assert( Source != NULL );
+	assert( Length != NULL );
+	
+	ClrConst
+	( 
+		Result, 
+		tString, 
+		&string_ste
+	);
+	
+	_if
+	( 
+			!IsStr( Source->v.pType )
+		||  !checkSmallUns( Length )
+	)
+
+		yyerror( "Parameter type mismatch: @leftDel(str,uns)" );
+		Result->v.u.strval = hlastrdup2( "" );
+
+	_else
+
+		int len;
+		int NewLength;
+		
+		assert( Source->v.u.strval != NULL );
+		len = strlen( Source->v.u.strval );
+		_if( Length->v.u.unsval < len )
+
+			NewLength = len - Length->v.u.unsval;
+			Result->v.u.strval = malloc2( NewLength + 1 );
+			strncpy
+			( 
+				Result->v.u.strval, 
+				Source->v.u.strval+Length->v.u.unsval,
+				NewLength
+			);
+			Result->v.u.strval[ NewLength ] = '\0';
+			
+		_else
+		
+			// Default to the empty string if Length >= string length
+			
+			Result->v.u.strval = hlastrdup2( "" );
+			
+		_endif
+
+	_endif
+
+	FreeValue( Source );
+	FreeValue( Length );
+
+_end( LeftDelFunc )
+
+
+
+
+
+
+
+// RightFunc-
+//
+//	Extracts the rightmost "Length" characters from "Source" and
+// returns the resulting string. 
+
+
+
+void
+RightFunc
+( 
+	union	YYSTYPE *Result, 
+	union	YYSTYPE *Source, 
+	union	YYSTYPE *Length 
+)
+_begin( RightFunc )
+
+
+	assert( Result != NULL );
+	assert( Source != NULL );
+	assert( Length != NULL );
+	
+	ClrConst
+	( 
+		Result, 
+		tString, 
+		&string_ste
+	);
+	
+	_if
+	( 
+			!IsStr( Source->v.pType )
+		||  !checkSmallUns( Length )
+	)
+
+		yyerror( "Parameter type mismatch: @right(str,uns)" );
+		Result->v.u.strval = hlastrdup2( "" );
+
+	_else
+
+		int len;
+		int NewLength;
+		int start;
+		
+		assert( Source->v.u.strval != NULL );
+		len = strlen( Source->v.u.strval );
+		NewLength = min( len, Length->v.u.unsval );
+		start = len - NewLength;
+
+		Result->v.u.strval = malloc2( NewLength + 1 );
+		strncpy
+		( 
+			Result->v.u.strval, 
+			Source->v.u.strval + start,
+			NewLength
+		);
+		Result->v.u.strval[ NewLength ] = '\0';
+
+
+	_endif
+
+	FreeValue( Source );
+	FreeValue( Length );
+
+_end( RightFunc )
+
+
+
+
+
+
+
+
+// RightDelFunc-
+//
+//	Deletes the rightmost "Length" characters from "Source" and
+// returns the result in "Result". 
+
+
+
+void
+RightDelFunc
+( 
+	union	YYSTYPE *Result, 
+	union	YYSTYPE *Source, 
+	union	YYSTYPE *Length 
+)
+_begin( RightDelFunc )
+
+
+	assert( Result != NULL );
+	assert( Source != NULL );
+	assert( Length != NULL );
+	
+	ClrConst
+	( 
+		Result, 
+		tString, 
+		&string_ste
+	);
+	
+	_if
+	( 
+			!IsStr( Source->v.pType )
+		||  !checkSmallUns( Length )
+	)
+
+		yyerror( "Parameter type mismatch @rightDel(str,int)" );
+		Result->v.u.strval = hlastrdup2( "" );
+
+	_else
+
+		int len;
+		int NewLength;
+		
+		assert( Source->v.u.strval != NULL );
+		len = strlen( Source->v.u.strval );
+		_if( Length->v.u.unsval < len )
+
+			NewLength = len - Length->v.u.unsval;
+			Result->v.u.strval = malloc2( NewLength + 1 );
+			strncpy
+			( 
+				Result->v.u.strval, 
+				Source->v.u.strval,
+				NewLength
+			);
+			Result->v.u.strval[ NewLength ] = '\0';
+			
+		_else
+		
+			// Default to the empty string if Length >= string length
+			
+			Result->v.u.strval = hlastrdup2( "" );
+			
+		_endif
+
+	_endif
+
+	FreeValue( Source );
+	FreeValue( Length );
+
+_end( RightDelFunc )
 
 
 

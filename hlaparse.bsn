@@ -198,6 +198,9 @@ int		testMode2	= 0;	/* True if -test								*/
 int		globalMacroLineCnt = 0;
 char	*globalMacroFilename = NULL;
 
+
+char	*CurVar = NULL;
+
  /*
  ** Variables used to deal with variable alignment.
  **
@@ -1536,7 +1539,11 @@ union	YYSTYPE		forReturnVal;
 %token	strbrkTkn	  
 %token	strsetTkn	  
 %token	strspanTkn  
-%token	substrTkn	  
+%token	substrTkn
+%token	leftTkn	  
+%token	leftdelTkn	  
+%token	rightTkn	  
+%token	rightdelTkn	  
 %token	tokenizeTkn 
 %token	trimTkn	  
 %token	uppercaseTkn
@@ -1573,6 +1580,7 @@ union	YYSTYPE		forReturnVal;
 %token enumSizeTkn
 %token lastMacroObjectTkn
 %token curObjectNameTkn
+%token curVarTkn
 %token sectionTkn
 %token boundvarTkn
 %token intovarTkn
@@ -67052,6 +67060,25 @@ ConstFunc:
 	;
 
 ConstFunc:	
+		replaceTkn		/* $1 									*/ 
+		Lparen 			/* $2 									*/
+		ConstOnlyExpr 	/* $3 -- string to scan					*/
+		comma 			/* $4 									*/
+		ConstOnlyExpr 	/* $5 -- Array of search/replace pairs	*/
+		Rparen			/* $6 									*/
+		{
+			_here;
+			ReplaceFunc2
+			( 
+				YYS &$<v>$, 
+				YYS &$<v>3, 
+				YYS &$<v>5 
+			);
+			_here;
+		}
+	;
+
+ConstFunc:	
 		rindexTkn 
 		Lparen 
 		ConstOnlyExpr 
@@ -67260,7 +67287,159 @@ ConstFunc:	substrTkn Lparen error Rparen
 			{
 				union	YYSTYPE value;
 
-				yyerror( "Error in SUBSTR function [substr(s,i,i)]" );
+				yyerror( "Error in SUBSTR function [@substr(s,i,i)]" );
+
+				value.v.u.strval = hlastrdup2( "" );
+				SetConst
+				( 
+					YYS &$<v>$, 
+					tString, 
+					&string_ste,
+					YYS &value
+				);
+			}
+		;
+
+ConstFunc:	
+		leftTkn 
+		Lparen 
+		ConstOnlyExpr 
+		comma 
+		ConstOnlyExpr 
+		Rparen
+		{
+			_here;
+			LeftFunc
+			( 
+				YYS &$<v>$, 
+				YYS &$<v>3, 
+				YYS &$<v>5 
+			);
+			_here;
+		}
+	;
+
+
+ConstFunc:	leftTkn Lparen error Rparen
+			{
+				union	YYSTYPE value;
+
+				yyerror( "Error in LEFT function [@left(s,i)]" );
+
+				value.v.u.strval = hlastrdup2( "" );
+				SetConst
+				( 
+					YYS &$<v>$, 
+					tString, 
+					&string_ste,
+					YYS &value
+				);
+			}
+		;
+
+ConstFunc:	
+		leftdelTkn 
+		Lparen 
+		ConstOnlyExpr 
+		comma 
+		ConstOnlyExpr 
+		Rparen
+		{
+			_here;
+			LeftDelFunc
+			( 
+				YYS &$<v>$, 
+				YYS &$<v>3, 
+				YYS &$<v>5 
+			);
+			_here;
+		}
+	;
+
+
+ConstFunc:	leftdelTkn Lparen error Rparen
+			{
+				union	YYSTYPE value;
+
+				yyerror( "Error in LEFTDEL function [@leftdel(s,i)]" );
+
+				value.v.u.strval = hlastrdup2( "" );
+				SetConst
+				( 
+					YYS &$<v>$, 
+					tString, 
+					&string_ste,
+					YYS &value
+				);
+			}
+		;
+
+
+
+
+
+ConstFunc:	
+		rightTkn 
+		Lparen 
+		ConstOnlyExpr 
+		comma 
+		ConstOnlyExpr 
+		Rparen
+		{
+			_here;
+			RightFunc
+			( 
+				YYS &$<v>$, 
+				YYS &$<v>3, 
+				YYS &$<v>5 
+			);
+			_here;
+		}
+	;
+
+
+ConstFunc:	rightTkn Lparen error Rparen
+			{
+				union	YYSTYPE value;
+
+				yyerror( "Error in RIGHT function [@right(s,i)]" );
+
+				value.v.u.strval = hlastrdup2( "" );
+				SetConst
+				( 
+					YYS &$<v>$, 
+					tString, 
+					&string_ste,
+					YYS &value
+				);
+			}
+		;
+
+ConstFunc:	
+		rightdelTkn 
+		Lparen 
+		ConstOnlyExpr 
+		comma 
+		ConstOnlyExpr 
+		Rparen
+		{
+			_here;
+			RightDelFunc
+			( 
+				YYS &$<v>$, 
+				YYS &$<v>3, 
+				YYS &$<v>5 
+			);
+			_here;
+		}
+	;
+
+
+ConstFunc:	rightdelTkn Lparen error Rparen
+			{
+				union	YYSTYPE value;
+
+				yyerror( "Error in RIGHTDEL function [@rightdel(s,i)]" );
 
 				value.v.u.strval = hlastrdup2( "" );
 				SetConst
@@ -73992,8 +74171,43 @@ ConstFunc:	curObjectNameTkn
 						LastRefdObject != NULL 
 					&&	LastRefdObject->TrueName != NULL 
 				)
-				
+
 					v.v.u.strval = hlastrdup2( LastRefdObject->TrueName );
+					
+				_else
+				
+					v.v.u.strval = hlastrdup2( "" );
+					
+				_endif
+				SetConst
+				( 
+					YYS &$<v>$, 
+					tString, 
+					&string_ste,
+					YYS &v
+				);
+				_here;
+			}
+		;
+
+
+
+
+
+ 
+ /*
+ ** Replace @curvar by the current variable name
+ */
+ 
+
+ConstFunc:	curVarTkn 
+			{
+				union YYSTYPE v;
+
+				_here;
+				_if( CurVar != NULL )
+
+					v.v.u.strval = hlastrdup2( CurVar );
 					
 				_else
 				
@@ -101706,6 +101920,12 @@ SimpleMemoryVar:
 		{
 			char *p;
 			_here;
+			
+			// Set up CurVar for this guy:
+			
+			free2( vss CurVar );
+			CurVar = hlastrdup2( $<s>1->TrueName );
+			
 			SetReferenced( $<s>1 );			
 			_if
 			( 
@@ -101794,6 +102014,12 @@ SimpleMemoryVar:
 			char name[ 256 ];
 
 			_here;
+			
+			// Set up CurVar for this guy:
+			
+			free2( vss CurVar );
+			
+			
 			SetReferenced( $<s>1 );
 			sprintf
 			(
@@ -101801,6 +102027,8 @@ SimpleMemoryVar:
 				"this.%s",
 				$<s>1->TrueName
 			);
+			CurVar = hlastrdup2( name );
+			
 			_if( $<s>1->Arity == 0 )
 
 				/*
@@ -101842,8 +102070,20 @@ SimpleMemoryVar:
 SimpleMemoryVar:
 		ClassStaticID
 		{
+			char name[256];
+			
 			_here;
 			assert( $<s>1 != NULL );
+			
+			free2( vss CurVar );
+			sprintf
+			(
+				name,
+				"this.%s",
+				$<s>1->TrueName
+			);
+			CurVar = hlastrdup2( name );
+			
 			SetReferenced( $<s>1 );
 			_if( $<s>1->Arity == 0 )
 
@@ -101917,6 +102157,10 @@ SimpleMemoryVar:
 				regStrs[ $<reg.encoding>1 ],
 				$<s>3->TrueName
 			);
+			free2( vss CurVar );
+			CurVar = hlastrdup2( name );
+			
+			
 			_if
 			( 
 					$<s>3->SymClass == cParm 
@@ -101982,6 +102226,9 @@ SimpleMemoryVar:
 		AnyStaticID
 		{
 			_here;
+			free2( vss CurVar );
+			CurVar = hlastrdup2( $<s>1->TrueName );
+			
 			SetReferenced( $<s>1 );
 			_if( $<s>1->Arity == 0 )
 
@@ -102043,6 +102290,17 @@ SimpleMemoryVar:
 			char 			adrs[256];
 
 			_here;
+			
+			sprintf
+			(
+				adrs,
+				"(type %s %s)",
+				$<s>3->TrueName,
+				CurVar				// From SimpleMemoryVar$4 above
+			);
+			free2( vss CurVar );
+			CurVar = hlastrdup2( adrs );
+			
 
 			/*
 			** If the SymClass is cParm and the pClass is
@@ -102135,6 +102393,15 @@ SimpleMemoryVar:
 
 			_here;
 
+			sprintf
+			(
+				adrs,
+				"(type %s %s)",
+				$<s>3->TrueName,
+				CurVar				// From SimpleMemoryVar$5 above
+			);
+			free2( vss CurVar );
+			CurVar = hlastrdup2( adrs );
 
 			/*
 			** If the SymClass is cParm and the pClass is
@@ -102221,7 +102488,9 @@ SimpleMemoryVar:
 		Rparen				/* $6 */
 		{					/* $7 */
 
-			SymNode_t *s;
+			SymNode_t 	*s;
+			char		curVarStr[256];
+			char		IndexAdrsStr[256];
 
 			_here;
 
@@ -102241,7 +102510,17 @@ SimpleMemoryVar:
 			_endif
 
  			CombineAddresses( &$<adrs>4, &$<adrs>5 );
-
+			CreateIndexStr( IndexAdrsStr, &$<adrs>4 );
+			sprintf
+			(
+				curVarStr,
+				"(type %s %s %s)",
+				$<s>3->TrueName,
+				CurVar,				// From $4 above
+				IndexAdrsStr
+			);
+			free2( vss CurVar );
+			CurVar = hlastrdup2( curVarStr );
 
 			_if( $<s>3->Arity == 0 )
 
@@ -102316,7 +102595,9 @@ SimpleMemoryVar:
 		Rparen				/* $7 */
 		{					/* $8 */
 		
-			SymNode_t *s;
+			SymNode_t	*s;
+			char		IndexAdrsStr[256];
+			char		curVarStr[256];
 
 			_here;
 
@@ -102336,7 +102617,17 @@ SimpleMemoryVar:
 			_endif
 
  			CombineAddresses( &$<adrs>5, &$<adrs>6 );
-
+			CreateIndexStr( IndexAdrsStr, &$<adrs>6 );
+			sprintf
+			(
+				curVarStr,
+				"(type %s %s %s)",
+				$<s>3->TrueName,
+				CurVar,				// From $4 above
+				IndexAdrsStr
+			);
+			free2( vss CurVar );
+			CurVar = hlastrdup2( curVarStr );
 
 			_if( $<s>3->Arity == 0 )
 
@@ -102411,9 +102702,15 @@ SimpleMemoryVar:
 		Rparen				/* $6 */
 		{					/* $7 */
 		
-			SymNode_t *s;
+			char 		newVar[256];
+			SymNode_t	*s;
 			
 			_here;
+			
+			sprintf( newVar, "(type %s %s)", $<s>3->TrueName, CurVar );
+			free2( vss CurVar );
+			CurVar = hlastrdup2( newVar );
+
 			memcpy( &$<adrs>$, &$<adrs>5, sizeofYYSTYPE);
 			_if( $<s>3->Arity == 0 )
 
@@ -102483,9 +102780,15 @@ SimpleMemoryVar:
 		Rparen				/* $7 */
 		{					/* $8 */
 
-			SymNode_t *s;
+			char 		newVar[256];
+			SymNode_t	*s;
 			
 			_here;
+			
+			sprintf( newVar, "(type %s %s)", $<s>3->TrueName, CurVar );
+			free2( vss CurVar );
+			CurVar = hlastrdup2( newVar );
+
 			memcpy( &$<adrs>$, &$<adrs>6, sizeofYYSTYPE);
 			_if( $<s>3->Arity == 0 )
 
@@ -102557,10 +102860,24 @@ SimpleMemoryVar:
 		{					/* $8 */
 
 			SymNode_t *s;
+			char		IndexAdrsStr[256];
+			char		curVarStr[256];
 			
 			_here;
 			memcpy( &$<adrs>$, &$<adrs>5, sizeofYYSTYPE);
 			CombineAddresses( &$<adrs>$, &$<adrs>6 );
+			CreateIndexStr( IndexAdrsStr, &$<adrs>6 );
+			sprintf
+			(
+				curVarStr,
+				"(type %s %s %s)",
+				$<s>3->TrueName,
+				CurVar,				// From $4 above
+				IndexAdrsStr
+			);
+			free2( vss CurVar );
+			CurVar = hlastrdup2( curVarStr );
+
 			_if( $<s>3->Arity == 0 )
 
 				/*
@@ -102632,10 +102949,24 @@ SimpleMemoryVar:
 		{					/* $9 */
 
 			SymNode_t *s;
+			char		IndexAdrsStr[256];
+			char		curVarStr[256];
 			
 			_here;
 			memcpy( &$<adrs>$, &$<adrs>6, sizeofYYSTYPE);
 			CombineAddresses( &$<adrs>$, &$<adrs>7 );
+			CreateIndexStr( IndexAdrsStr, &$<adrs>7 );
+			sprintf
+			(
+				curVarStr,
+				"(type %s %s %s)",
+				$<s>3->TrueName,
+				CurVar,				// From $4 above
+				IndexAdrsStr
+			);
+			free2( vss CurVar );
+			CurVar = hlastrdup2( curVarStr );
+
 			_if( $<s>3->Arity == 0 )
 
 				/*
@@ -102710,8 +103041,21 @@ SimpleMemoryVar:
 
 		{
 			SymNode_t *s;
+			char		IndexAdrsStr[256];
+			char		curVarStr[256];
 			
 			_here;
+			CreateIndexStr( IndexAdrsStr, &$<adrs>4 );
+			sprintf
+			(
+				curVarStr,
+				"(type %s %s)",
+				$<s>3->TrueName,
+				IndexAdrsStr
+			);
+			free2( vss CurVar );
+			CurVar = hlastrdup2( curVarStr );
+
 			_if( $<s>3->Arity == 0 )
 
 				/*
@@ -102789,6 +103133,9 @@ SimpleMemoryVar:
 		NonLocalVarID
 		{
 			_here;
+			free2( vss CurVar );
+			strcpy( CurVar, $<s>1->TrueName );
+			
 			SetReferenced( $<s>1 );
 			_if
 			( 
@@ -102930,31 +103277,53 @@ NotIntermediateVar:
  ** output file.
  */
 
-FieldStuff:
-		recFieldStuff
+saveCurVar:
 		{
+			$<idStr>$ = hlastrdup2( CurVar );
+		}
+	;
+	
+copyAdrs0:
+		{
+			$<adrs>$ = $<adrs>-1;
+		}
+	;
+	
+FieldStuff:
+		saveCurVar		/* $1 */
+		copyAdrs0		/* $2 */
+		recFieldStuff	/* $3 */
+		{
+			char varName[256];
+			
 			/*
 			** Merge the <adrs> fields of $1 with the <adrs> fields
 			** of $0 and return the combined values as $<adrs>$.
 			*/
 
 			_here;
-			$<adrs.Size>$ = $<adrs.Size>1;
+			strcpy( varName, $<idStr>1 );
+			strcat( varName, CurVar );
+			free2( vss CurVar );
+			free2( vss $<idStr>1 );
+			CurVar = hlastrdup2( varName );
+			 
+			$<adrs.Size>$ = $<adrs.Size>3;
 			$<adrs.forcedSize>$ = 0;
-			$<adrs.ObjectSize>$ = $<adrs.Size>1;
+			$<adrs.ObjectSize>$ = $<adrs.Size>3;
 			_if
 			( 
-					IsStaticClass( $<adrs.SymClass>1 )
-				&&	$<adrs.StaticName>1 != NULL 
-				&&	*$<adrs.StaticName>1 != '\0'
+					IsStaticClass( $<adrs.SymClass>3 )
+				&&	$<adrs.StaticName>3 != NULL 
+				&&	*$<adrs.StaticName>3 != '\0'
 			)
 
-				$<adrs.StaticName>$ = hlastrdup2( $<adrs.StaticName>1 );
-				$<adrs.regnum>$ = $<adrs.regnum>1;
+				$<adrs.StaticName>$ = hlastrdup2( $<adrs.StaticName>3 );
+				$<adrs.regnum>$ = $<adrs.regnum>3;
 				$<adrs.BaseReg>$ = NULL;
 				$<adrs.IndexReg>$ = NULL;
 				$<adrs.Scale>$ = 0;
-				$<adrs.Disp>$ = $<adrs.Disp>1;
+				$<adrs.Disp>$ = $<adrs.Disp>3;
 
 			_else
 
@@ -102963,12 +103332,12 @@ FieldStuff:
 				$<adrs.BaseReg>$ = hlastrdup2( $<adrs.BaseReg>0 );
 				$<adrs.IndexReg>$ = hlastrdup2( $<adrs.IndexReg>0 );
 				$<adrs.Scale>$ = $<adrs.Scale>0;
-				$<adrs.Disp>$ = $<adrs.Disp>0 + $<adrs.Disp>1;
+				$<adrs.Disp>$ = $<adrs.Disp>0 + $<adrs.Disp>3;
 
 			_endif
-			$<adrs.Sym>$ = $<adrs.Sym>1;
-			$<adrs.Type>$ = $<adrs.Type>1;
-			$<adrs.pType>$ = $<adrs.pType>1;
+			$<adrs.Sym>$ = $<adrs.Sym>3;
+			$<adrs.Type>$ = $<adrs.Type>3;
+			$<adrs.pType>$ = $<adrs.pType>3;
 
 			/*
 			** Determining the resulting class is tricky.
@@ -102980,10 +103349,10 @@ FieldStuff:
 			** with the recFieldStuff class information.
 			*/
 
-			_if( IsStaticClass( $<adrs.SymClass>1 ))
+			_if( IsStaticClass( $<adrs.SymClass>3 ))
 
-				$<adrs.SymClass>$ = $<adrs.SymClass>1;
-				$<adrs.pClass>$ = $<adrs.pClass>1;
+				$<adrs.SymClass>$ = $<adrs.SymClass>3;
+				$<adrs.pClass>$ = $<adrs.pClass>3;
 
 			_elseif( IsStaticClass( $<adrs.SymClass>0 ))
 	   			
@@ -102994,7 +103363,7 @@ FieldStuff:
 			(
 					( 
 							$<adrs.SymClass>0 == cParm 
-						&&	NotStaticClass( $<adrs.SymClass>1 )
+						&&	NotStaticClass( $<adrs.SymClass>3 )
 					)
 				||	IsStaticClass( $<adrs.SymClass>0 )
 			)
@@ -103005,17 +103374,15 @@ FieldStuff:
 
 			_else
 
-				$<adrs.SymClass>$ = $<adrs.SymClass>1;
-				$<adrs.pClass>$ = $<adrs.pClass>1;
+				$<adrs.SymClass>$ = $<adrs.SymClass>3;
+				$<adrs.pClass>$ = $<adrs.pClass>3;
 
 			_endif
-			FreeAdrs( &$<adrs>1 );
+			FreeAdrs( &$<adrs>3 );
 			_here;
 
 		}		
 	;
-
-
 
 
 
@@ -103031,11 +103398,17 @@ recFieldStuff:
 		recFieldStuff	/* $5   Process remaining field names			 */
 		{				/* $6 */
 
+			char newVar[256];
+			
 			SymNode_t	*sym;
 			SymNode_t	*type0;
 			SymNode_t	*type5;
 
 			_here;
+			
+			sprintf( newVar, ".%s.%s", $<idStr>3, CurVar );
+			free2( vss CurVar );
+			CurVar = hlastrdup2( newVar );
 			
 			// The following adrs fields are the same no matter
 			// what else happens, so deal with them here.
@@ -103232,10 +103605,15 @@ recFieldStuff:
 		AnyID			/* $3 */
 		{				/* $4 */
 
+			char		newVar[256];
 			SymNode_t	*sym;
 			SymNode_t	*type0;
 
 			_here;
+
+			sprintf( newVar, ".%s", $<idStr>3 );
+			free2( vss CurVar );
+			CurVar = hlastrdup2( newVar );
 
 			SymbolTable = $<s>2;
 
@@ -106432,6 +106810,8 @@ _begin( main )
 	struct	timeb	CompileTimeStart;	// Measure the compile time.
 	char 			option[256];		// Hold a command-line argument string.
 
+	CurVar = hlastrdup2( "" );			// Must be allocated on heap to be freed.
+	
 	MsgOut = stderr;
 	RecordValues = malloc2( sizeofSymNode );
 
