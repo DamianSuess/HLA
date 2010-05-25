@@ -67043,7 +67043,7 @@ ConstFunc:
 		ConstOnlyExpr 	/* $3 -- string to scan			*/
 		comma 			/* $4 							*/
 		ConstOnlyExpr 	/* $5 -- String to search for	*/
-		comma 			/* $6 							*/
+		',' 			/* $6 							*/
 		ConstOnlyExpr 	/* $7 -- Replacement string		*/
 		Rparen			/* $8 							*/
 		{
