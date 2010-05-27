@@ -29329,24 +29329,8 @@ newProcs:
 				
 			yyerror( msg );
 			free2( vss $<idStr>11 );
-
-			/*
-			** Undo the stuff done by PatchLocals.
-			** (PatchLocals isn't really used by this
-			** production, it appears simply to eliminate
-			** shift/reduce conflicts).
-			*/
-
-			SymbolTable = $<s>7;
-			--CurLexLevel;
-			
-			/*
-			** Restore currentNS
-			*/
-			
-			currentNS = $<s>1;
 			(void)$<idStr>10; // Shut up bison
-			_here;
+			exit( 1 );
 		}
 	;
 
@@ -43485,6 +43469,7 @@ TypeDef:
 			_else
 
 				SymNode_t *vmt;
+				SymNode_t *s;
 				
 				/*
 				** Okay, we're inheriting fields.  Copy the fields
@@ -43496,9 +43481,21 @@ TypeDef:
 
 				SymbolTable = CopySymbols( $<s>9->Fields, sn );
 				
+				// Must search for the VMT entry:
+				
+				s = SymbolTable;
+				vmt = NULL;
+				_while( s != $<s>$ )
+				
+					vmt = s;
+					s=s->Next;
+					
+				_endwhile;
+ 
+				
 				// The first entry is always the VMT:
 				
-				EmitVMTExtern( SymbolTable->Fields, sn );
+				EmitVMTExtern( vmt, sn );
 				
 				CurOffset = $<s>9->ObjectSize;
 
@@ -56012,6 +56009,7 @@ StaticSingleExt:
 					__LINE__,
 					__FILE__
 				);
+				exit( 1 );
 
 			_endif
 			_here;
