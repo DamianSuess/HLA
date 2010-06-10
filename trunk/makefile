@@ -17,10 +17,12 @@ SYM=symbol.h
 #DB=-v -y -M
 CARGS= /GF /TC
 
-hla:  hlaparse.exe hla.exe 
+hla:  hlaparse.exe hla.exe mkhlatkns.exe
+	mkhlatkns
 	build
 	
-release: hla.exe hlaparse2.exe
+release: hla.exe hlaparse2.exe mkhlatkns.exe
+	mkhlatkns
 	build
 
 hla.exe: hla.obj 
@@ -105,6 +107,9 @@ coerce.obj: coerce.c $(SYM) $(CMN) $(RATC) $(DBG) $(ENM) $(AH)
 funcs.obj: funcs.c $(SYM) $(CMN) $(RATC) $(DBG) $(ENM) $(AH)
 	cl $(CARGS) $(INC) $(LIBR) -c funcs.c
 
+
+mkhlatkns.exe:mkhlatkns.hla
+	hla mkhlatkns
 
 
 

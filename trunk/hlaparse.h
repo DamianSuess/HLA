@@ -115,1030 +115,1036 @@
      endtextTkn = 331,
      stringblockTkn = 332,
      endstringTkn = 333,
-     matchblockTkn = 334,
-     endmatchTkn = 335,
-     beginTkn = 336,
-     endTkn = 337,
-     procTkn = 338,
-     endprocTkn = 339,
-     procedureTkn = 340,
-     iteratorTkn = 341,
-     methodTkn = 342,
-     programTkn = 343,
-     unitTkn = 344,
-     macroTkn = 345,
-     keywordTkn = 346,
-     terminatorTkn = 347,
-     endmacroTkn = 348,
-     endMacDefTkn = 349,
-     regexMacroTkn = 350,
-     endregexTkn = 351,
-     endRegexDefTkn = 352,
-     regexReturnTkn = 353,
-     labelTkn = 354,
-     endlabelTkn = 355,
-     constTkn = 356,
-     endconstTkn = 357,
-     valTkn = 358,
-     endvalTkn = 359,
-     typeTkn = 360,
-     endtypeTkn = 361,
-     alignTkn = 362,
-     varTkn = 363,
-     endvarTkn = 364,
-     staticTkn = 365,
-     endstaticTkn = 366,
-     uninitializedTkn = 367,
-     endstorageTkn = 368,
-     readonlyTkn = 369,
-     endreadonlyTkn = 370,
-     recordTkn = 371,
-     endrecordTkn = 372,
-     unionTkn = 373,
-     endunionTkn = 374,
-     classTkn = 375,
-     vmtTkn = 376,
-     endclassTkn = 377,
-     enumTkn = 378,
-     inheritsTkn = 379,
-     pointerTkn = 380,
-     toTkn = 381,
-     downtoTkn = 382,
-     externalTkn = 383,
-     abstractTkn = 384,
-     overloadsTkn = 385,
-     overrideTkn = 386,
-     overridesTkn = 387,
-     forwardTkn = 388,
-     returnsTkn = 389,
-     atreturnsTkn = 390,
-     noframeTkn = 391,
-     frameTkn = 392,
-     nodisplayTkn = 393,
-     displayTkn = 394,
-     noalignstkTkn = 395,
-     alignstkTkn = 396,
-     alignprocTkn = 397,
-     useTkn = 398,
-     useenterTkn = 399,
-     noenterTkn = 400,
-     useleaveTkn = 401,
-     noleaveTkn = 402,
-     pascalTkn = 403,
-     cdeclTkn = 404,
-     stdcallTkn = 405,
-     nostorageTkn = 406,
-     volatileTkn = 407,
-     namespaceTkn = 408,
-     fastTkn = 409,
-     segmentTkn = 410,
-     hereTkn = 411,
-     atlabelTkn = 412,
-     nameTkn = 413,
-     valresTkn = 414,
-     resultTkn = 415,
-     lazyTkn = 416,
-     thunkTkn = 417,
-     jtTkn = 418,
-     jfTkn = 419,
-     ifTkn = 420,
-     thenTkn = 421,
-     elseifTkn = 422,
-     elseTkn = 423,
-     endifTkn = 424,
-     switchTkn = 425,
-     caseTkn = 426,
-     defaultTkn = 427,
-     endswitchTkn = 428,
-     whileTkn = 429,
-     doTkn = 430,
-     endwhileTkn = 431,
-     welseTkn = 432,
-     repeatTkn = 433,
-     untilTkn = 434,
-     forTkn = 435,
-     foreverTkn = 436,
-     foreachTkn = 437,
-     endforTkn = 438,
-     felseTkn = 439,
-     exitTkn = 440,
-     exitifTkn = 441,
-     breakTkn = 442,
-     breakifTkn = 443,
-     continueTkn = 444,
-     continueifTkn = 445,
-     tryTkn = 446,
-     alwaysTkn = 447,
-     unprotectedTkn = 448,
-     exceptionTkn = 449,
-     anyexceptionTkn = 450,
-     endtryTkn = 451,
-     raiseTkn = 452,
-     booleanTkn = 453,
-     int8Tkn = 454,
-     int16Tkn = 455,
-     int32Tkn = 456,
-     int64Tkn = 457,
-     int128Tkn = 458,
-     charTkn = 459,
-     wcharTkn = 460,
-     real32Tkn = 461,
-     real64Tkn = 462,
-     real80Tkn = 463,
-     real128Tkn = 464,
-     uns8Tkn = 465,
-     uns16Tkn = 466,
-     uns32Tkn = 467,
-     uns64Tkn = 468,
-     uns128Tkn = 469,
-     stringTkn = 470,
-     wstringTkn = 471,
-     zstringTkn = 472,
-     csetTkn = 473,
-     regexTkn = 474,
-     textTkn = 475,
-     byteTkn = 476,
-     wordTkn = 477,
-     dwordTkn = 478,
-     qwordTkn = 479,
-     tbyteTkn = 480,
-     lwordTkn = 481,
-     atint8Tkn = 482,
-     atint16Tkn = 483,
-     atint32Tkn = 484,
-     atint64Tkn = 485,
-     atint128Tkn = 486,
-     atcharTkn = 487,
-     atwcharTkn = 488,
-     atreal32Tkn = 489,
-     atreal64Tkn = 490,
-     atreal80Tkn = 491,
-     atuns8Tkn = 492,
-     atuns16Tkn = 493,
-     atuns32Tkn = 494,
-     atuns64Tkn = 495,
-     atuns128Tkn = 496,
-     atstringTkn = 497,
-     atwstringTkn = 498,
-     atcsetTkn = 499,
-     atbyteTkn = 500,
-     atwordTkn = 501,
-     atdwordTkn = 502,
-     atqwordTkn = 503,
-     attbyteTkn = 504,
-     atlwordTkn = 505,
-     atpointerTkn = 506,
-     nullTkn = 507,
-     absTkn = 508,
-     ceilTkn = 509,
-     cosTkn = 510,
-     dateTkn = 511,
-     envTkn = 512,
-     expTkn = 513,
-     extractTkn = 514,
-     floorTkn = 515,
-     isalphaTkn = 516,
-     isalphanumTkn = 517,
-     isdigitTkn = 518,
-     islowerTkn = 519,
-     isspaceTkn = 520,
-     isupperTkn = 521,
-     isxdigitTkn = 522,
-     logTkn = 523,
-     log10Tkn = 524,
-     maxTkn = 525,
-     minTkn = 526,
-     oddTkn = 527,
-     randomTkn = 528,
-     randomizeTkn = 529,
-     readTkn = 530,
-     sinTkn = 531,
-     sortTkn = 532,
-     sqrtTkn = 533,
-     systemTkn = 534,
-     tanTkn = 535,
-     threadTkn = 536,
-     timeTkn = 537,
-     peekcsetTkn = 538,
-     onecsetTkn = 539,
-     uptocsetTkn = 540,
-     zerooronecsetTkn = 541,
-     zeroormorecsetTkn = 542,
-     oneormorecsetTkn = 543,
-     exactlyncsetTkn = 544,
-     firstncsetTkn = 545,
-     norlesscsetTkn = 546,
-     normorecsetTkn = 547,
-     ntomcsetTkn = 548,
-     exactlyntomcsetTkn = 549,
-     peekcharTkn = 550,
-     onecharTkn = 551,
-     uptocharTkn = 552,
-     zerooronecharTkn = 553,
-     zeroormorecharTkn = 554,
-     oneormorecharTkn = 555,
-     exactlyncharTkn = 556,
-     firstncharTkn = 557,
-     norlesscharTkn = 558,
-     normorecharTkn = 559,
-     ntomcharTkn = 560,
-     exactlyntomcharTkn = 561,
-     peekicharTkn = 562,
-     oneicharTkn = 563,
-     uptoicharTkn = 564,
-     zerooroneicharTkn = 565,
-     zeroormoreicharTkn = 566,
-     oneormoreicharTkn = 567,
-     exactlynicharTkn = 568,
-     firstnicharTkn = 569,
-     norlessicharTkn = 570,
-     normoreicharTkn = 571,
-     ntomicharTkn = 572,
-     exactlyntomicharTkn = 573,
-     matchstrTkn = 574,
-     matchistrTkn = 575,
-     uptostrTkn = 576,
-     uptoistrTkn = 577,
-     matchtostrTkn = 578,
-     matchtoistrTkn = 579,
-     zeroormorewsTkn = 580,
-     oneormorewsTkn = 581,
-     wsoreosTkn = 582,
-     wstheneosTkn = 583,
-     peekwsTkn = 584,
-     eosTkn = 585,
-     wsTkn = 586,
-     peekstrTkn = 587,
-     peekistrTkn = 588,
-     matchidTkn = 589,
-     matchwordTkn = 590,
-     matchiwordTkn = 591,
-     matchintconstTkn = 592,
-     matchrealconstTkn = 593,
-     matchnumericconstTkn = 594,
-     matchstrconstTkn = 595,
-     matchregTkn = 596,
-     matchreg8Tkn = 597,
-     matchreg16Tkn = 598,
-     matchreg32Tkn = 599,
-     matchfpuregTkn = 600,
-     matchmmxregTkn = 601,
-     matchxmmregTkn = 602,
-     deleteTkn = 603,
-     indexTkn = 604,
-     insertTkn = 605,
-     lengthTkn = 606,
-     lowercaseTkn = 607,
-     replaceTkn = 608,
-     rindexTkn = 609,
-     strbrkTkn = 610,
-     strsetTkn = 611,
-     strspanTkn = 612,
-     substrTkn = 613,
-     leftTkn = 614,
-     leftdelTkn = 615,
-     rightTkn = 616,
-     rightdelTkn = 617,
-     tokenizeTkn = 618,
-     trimTkn = 619,
-     uppercaseTkn = 620,
-     symNameTkn = 621,
-     symTypeTkn = 622,
-     sympTypeTkn = 623,
-     symBasepTypeTkn = 624,
-     symClassTkn = 625,
-     symSizeTkn = 626,
-     symOffsetTkn = 627,
-     symLocalsymsTkn = 628,
-     symParmsTkn = 629,
-     symLexTkn = 630,
-     symArityTkn = 631,
-     symDimTkn = 632,
-     symNumelementsTkn = 633,
-     symDefinedTkn = 634,
-     symTypeNameTkn = 635,
-     symBaseTypeNameTkn = 636,
-     sympClassTkn = 637,
-     symStaticNameTkn = 638,
-     symIsExternalTkn = 639,
-     symIsConstTkn = 640,
-     symIsClassTkn = 641,
-     symElementSizeTkn = 642,
-     symIsRegTkn = 643,
-     symIsReg8Tkn = 644,
-     symIsReg16Tkn = 645,
-     symIsReg32Tkn = 646,
-     symIsfRegTkn = 647,
-     symIsMemTkn = 648,
-     symIsTypeTkn = 649,
-     curLexTkn = 650,
-     curOffsetTkn = 651,
-     curDirTkn = 652,
-     addOffset1stTkn = 653,
-     lineNumberTkn = 654,
-     lineNumberStkTkn = 655,
-     errorPrefixTkn = 656,
-     filenameTkn = 657,
-     fileNameStkTkn = 658,
-     startParmOfsTkn = 659,
-     startLclOfsTkn = 660,
-     enumSizeTkn = 661,
-     lastMacroObjectTkn = 662,
-     curObjectNameTkn = 663,
-     curVarTkn = 664,
-     sectionTkn = 665,
-     boundvarTkn = 666,
-     intovarTkn = 667,
-     traceTkn = 668,
-     exceptsTkn = 669,
-     optstringsTkn = 670,
-     baseregTkn = 671,
-     st0Tkn = 672,
-     st1Tkn = 673,
-     st2Tkn = 674,
-     st3Tkn = 675,
-     st4Tkn = 676,
-     st5Tkn = 677,
-     st6Tkn = 678,
-     st7Tkn = 679,
-     alTkn = 680,
-     ahTkn = 681,
-     axTkn = 682,
-     eaxTkn = 683,
-     blTkn = 684,
-     bhTkn = 685,
-     bxTkn = 686,
-     ebxTkn = 687,
-     clTkn = 688,
-     chTkn = 689,
-     cxTkn = 690,
-     ecxTkn = 691,
-     dlTkn = 692,
-     dhTkn = 693,
-     dxTkn = 694,
-     edxTkn = 695,
-     siTkn = 696,
-     esiTkn = 697,
-     diTkn = 698,
-     ediTkn = 699,
-     bpTkn = 700,
-     ebpTkn = 701,
-     spTkn = 702,
-     espTkn = 703,
-     mm0Tkn = 704,
-     mm1Tkn = 705,
-     mm2Tkn = 706,
-     mm3Tkn = 707,
-     mm4Tkn = 708,
-     mm5Tkn = 709,
-     mm6Tkn = 710,
-     mm7Tkn = 711,
-     xmm0Tkn = 712,
-     xmm1Tkn = 713,
-     xmm2Tkn = 714,
-     xmm3Tkn = 715,
-     xmm4Tkn = 716,
-     xmm5Tkn = 717,
-     xmm6Tkn = 718,
-     xmm7Tkn = 719,
-     csTkn = 720,
-     dsTkn = 721,
-     esTkn = 722,
-     fsTkn = 723,
-     gsTkn = 724,
-     ssTkn = 725,
-     cr0Tkn = 726,
-     cr1Tkn = 727,
-     cr2Tkn = 728,
-     cr3Tkn = 729,
-     cr4Tkn = 730,
-     cr5Tkn = 731,
-     cr6Tkn = 732,
-     cr7Tkn = 733,
-     dr0Tkn = 734,
-     dr1Tkn = 735,
-     dr2Tkn = 736,
-     dr3Tkn = 737,
-     dr4Tkn = 738,
-     dr5Tkn = 739,
-     dr6Tkn = 740,
-     dr7Tkn = 741,
-     dxaxTkn = 742,
-     edxeaxTkn = 743,
-     cTkn = 744,
-     ncTkn = 745,
-     oTkn = 746,
-     noTkn = 747,
-     sTkn = 748,
-     nsTkn = 749,
-     zTkn = 750,
-     nzTkn = 751,
-     aTkn = 752,
-     naTkn = 753,
-     aeTkn = 754,
-     naeTkn = 755,
-     bTkn = 756,
-     nbTkn = 757,
-     beTkn = 758,
-     nbeTkn = 759,
-     eTkn = 760,
-     gTkn = 761,
-     ngTkn = 762,
-     ngeTkn = 763,
-     lTkn = 764,
-     nlTkn = 765,
-     nleTkn = 766,
-     peTkn = 767,
-     poTkn = 768,
-     npTkn = 769,
-     pTkn = 770,
-     aaaTkn = 771,
-     aadTkn = 772,
-     aamTkn = 773,
-     aasTkn = 774,
-     adcTkn = 775,
-     lockadcTkn = 776,
-     addTkn = 777,
-     lockaddTkn = 778,
-     lockandTkn = 779,
-     arplTkn = 780,
-     boundTkn = 781,
-     bsfTkn = 782,
-     bsrTkn = 783,
-     bswapTkn = 784,
-     btTkn = 785,
-     btcTkn = 786,
-     lockbtcTkn = 787,
-     btrTkn = 788,
-     lockbtrTkn = 789,
-     btsTkn = 790,
-     lockbtsTkn = 791,
-     callTkn = 792,
-     cbwTkn = 793,
-     cdqTkn = 794,
-     clcTkn = 795,
-     cldTkn = 796,
-     cliTkn = 797,
-     cltsTkn = 798,
-     cmcTkn = 799,
-     cmovoTkn = 800,
-     cmovnoTkn = 801,
-     cmovbTkn = 802,
-     cmovnbTkn = 803,
-     cmoveTkn = 804,
-     cmovneTkn = 805,
-     cmovbeTkn = 806,
-     cmovnbeTkn = 807,
-     cmovsTkn = 808,
-     cmovnsTkn = 809,
-     cmovpTkn = 810,
-     cmovnpTkn = 811,
-     cmovlTkn = 812,
-     cmovnlTkn = 813,
-     cmovleTkn = 814,
-     cmovnleTkn = 815,
-     cmpTkn = 816,
-     cmpsbTkn = 817,
-     cmpsdTkn = 818,
-     cmpswTkn = 819,
-     cmpxchgTkn = 820,
-     lockcmpxchgTkn = 821,
-     cmpxchg8bTkn = 822,
-     cpuidTkn = 823,
-     cwdTkn = 824,
-     cwdeTkn = 825,
-     daaTkn = 826,
-     dasTkn = 827,
-     decTkn = 828,
-     lockdecTkn = 829,
-     enterTkn = 830,
-     hltTkn = 831,
-     idivTkn = 832,
-     imodTkn = 833,
-     imulTkn = 834,
-     intmulTkn = 835,
-     incTkn = 836,
-     lockincTkn = 837,
-     insbTkn = 838,
-     insdTkn = 839,
-     inswTkn = 840,
-     intTkn = 841,
-     intoTkn = 842,
-     invdTkn = 843,
-     invlpgTkn = 844,
-     iretTkn = 845,
-     iretdTkn = 846,
-     jaTkn = 847,
-     jaeTkn = 848,
-     jbTkn = 849,
-     jbeTkn = 850,
-     jcTkn = 851,
-     jeTkn = 852,
-     jgTkn = 853,
-     jgeTkn = 854,
-     jlTkn = 855,
-     jleTkn = 856,
-     jnaTkn = 857,
-     jnaeTkn = 858,
-     jnbTkn = 859,
-     jnbeTkn = 860,
-     jncTkn = 861,
-     jneTkn = 862,
-     jngTkn = 863,
-     jngeTkn = 864,
-     jnlTkn = 865,
-     jnleTkn = 866,
-     jnoTkn = 867,
-     joTkn = 868,
-     jnpTkn = 869,
-     jnsTkn = 870,
-     jnzTkn = 871,
-     jpTkn = 872,
-     jpeTkn = 873,
-     jpoTkn = 874,
-     jsTkn = 875,
-     jzTkn = 876,
-     jcxzTkn = 877,
-     jecxzTkn = 878,
-     jmpTkn = 879,
-     lahfTkn = 880,
-     larTkn = 881,
-     leaTkn = 882,
-     ldsTkn = 883,
-     lesTkn = 884,
-     lfsTkn = 885,
-     lgsTkn = 886,
-     lssTkn = 887,
-     lslTkn = 888,
-     lgdtTkn = 889,
-     lidtTkn = 890,
-     lldtTkn = 891,
-     sgdtTkn = 892,
-     sidtTkn = 893,
-     sldtTkn = 894,
-     leaveTkn = 895,
-     lodsbTkn = 896,
-     lodsdTkn = 897,
-     lodswTkn = 898,
-     loopTkn = 899,
-     loopeTkn = 900,
-     loopzTkn = 901,
-     loopneTkn = 902,
-     loopnzTkn = 903,
-     lmswTkn = 904,
-     ltrTkn = 905,
-     strTkn = 906,
-     movTkn = 907,
-     movsbTkn = 908,
-     movsdTkn = 909,
-     movswTkn = 910,
-     movsxTkn = 911,
-     movzxTkn = 912,
-     mulTkn = 913,
-     negTkn = 914,
-     locknegTkn = 915,
-     nopTkn = 916,
-     locknotTkn = 917,
-     lockorTkn = 918,
-     outTkn = 919,
-     outsbTkn = 920,
-     outsdTkn = 921,
-     outswTkn = 922,
-     popTkn = 923,
-     popaTkn = 924,
-     popadTkn = 925,
-     popfTkn = 926,
-     popfdTkn = 927,
-     pushTkn = 928,
-     pushaTkn = 929,
-     pushadTkn = 930,
-     pushdTkn = 931,
-     pushfTkn = 932,
-     pushfdTkn = 933,
-     pushwTkn = 934,
-     rclTkn = 935,
-     rcrTkn = 936,
-     rdmsrTkn = 937,
-     rdpmcTkn = 938,
-     rdtscTkn = 939,
-     rsmTkn = 940,
-     repmovsbTkn = 941,
-     repmovswTkn = 942,
-     repmovsdTkn = 943,
-     repinsbTkn = 944,
-     repinswTkn = 945,
-     repinsdTkn = 946,
-     repoutsbTkn = 947,
-     repoutswTkn = 948,
-     repoutsdTkn = 949,
-     repstosbTkn = 950,
-     repstoswTkn = 951,
-     repstosdTkn = 952,
-     repecmpsbTkn = 953,
-     repecmpswTkn = 954,
-     repecmpsdTkn = 955,
-     repzcmpsbTkn = 956,
-     repzcmpswTkn = 957,
-     repzcmpsdTkn = 958,
-     repnecmpsbTkn = 959,
-     repnecmpswTkn = 960,
-     repnecmpsdTkn = 961,
-     repnzcmpsbTkn = 962,
-     repnzcmpswTkn = 963,
-     repnzcmpsdTkn = 964,
-     repescasbTkn = 965,
-     repescaswTkn = 966,
-     repescasdTkn = 967,
-     repnescasbTkn = 968,
-     repnescaswTkn = 969,
-     repnescasdTkn = 970,
-     repzscasbTkn = 971,
-     repzscaswTkn = 972,
-     repzscasdTkn = 973,
-     repnzscasbTkn = 974,
-     repnzscaswTkn = 975,
-     repnzscasdTkn = 976,
-     retTkn = 977,
-     rolTkn = 978,
-     rorTkn = 979,
-     sahfTkn = 980,
-     salTkn = 981,
-     sarTkn = 982,
-     sbbTkn = 983,
-     locksbbTkn = 984,
-     scasbTkn = 985,
-     scasdTkn = 986,
-     scaswTkn = 987,
-     setbTkn = 988,
-     setnbTkn = 989,
-     setzTkn = 990,
-     setnzTkn = 991,
-     setbeTkn = 992,
-     setnbeTkn = 993,
-     setoTkn = 994,
-     setnoTkn = 995,
-     setsTkn = 996,
-     setnsTkn = 997,
-     setpTkn = 998,
-     setnpTkn = 999,
-     setlTkn = 1000,
-     setleTkn = 1001,
-     setnlTkn = 1002,
-     setnleTkn = 1003,
-     shlTkn = 1004,
-     shldTkn = 1005,
-     shrTkn = 1006,
-     shrdTkn = 1007,
-     smswTkn = 1008,
-     stcTkn = 1009,
-     stdTkn = 1010,
-     stiTkn = 1011,
-     stosbTkn = 1012,
-     stosdTkn = 1013,
-     stoswTkn = 1014,
-     subTkn = 1015,
-     sysenterTkn = 1016,
-     sysexitTkn = 1017,
-     locksubTkn = 1018,
-     testTkn = 1019,
-     ud2Tkn = 1020,
-     verrTkn = 1021,
-     verwTkn = 1022,
-     waitTkn = 1023,
-     wbinvdTkn = 1024,
-     wrmsrTkn = 1025,
-     xaddTkn = 1026,
-     lockxaddTkn = 1027,
-     xchgTkn = 1028,
-     lockxchgTkn = 1029,
-     xlatTkn = 1030,
-     xorTkn = 1031,
-     lockxorTkn = 1032,
-     fldTkn = 1033,
-     fildTkn = 1034,
-     fbldTkn = 1035,
-     fstTkn = 1036,
-     fstpTkn = 1037,
-     fistTkn = 1038,
-     fistpTkn = 1039,
-     fisttpTkn = 1040,
-     fbstpTkn = 1041,
-     fxchTkn = 1042,
-     fxamTkn = 1043,
-     faddTkn = 1044,
-     faddpTkn = 1045,
-     fiaddTkn = 1046,
-     fmulTkn = 1047,
-     fmulpTkn = 1048,
-     fimulTkn = 1049,
-     fsubTkn = 1050,
-     fsubpTkn = 1051,
-     fsubrTkn = 1052,
-     fsubrpTkn = 1053,
-     fisubTkn = 1054,
-     fisubrTkn = 1055,
-     fdivTkn = 1056,
-     fdivpTkn = 1057,
-     fdivrTkn = 1058,
-     fdivrpTkn = 1059,
-     fidivTkn = 1060,
-     fidivrTkn = 1061,
-     fcomTkn = 1062,
-     fcompTkn = 1063,
-     fcomppTkn = 1064,
-     ficomTkn = 1065,
-     ficompTkn = 1066,
-     fucomTkn = 1067,
-     fucompTkn = 1068,
-     fucomppTkn = 1069,
-     fsqrtTkn = 1070,
-     fabsTkn = 1071,
-     fchsTkn = 1072,
-     ftstTkn = 1073,
-     fscaleTkn = 1074,
-     fpremTkn = 1075,
-     fprem1Tkn = 1076,
-     frndintTkn = 1077,
-     fxtractTkn = 1078,
-     fldzTkn = 1079,
-     fld1Tkn = 1080,
-     fldpiTkn = 1081,
-     fldl2tTkn = 1082,
-     fldl2eTkn = 1083,
-     fldlg2Tkn = 1084,
-     fldln2Tkn = 1085,
-     f2xm1Tkn = 1086,
-     fsinTkn = 1087,
-     fcosTkn = 1088,
-     fsincosTkn = 1089,
-     fptanTkn = 1090,
-     fpatanTkn = 1091,
-     fyl2xTkn = 1092,
-     fyl2xp1Tkn = 1093,
-     finitTkn = 1094,
-     fninitTkn = 1095,
-     fwaitTkn = 1096,
-     fldcwTkn = 1097,
-     fstcwTkn = 1098,
-     fnstcwTkn = 1099,
-     fclexTkn = 1100,
-     fnclexTkn = 1101,
-     fldenvTkn = 1102,
-     fstenvTkn = 1103,
-     fnstenvTkn = 1104,
-     fsaveTkn = 1105,
-     fnsaveTkn = 1106,
-     frstorTkn = 1107,
-     fstswTkn = 1108,
-     fnstswTkn = 1109,
-     fincstpTkn = 1110,
-     fdecstpTkn = 1111,
-     fnopTkn = 1112,
-     ffreeTkn = 1113,
-     fcmovaTkn = 1114,
-     fcmovaeTkn = 1115,
-     fcmovbTkn = 1116,
-     fcmovbeTkn = 1117,
-     fcmoveTkn = 1118,
-     fcmovnaTkn = 1119,
-     fcmovnaeTkn = 1120,
-     fcmovnbTkn = 1121,
-     fcmovnbeTkn = 1122,
-     fcmovneTkn = 1123,
-     fcmovnuTkn = 1124,
-     fcmovuTkn = 1125,
-     fcomiTkn = 1126,
-     fcomipTkn = 1127,
-     fucomiTkn = 1128,
-     fucomipTkn = 1129,
-     paddbTkn = 1130,
-     paddwTkn = 1131,
-     padddTkn = 1132,
-     paddqTkn = 1133,
-     paddsbTkn = 1134,
-     paddswTkn = 1135,
-     paddusbTkn = 1136,
-     padduswTkn = 1137,
-     psubbTkn = 1138,
-     psubwTkn = 1139,
-     psubdTkn = 1140,
-     psubqTkn = 1141,
-     psubsbTkn = 1142,
-     psubswTkn = 1143,
-     psubusbTkn = 1144,
-     psubuswTkn = 1145,
-     pmullwTkn = 1146,
-     pmulhwTkn = 1147,
-     pmulhuwTkn = 1148,
-     pmuludqTkn = 1149,
-     pmaddwdTkn = 1150,
-     pmaxswTkn = 1151,
-     pmaxubTkn = 1152,
-     pminswTkn = 1153,
-     pminubTkn = 1154,
-     psadbwTkn = 1155,
-     pextrwTkn = 1156,
-     pinsrwTkn = 1157,
-     pmovmskbTkn = 1158,
-     pshufwTkn = 1159,
-     pshufdTkn = 1160,
-     pavgbTkn = 1161,
-     pavgwTkn = 1162,
-     pcmpeqbTkn = 1163,
-     pcmpeqwTkn = 1164,
-     pcmpeqdTkn = 1165,
-     pcmpgtbTkn = 1166,
-     pcmpgtwTkn = 1167,
-     pcmpgtdTkn = 1168,
-     packsswbTkn = 1169,
-     packuswbTkn = 1170,
-     packssdwTkn = 1171,
-     punpcklbwTkn = 1172,
-     punpcklwdTkn = 1173,
-     punpckldqTkn = 1174,
-     punpcklqdqTkn = 1175,
-     punpckhbwTkn = 1176,
-     punpckhwdTkn = 1177,
-     punpckhdqTkn = 1178,
-     punpckhqdqTkn = 1179,
-     pandTkn = 1180,
-     pandnTkn = 1181,
-     porTkn = 1182,
-     pxorTkn = 1183,
-     psllwTkn = 1184,
-     pslldTkn = 1185,
-     psllqTkn = 1186,
-     psrlwTkn = 1187,
-     psrldTkn = 1188,
-     psrlqTkn = 1189,
-     psrawTkn = 1190,
-     psradTkn = 1191,
-     movdTkn = 1192,
-     movqTkn = 1193,
-     emmsTkn = 1194,
-     addpdTkn = 1195,
-     addsdTkn = 1196,
-     addpsTkn = 1197,
-     addssTkn = 1198,
-     addsubpsTkn = 1199,
-     addsubpdTkn = 1200,
-     andnpdTkn = 1201,
-     andnpsTkn = 1202,
-     andpdTkn = 1203,
-     andpsTkn = 1204,
-     clflushTkn = 1205,
-     cmppdTkn = 1206,
-     cmppsTkn = 1207,
-     cmpssTkn = 1208,
-     cmpeqssTkn = 1209,
-     cmplessTkn = 1210,
-     cmpltssTkn = 1211,
-     cmpneqssTkn = 1212,
-     cmpnltssTkn = 1213,
-     cmpnlessTkn = 1214,
-     cmpordssTkn = 1215,
-     cmpunordssTkn = 1216,
-     cmpeqsdTkn = 1217,
-     cmplesdTkn = 1218,
-     cmpltsdTkn = 1219,
-     cmpneqsdTkn = 1220,
-     cmpnltsdTkn = 1221,
-     cmpnlesdTkn = 1222,
-     cmpordsdTkn = 1223,
-     cmpunordsdTkn = 1224,
-     cmpeqpsTkn = 1225,
-     cmplepsTkn = 1226,
-     cmpltpsTkn = 1227,
-     cmpneqpsTkn = 1228,
-     cmpnltpsTkn = 1229,
-     cmpnlepsTkn = 1230,
-     cmpordpsTkn = 1231,
-     cmpunordpsTkn = 1232,
-     cmpeqpdTkn = 1233,
-     cmplepdTkn = 1234,
-     cmpltpdTkn = 1235,
-     cmpneqpdTkn = 1236,
-     cmpnltpdTkn = 1237,
-     cmpnlepdTkn = 1238,
-     cmpordpdTkn = 1239,
-     cmpunordpdTkn = 1240,
-     comisdTkn = 1241,
-     comissTkn = 1242,
-     cvtdq2pdTkn = 1243,
-     cvtdq2psTkn = 1244,
-     cvtpd2dqTkn = 1245,
-     cvtpd2piTkn = 1246,
-     cvtpd2psTkn = 1247,
-     cvtpi2pdTkn = 1248,
-     cvtpi2psTkn = 1249,
-     cvtps2dqTkn = 1250,
-     cvtps2pdTkn = 1251,
-     cvtps2piTkn = 1252,
-     cvtsd2siTkn = 1253,
-     cvtsi2sdTkn = 1254,
-     cvtsi2ssTkn = 1255,
-     cvtsd2ssTkn = 1256,
-     cvtss2sdTkn = 1257,
-     cvtss2siTkn = 1258,
-     cvttpd2piTkn = 1259,
-     cvttpd2dqTkn = 1260,
-     cvttps2dqTkn = 1261,
-     cvttps2piTkn = 1262,
-     cvttsd2siTkn = 1263,
-     cvttss2siTkn = 1264,
-     divpdTkn = 1265,
-     divpsTkn = 1266,
-     divssTkn = 1267,
-     divsdTkn = 1268,
-     fxsaveTkn = 1269,
-     fxrstorTkn = 1270,
-     haddpdTkn = 1271,
-     haddpsTkn = 1272,
-     hsubpdTkn = 1273,
-     hsubpsTkn = 1274,
-     lddquTkn = 1275,
-     ldmxcsrTkn = 1276,
-     lfenceTkn = 1277,
-     maskmovdquTkn = 1278,
-     maskmovqTkn = 1279,
-     maxpdTkn = 1280,
-     maxpsTkn = 1281,
-     maxsdTkn = 1282,
-     maxssTkn = 1283,
-     mfenceTkn = 1284,
-     minpdTkn = 1285,
-     minpsTkn = 1286,
-     minsdTkn = 1287,
-     minssTkn = 1288,
-     monitorTkn = 1289,
-     movapdTkn = 1290,
-     movapsTkn = 1291,
-     movddupTkn = 1292,
-     movdqaTkn = 1293,
-     movdquTkn = 1294,
-     movdq2qTkn = 1295,
-     movhlpsTkn = 1296,
-     movhpdTkn = 1297,
-     movhpsTkn = 1298,
-     movlpdTkn = 1299,
-     movlpsTkn = 1300,
-     movlhpsTkn = 1301,
-     movmskpdTkn = 1302,
-     movmskpsTkn = 1303,
-     movntpdTkn = 1304,
-     movntiTkn = 1305,
-     movntpsTkn = 1306,
-     movntdqTkn = 1307,
-     movntqTkn = 1308,
-     movq2dqTkn = 1309,
-     movshdupTkn = 1310,
-     movsldupTkn = 1311,
-     movssTkn = 1312,
-     movupdTkn = 1313,
-     movupsTkn = 1314,
-     mulpdTkn = 1315,
-     mulpsTkn = 1316,
-     mulssTkn = 1317,
-     mulsdTkn = 1318,
-     mwaitTkn = 1319,
-     orpdTkn = 1320,
-     orpsTkn = 1321,
-     pauseTkn = 1322,
-     prefetcht0Tkn = 1323,
-     prefetcht1Tkn = 1324,
-     prefetcht2Tkn = 1325,
-     prefetchntaTkn = 1326,
-     pshufhwTkn = 1327,
-     pshuflwTkn = 1328,
-     psrldqTkn = 1329,
-     pslldqTkn = 1330,
-     rcppsTkn = 1331,
-     rcpssTkn = 1332,
-     rsqrtpsTkn = 1333,
-     rsqrtssTkn = 1334,
-     sfenceTkn = 1335,
-     shufpdTkn = 1336,
-     shufpsTkn = 1337,
-     sqrtpdTkn = 1338,
-     sqrtpsTkn = 1339,
-     sqrtsdTkn = 1340,
-     sqrtssTkn = 1341,
-     stmxcsrTkn = 1342,
-     subpsTkn = 1343,
-     subpdTkn = 1344,
-     subsdTkn = 1345,
-     subssTkn = 1346,
-     ucomisdTkn = 1347,
-     ucomissTkn = 1348,
-     unpckhpdTkn = 1349,
-     unpckhpsTkn = 1350,
-     unpcklpdTkn = 1351,
-     unpcklpsTkn = 1352,
-     xorpdTkn = 1353,
-     xorpsTkn = 1354,
-     parsePrintTkn = 1355,
-     parseHLAIDTkn = 1356,
-     parseClassIDTkn = 1357
+     scanblockTkn = 334,
+     endscanTkn = 335,
+     matchblockTkn = 336,
+     endmatchTkn = 337,
+     beginTkn = 338,
+     endTkn = 339,
+     procTkn = 340,
+     endprocTkn = 341,
+     procedureTkn = 342,
+     iteratorTkn = 343,
+     methodTkn = 344,
+     programTkn = 345,
+     unitTkn = 346,
+     macroTkn = 347,
+     keywordTkn = 348,
+     terminatorTkn = 349,
+     endmacroTkn = 350,
+     endMacDefTkn = 351,
+     regexMacroTkn = 352,
+     endregexTkn = 353,
+     endRegexDefTkn = 354,
+     regexReturnTkn = 355,
+     labelTkn = 356,
+     endlabelTkn = 357,
+     constTkn = 358,
+     endconstTkn = 359,
+     valTkn = 360,
+     endvalTkn = 361,
+     typeTkn = 362,
+     endtypeTkn = 363,
+     alignTkn = 364,
+     varTkn = 365,
+     endvarTkn = 366,
+     staticTkn = 367,
+     endstaticTkn = 368,
+     uninitializedTkn = 369,
+     endstorageTkn = 370,
+     readonlyTkn = 371,
+     endreadonlyTkn = 372,
+     recordTkn = 373,
+     endrecordTkn = 374,
+     unionTkn = 375,
+     endunionTkn = 376,
+     classTkn = 377,
+     vmtTkn = 378,
+     endclassTkn = 379,
+     enumTkn = 380,
+     inheritsTkn = 381,
+     pointerTkn = 382,
+     toTkn = 383,
+     downtoTkn = 384,
+     externalTkn = 385,
+     abstractTkn = 386,
+     overloadsTkn = 387,
+     overrideTkn = 388,
+     overridesTkn = 389,
+     forwardTkn = 390,
+     returnsTkn = 391,
+     atreturnsTkn = 392,
+     noframeTkn = 393,
+     frameTkn = 394,
+     nodisplayTkn = 395,
+     displayTkn = 396,
+     noalignstkTkn = 397,
+     alignstkTkn = 398,
+     alignprocTkn = 399,
+     useTkn = 400,
+     useenterTkn = 401,
+     noenterTkn = 402,
+     useleaveTkn = 403,
+     noleaveTkn = 404,
+     pascalTkn = 405,
+     cdeclTkn = 406,
+     stdcallTkn = 407,
+     nostorageTkn = 408,
+     volatileTkn = 409,
+     namespaceTkn = 410,
+     fastTkn = 411,
+     segmentTkn = 412,
+     hereTkn = 413,
+     atlabelTkn = 414,
+     nameTkn = 415,
+     valresTkn = 416,
+     resultTkn = 417,
+     lazyTkn = 418,
+     thunkTkn = 419,
+     jtTkn = 420,
+     jfTkn = 421,
+     ifTkn = 422,
+     thenTkn = 423,
+     elseifTkn = 424,
+     elseTkn = 425,
+     endifTkn = 426,
+     switchTkn = 427,
+     caseTkn = 428,
+     defaultTkn = 429,
+     endswitchTkn = 430,
+     whileTkn = 431,
+     doTkn = 432,
+     endwhileTkn = 433,
+     welseTkn = 434,
+     repeatTkn = 435,
+     untilTkn = 436,
+     forTkn = 437,
+     foreverTkn = 438,
+     foreachTkn = 439,
+     endforTkn = 440,
+     felseTkn = 441,
+     exitTkn = 442,
+     exitifTkn = 443,
+     breakTkn = 444,
+     breakifTkn = 445,
+     continueTkn = 446,
+     continueifTkn = 447,
+     tryTkn = 448,
+     alwaysTkn = 449,
+     unprotectedTkn = 450,
+     exceptionTkn = 451,
+     anyexceptionTkn = 452,
+     endtryTkn = 453,
+     raiseTkn = 454,
+     booleanTkn = 455,
+     int8Tkn = 456,
+     int16Tkn = 457,
+     int32Tkn = 458,
+     int64Tkn = 459,
+     int128Tkn = 460,
+     charTkn = 461,
+     wcharTkn = 462,
+     real32Tkn = 463,
+     real64Tkn = 464,
+     real80Tkn = 465,
+     real128Tkn = 466,
+     uns8Tkn = 467,
+     uns16Tkn = 468,
+     uns32Tkn = 469,
+     uns64Tkn = 470,
+     uns128Tkn = 471,
+     stringTkn = 472,
+     wstringTkn = 473,
+     zstringTkn = 474,
+     csetTkn = 475,
+     regexTkn = 476,
+     textTkn = 477,
+     byteTkn = 478,
+     wordTkn = 479,
+     dwordTkn = 480,
+     qwordTkn = 481,
+     tbyteTkn = 482,
+     lwordTkn = 483,
+     atint8Tkn = 484,
+     atint16Tkn = 485,
+     atint32Tkn = 486,
+     atint64Tkn = 487,
+     atint128Tkn = 488,
+     atcharTkn = 489,
+     atwcharTkn = 490,
+     atreal32Tkn = 491,
+     atreal64Tkn = 492,
+     atreal80Tkn = 493,
+     atuns8Tkn = 494,
+     atuns16Tkn = 495,
+     atuns32Tkn = 496,
+     atuns64Tkn = 497,
+     atuns128Tkn = 498,
+     atstringTkn = 499,
+     atwstringTkn = 500,
+     atcsetTkn = 501,
+     atbyteTkn = 502,
+     atwordTkn = 503,
+     atdwordTkn = 504,
+     atqwordTkn = 505,
+     attbyteTkn = 506,
+     atlwordTkn = 507,
+     atpointerTkn = 508,
+     nullTkn = 509,
+     absTkn = 510,
+     ceilTkn = 511,
+     cosTkn = 512,
+     dateTkn = 513,
+     envTkn = 514,
+     expTkn = 515,
+     extractTkn = 516,
+     floorTkn = 517,
+     isalphaTkn = 518,
+     isalphanumTkn = 519,
+     isdigitTkn = 520,
+     islowerTkn = 521,
+     isspaceTkn = 522,
+     isupperTkn = 523,
+     isxdigitTkn = 524,
+     logTkn = 525,
+     log10Tkn = 526,
+     maxTkn = 527,
+     minTkn = 528,
+     modregrmTkn = 529,
+     oddTkn = 530,
+     randomTkn = 531,
+     randomizeTkn = 532,
+     readTkn = 533,
+     sinTkn = 534,
+     sortTkn = 535,
+     sqrtTkn = 536,
+     systemTkn = 537,
+     tanTkn = 538,
+     threadTkn = 539,
+     timeTkn = 540,
+     peekcsetTkn = 541,
+     onecsetTkn = 542,
+     uptocsetTkn = 543,
+     zerooronecsetTkn = 544,
+     zeroormorecsetTkn = 545,
+     oneormorecsetTkn = 546,
+     exactlyncsetTkn = 547,
+     firstncsetTkn = 548,
+     norlesscsetTkn = 549,
+     normorecsetTkn = 550,
+     ntomcsetTkn = 551,
+     exactlyntomcsetTkn = 552,
+     peekcharTkn = 553,
+     onecharTkn = 554,
+     uptocharTkn = 555,
+     zerooronecharTkn = 556,
+     zeroormorecharTkn = 557,
+     oneormorecharTkn = 558,
+     exactlyncharTkn = 559,
+     firstncharTkn = 560,
+     norlesscharTkn = 561,
+     normorecharTkn = 562,
+     ntomcharTkn = 563,
+     exactlyntomcharTkn = 564,
+     peekicharTkn = 565,
+     oneicharTkn = 566,
+     uptoicharTkn = 567,
+     zerooroneicharTkn = 568,
+     zeroormoreicharTkn = 569,
+     oneormoreicharTkn = 570,
+     exactlynicharTkn = 571,
+     firstnicharTkn = 572,
+     norlessicharTkn = 573,
+     normoreicharTkn = 574,
+     ntomicharTkn = 575,
+     exactlyntomicharTkn = 576,
+     matchstrTkn = 577,
+     matchistrTkn = 578,
+     uptostrTkn = 579,
+     uptoistrTkn = 580,
+     matchtostrTkn = 581,
+     matchtoistrTkn = 582,
+     zeroormorewsTkn = 583,
+     oneormorewsTkn = 584,
+     wsoreosTkn = 585,
+     wstheneosTkn = 586,
+     peekwsTkn = 587,
+     eosTkn = 588,
+     wsTkn = 589,
+     peekstrTkn = 590,
+     peekistrTkn = 591,
+     matchidTkn = 592,
+     matchwordTkn = 593,
+     matchiwordTkn = 594,
+     matchintconstTkn = 595,
+     matchrealconstTkn = 596,
+     matchnumericconstTkn = 597,
+     matchstrconstTkn = 598,
+     matchregTkn = 599,
+     matchreg8Tkn = 600,
+     matchreg16Tkn = 601,
+     matchreg32Tkn = 602,
+     matchfpuregTkn = 603,
+     matchmmxregTkn = 604,
+     matchxmmregTkn = 605,
+     deleteTkn = 606,
+     indexTkn = 607,
+     insertTkn = 608,
+     lengthTkn = 609,
+     lowercaseTkn = 610,
+     replaceTkn = 611,
+     rindexTkn = 612,
+     strbrkTkn = 613,
+     strsetTkn = 614,
+     strspanTkn = 615,
+     substrTkn = 616,
+     leftTkn = 617,
+     leftdelTkn = 618,
+     rightTkn = 619,
+     rightdelTkn = 620,
+     tokenizeTkn = 621,
+     trimTkn = 622,
+     delspacesTkn = 623,
+     uppercaseTkn = 624,
+     symNameTkn = 625,
+     symTypeTkn = 626,
+     sympTypeTkn = 627,
+     symBasepTypeTkn = 628,
+     symClassTkn = 629,
+     symSizeTkn = 630,
+     symOffsetTkn = 631,
+     symLocalsymsTkn = 632,
+     symParmsTkn = 633,
+     symLexTkn = 634,
+     symArityTkn = 635,
+     symDimTkn = 636,
+     symNumelementsTkn = 637,
+     symDefinedTkn = 638,
+     symTypeNameTkn = 639,
+     symBaseTypeNameTkn = 640,
+     sympClassTkn = 641,
+     symStaticNameTkn = 642,
+     symIsExternalTkn = 643,
+     symIsConstTkn = 644,
+     symIsClassTkn = 645,
+     symElementSizeTkn = 646,
+     symIsRegTkn = 647,
+     symIsReg8Tkn = 648,
+     symIsReg16Tkn = 649,
+     symIsReg32Tkn = 650,
+     symIsfRegTkn = 651,
+     symIsMemTkn = 652,
+     symIsTypeTkn = 653,
+     curLexTkn = 654,
+     curOffsetTkn = 655,
+     curDirTkn = 656,
+     addOffset1stTkn = 657,
+     lineNumberTkn = 658,
+     lineNumberStkTkn = 659,
+     errorPrefixTkn = 660,
+     filenameTkn = 661,
+     fileNameStkTkn = 662,
+     startParmOfsTkn = 663,
+     startLclOfsTkn = 664,
+     enumSizeTkn = 665,
+     lastMacroObjectTkn = 666,
+     curObjectNameTkn = 667,
+     curVarTkn = 668,
+     sectionTkn = 669,
+     boundvarTkn = 670,
+     intovarTkn = 671,
+     traceTkn = 672,
+     exceptsTkn = 673,
+     optstringsTkn = 674,
+     baseregTkn = 675,
+     st0Tkn = 676,
+     st1Tkn = 677,
+     st2Tkn = 678,
+     st3Tkn = 679,
+     st4Tkn = 680,
+     st5Tkn = 681,
+     st6Tkn = 682,
+     st7Tkn = 683,
+     alTkn = 684,
+     ahTkn = 685,
+     axTkn = 686,
+     eaxTkn = 687,
+     blTkn = 688,
+     bhTkn = 689,
+     bxTkn = 690,
+     ebxTkn = 691,
+     clTkn = 692,
+     chTkn = 693,
+     cxTkn = 694,
+     ecxTkn = 695,
+     dlTkn = 696,
+     dhTkn = 697,
+     dxTkn = 698,
+     edxTkn = 699,
+     siTkn = 700,
+     esiTkn = 701,
+     diTkn = 702,
+     ediTkn = 703,
+     bpTkn = 704,
+     ebpTkn = 705,
+     spTkn = 706,
+     espTkn = 707,
+     mm0Tkn = 708,
+     mm1Tkn = 709,
+     mm2Tkn = 710,
+     mm3Tkn = 711,
+     mm4Tkn = 712,
+     mm5Tkn = 713,
+     mm6Tkn = 714,
+     mm7Tkn = 715,
+     xmm0Tkn = 716,
+     xmm1Tkn = 717,
+     xmm2Tkn = 718,
+     xmm3Tkn = 719,
+     xmm4Tkn = 720,
+     xmm5Tkn = 721,
+     xmm6Tkn = 722,
+     xmm7Tkn = 723,
+     csTkn = 724,
+     dsTkn = 725,
+     esTkn = 726,
+     fsTkn = 727,
+     gsTkn = 728,
+     ssTkn = 729,
+     cr0Tkn = 730,
+     cr1Tkn = 731,
+     cr2Tkn = 732,
+     cr3Tkn = 733,
+     cr4Tkn = 734,
+     cr5Tkn = 735,
+     cr6Tkn = 736,
+     cr7Tkn = 737,
+     dr0Tkn = 738,
+     dr1Tkn = 739,
+     dr2Tkn = 740,
+     dr3Tkn = 741,
+     dr4Tkn = 742,
+     dr5Tkn = 743,
+     dr6Tkn = 744,
+     dr7Tkn = 745,
+     dxaxTkn = 746,
+     edxeaxTkn = 747,
+     thisTkn = 748,
+     superTkn = 749,
+     cTkn = 750,
+     ncTkn = 751,
+     oTkn = 752,
+     noTkn = 753,
+     sTkn = 754,
+     nsTkn = 755,
+     zTkn = 756,
+     nzTkn = 757,
+     aTkn = 758,
+     naTkn = 759,
+     aeTkn = 760,
+     naeTkn = 761,
+     bTkn = 762,
+     nbTkn = 763,
+     beTkn = 764,
+     nbeTkn = 765,
+     eTkn = 766,
+     gTkn = 767,
+     ngTkn = 768,
+     ngeTkn = 769,
+     lTkn = 770,
+     nlTkn = 771,
+     nleTkn = 772,
+     peTkn = 773,
+     poTkn = 774,
+     npTkn = 775,
+     pTkn = 776,
+     aaaTkn = 777,
+     aadTkn = 778,
+     aamTkn = 779,
+     aasTkn = 780,
+     adcTkn = 781,
+     lockadcTkn = 782,
+     addTkn = 783,
+     lockaddTkn = 784,
+     lockandTkn = 785,
+     arplTkn = 786,
+     boundTkn = 787,
+     bsfTkn = 788,
+     bsrTkn = 789,
+     bswapTkn = 790,
+     btTkn = 791,
+     btcTkn = 792,
+     lockbtcTkn = 793,
+     btrTkn = 794,
+     lockbtrTkn = 795,
+     btsTkn = 796,
+     lockbtsTkn = 797,
+     callTkn = 798,
+     cbwTkn = 799,
+     cdqTkn = 800,
+     clcTkn = 801,
+     cldTkn = 802,
+     cliTkn = 803,
+     cltsTkn = 804,
+     cmcTkn = 805,
+     cmovoTkn = 806,
+     cmovnoTkn = 807,
+     cmovbTkn = 808,
+     cmovnbTkn = 809,
+     cmoveTkn = 810,
+     cmovneTkn = 811,
+     cmovbeTkn = 812,
+     cmovnbeTkn = 813,
+     cmovsTkn = 814,
+     cmovnsTkn = 815,
+     cmovpTkn = 816,
+     cmovnpTkn = 817,
+     cmovlTkn = 818,
+     cmovnlTkn = 819,
+     cmovleTkn = 820,
+     cmovnleTkn = 821,
+     cmpTkn = 822,
+     cmpsbTkn = 823,
+     cmpsdTkn = 824,
+     cmpswTkn = 825,
+     cmpxchgTkn = 826,
+     lockcmpxchgTkn = 827,
+     cmpxchg8bTkn = 828,
+     cpuidTkn = 829,
+     cwdTkn = 830,
+     cwdeTkn = 831,
+     daaTkn = 832,
+     dasTkn = 833,
+     decTkn = 834,
+     lockdecTkn = 835,
+     enterTkn = 836,
+     hltTkn = 837,
+     idivTkn = 838,
+     imodTkn = 839,
+     imulTkn = 840,
+     intmulTkn = 841,
+     incTkn = 842,
+     lockincTkn = 843,
+     insbTkn = 844,
+     insdTkn = 845,
+     inswTkn = 846,
+     intTkn = 847,
+     intoTkn = 848,
+     invdTkn = 849,
+     invlpgTkn = 850,
+     iretTkn = 851,
+     iretdTkn = 852,
+     jaTkn = 853,
+     jaeTkn = 854,
+     jbTkn = 855,
+     jbeTkn = 856,
+     jcTkn = 857,
+     jeTkn = 858,
+     jgTkn = 859,
+     jgeTkn = 860,
+     jlTkn = 861,
+     jleTkn = 862,
+     jnaTkn = 863,
+     jnaeTkn = 864,
+     jnbTkn = 865,
+     jnbeTkn = 866,
+     jncTkn = 867,
+     jneTkn = 868,
+     jngTkn = 869,
+     jngeTkn = 870,
+     jnlTkn = 871,
+     jnleTkn = 872,
+     jnoTkn = 873,
+     joTkn = 874,
+     jnpTkn = 875,
+     jnsTkn = 876,
+     jnzTkn = 877,
+     jpTkn = 878,
+     jpeTkn = 879,
+     jpoTkn = 880,
+     jsTkn = 881,
+     jzTkn = 882,
+     jcxzTkn = 883,
+     jecxzTkn = 884,
+     jmpTkn = 885,
+     lahfTkn = 886,
+     larTkn = 887,
+     leaTkn = 888,
+     ldsTkn = 889,
+     lesTkn = 890,
+     lfsTkn = 891,
+     lgsTkn = 892,
+     lssTkn = 893,
+     lslTkn = 894,
+     lgdtTkn = 895,
+     lidtTkn = 896,
+     lldtTkn = 897,
+     sgdtTkn = 898,
+     sidtTkn = 899,
+     sldtTkn = 900,
+     leaveTkn = 901,
+     lodsbTkn = 902,
+     lodsdTkn = 903,
+     lodswTkn = 904,
+     loopTkn = 905,
+     loopeTkn = 906,
+     loopzTkn = 907,
+     loopneTkn = 908,
+     loopnzTkn = 909,
+     lmswTkn = 910,
+     ltrTkn = 911,
+     strTkn = 912,
+     movTkn = 913,
+     movsbTkn = 914,
+     movsdTkn = 915,
+     movswTkn = 916,
+     movsxTkn = 917,
+     movzxTkn = 918,
+     mulTkn = 919,
+     negTkn = 920,
+     locknegTkn = 921,
+     nopTkn = 922,
+     locknotTkn = 923,
+     lockorTkn = 924,
+     outTkn = 925,
+     outsbTkn = 926,
+     outsdTkn = 927,
+     outswTkn = 928,
+     popTkn = 929,
+     popaTkn = 930,
+     popadTkn = 931,
+     popfTkn = 932,
+     popfdTkn = 933,
+     pushTkn = 934,
+     pushaTkn = 935,
+     pushadTkn = 936,
+     pushdTkn = 937,
+     pushfTkn = 938,
+     pushfdTkn = 939,
+     pushwTkn = 940,
+     rclTkn = 941,
+     rcrTkn = 942,
+     rdmsrTkn = 943,
+     rdpmcTkn = 944,
+     rdtscTkn = 945,
+     rsmTkn = 946,
+     repmovsbTkn = 947,
+     repmovswTkn = 948,
+     repmovsdTkn = 949,
+     repinsbTkn = 950,
+     repinswTkn = 951,
+     repinsdTkn = 952,
+     repoutsbTkn = 953,
+     repoutswTkn = 954,
+     repoutsdTkn = 955,
+     repstosbTkn = 956,
+     repstoswTkn = 957,
+     repstosdTkn = 958,
+     repecmpsbTkn = 959,
+     repecmpswTkn = 960,
+     repecmpsdTkn = 961,
+     repzcmpsbTkn = 962,
+     repzcmpswTkn = 963,
+     repzcmpsdTkn = 964,
+     repnecmpsbTkn = 965,
+     repnecmpswTkn = 966,
+     repnecmpsdTkn = 967,
+     repnzcmpsbTkn = 968,
+     repnzcmpswTkn = 969,
+     repnzcmpsdTkn = 970,
+     repescasbTkn = 971,
+     repescaswTkn = 972,
+     repescasdTkn = 973,
+     repnescasbTkn = 974,
+     repnescaswTkn = 975,
+     repnescasdTkn = 976,
+     repzscasbTkn = 977,
+     repzscaswTkn = 978,
+     repzscasdTkn = 979,
+     repnzscasbTkn = 980,
+     repnzscaswTkn = 981,
+     repnzscasdTkn = 982,
+     retTkn = 983,
+     rolTkn = 984,
+     rorTkn = 985,
+     sahfTkn = 986,
+     salTkn = 987,
+     sarTkn = 988,
+     sbbTkn = 989,
+     locksbbTkn = 990,
+     scasbTkn = 991,
+     scasdTkn = 992,
+     scaswTkn = 993,
+     setbTkn = 994,
+     setnbTkn = 995,
+     setzTkn = 996,
+     setnzTkn = 997,
+     setbeTkn = 998,
+     setnbeTkn = 999,
+     setoTkn = 1000,
+     setnoTkn = 1001,
+     setsTkn = 1002,
+     setnsTkn = 1003,
+     setpTkn = 1004,
+     setnpTkn = 1005,
+     setlTkn = 1006,
+     setleTkn = 1007,
+     setnlTkn = 1008,
+     setnleTkn = 1009,
+     shlTkn = 1010,
+     shldTkn = 1011,
+     shrTkn = 1012,
+     shrdTkn = 1013,
+     smswTkn = 1014,
+     stcTkn = 1015,
+     stdTkn = 1016,
+     stiTkn = 1017,
+     stosbTkn = 1018,
+     stosdTkn = 1019,
+     stoswTkn = 1020,
+     subTkn = 1021,
+     sysenterTkn = 1022,
+     sysexitTkn = 1023,
+     locksubTkn = 1024,
+     testTkn = 1025,
+     ud2Tkn = 1026,
+     verrTkn = 1027,
+     verwTkn = 1028,
+     waitTkn = 1029,
+     wbinvdTkn = 1030,
+     wrmsrTkn = 1031,
+     xaddTkn = 1032,
+     lockxaddTkn = 1033,
+     xchgTkn = 1034,
+     lockxchgTkn = 1035,
+     xlatTkn = 1036,
+     xorTkn = 1037,
+     lockxorTkn = 1038,
+     fldTkn = 1039,
+     fildTkn = 1040,
+     fbldTkn = 1041,
+     fstTkn = 1042,
+     fstpTkn = 1043,
+     fistTkn = 1044,
+     fistpTkn = 1045,
+     fisttpTkn = 1046,
+     fbstpTkn = 1047,
+     fxchTkn = 1048,
+     fxamTkn = 1049,
+     faddTkn = 1050,
+     faddpTkn = 1051,
+     fiaddTkn = 1052,
+     fmulTkn = 1053,
+     fmulpTkn = 1054,
+     fimulTkn = 1055,
+     fsubTkn = 1056,
+     fsubpTkn = 1057,
+     fsubrTkn = 1058,
+     fsubrpTkn = 1059,
+     fisubTkn = 1060,
+     fisubrTkn = 1061,
+     fdivTkn = 1062,
+     fdivpTkn = 1063,
+     fdivrTkn = 1064,
+     fdivrpTkn = 1065,
+     fidivTkn = 1066,
+     fidivrTkn = 1067,
+     fcomTkn = 1068,
+     fcompTkn = 1069,
+     fcomppTkn = 1070,
+     ficomTkn = 1071,
+     ficompTkn = 1072,
+     fucomTkn = 1073,
+     fucompTkn = 1074,
+     fucomppTkn = 1075,
+     fsqrtTkn = 1076,
+     fabsTkn = 1077,
+     fchsTkn = 1078,
+     ftstTkn = 1079,
+     fscaleTkn = 1080,
+     fpremTkn = 1081,
+     fprem1Tkn = 1082,
+     frndintTkn = 1083,
+     fxtractTkn = 1084,
+     fldzTkn = 1085,
+     fld1Tkn = 1086,
+     fldpiTkn = 1087,
+     fldl2tTkn = 1088,
+     fldl2eTkn = 1089,
+     fldlg2Tkn = 1090,
+     fldln2Tkn = 1091,
+     f2xm1Tkn = 1092,
+     fsinTkn = 1093,
+     fcosTkn = 1094,
+     fsincosTkn = 1095,
+     fptanTkn = 1096,
+     fpatanTkn = 1097,
+     fyl2xTkn = 1098,
+     fyl2xp1Tkn = 1099,
+     finitTkn = 1100,
+     fninitTkn = 1101,
+     fwaitTkn = 1102,
+     fldcwTkn = 1103,
+     fstcwTkn = 1104,
+     fnstcwTkn = 1105,
+     fclexTkn = 1106,
+     fnclexTkn = 1107,
+     fldenvTkn = 1108,
+     fstenvTkn = 1109,
+     fnstenvTkn = 1110,
+     fsaveTkn = 1111,
+     fnsaveTkn = 1112,
+     frstorTkn = 1113,
+     fstswTkn = 1114,
+     fnstswTkn = 1115,
+     fincstpTkn = 1116,
+     fdecstpTkn = 1117,
+     fnopTkn = 1118,
+     ffreeTkn = 1119,
+     fcmovaTkn = 1120,
+     fcmovaeTkn = 1121,
+     fcmovbTkn = 1122,
+     fcmovbeTkn = 1123,
+     fcmoveTkn = 1124,
+     fcmovnaTkn = 1125,
+     fcmovnaeTkn = 1126,
+     fcmovnbTkn = 1127,
+     fcmovnbeTkn = 1128,
+     fcmovneTkn = 1129,
+     fcmovnuTkn = 1130,
+     fcmovuTkn = 1131,
+     fcomiTkn = 1132,
+     fcomipTkn = 1133,
+     fucomiTkn = 1134,
+     fucomipTkn = 1135,
+     paddbTkn = 1136,
+     paddwTkn = 1137,
+     padddTkn = 1138,
+     paddqTkn = 1139,
+     paddsbTkn = 1140,
+     paddswTkn = 1141,
+     paddusbTkn = 1142,
+     padduswTkn = 1143,
+     psubbTkn = 1144,
+     psubwTkn = 1145,
+     psubdTkn = 1146,
+     psubqTkn = 1147,
+     psubsbTkn = 1148,
+     psubswTkn = 1149,
+     psubusbTkn = 1150,
+     psubuswTkn = 1151,
+     pmullwTkn = 1152,
+     pmulhwTkn = 1153,
+     pmulhuwTkn = 1154,
+     pmuludqTkn = 1155,
+     pmaddwdTkn = 1156,
+     pmaxswTkn = 1157,
+     pmaxubTkn = 1158,
+     pminswTkn = 1159,
+     pminubTkn = 1160,
+     psadbwTkn = 1161,
+     pextrwTkn = 1162,
+     pinsrwTkn = 1163,
+     pmovmskbTkn = 1164,
+     pshufwTkn = 1165,
+     pshufdTkn = 1166,
+     pavgbTkn = 1167,
+     pavgwTkn = 1168,
+     pcmpeqbTkn = 1169,
+     pcmpeqwTkn = 1170,
+     pcmpeqdTkn = 1171,
+     pcmpgtbTkn = 1172,
+     pcmpgtwTkn = 1173,
+     pcmpgtdTkn = 1174,
+     packsswbTkn = 1175,
+     packuswbTkn = 1176,
+     packssdwTkn = 1177,
+     punpcklbwTkn = 1178,
+     punpcklwdTkn = 1179,
+     punpckldqTkn = 1180,
+     punpcklqdqTkn = 1181,
+     punpckhbwTkn = 1182,
+     punpckhwdTkn = 1183,
+     punpckhdqTkn = 1184,
+     punpckhqdqTkn = 1185,
+     pandTkn = 1186,
+     pandnTkn = 1187,
+     porTkn = 1188,
+     pxorTkn = 1189,
+     psllwTkn = 1190,
+     pslldTkn = 1191,
+     psllqTkn = 1192,
+     psrlwTkn = 1193,
+     psrldTkn = 1194,
+     psrlqTkn = 1195,
+     psrawTkn = 1196,
+     psradTkn = 1197,
+     movdTkn = 1198,
+     movqTkn = 1199,
+     emmsTkn = 1200,
+     addpdTkn = 1201,
+     addsdTkn = 1202,
+     addpsTkn = 1203,
+     addssTkn = 1204,
+     addsubpsTkn = 1205,
+     addsubpdTkn = 1206,
+     andnpdTkn = 1207,
+     andnpsTkn = 1208,
+     andpdTkn = 1209,
+     andpsTkn = 1210,
+     clflushTkn = 1211,
+     cmppdTkn = 1212,
+     cmppsTkn = 1213,
+     cmpssTkn = 1214,
+     cmpeqssTkn = 1215,
+     cmplessTkn = 1216,
+     cmpltssTkn = 1217,
+     cmpneqssTkn = 1218,
+     cmpnltssTkn = 1219,
+     cmpnlessTkn = 1220,
+     cmpordssTkn = 1221,
+     cmpunordssTkn = 1222,
+     cmpeqsdTkn = 1223,
+     cmplesdTkn = 1224,
+     cmpltsdTkn = 1225,
+     cmpneqsdTkn = 1226,
+     cmpnltsdTkn = 1227,
+     cmpnlesdTkn = 1228,
+     cmpordsdTkn = 1229,
+     cmpunordsdTkn = 1230,
+     cmpeqpsTkn = 1231,
+     cmplepsTkn = 1232,
+     cmpltpsTkn = 1233,
+     cmpneqpsTkn = 1234,
+     cmpnltpsTkn = 1235,
+     cmpnlepsTkn = 1236,
+     cmpordpsTkn = 1237,
+     cmpunordpsTkn = 1238,
+     cmpeqpdTkn = 1239,
+     cmplepdTkn = 1240,
+     cmpltpdTkn = 1241,
+     cmpneqpdTkn = 1242,
+     cmpnltpdTkn = 1243,
+     cmpnlepdTkn = 1244,
+     cmpordpdTkn = 1245,
+     cmpunordpdTkn = 1246,
+     comisdTkn = 1247,
+     comissTkn = 1248,
+     cvtdq2pdTkn = 1249,
+     cvtdq2psTkn = 1250,
+     cvtpd2dqTkn = 1251,
+     cvtpd2piTkn = 1252,
+     cvtpd2psTkn = 1253,
+     cvtpi2pdTkn = 1254,
+     cvtpi2psTkn = 1255,
+     cvtps2dqTkn = 1256,
+     cvtps2pdTkn = 1257,
+     cvtps2piTkn = 1258,
+     cvtsd2siTkn = 1259,
+     cvtsi2sdTkn = 1260,
+     cvtsi2ssTkn = 1261,
+     cvtsd2ssTkn = 1262,
+     cvtss2sdTkn = 1263,
+     cvtss2siTkn = 1264,
+     cvttpd2piTkn = 1265,
+     cvttpd2dqTkn = 1266,
+     cvttps2dqTkn = 1267,
+     cvttps2piTkn = 1268,
+     cvttsd2siTkn = 1269,
+     cvttss2siTkn = 1270,
+     divpdTkn = 1271,
+     divpsTkn = 1272,
+     divssTkn = 1273,
+     divsdTkn = 1274,
+     fxsaveTkn = 1275,
+     fxrstorTkn = 1276,
+     haddpdTkn = 1277,
+     haddpsTkn = 1278,
+     hsubpdTkn = 1279,
+     hsubpsTkn = 1280,
+     lddquTkn = 1281,
+     ldmxcsrTkn = 1282,
+     lfenceTkn = 1283,
+     maskmovdquTkn = 1284,
+     maskmovqTkn = 1285,
+     maxpdTkn = 1286,
+     maxpsTkn = 1287,
+     maxsdTkn = 1288,
+     maxssTkn = 1289,
+     mfenceTkn = 1290,
+     minpdTkn = 1291,
+     minpsTkn = 1292,
+     minsdTkn = 1293,
+     minssTkn = 1294,
+     monitorTkn = 1295,
+     movapdTkn = 1296,
+     movapsTkn = 1297,
+     movddupTkn = 1298,
+     movdqaTkn = 1299,
+     movdquTkn = 1300,
+     movdq2qTkn = 1301,
+     movhlpsTkn = 1302,
+     movhpdTkn = 1303,
+     movhpsTkn = 1304,
+     movlpdTkn = 1305,
+     movlpsTkn = 1306,
+     movlhpsTkn = 1307,
+     movmskpdTkn = 1308,
+     movmskpsTkn = 1309,
+     movntpdTkn = 1310,
+     movntiTkn = 1311,
+     movntpsTkn = 1312,
+     movntdqTkn = 1313,
+     movntqTkn = 1314,
+     movq2dqTkn = 1315,
+     movshdupTkn = 1316,
+     movsldupTkn = 1317,
+     movssTkn = 1318,
+     movupdTkn = 1319,
+     movupsTkn = 1320,
+     mulpdTkn = 1321,
+     mulpsTkn = 1322,
+     mulssTkn = 1323,
+     mulsdTkn = 1324,
+     mwaitTkn = 1325,
+     orpdTkn = 1326,
+     orpsTkn = 1327,
+     pauseTkn = 1328,
+     prefetcht0Tkn = 1329,
+     prefetcht1Tkn = 1330,
+     prefetcht2Tkn = 1331,
+     prefetchntaTkn = 1332,
+     pshufhwTkn = 1333,
+     pshuflwTkn = 1334,
+     psrldqTkn = 1335,
+     pslldqTkn = 1336,
+     rcppsTkn = 1337,
+     rcpssTkn = 1338,
+     rsqrtpsTkn = 1339,
+     rsqrtssTkn = 1340,
+     sfenceTkn = 1341,
+     shufpdTkn = 1342,
+     shufpsTkn = 1343,
+     sqrtpdTkn = 1344,
+     sqrtpsTkn = 1345,
+     sqrtsdTkn = 1346,
+     sqrtssTkn = 1347,
+     stmxcsrTkn = 1348,
+     subpsTkn = 1349,
+     subpdTkn = 1350,
+     subsdTkn = 1351,
+     subssTkn = 1352,
+     ucomisdTkn = 1353,
+     ucomissTkn = 1354,
+     unpckhpdTkn = 1355,
+     unpckhpsTkn = 1356,
+     unpcklpdTkn = 1357,
+     unpcklpsTkn = 1358,
+     xorpdTkn = 1359,
+     xorpsTkn = 1360,
+     parsePrintTkn = 1361,
+     parseHLAIDTkn = 1362,
+     parseClassIDTkn = 1363
    };
 #endif
 /* Tokens.  */
@@ -1218,1037 +1224,1043 @@
 #define endtextTkn 331
 #define stringblockTkn 332
 #define endstringTkn 333
-#define matchblockTkn 334
-#define endmatchTkn 335
-#define beginTkn 336
-#define endTkn 337
-#define procTkn 338
-#define endprocTkn 339
-#define procedureTkn 340
-#define iteratorTkn 341
-#define methodTkn 342
-#define programTkn 343
-#define unitTkn 344
-#define macroTkn 345
-#define keywordTkn 346
-#define terminatorTkn 347
-#define endmacroTkn 348
-#define endMacDefTkn 349
-#define regexMacroTkn 350
-#define endregexTkn 351
-#define endRegexDefTkn 352
-#define regexReturnTkn 353
-#define labelTkn 354
-#define endlabelTkn 355
-#define constTkn 356
-#define endconstTkn 357
-#define valTkn 358
-#define endvalTkn 359
-#define typeTkn 360
-#define endtypeTkn 361
-#define alignTkn 362
-#define varTkn 363
-#define endvarTkn 364
-#define staticTkn 365
-#define endstaticTkn 366
-#define uninitializedTkn 367
-#define endstorageTkn 368
-#define readonlyTkn 369
-#define endreadonlyTkn 370
-#define recordTkn 371
-#define endrecordTkn 372
-#define unionTkn 373
-#define endunionTkn 374
-#define classTkn 375
-#define vmtTkn 376
-#define endclassTkn 377
-#define enumTkn 378
-#define inheritsTkn 379
-#define pointerTkn 380
-#define toTkn 381
-#define downtoTkn 382
-#define externalTkn 383
-#define abstractTkn 384
-#define overloadsTkn 385
-#define overrideTkn 386
-#define overridesTkn 387
-#define forwardTkn 388
-#define returnsTkn 389
-#define atreturnsTkn 390
-#define noframeTkn 391
-#define frameTkn 392
-#define nodisplayTkn 393
-#define displayTkn 394
-#define noalignstkTkn 395
-#define alignstkTkn 396
-#define alignprocTkn 397
-#define useTkn 398
-#define useenterTkn 399
-#define noenterTkn 400
-#define useleaveTkn 401
-#define noleaveTkn 402
-#define pascalTkn 403
-#define cdeclTkn 404
-#define stdcallTkn 405
-#define nostorageTkn 406
-#define volatileTkn 407
-#define namespaceTkn 408
-#define fastTkn 409
-#define segmentTkn 410
-#define hereTkn 411
-#define atlabelTkn 412
-#define nameTkn 413
-#define valresTkn 414
-#define resultTkn 415
-#define lazyTkn 416
-#define thunkTkn 417
-#define jtTkn 418
-#define jfTkn 419
-#define ifTkn 420
-#define thenTkn 421
-#define elseifTkn 422
-#define elseTkn 423
-#define endifTkn 424
-#define switchTkn 425
-#define caseTkn 426
-#define defaultTkn 427
-#define endswitchTkn 428
-#define whileTkn 429
-#define doTkn 430
-#define endwhileTkn 431
-#define welseTkn 432
-#define repeatTkn 433
-#define untilTkn 434
-#define forTkn 435
-#define foreverTkn 436
-#define foreachTkn 437
-#define endforTkn 438
-#define felseTkn 439
-#define exitTkn 440
-#define exitifTkn 441
-#define breakTkn 442
-#define breakifTkn 443
-#define continueTkn 444
-#define continueifTkn 445
-#define tryTkn 446
-#define alwaysTkn 447
-#define unprotectedTkn 448
-#define exceptionTkn 449
-#define anyexceptionTkn 450
-#define endtryTkn 451
-#define raiseTkn 452
-#define booleanTkn 453
-#define int8Tkn 454
-#define int16Tkn 455
-#define int32Tkn 456
-#define int64Tkn 457
-#define int128Tkn 458
-#define charTkn 459
-#define wcharTkn 460
-#define real32Tkn 461
-#define real64Tkn 462
-#define real80Tkn 463
-#define real128Tkn 464
-#define uns8Tkn 465
-#define uns16Tkn 466
-#define uns32Tkn 467
-#define uns64Tkn 468
-#define uns128Tkn 469
-#define stringTkn 470
-#define wstringTkn 471
-#define zstringTkn 472
-#define csetTkn 473
-#define regexTkn 474
-#define textTkn 475
-#define byteTkn 476
-#define wordTkn 477
-#define dwordTkn 478
-#define qwordTkn 479
-#define tbyteTkn 480
-#define lwordTkn 481
-#define atint8Tkn 482
-#define atint16Tkn 483
-#define atint32Tkn 484
-#define atint64Tkn 485
-#define atint128Tkn 486
-#define atcharTkn 487
-#define atwcharTkn 488
-#define atreal32Tkn 489
-#define atreal64Tkn 490
-#define atreal80Tkn 491
-#define atuns8Tkn 492
-#define atuns16Tkn 493
-#define atuns32Tkn 494
-#define atuns64Tkn 495
-#define atuns128Tkn 496
-#define atstringTkn 497
-#define atwstringTkn 498
-#define atcsetTkn 499
-#define atbyteTkn 500
-#define atwordTkn 501
-#define atdwordTkn 502
-#define atqwordTkn 503
-#define attbyteTkn 504
-#define atlwordTkn 505
-#define atpointerTkn 506
-#define nullTkn 507
-#define absTkn 508
-#define ceilTkn 509
-#define cosTkn 510
-#define dateTkn 511
-#define envTkn 512
-#define expTkn 513
-#define extractTkn 514
-#define floorTkn 515
-#define isalphaTkn 516
-#define isalphanumTkn 517
-#define isdigitTkn 518
-#define islowerTkn 519
-#define isspaceTkn 520
-#define isupperTkn 521
-#define isxdigitTkn 522
-#define logTkn 523
-#define log10Tkn 524
-#define maxTkn 525
-#define minTkn 526
-#define oddTkn 527
-#define randomTkn 528
-#define randomizeTkn 529
-#define readTkn 530
-#define sinTkn 531
-#define sortTkn 532
-#define sqrtTkn 533
-#define systemTkn 534
-#define tanTkn 535
-#define threadTkn 536
-#define timeTkn 537
-#define peekcsetTkn 538
-#define onecsetTkn 539
-#define uptocsetTkn 540
-#define zerooronecsetTkn 541
-#define zeroormorecsetTkn 542
-#define oneormorecsetTkn 543
-#define exactlyncsetTkn 544
-#define firstncsetTkn 545
-#define norlesscsetTkn 546
-#define normorecsetTkn 547
-#define ntomcsetTkn 548
-#define exactlyntomcsetTkn 549
-#define peekcharTkn 550
-#define onecharTkn 551
-#define uptocharTkn 552
-#define zerooronecharTkn 553
-#define zeroormorecharTkn 554
-#define oneormorecharTkn 555
-#define exactlyncharTkn 556
-#define firstncharTkn 557
-#define norlesscharTkn 558
-#define normorecharTkn 559
-#define ntomcharTkn 560
-#define exactlyntomcharTkn 561
-#define peekicharTkn 562
-#define oneicharTkn 563
-#define uptoicharTkn 564
-#define zerooroneicharTkn 565
-#define zeroormoreicharTkn 566
-#define oneormoreicharTkn 567
-#define exactlynicharTkn 568
-#define firstnicharTkn 569
-#define norlessicharTkn 570
-#define normoreicharTkn 571
-#define ntomicharTkn 572
-#define exactlyntomicharTkn 573
-#define matchstrTkn 574
-#define matchistrTkn 575
-#define uptostrTkn 576
-#define uptoistrTkn 577
-#define matchtostrTkn 578
-#define matchtoistrTkn 579
-#define zeroormorewsTkn 580
-#define oneormorewsTkn 581
-#define wsoreosTkn 582
-#define wstheneosTkn 583
-#define peekwsTkn 584
-#define eosTkn 585
-#define wsTkn 586
-#define peekstrTkn 587
-#define peekistrTkn 588
-#define matchidTkn 589
-#define matchwordTkn 590
-#define matchiwordTkn 591
-#define matchintconstTkn 592
-#define matchrealconstTkn 593
-#define matchnumericconstTkn 594
-#define matchstrconstTkn 595
-#define matchregTkn 596
-#define matchreg8Tkn 597
-#define matchreg16Tkn 598
-#define matchreg32Tkn 599
-#define matchfpuregTkn 600
-#define matchmmxregTkn 601
-#define matchxmmregTkn 602
-#define deleteTkn 603
-#define indexTkn 604
-#define insertTkn 605
-#define lengthTkn 606
-#define lowercaseTkn 607
-#define replaceTkn 608
-#define rindexTkn 609
-#define strbrkTkn 610
-#define strsetTkn 611
-#define strspanTkn 612
-#define substrTkn 613
-#define leftTkn 614
-#define leftdelTkn 615
-#define rightTkn 616
-#define rightdelTkn 617
-#define tokenizeTkn 618
-#define trimTkn 619
-#define uppercaseTkn 620
-#define symNameTkn 621
-#define symTypeTkn 622
-#define sympTypeTkn 623
-#define symBasepTypeTkn 624
-#define symClassTkn 625
-#define symSizeTkn 626
-#define symOffsetTkn 627
-#define symLocalsymsTkn 628
-#define symParmsTkn 629
-#define symLexTkn 630
-#define symArityTkn 631
-#define symDimTkn 632
-#define symNumelementsTkn 633
-#define symDefinedTkn 634
-#define symTypeNameTkn 635
-#define symBaseTypeNameTkn 636
-#define sympClassTkn 637
-#define symStaticNameTkn 638
-#define symIsExternalTkn 639
-#define symIsConstTkn 640
-#define symIsClassTkn 641
-#define symElementSizeTkn 642
-#define symIsRegTkn 643
-#define symIsReg8Tkn 644
-#define symIsReg16Tkn 645
-#define symIsReg32Tkn 646
-#define symIsfRegTkn 647
-#define symIsMemTkn 648
-#define symIsTypeTkn 649
-#define curLexTkn 650
-#define curOffsetTkn 651
-#define curDirTkn 652
-#define addOffset1stTkn 653
-#define lineNumberTkn 654
-#define lineNumberStkTkn 655
-#define errorPrefixTkn 656
-#define filenameTkn 657
-#define fileNameStkTkn 658
-#define startParmOfsTkn 659
-#define startLclOfsTkn 660
-#define enumSizeTkn 661
-#define lastMacroObjectTkn 662
-#define curObjectNameTkn 663
-#define curVarTkn 664
-#define sectionTkn 665
-#define boundvarTkn 666
-#define intovarTkn 667
-#define traceTkn 668
-#define exceptsTkn 669
-#define optstringsTkn 670
-#define baseregTkn 671
-#define st0Tkn 672
-#define st1Tkn 673
-#define st2Tkn 674
-#define st3Tkn 675
-#define st4Tkn 676
-#define st5Tkn 677
-#define st6Tkn 678
-#define st7Tkn 679
-#define alTkn 680
-#define ahTkn 681
-#define axTkn 682
-#define eaxTkn 683
-#define blTkn 684
-#define bhTkn 685
-#define bxTkn 686
-#define ebxTkn 687
-#define clTkn 688
-#define chTkn 689
-#define cxTkn 690
-#define ecxTkn 691
-#define dlTkn 692
-#define dhTkn 693
-#define dxTkn 694
-#define edxTkn 695
-#define siTkn 696
-#define esiTkn 697
-#define diTkn 698
-#define ediTkn 699
-#define bpTkn 700
-#define ebpTkn 701
-#define spTkn 702
-#define espTkn 703
-#define mm0Tkn 704
-#define mm1Tkn 705
-#define mm2Tkn 706
-#define mm3Tkn 707
-#define mm4Tkn 708
-#define mm5Tkn 709
-#define mm6Tkn 710
-#define mm7Tkn 711
-#define xmm0Tkn 712
-#define xmm1Tkn 713
-#define xmm2Tkn 714
-#define xmm3Tkn 715
-#define xmm4Tkn 716
-#define xmm5Tkn 717
-#define xmm6Tkn 718
-#define xmm7Tkn 719
-#define csTkn 720
-#define dsTkn 721
-#define esTkn 722
-#define fsTkn 723
-#define gsTkn 724
-#define ssTkn 725
-#define cr0Tkn 726
-#define cr1Tkn 727
-#define cr2Tkn 728
-#define cr3Tkn 729
-#define cr4Tkn 730
-#define cr5Tkn 731
-#define cr6Tkn 732
-#define cr7Tkn 733
-#define dr0Tkn 734
-#define dr1Tkn 735
-#define dr2Tkn 736
-#define dr3Tkn 737
-#define dr4Tkn 738
-#define dr5Tkn 739
-#define dr6Tkn 740
-#define dr7Tkn 741
-#define dxaxTkn 742
-#define edxeaxTkn 743
-#define cTkn 744
-#define ncTkn 745
-#define oTkn 746
-#define noTkn 747
-#define sTkn 748
-#define nsTkn 749
-#define zTkn 750
-#define nzTkn 751
-#define aTkn 752
-#define naTkn 753
-#define aeTkn 754
-#define naeTkn 755
-#define bTkn 756
-#define nbTkn 757
-#define beTkn 758
-#define nbeTkn 759
-#define eTkn 760
-#define gTkn 761
-#define ngTkn 762
-#define ngeTkn 763
-#define lTkn 764
-#define nlTkn 765
-#define nleTkn 766
-#define peTkn 767
-#define poTkn 768
-#define npTkn 769
-#define pTkn 770
-#define aaaTkn 771
-#define aadTkn 772
-#define aamTkn 773
-#define aasTkn 774
-#define adcTkn 775
-#define lockadcTkn 776
-#define addTkn 777
-#define lockaddTkn 778
-#define lockandTkn 779
-#define arplTkn 780
-#define boundTkn 781
-#define bsfTkn 782
-#define bsrTkn 783
-#define bswapTkn 784
-#define btTkn 785
-#define btcTkn 786
-#define lockbtcTkn 787
-#define btrTkn 788
-#define lockbtrTkn 789
-#define btsTkn 790
-#define lockbtsTkn 791
-#define callTkn 792
-#define cbwTkn 793
-#define cdqTkn 794
-#define clcTkn 795
-#define cldTkn 796
-#define cliTkn 797
-#define cltsTkn 798
-#define cmcTkn 799
-#define cmovoTkn 800
-#define cmovnoTkn 801
-#define cmovbTkn 802
-#define cmovnbTkn 803
-#define cmoveTkn 804
-#define cmovneTkn 805
-#define cmovbeTkn 806
-#define cmovnbeTkn 807
-#define cmovsTkn 808
-#define cmovnsTkn 809
-#define cmovpTkn 810
-#define cmovnpTkn 811
-#define cmovlTkn 812
-#define cmovnlTkn 813
-#define cmovleTkn 814
-#define cmovnleTkn 815
-#define cmpTkn 816
-#define cmpsbTkn 817
-#define cmpsdTkn 818
-#define cmpswTkn 819
-#define cmpxchgTkn 820
-#define lockcmpxchgTkn 821
-#define cmpxchg8bTkn 822
-#define cpuidTkn 823
-#define cwdTkn 824
-#define cwdeTkn 825
-#define daaTkn 826
-#define dasTkn 827
-#define decTkn 828
-#define lockdecTkn 829
-#define enterTkn 830
-#define hltTkn 831
-#define idivTkn 832
-#define imodTkn 833
-#define imulTkn 834
-#define intmulTkn 835
-#define incTkn 836
-#define lockincTkn 837
-#define insbTkn 838
-#define insdTkn 839
-#define inswTkn 840
-#define intTkn 841
-#define intoTkn 842
-#define invdTkn 843
-#define invlpgTkn 844
-#define iretTkn 845
-#define iretdTkn 846
-#define jaTkn 847
-#define jaeTkn 848
-#define jbTkn 849
-#define jbeTkn 850
-#define jcTkn 851
-#define jeTkn 852
-#define jgTkn 853
-#define jgeTkn 854
-#define jlTkn 855
-#define jleTkn 856
-#define jnaTkn 857
-#define jnaeTkn 858
-#define jnbTkn 859
-#define jnbeTkn 860
-#define jncTkn 861
-#define jneTkn 862
-#define jngTkn 863
-#define jngeTkn 864
-#define jnlTkn 865
-#define jnleTkn 866
-#define jnoTkn 867
-#define joTkn 868
-#define jnpTkn 869
-#define jnsTkn 870
-#define jnzTkn 871
-#define jpTkn 872
-#define jpeTkn 873
-#define jpoTkn 874
-#define jsTkn 875
-#define jzTkn 876
-#define jcxzTkn 877
-#define jecxzTkn 878
-#define jmpTkn 879
-#define lahfTkn 880
-#define larTkn 881
-#define leaTkn 882
-#define ldsTkn 883
-#define lesTkn 884
-#define lfsTkn 885
-#define lgsTkn 886
-#define lssTkn 887
-#define lslTkn 888
-#define lgdtTkn 889
-#define lidtTkn 890
-#define lldtTkn 891
-#define sgdtTkn 892
-#define sidtTkn 893
-#define sldtTkn 894
-#define leaveTkn 895
-#define lodsbTkn 896
-#define lodsdTkn 897
-#define lodswTkn 898
-#define loopTkn 899
-#define loopeTkn 900
-#define loopzTkn 901
-#define loopneTkn 902
-#define loopnzTkn 903
-#define lmswTkn 904
-#define ltrTkn 905
-#define strTkn 906
-#define movTkn 907
-#define movsbTkn 908
-#define movsdTkn 909
-#define movswTkn 910
-#define movsxTkn 911
-#define movzxTkn 912
-#define mulTkn 913
-#define negTkn 914
-#define locknegTkn 915
-#define nopTkn 916
-#define locknotTkn 917
-#define lockorTkn 918
-#define outTkn 919
-#define outsbTkn 920
-#define outsdTkn 921
-#define outswTkn 922
-#define popTkn 923
-#define popaTkn 924
-#define popadTkn 925
-#define popfTkn 926
-#define popfdTkn 927
-#define pushTkn 928
-#define pushaTkn 929
-#define pushadTkn 930
-#define pushdTkn 931
-#define pushfTkn 932
-#define pushfdTkn 933
-#define pushwTkn 934
-#define rclTkn 935
-#define rcrTkn 936
-#define rdmsrTkn 937
-#define rdpmcTkn 938
-#define rdtscTkn 939
-#define rsmTkn 940
-#define repmovsbTkn 941
-#define repmovswTkn 942
-#define repmovsdTkn 943
-#define repinsbTkn 944
-#define repinswTkn 945
-#define repinsdTkn 946
-#define repoutsbTkn 947
-#define repoutswTkn 948
-#define repoutsdTkn 949
-#define repstosbTkn 950
-#define repstoswTkn 951
-#define repstosdTkn 952
-#define repecmpsbTkn 953
-#define repecmpswTkn 954
-#define repecmpsdTkn 955
-#define repzcmpsbTkn 956
-#define repzcmpswTkn 957
-#define repzcmpsdTkn 958
-#define repnecmpsbTkn 959
-#define repnecmpswTkn 960
-#define repnecmpsdTkn 961
-#define repnzcmpsbTkn 962
-#define repnzcmpswTkn 963
-#define repnzcmpsdTkn 964
-#define repescasbTkn 965
-#define repescaswTkn 966
-#define repescasdTkn 967
-#define repnescasbTkn 968
-#define repnescaswTkn 969
-#define repnescasdTkn 970
-#define repzscasbTkn 971
-#define repzscaswTkn 972
-#define repzscasdTkn 973
-#define repnzscasbTkn 974
-#define repnzscaswTkn 975
-#define repnzscasdTkn 976
-#define retTkn 977
-#define rolTkn 978
-#define rorTkn 979
-#define sahfTkn 980
-#define salTkn 981
-#define sarTkn 982
-#define sbbTkn 983
-#define locksbbTkn 984
-#define scasbTkn 985
-#define scasdTkn 986
-#define scaswTkn 987
-#define setbTkn 988
-#define setnbTkn 989
-#define setzTkn 990
-#define setnzTkn 991
-#define setbeTkn 992
-#define setnbeTkn 993
-#define setoTkn 994
-#define setnoTkn 995
-#define setsTkn 996
-#define setnsTkn 997
-#define setpTkn 998
-#define setnpTkn 999
-#define setlTkn 1000
-#define setleTkn 1001
-#define setnlTkn 1002
-#define setnleTkn 1003
-#define shlTkn 1004
-#define shldTkn 1005
-#define shrTkn 1006
-#define shrdTkn 1007
-#define smswTkn 1008
-#define stcTkn 1009
-#define stdTkn 1010
-#define stiTkn 1011
-#define stosbTkn 1012
-#define stosdTkn 1013
-#define stoswTkn 1014
-#define subTkn 1015
-#define sysenterTkn 1016
-#define sysexitTkn 1017
-#define locksubTkn 1018
-#define testTkn 1019
-#define ud2Tkn 1020
-#define verrTkn 1021
-#define verwTkn 1022
-#define waitTkn 1023
-#define wbinvdTkn 1024
-#define wrmsrTkn 1025
-#define xaddTkn 1026
-#define lockxaddTkn 1027
-#define xchgTkn 1028
-#define lockxchgTkn 1029
-#define xlatTkn 1030
-#define xorTkn 1031
-#define lockxorTkn 1032
-#define fldTkn 1033
-#define fildTkn 1034
-#define fbldTkn 1035
-#define fstTkn 1036
-#define fstpTkn 1037
-#define fistTkn 1038
-#define fistpTkn 1039
-#define fisttpTkn 1040
-#define fbstpTkn 1041
-#define fxchTkn 1042
-#define fxamTkn 1043
-#define faddTkn 1044
-#define faddpTkn 1045
-#define fiaddTkn 1046
-#define fmulTkn 1047
-#define fmulpTkn 1048
-#define fimulTkn 1049
-#define fsubTkn 1050
-#define fsubpTkn 1051
-#define fsubrTkn 1052
-#define fsubrpTkn 1053
-#define fisubTkn 1054
-#define fisubrTkn 1055
-#define fdivTkn 1056
-#define fdivpTkn 1057
-#define fdivrTkn 1058
-#define fdivrpTkn 1059
-#define fidivTkn 1060
-#define fidivrTkn 1061
-#define fcomTkn 1062
-#define fcompTkn 1063
-#define fcomppTkn 1064
-#define ficomTkn 1065
-#define ficompTkn 1066
-#define fucomTkn 1067
-#define fucompTkn 1068
-#define fucomppTkn 1069
-#define fsqrtTkn 1070
-#define fabsTkn 1071
-#define fchsTkn 1072
-#define ftstTkn 1073
-#define fscaleTkn 1074
-#define fpremTkn 1075
-#define fprem1Tkn 1076
-#define frndintTkn 1077
-#define fxtractTkn 1078
-#define fldzTkn 1079
-#define fld1Tkn 1080
-#define fldpiTkn 1081
-#define fldl2tTkn 1082
-#define fldl2eTkn 1083
-#define fldlg2Tkn 1084
-#define fldln2Tkn 1085
-#define f2xm1Tkn 1086
-#define fsinTkn 1087
-#define fcosTkn 1088
-#define fsincosTkn 1089
-#define fptanTkn 1090
-#define fpatanTkn 1091
-#define fyl2xTkn 1092
-#define fyl2xp1Tkn 1093
-#define finitTkn 1094
-#define fninitTkn 1095
-#define fwaitTkn 1096
-#define fldcwTkn 1097
-#define fstcwTkn 1098
-#define fnstcwTkn 1099
-#define fclexTkn 1100
-#define fnclexTkn 1101
-#define fldenvTkn 1102
-#define fstenvTkn 1103
-#define fnstenvTkn 1104
-#define fsaveTkn 1105
-#define fnsaveTkn 1106
-#define frstorTkn 1107
-#define fstswTkn 1108
-#define fnstswTkn 1109
-#define fincstpTkn 1110
-#define fdecstpTkn 1111
-#define fnopTkn 1112
-#define ffreeTkn 1113
-#define fcmovaTkn 1114
-#define fcmovaeTkn 1115
-#define fcmovbTkn 1116
-#define fcmovbeTkn 1117
-#define fcmoveTkn 1118
-#define fcmovnaTkn 1119
-#define fcmovnaeTkn 1120
-#define fcmovnbTkn 1121
-#define fcmovnbeTkn 1122
-#define fcmovneTkn 1123
-#define fcmovnuTkn 1124
-#define fcmovuTkn 1125
-#define fcomiTkn 1126
-#define fcomipTkn 1127
-#define fucomiTkn 1128
-#define fucomipTkn 1129
-#define paddbTkn 1130
-#define paddwTkn 1131
-#define padddTkn 1132
-#define paddqTkn 1133
-#define paddsbTkn 1134
-#define paddswTkn 1135
-#define paddusbTkn 1136
-#define padduswTkn 1137
-#define psubbTkn 1138
-#define psubwTkn 1139
-#define psubdTkn 1140
-#define psubqTkn 1141
-#define psubsbTkn 1142
-#define psubswTkn 1143
-#define psubusbTkn 1144
-#define psubuswTkn 1145
-#define pmullwTkn 1146
-#define pmulhwTkn 1147
-#define pmulhuwTkn 1148
-#define pmuludqTkn 1149
-#define pmaddwdTkn 1150
-#define pmaxswTkn 1151
-#define pmaxubTkn 1152
-#define pminswTkn 1153
-#define pminubTkn 1154
-#define psadbwTkn 1155
-#define pextrwTkn 1156
-#define pinsrwTkn 1157
-#define pmovmskbTkn 1158
-#define pshufwTkn 1159
-#define pshufdTkn 1160
-#define pavgbTkn 1161
-#define pavgwTkn 1162
-#define pcmpeqbTkn 1163
-#define pcmpeqwTkn 1164
-#define pcmpeqdTkn 1165
-#define pcmpgtbTkn 1166
-#define pcmpgtwTkn 1167
-#define pcmpgtdTkn 1168
-#define packsswbTkn 1169
-#define packuswbTkn 1170
-#define packssdwTkn 1171
-#define punpcklbwTkn 1172
-#define punpcklwdTkn 1173
-#define punpckldqTkn 1174
-#define punpcklqdqTkn 1175
-#define punpckhbwTkn 1176
-#define punpckhwdTkn 1177
-#define punpckhdqTkn 1178
-#define punpckhqdqTkn 1179
-#define pandTkn 1180
-#define pandnTkn 1181
-#define porTkn 1182
-#define pxorTkn 1183
-#define psllwTkn 1184
-#define pslldTkn 1185
-#define psllqTkn 1186
-#define psrlwTkn 1187
-#define psrldTkn 1188
-#define psrlqTkn 1189
-#define psrawTkn 1190
-#define psradTkn 1191
-#define movdTkn 1192
-#define movqTkn 1193
-#define emmsTkn 1194
-#define addpdTkn 1195
-#define addsdTkn 1196
-#define addpsTkn 1197
-#define addssTkn 1198
-#define addsubpsTkn 1199
-#define addsubpdTkn 1200
-#define andnpdTkn 1201
-#define andnpsTkn 1202
-#define andpdTkn 1203
-#define andpsTkn 1204
-#define clflushTkn 1205
-#define cmppdTkn 1206
-#define cmppsTkn 1207
-#define cmpssTkn 1208
-#define cmpeqssTkn 1209
-#define cmplessTkn 1210
-#define cmpltssTkn 1211
-#define cmpneqssTkn 1212
-#define cmpnltssTkn 1213
-#define cmpnlessTkn 1214
-#define cmpordssTkn 1215
-#define cmpunordssTkn 1216
-#define cmpeqsdTkn 1217
-#define cmplesdTkn 1218
-#define cmpltsdTkn 1219
-#define cmpneqsdTkn 1220
-#define cmpnltsdTkn 1221
-#define cmpnlesdTkn 1222
-#define cmpordsdTkn 1223
-#define cmpunordsdTkn 1224
-#define cmpeqpsTkn 1225
-#define cmplepsTkn 1226
-#define cmpltpsTkn 1227
-#define cmpneqpsTkn 1228
-#define cmpnltpsTkn 1229
-#define cmpnlepsTkn 1230
-#define cmpordpsTkn 1231
-#define cmpunordpsTkn 1232
-#define cmpeqpdTkn 1233
-#define cmplepdTkn 1234
-#define cmpltpdTkn 1235
-#define cmpneqpdTkn 1236
-#define cmpnltpdTkn 1237
-#define cmpnlepdTkn 1238
-#define cmpordpdTkn 1239
-#define cmpunordpdTkn 1240
-#define comisdTkn 1241
-#define comissTkn 1242
-#define cvtdq2pdTkn 1243
-#define cvtdq2psTkn 1244
-#define cvtpd2dqTkn 1245
-#define cvtpd2piTkn 1246
-#define cvtpd2psTkn 1247
-#define cvtpi2pdTkn 1248
-#define cvtpi2psTkn 1249
-#define cvtps2dqTkn 1250
-#define cvtps2pdTkn 1251
-#define cvtps2piTkn 1252
-#define cvtsd2siTkn 1253
-#define cvtsi2sdTkn 1254
-#define cvtsi2ssTkn 1255
-#define cvtsd2ssTkn 1256
-#define cvtss2sdTkn 1257
-#define cvtss2siTkn 1258
-#define cvttpd2piTkn 1259
-#define cvttpd2dqTkn 1260
-#define cvttps2dqTkn 1261
-#define cvttps2piTkn 1262
-#define cvttsd2siTkn 1263
-#define cvttss2siTkn 1264
-#define divpdTkn 1265
-#define divpsTkn 1266
-#define divssTkn 1267
-#define divsdTkn 1268
-#define fxsaveTkn 1269
-#define fxrstorTkn 1270
-#define haddpdTkn 1271
-#define haddpsTkn 1272
-#define hsubpdTkn 1273
-#define hsubpsTkn 1274
-#define lddquTkn 1275
-#define ldmxcsrTkn 1276
-#define lfenceTkn 1277
-#define maskmovdquTkn 1278
-#define maskmovqTkn 1279
-#define maxpdTkn 1280
-#define maxpsTkn 1281
-#define maxsdTkn 1282
-#define maxssTkn 1283
-#define mfenceTkn 1284
-#define minpdTkn 1285
-#define minpsTkn 1286
-#define minsdTkn 1287
-#define minssTkn 1288
-#define monitorTkn 1289
-#define movapdTkn 1290
-#define movapsTkn 1291
-#define movddupTkn 1292
-#define movdqaTkn 1293
-#define movdquTkn 1294
-#define movdq2qTkn 1295
-#define movhlpsTkn 1296
-#define movhpdTkn 1297
-#define movhpsTkn 1298
-#define movlpdTkn 1299
-#define movlpsTkn 1300
-#define movlhpsTkn 1301
-#define movmskpdTkn 1302
-#define movmskpsTkn 1303
-#define movntpdTkn 1304
-#define movntiTkn 1305
-#define movntpsTkn 1306
-#define movntdqTkn 1307
-#define movntqTkn 1308
-#define movq2dqTkn 1309
-#define movshdupTkn 1310
-#define movsldupTkn 1311
-#define movssTkn 1312
-#define movupdTkn 1313
-#define movupsTkn 1314
-#define mulpdTkn 1315
-#define mulpsTkn 1316
-#define mulssTkn 1317
-#define mulsdTkn 1318
-#define mwaitTkn 1319
-#define orpdTkn 1320
-#define orpsTkn 1321
-#define pauseTkn 1322
-#define prefetcht0Tkn 1323
-#define prefetcht1Tkn 1324
-#define prefetcht2Tkn 1325
-#define prefetchntaTkn 1326
-#define pshufhwTkn 1327
-#define pshuflwTkn 1328
-#define psrldqTkn 1329
-#define pslldqTkn 1330
-#define rcppsTkn 1331
-#define rcpssTkn 1332
-#define rsqrtpsTkn 1333
-#define rsqrtssTkn 1334
-#define sfenceTkn 1335
-#define shufpdTkn 1336
-#define shufpsTkn 1337
-#define sqrtpdTkn 1338
-#define sqrtpsTkn 1339
-#define sqrtsdTkn 1340
-#define sqrtssTkn 1341
-#define stmxcsrTkn 1342
-#define subpsTkn 1343
-#define subpdTkn 1344
-#define subsdTkn 1345
-#define subssTkn 1346
-#define ucomisdTkn 1347
-#define ucomissTkn 1348
-#define unpckhpdTkn 1349
-#define unpckhpsTkn 1350
-#define unpcklpdTkn 1351
-#define unpcklpsTkn 1352
-#define xorpdTkn 1353
-#define xorpsTkn 1354
-#define parsePrintTkn 1355
-#define parseHLAIDTkn 1356
-#define parseClassIDTkn 1357
+#define scanblockTkn 334
+#define endscanTkn 335
+#define matchblockTkn 336
+#define endmatchTkn 337
+#define beginTkn 338
+#define endTkn 339
+#define procTkn 340
+#define endprocTkn 341
+#define procedureTkn 342
+#define iteratorTkn 343
+#define methodTkn 344
+#define programTkn 345
+#define unitTkn 346
+#define macroTkn 347
+#define keywordTkn 348
+#define terminatorTkn 349
+#define endmacroTkn 350
+#define endMacDefTkn 351
+#define regexMacroTkn 352
+#define endregexTkn 353
+#define endRegexDefTkn 354
+#define regexReturnTkn 355
+#define labelTkn 356
+#define endlabelTkn 357
+#define constTkn 358
+#define endconstTkn 359
+#define valTkn 360
+#define endvalTkn 361
+#define typeTkn 362
+#define endtypeTkn 363
+#define alignTkn 364
+#define varTkn 365
+#define endvarTkn 366
+#define staticTkn 367
+#define endstaticTkn 368
+#define uninitializedTkn 369
+#define endstorageTkn 370
+#define readonlyTkn 371
+#define endreadonlyTkn 372
+#define recordTkn 373
+#define endrecordTkn 374
+#define unionTkn 375
+#define endunionTkn 376
+#define classTkn 377
+#define vmtTkn 378
+#define endclassTkn 379
+#define enumTkn 380
+#define inheritsTkn 381
+#define pointerTkn 382
+#define toTkn 383
+#define downtoTkn 384
+#define externalTkn 385
+#define abstractTkn 386
+#define overloadsTkn 387
+#define overrideTkn 388
+#define overridesTkn 389
+#define forwardTkn 390
+#define returnsTkn 391
+#define atreturnsTkn 392
+#define noframeTkn 393
+#define frameTkn 394
+#define nodisplayTkn 395
+#define displayTkn 396
+#define noalignstkTkn 397
+#define alignstkTkn 398
+#define alignprocTkn 399
+#define useTkn 400
+#define useenterTkn 401
+#define noenterTkn 402
+#define useleaveTkn 403
+#define noleaveTkn 404
+#define pascalTkn 405
+#define cdeclTkn 406
+#define stdcallTkn 407
+#define nostorageTkn 408
+#define volatileTkn 409
+#define namespaceTkn 410
+#define fastTkn 411
+#define segmentTkn 412
+#define hereTkn 413
+#define atlabelTkn 414
+#define nameTkn 415
+#define valresTkn 416
+#define resultTkn 417
+#define lazyTkn 418
+#define thunkTkn 419
+#define jtTkn 420
+#define jfTkn 421
+#define ifTkn 422
+#define thenTkn 423
+#define elseifTkn 424
+#define elseTkn 425
+#define endifTkn 426
+#define switchTkn 427
+#define caseTkn 428
+#define defaultTkn 429
+#define endswitchTkn 430
+#define whileTkn 431
+#define doTkn 432
+#define endwhileTkn 433
+#define welseTkn 434
+#define repeatTkn 435
+#define untilTkn 436
+#define forTkn 437
+#define foreverTkn 438
+#define foreachTkn 439
+#define endforTkn 440
+#define felseTkn 441
+#define exitTkn 442
+#define exitifTkn 443
+#define breakTkn 444
+#define breakifTkn 445
+#define continueTkn 446
+#define continueifTkn 447
+#define tryTkn 448
+#define alwaysTkn 449
+#define unprotectedTkn 450
+#define exceptionTkn 451
+#define anyexceptionTkn 452
+#define endtryTkn 453
+#define raiseTkn 454
+#define booleanTkn 455
+#define int8Tkn 456
+#define int16Tkn 457
+#define int32Tkn 458
+#define int64Tkn 459
+#define int128Tkn 460
+#define charTkn 461
+#define wcharTkn 462
+#define real32Tkn 463
+#define real64Tkn 464
+#define real80Tkn 465
+#define real128Tkn 466
+#define uns8Tkn 467
+#define uns16Tkn 468
+#define uns32Tkn 469
+#define uns64Tkn 470
+#define uns128Tkn 471
+#define stringTkn 472
+#define wstringTkn 473
+#define zstringTkn 474
+#define csetTkn 475
+#define regexTkn 476
+#define textTkn 477
+#define byteTkn 478
+#define wordTkn 479
+#define dwordTkn 480
+#define qwordTkn 481
+#define tbyteTkn 482
+#define lwordTkn 483
+#define atint8Tkn 484
+#define atint16Tkn 485
+#define atint32Tkn 486
+#define atint64Tkn 487
+#define atint128Tkn 488
+#define atcharTkn 489
+#define atwcharTkn 490
+#define atreal32Tkn 491
+#define atreal64Tkn 492
+#define atreal80Tkn 493
+#define atuns8Tkn 494
+#define atuns16Tkn 495
+#define atuns32Tkn 496
+#define atuns64Tkn 497
+#define atuns128Tkn 498
+#define atstringTkn 499
+#define atwstringTkn 500
+#define atcsetTkn 501
+#define atbyteTkn 502
+#define atwordTkn 503
+#define atdwordTkn 504
+#define atqwordTkn 505
+#define attbyteTkn 506
+#define atlwordTkn 507
+#define atpointerTkn 508
+#define nullTkn 509
+#define absTkn 510
+#define ceilTkn 511
+#define cosTkn 512
+#define dateTkn 513
+#define envTkn 514
+#define expTkn 515
+#define extractTkn 516
+#define floorTkn 517
+#define isalphaTkn 518
+#define isalphanumTkn 519
+#define isdigitTkn 520
+#define islowerTkn 521
+#define isspaceTkn 522
+#define isupperTkn 523
+#define isxdigitTkn 524
+#define logTkn 525
+#define log10Tkn 526
+#define maxTkn 527
+#define minTkn 528
+#define modregrmTkn 529
+#define oddTkn 530
+#define randomTkn 531
+#define randomizeTkn 532
+#define readTkn 533
+#define sinTkn 534
+#define sortTkn 535
+#define sqrtTkn 536
+#define systemTkn 537
+#define tanTkn 538
+#define threadTkn 539
+#define timeTkn 540
+#define peekcsetTkn 541
+#define onecsetTkn 542
+#define uptocsetTkn 543
+#define zerooronecsetTkn 544
+#define zeroormorecsetTkn 545
+#define oneormorecsetTkn 546
+#define exactlyncsetTkn 547
+#define firstncsetTkn 548
+#define norlesscsetTkn 549
+#define normorecsetTkn 550
+#define ntomcsetTkn 551
+#define exactlyntomcsetTkn 552
+#define peekcharTkn 553
+#define onecharTkn 554
+#define uptocharTkn 555
+#define zerooronecharTkn 556
+#define zeroormorecharTkn 557
+#define oneormorecharTkn 558
+#define exactlyncharTkn 559
+#define firstncharTkn 560
+#define norlesscharTkn 561
+#define normorecharTkn 562
+#define ntomcharTkn 563
+#define exactlyntomcharTkn 564
+#define peekicharTkn 565
+#define oneicharTkn 566
+#define uptoicharTkn 567
+#define zerooroneicharTkn 568
+#define zeroormoreicharTkn 569
+#define oneormoreicharTkn 570
+#define exactlynicharTkn 571
+#define firstnicharTkn 572
+#define norlessicharTkn 573
+#define normoreicharTkn 574
+#define ntomicharTkn 575
+#define exactlyntomicharTkn 576
+#define matchstrTkn 577
+#define matchistrTkn 578
+#define uptostrTkn 579
+#define uptoistrTkn 580
+#define matchtostrTkn 581
+#define matchtoistrTkn 582
+#define zeroormorewsTkn 583
+#define oneormorewsTkn 584
+#define wsoreosTkn 585
+#define wstheneosTkn 586
+#define peekwsTkn 587
+#define eosTkn 588
+#define wsTkn 589
+#define peekstrTkn 590
+#define peekistrTkn 591
+#define matchidTkn 592
+#define matchwordTkn 593
+#define matchiwordTkn 594
+#define matchintconstTkn 595
+#define matchrealconstTkn 596
+#define matchnumericconstTkn 597
+#define matchstrconstTkn 598
+#define matchregTkn 599
+#define matchreg8Tkn 600
+#define matchreg16Tkn 601
+#define matchreg32Tkn 602
+#define matchfpuregTkn 603
+#define matchmmxregTkn 604
+#define matchxmmregTkn 605
+#define deleteTkn 606
+#define indexTkn 607
+#define insertTkn 608
+#define lengthTkn 609
+#define lowercaseTkn 610
+#define replaceTkn 611
+#define rindexTkn 612
+#define strbrkTkn 613
+#define strsetTkn 614
+#define strspanTkn 615
+#define substrTkn 616
+#define leftTkn 617
+#define leftdelTkn 618
+#define rightTkn 619
+#define rightdelTkn 620
+#define tokenizeTkn 621
+#define trimTkn 622
+#define delspacesTkn 623
+#define uppercaseTkn 624
+#define symNameTkn 625
+#define symTypeTkn 626
+#define sympTypeTkn 627
+#define symBasepTypeTkn 628
+#define symClassTkn 629
+#define symSizeTkn 630
+#define symOffsetTkn 631
+#define symLocalsymsTkn 632
+#define symParmsTkn 633
+#define symLexTkn 634
+#define symArityTkn 635
+#define symDimTkn 636
+#define symNumelementsTkn 637
+#define symDefinedTkn 638
+#define symTypeNameTkn 639
+#define symBaseTypeNameTkn 640
+#define sympClassTkn 641
+#define symStaticNameTkn 642
+#define symIsExternalTkn 643
+#define symIsConstTkn 644
+#define symIsClassTkn 645
+#define symElementSizeTkn 646
+#define symIsRegTkn 647
+#define symIsReg8Tkn 648
+#define symIsReg16Tkn 649
+#define symIsReg32Tkn 650
+#define symIsfRegTkn 651
+#define symIsMemTkn 652
+#define symIsTypeTkn 653
+#define curLexTkn 654
+#define curOffsetTkn 655
+#define curDirTkn 656
+#define addOffset1stTkn 657
+#define lineNumberTkn 658
+#define lineNumberStkTkn 659
+#define errorPrefixTkn 660
+#define filenameTkn 661
+#define fileNameStkTkn 662
+#define startParmOfsTkn 663
+#define startLclOfsTkn 664
+#define enumSizeTkn 665
+#define lastMacroObjectTkn 666
+#define curObjectNameTkn 667
+#define curVarTkn 668
+#define sectionTkn 669
+#define boundvarTkn 670
+#define intovarTkn 671
+#define traceTkn 672
+#define exceptsTkn 673
+#define optstringsTkn 674
+#define baseregTkn 675
+#define st0Tkn 676
+#define st1Tkn 677
+#define st2Tkn 678
+#define st3Tkn 679
+#define st4Tkn 680
+#define st5Tkn 681
+#define st6Tkn 682
+#define st7Tkn 683
+#define alTkn 684
+#define ahTkn 685
+#define axTkn 686
+#define eaxTkn 687
+#define blTkn 688
+#define bhTkn 689
+#define bxTkn 690
+#define ebxTkn 691
+#define clTkn 692
+#define chTkn 693
+#define cxTkn 694
+#define ecxTkn 695
+#define dlTkn 696
+#define dhTkn 697
+#define dxTkn 698
+#define edxTkn 699
+#define siTkn 700
+#define esiTkn 701
+#define diTkn 702
+#define ediTkn 703
+#define bpTkn 704
+#define ebpTkn 705
+#define spTkn 706
+#define espTkn 707
+#define mm0Tkn 708
+#define mm1Tkn 709
+#define mm2Tkn 710
+#define mm3Tkn 711
+#define mm4Tkn 712
+#define mm5Tkn 713
+#define mm6Tkn 714
+#define mm7Tkn 715
+#define xmm0Tkn 716
+#define xmm1Tkn 717
+#define xmm2Tkn 718
+#define xmm3Tkn 719
+#define xmm4Tkn 720
+#define xmm5Tkn 721
+#define xmm6Tkn 722
+#define xmm7Tkn 723
+#define csTkn 724
+#define dsTkn 725
+#define esTkn 726
+#define fsTkn 727
+#define gsTkn 728
+#define ssTkn 729
+#define cr0Tkn 730
+#define cr1Tkn 731
+#define cr2Tkn 732
+#define cr3Tkn 733
+#define cr4Tkn 734
+#define cr5Tkn 735
+#define cr6Tkn 736
+#define cr7Tkn 737
+#define dr0Tkn 738
+#define dr1Tkn 739
+#define dr2Tkn 740
+#define dr3Tkn 741
+#define dr4Tkn 742
+#define dr5Tkn 743
+#define dr6Tkn 744
+#define dr7Tkn 745
+#define dxaxTkn 746
+#define edxeaxTkn 747
+#define thisTkn 748
+#define superTkn 749
+#define cTkn 750
+#define ncTkn 751
+#define oTkn 752
+#define noTkn 753
+#define sTkn 754
+#define nsTkn 755
+#define zTkn 756
+#define nzTkn 757
+#define aTkn 758
+#define naTkn 759
+#define aeTkn 760
+#define naeTkn 761
+#define bTkn 762
+#define nbTkn 763
+#define beTkn 764
+#define nbeTkn 765
+#define eTkn 766
+#define gTkn 767
+#define ngTkn 768
+#define ngeTkn 769
+#define lTkn 770
+#define nlTkn 771
+#define nleTkn 772
+#define peTkn 773
+#define poTkn 774
+#define npTkn 775
+#define pTkn 776
+#define aaaTkn 777
+#define aadTkn 778
+#define aamTkn 779
+#define aasTkn 780
+#define adcTkn 781
+#define lockadcTkn 782
+#define addTkn 783
+#define lockaddTkn 784
+#define lockandTkn 785
+#define arplTkn 786
+#define boundTkn 787
+#define bsfTkn 788
+#define bsrTkn 789
+#define bswapTkn 790
+#define btTkn 791
+#define btcTkn 792
+#define lockbtcTkn 793
+#define btrTkn 794
+#define lockbtrTkn 795
+#define btsTkn 796
+#define lockbtsTkn 797
+#define callTkn 798
+#define cbwTkn 799
+#define cdqTkn 800
+#define clcTkn 801
+#define cldTkn 802
+#define cliTkn 803
+#define cltsTkn 804
+#define cmcTkn 805
+#define cmovoTkn 806
+#define cmovnoTkn 807
+#define cmovbTkn 808
+#define cmovnbTkn 809
+#define cmoveTkn 810
+#define cmovneTkn 811
+#define cmovbeTkn 812
+#define cmovnbeTkn 813
+#define cmovsTkn 814
+#define cmovnsTkn 815
+#define cmovpTkn 816
+#define cmovnpTkn 817
+#define cmovlTkn 818
+#define cmovnlTkn 819
+#define cmovleTkn 820
+#define cmovnleTkn 821
+#define cmpTkn 822
+#define cmpsbTkn 823
+#define cmpsdTkn 824
+#define cmpswTkn 825
+#define cmpxchgTkn 826
+#define lockcmpxchgTkn 827
+#define cmpxchg8bTkn 828
+#define cpuidTkn 829
+#define cwdTkn 830
+#define cwdeTkn 831
+#define daaTkn 832
+#define dasTkn 833
+#define decTkn 834
+#define lockdecTkn 835
+#define enterTkn 836
+#define hltTkn 837
+#define idivTkn 838
+#define imodTkn 839
+#define imulTkn 840
+#define intmulTkn 841
+#define incTkn 842
+#define lockincTkn 843
+#define insbTkn 844
+#define insdTkn 845
+#define inswTkn 846
+#define intTkn 847
+#define intoTkn 848
+#define invdTkn 849
+#define invlpgTkn 850
+#define iretTkn 851
+#define iretdTkn 852
+#define jaTkn 853
+#define jaeTkn 854
+#define jbTkn 855
+#define jbeTkn 856
+#define jcTkn 857
+#define jeTkn 858
+#define jgTkn 859
+#define jgeTkn 860
+#define jlTkn 861
+#define jleTkn 862
+#define jnaTkn 863
+#define jnaeTkn 864
+#define jnbTkn 865
+#define jnbeTkn 866
+#define jncTkn 867
+#define jneTkn 868
+#define jngTkn 869
+#define jngeTkn 870
+#define jnlTkn 871
+#define jnleTkn 872
+#define jnoTkn 873
+#define joTkn 874
+#define jnpTkn 875
+#define jnsTkn 876
+#define jnzTkn 877
+#define jpTkn 878
+#define jpeTkn 879
+#define jpoTkn 880
+#define jsTkn 881
+#define jzTkn 882
+#define jcxzTkn 883
+#define jecxzTkn 884
+#define jmpTkn 885
+#define lahfTkn 886
+#define larTkn 887
+#define leaTkn 888
+#define ldsTkn 889
+#define lesTkn 890
+#define lfsTkn 891
+#define lgsTkn 892
+#define lssTkn 893
+#define lslTkn 894
+#define lgdtTkn 895
+#define lidtTkn 896
+#define lldtTkn 897
+#define sgdtTkn 898
+#define sidtTkn 899
+#define sldtTkn 900
+#define leaveTkn 901
+#define lodsbTkn 902
+#define lodsdTkn 903
+#define lodswTkn 904
+#define loopTkn 905
+#define loopeTkn 906
+#define loopzTkn 907
+#define loopneTkn 908
+#define loopnzTkn 909
+#define lmswTkn 910
+#define ltrTkn 911
+#define strTkn 912
+#define movTkn 913
+#define movsbTkn 914
+#define movsdTkn 915
+#define movswTkn 916
+#define movsxTkn 917
+#define movzxTkn 918
+#define mulTkn 919
+#define negTkn 920
+#define locknegTkn 921
+#define nopTkn 922
+#define locknotTkn 923
+#define lockorTkn 924
+#define outTkn 925
+#define outsbTkn 926
+#define outsdTkn 927
+#define outswTkn 928
+#define popTkn 929
+#define popaTkn 930
+#define popadTkn 931
+#define popfTkn 932
+#define popfdTkn 933
+#define pushTkn 934
+#define pushaTkn 935
+#define pushadTkn 936
+#define pushdTkn 937
+#define pushfTkn 938
+#define pushfdTkn 939
+#define pushwTkn 940
+#define rclTkn 941
+#define rcrTkn 942
+#define rdmsrTkn 943
+#define rdpmcTkn 944
+#define rdtscTkn 945
+#define rsmTkn 946
+#define repmovsbTkn 947
+#define repmovswTkn 948
+#define repmovsdTkn 949
+#define repinsbTkn 950
+#define repinswTkn 951
+#define repinsdTkn 952
+#define repoutsbTkn 953
+#define repoutswTkn 954
+#define repoutsdTkn 955
+#define repstosbTkn 956
+#define repstoswTkn 957
+#define repstosdTkn 958
+#define repecmpsbTkn 959
+#define repecmpswTkn 960
+#define repecmpsdTkn 961
+#define repzcmpsbTkn 962
+#define repzcmpswTkn 963
+#define repzcmpsdTkn 964
+#define repnecmpsbTkn 965
+#define repnecmpswTkn 966
+#define repnecmpsdTkn 967
+#define repnzcmpsbTkn 968
+#define repnzcmpswTkn 969
+#define repnzcmpsdTkn 970
+#define repescasbTkn 971
+#define repescaswTkn 972
+#define repescasdTkn 973
+#define repnescasbTkn 974
+#define repnescaswTkn 975
+#define repnescasdTkn 976
+#define repzscasbTkn 977
+#define repzscaswTkn 978
+#define repzscasdTkn 979
+#define repnzscasbTkn 980
+#define repnzscaswTkn 981
+#define repnzscasdTkn 982
+#define retTkn 983
+#define rolTkn 984
+#define rorTkn 985
+#define sahfTkn 986
+#define salTkn 987
+#define sarTkn 988
+#define sbbTkn 989
+#define locksbbTkn 990
+#define scasbTkn 991
+#define scasdTkn 992
+#define scaswTkn 993
+#define setbTkn 994
+#define setnbTkn 995
+#define setzTkn 996
+#define setnzTkn 997
+#define setbeTkn 998
+#define setnbeTkn 999
+#define setoTkn 1000
+#define setnoTkn 1001
+#define setsTkn 1002
+#define setnsTkn 1003
+#define setpTkn 1004
+#define setnpTkn 1005
+#define setlTkn 1006
+#define setleTkn 1007
+#define setnlTkn 1008
+#define setnleTkn 1009
+#define shlTkn 1010
+#define shldTkn 1011
+#define shrTkn 1012
+#define shrdTkn 1013
+#define smswTkn 1014
+#define stcTkn 1015
+#define stdTkn 1016
+#define stiTkn 1017
+#define stosbTkn 1018
+#define stosdTkn 1019
+#define stoswTkn 1020
+#define subTkn 1021
+#define sysenterTkn 1022
+#define sysexitTkn 1023
+#define locksubTkn 1024
+#define testTkn 1025
+#define ud2Tkn 1026
+#define verrTkn 1027
+#define verwTkn 1028
+#define waitTkn 1029
+#define wbinvdTkn 1030
+#define wrmsrTkn 1031
+#define xaddTkn 1032
+#define lockxaddTkn 1033
+#define xchgTkn 1034
+#define lockxchgTkn 1035
+#define xlatTkn 1036
+#define xorTkn 1037
+#define lockxorTkn 1038
+#define fldTkn 1039
+#define fildTkn 1040
+#define fbldTkn 1041
+#define fstTkn 1042
+#define fstpTkn 1043
+#define fistTkn 1044
+#define fistpTkn 1045
+#define fisttpTkn 1046
+#define fbstpTkn 1047
+#define fxchTkn 1048
+#define fxamTkn 1049
+#define faddTkn 1050
+#define faddpTkn 1051
+#define fiaddTkn 1052
+#define fmulTkn 1053
+#define fmulpTkn 1054
+#define fimulTkn 1055
+#define fsubTkn 1056
+#define fsubpTkn 1057
+#define fsubrTkn 1058
+#define fsubrpTkn 1059
+#define fisubTkn 1060
+#define fisubrTkn 1061
+#define fdivTkn 1062
+#define fdivpTkn 1063
+#define fdivrTkn 1064
+#define fdivrpTkn 1065
+#define fidivTkn 1066
+#define fidivrTkn 1067
+#define fcomTkn 1068
+#define fcompTkn 1069
+#define fcomppTkn 1070
+#define ficomTkn 1071
+#define ficompTkn 1072
+#define fucomTkn 1073
+#define fucompTkn 1074
+#define fucomppTkn 1075
+#define fsqrtTkn 1076
+#define fabsTkn 1077
+#define fchsTkn 1078
+#define ftstTkn 1079
+#define fscaleTkn 1080
+#define fpremTkn 1081
+#define fprem1Tkn 1082
+#define frndintTkn 1083
+#define fxtractTkn 1084
+#define fldzTkn 1085
+#define fld1Tkn 1086
+#define fldpiTkn 1087
+#define fldl2tTkn 1088
+#define fldl2eTkn 1089
+#define fldlg2Tkn 1090
+#define fldln2Tkn 1091
+#define f2xm1Tkn 1092
+#define fsinTkn 1093
+#define fcosTkn 1094
+#define fsincosTkn 1095
+#define fptanTkn 1096
+#define fpatanTkn 1097
+#define fyl2xTkn 1098
+#define fyl2xp1Tkn 1099
+#define finitTkn 1100
+#define fninitTkn 1101
+#define fwaitTkn 1102
+#define fldcwTkn 1103
+#define fstcwTkn 1104
+#define fnstcwTkn 1105
+#define fclexTkn 1106
+#define fnclexTkn 1107
+#define fldenvTkn 1108
+#define fstenvTkn 1109
+#define fnstenvTkn 1110
+#define fsaveTkn 1111
+#define fnsaveTkn 1112
+#define frstorTkn 1113
+#define fstswTkn 1114
+#define fnstswTkn 1115
+#define fincstpTkn 1116
+#define fdecstpTkn 1117
+#define fnopTkn 1118
+#define ffreeTkn 1119
+#define fcmovaTkn 1120
+#define fcmovaeTkn 1121
+#define fcmovbTkn 1122
+#define fcmovbeTkn 1123
+#define fcmoveTkn 1124
+#define fcmovnaTkn 1125
+#define fcmovnaeTkn 1126
+#define fcmovnbTkn 1127
+#define fcmovnbeTkn 1128
+#define fcmovneTkn 1129
+#define fcmovnuTkn 1130
+#define fcmovuTkn 1131
+#define fcomiTkn 1132
+#define fcomipTkn 1133
+#define fucomiTkn 1134
+#define fucomipTkn 1135
+#define paddbTkn 1136
+#define paddwTkn 1137
+#define padddTkn 1138
+#define paddqTkn 1139
+#define paddsbTkn 1140
+#define paddswTkn 1141
+#define paddusbTkn 1142
+#define padduswTkn 1143
+#define psubbTkn 1144
+#define psubwTkn 1145
+#define psubdTkn 1146
+#define psubqTkn 1147
+#define psubsbTkn 1148
+#define psubswTkn 1149
+#define psubusbTkn 1150
+#define psubuswTkn 1151
+#define pmullwTkn 1152
+#define pmulhwTkn 1153
+#define pmulhuwTkn 1154
+#define pmuludqTkn 1155
+#define pmaddwdTkn 1156
+#define pmaxswTkn 1157
+#define pmaxubTkn 1158
+#define pminswTkn 1159
+#define pminubTkn 1160
+#define psadbwTkn 1161
+#define pextrwTkn 1162
+#define pinsrwTkn 1163
+#define pmovmskbTkn 1164
+#define pshufwTkn 1165
+#define pshufdTkn 1166
+#define pavgbTkn 1167
+#define pavgwTkn 1168
+#define pcmpeqbTkn 1169
+#define pcmpeqwTkn 1170
+#define pcmpeqdTkn 1171
+#define pcmpgtbTkn 1172
+#define pcmpgtwTkn 1173
+#define pcmpgtdTkn 1174
+#define packsswbTkn 1175
+#define packuswbTkn 1176
+#define packssdwTkn 1177
+#define punpcklbwTkn 1178
+#define punpcklwdTkn 1179
+#define punpckldqTkn 1180
+#define punpcklqdqTkn 1181
+#define punpckhbwTkn 1182
+#define punpckhwdTkn 1183
+#define punpckhdqTkn 1184
+#define punpckhqdqTkn 1185
+#define pandTkn 1186
+#define pandnTkn 1187
+#define porTkn 1188
+#define pxorTkn 1189
+#define psllwTkn 1190
+#define pslldTkn 1191
+#define psllqTkn 1192
+#define psrlwTkn 1193
+#define psrldTkn 1194
+#define psrlqTkn 1195
+#define psrawTkn 1196
+#define psradTkn 1197
+#define movdTkn 1198
+#define movqTkn 1199
+#define emmsTkn 1200
+#define addpdTkn 1201
+#define addsdTkn 1202
+#define addpsTkn 1203
+#define addssTkn 1204
+#define addsubpsTkn 1205
+#define addsubpdTkn 1206
+#define andnpdTkn 1207
+#define andnpsTkn 1208
+#define andpdTkn 1209
+#define andpsTkn 1210
+#define clflushTkn 1211
+#define cmppdTkn 1212
+#define cmppsTkn 1213
+#define cmpssTkn 1214
+#define cmpeqssTkn 1215
+#define cmplessTkn 1216
+#define cmpltssTkn 1217
+#define cmpneqssTkn 1218
+#define cmpnltssTkn 1219
+#define cmpnlessTkn 1220
+#define cmpordssTkn 1221
+#define cmpunordssTkn 1222
+#define cmpeqsdTkn 1223
+#define cmplesdTkn 1224
+#define cmpltsdTkn 1225
+#define cmpneqsdTkn 1226
+#define cmpnltsdTkn 1227
+#define cmpnlesdTkn 1228
+#define cmpordsdTkn 1229
+#define cmpunordsdTkn 1230
+#define cmpeqpsTkn 1231
+#define cmplepsTkn 1232
+#define cmpltpsTkn 1233
+#define cmpneqpsTkn 1234
+#define cmpnltpsTkn 1235
+#define cmpnlepsTkn 1236
+#define cmpordpsTkn 1237
+#define cmpunordpsTkn 1238
+#define cmpeqpdTkn 1239
+#define cmplepdTkn 1240
+#define cmpltpdTkn 1241
+#define cmpneqpdTkn 1242
+#define cmpnltpdTkn 1243
+#define cmpnlepdTkn 1244
+#define cmpordpdTkn 1245
+#define cmpunordpdTkn 1246
+#define comisdTkn 1247
+#define comissTkn 1248
+#define cvtdq2pdTkn 1249
+#define cvtdq2psTkn 1250
+#define cvtpd2dqTkn 1251
+#define cvtpd2piTkn 1252
+#define cvtpd2psTkn 1253
+#define cvtpi2pdTkn 1254
+#define cvtpi2psTkn 1255
+#define cvtps2dqTkn 1256
+#define cvtps2pdTkn 1257
+#define cvtps2piTkn 1258
+#define cvtsd2siTkn 1259
+#define cvtsi2sdTkn 1260
+#define cvtsi2ssTkn 1261
+#define cvtsd2ssTkn 1262
+#define cvtss2sdTkn 1263
+#define cvtss2siTkn 1264
+#define cvttpd2piTkn 1265
+#define cvttpd2dqTkn 1266
+#define cvttps2dqTkn 1267
+#define cvttps2piTkn 1268
+#define cvttsd2siTkn 1269
+#define cvttss2siTkn 1270
+#define divpdTkn 1271
+#define divpsTkn 1272
+#define divssTkn 1273
+#define divsdTkn 1274
+#define fxsaveTkn 1275
+#define fxrstorTkn 1276
+#define haddpdTkn 1277
+#define haddpsTkn 1278
+#define hsubpdTkn 1279
+#define hsubpsTkn 1280
+#define lddquTkn 1281
+#define ldmxcsrTkn 1282
+#define lfenceTkn 1283
+#define maskmovdquTkn 1284
+#define maskmovqTkn 1285
+#define maxpdTkn 1286
+#define maxpsTkn 1287
+#define maxsdTkn 1288
+#define maxssTkn 1289
+#define mfenceTkn 1290
+#define minpdTkn 1291
+#define minpsTkn 1292
+#define minsdTkn 1293
+#define minssTkn 1294
+#define monitorTkn 1295
+#define movapdTkn 1296
+#define movapsTkn 1297
+#define movddupTkn 1298
+#define movdqaTkn 1299
+#define movdquTkn 1300
+#define movdq2qTkn 1301
+#define movhlpsTkn 1302
+#define movhpdTkn 1303
+#define movhpsTkn 1304
+#define movlpdTkn 1305
+#define movlpsTkn 1306
+#define movlhpsTkn 1307
+#define movmskpdTkn 1308
+#define movmskpsTkn 1309
+#define movntpdTkn 1310
+#define movntiTkn 1311
+#define movntpsTkn 1312
+#define movntdqTkn 1313
+#define movntqTkn 1314
+#define movq2dqTkn 1315
+#define movshdupTkn 1316
+#define movsldupTkn 1317
+#define movssTkn 1318
+#define movupdTkn 1319
+#define movupsTkn 1320
+#define mulpdTkn 1321
+#define mulpsTkn 1322
+#define mulssTkn 1323
+#define mulsdTkn 1324
+#define mwaitTkn 1325
+#define orpdTkn 1326
+#define orpsTkn 1327
+#define pauseTkn 1328
+#define prefetcht0Tkn 1329
+#define prefetcht1Tkn 1330
+#define prefetcht2Tkn 1331
+#define prefetchntaTkn 1332
+#define pshufhwTkn 1333
+#define pshuflwTkn 1334
+#define psrldqTkn 1335
+#define pslldqTkn 1336
+#define rcppsTkn 1337
+#define rcpssTkn 1338
+#define rsqrtpsTkn 1339
+#define rsqrtssTkn 1340
+#define sfenceTkn 1341
+#define shufpdTkn 1342
+#define shufpsTkn 1343
+#define sqrtpdTkn 1344
+#define sqrtpsTkn 1345
+#define sqrtsdTkn 1346
+#define sqrtssTkn 1347
+#define stmxcsrTkn 1348
+#define subpsTkn 1349
+#define subpdTkn 1350
+#define subsdTkn 1351
+#define subssTkn 1352
+#define ucomisdTkn 1353
+#define ucomissTkn 1354
+#define unpckhpdTkn 1355
+#define unpckhpsTkn 1356
+#define unpcklpdTkn 1357
+#define unpcklpsTkn 1358
+#define xorpdTkn 1359
+#define xorpsTkn 1360
+#define parsePrintTkn 1361
+#define parseHLAIDTkn 1362
+#define parseClassIDTkn 1363
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 949 "hlaparse.bsn"
+#line 948 "hlaparse.bsn"
 {
 	unsigned				u;
 	int						i;
@@ -2455,7 +2467,7 @@ typedef union YYSTYPE
 	
 }
 /* Line 1489 of yacc.c.  */
-#line 2459 "hlaparse.h"
+#line 2471 "hlaparse.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

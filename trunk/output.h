@@ -164,6 +164,17 @@ extern void EncodeAdrs
 	unsigned		masmSwap
 );
 
+extern void EncodeHLAAdrs
+(
+	struct adrsYYS	*adrs,
+	unsigned 		*modRm,
+	unsigned 		*hasSib,
+	unsigned 		*sib,
+	unsigned 		*dispType,
+	int 			*disp,
+	char 			*dispLabel
+);
+
 extern int CheckDisp( union YYSTYPE *disp );
 extern void initAdrs
 ( 

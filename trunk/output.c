@@ -30004,3 +30004,249 @@ _begin( EmitModRegRm )
 	_endswitch 
 
 _end( EmitModRegRm )
+
+
+
+
+
+void 
+EncodeHLAAdrs
+(
+	padrsYYS 	adrs,
+	unsigned 	*modRm,
+	unsigned 	*hasSib,
+	unsigned 	*sib,
+	unsigned 	*dispType,
+	int 		*disp,
+	char 		*dispLabel
+)
+_begin( EncodeHLAAdrs )
+
+	char *indexReg;
+	char *baseReg;
+	char *staticName;
+	unsigned iReg;
+	unsigned bReg;
+	unsigned tempReg;
+	unsigned scale;
+
+	_here;
+	assert( modRm != NULL );
+	assert( hasSib != NULL );
+	assert( sib != NULL );
+	assert( dispType != NULL );
+	assert( disp != NULL );
+	assert( dispLabel != NULL );
+
+	scale = adrs->Scale;
+	indexReg = 
+		_ifx
+		( 
+			adrs->IndexReg == NULL || adrs->IndexReg[0] == '\0',
+			NULL,
+			adrs->IndexReg
+		);
+
+	baseReg = 
+		_ifx
+		( 
+			adrs->BaseReg == NULL || adrs->BaseReg[0] == '\0',
+			NULL,
+			adrs->BaseReg
+		);
+		
+	// TASM/NASM translates Index*1 to Base if there is no base register.
+	
+	_if( assembler == tasm || assembler == nasm )
+	
+		_if( baseReg == NULL && indexReg != NULL )
+		
+			_if( scale == 1 )
+		
+				baseReg = indexReg;
+				indexReg = NULL;
+				scale = 0;
+				
+			_elseif( scale == 2 && assembler == nasm )
+			
+				// NASM converts [reg*2] to [reg+reg]:
+				
+				baseReg = indexReg;
+				scale = 1;
+				
+			_endif
+			
+		_endif
+		
+	
+	_endif
+
+	// indexReg should never be ESP. The HLA grammar should prevent this.
+
+	iReg = encodeReg( indexReg );
+	assert( iReg != encode_ESP );
+
+	bReg = encodeReg( baseReg );
+
+	staticName = 
+		_ifx
+		(
+				adrs->Sym == NULL 
+			||	adrs->Sym->TrueName == NULL 
+			||	adrs->Sym->TrueName[0] == '\0',
+			NULL,
+			adrs->Sym->TrueName
+		);
+
+	*modRm = 0;
+	*hasSib = 0;
+	*sib = 0;
+	*dispType = encode_disp_0;
+	*disp = 0;
+	*dispLabel = '\0';
+	
+	
+
+	///// Set up the MOD field of the mod-reg-r/m byte:
+
+	_if( staticName != NULL )
+
+		// We have a label.
+
+		*dispType = encode_disp_sym;
+		*disp = adrs->Disp;
+		sprintf( dispLabel, "&%s[%d]", staticName, *disp );
+		_if( bReg == no_reg )
+
+			*modRm = 0;
+			bReg = encode_EBP;
+
+		_else
+
+			*modRm = 0x80;
+
+		_endif
+
+	_else
+		
+		*disp = adrs->Disp;
+		_if( bReg == no_reg && iReg == no_reg )
+
+			// Kludge for displacement-only/no-base addressing mode
+
+			*dispType = encode_disp_4;
+			*modRm = 0;
+			bReg = encode_EBP;
+
+		_elseif( *disp == 0 )
+
+			_if( bReg == encode_EBP  )
+
+				// Kludge! If [EBP] addressing mode,
+				// we have to force [EBP+disp] because
+				// [EBP] is used for the displacement-only
+				// addressing mode.
+
+				*dispType = encode_disp_1;
+				*modRm = 0x40;	// MOD = %01;
+
+			_else
+
+				*dispType = encode_disp_0;
+				// MOD = %00
+
+			_endif
+
+
+		_elseif( *disp >= -128 && *disp <= 127  )
+
+			*dispType =  encode_disp_1;
+			*modRm = 0x40; // MOD = %01.
+
+		_else
+
+			*dispType = encode_disp_4;
+			*modRm = 0x80; // MOD = %10.
+
+		_endif
+
+	_endif
+	
+	
+
+
+	//// Set up the SIB byte here:
+
+	// Set up the scaling for the SIB byte (may not be necessary, but
+	// it's convenient to do it here).
+
+	*sib =
+		_ifx( scale == 8, 0xc0,
+			_ifx( scale == 4, 0x80,
+				_ifx( scale == 2, 0x40,	
+					/* assume scale == 1 */ 0 )));
+
+	_if( bReg == encode_ESP )
+
+		// We have to handle ESP has a special case. The encoding
+		// for ESP as a base register requires an SIB byte.
+
+		*hasSib = 1;
+		_if( iReg == no_reg )
+		
+			*sib |= no_index_reg | encode_ESP;
+			
+		_else
+		
+			*sib |= (iReg<<3) | encode_ESP;
+			
+		_endif  
+
+	_elseif( iReg != no_reg )
+
+		// We have an index register and, therefore,
+		// an SIB addressing mode (or the base register is
+		// ESP, which forces an SIB byte).
+		//
+		// Note that the HLA grammar for addressing modes
+		// will automatically swap the index and base registers
+		// if ESP is specified as the second register in the
+		// mode without an explicit scale. Therefore, iReg will
+		// never be ESP at this point (unless there was a syntax
+		// error, which has already been caught).
+
+		*hasSib = 1;
+		_if( bReg == no_reg )
+		
+			// If there is no base register, then we've got to
+			// use EBP as the base register with a 4-byte
+			// displacement (which is the only way to get
+			// an addressing mode like "[ecx*2]").
+			
+			*sib |= (iReg<<3) | encode_EBP;
+			*modRm = 4; // MOD = %00, SIB.
+			*dispType = encode_disp_4;
+		
+		_else
+		
+			*sib |= (iReg<<3) | bReg;
+			
+		_endif
+
+	_endif
+
+
+	///// Now set up the r/m field of the mod-reg-r/m byte:
+
+	_if( *hasSib )
+
+		*modRm |= encode_sib;	// SIB indication
+
+	_elseif( bReg != no_reg )
+
+		*modRm |= bReg;
+
+	_endif
+							
+_end( EncodeHLAAdrs )
+

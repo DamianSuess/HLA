@@ -1,8 +1,7 @@
 %pure_parser													 
-			   		   		   			 			 
 				  		  						 
-/*****************************/				  
-/*                           */
+/*****************************/				  		 
+/*                           */									 
 /*                           */					 
 /* Parser and compiler code. */
 /* Randall Hyde              */
@@ -1258,6 +1257,9 @@ union	YYSTYPE		forReturnVal;
 %token	stringblockTkn
 %token	endstringTkn
 
+%token	scanblockTkn
+%token	endscanTkn
+
 %token	matchblockTkn
 %token	endmatchTkn
 
@@ -1441,7 +1443,7 @@ union	YYSTYPE		forReturnVal;
 %token	isalphaTkn isalphanumTkn
 %token	isdigitTkn islowerTkn isspaceTkn isupperTkn
 %token	isxdigitTkn logTkn log10Tkn
-%token	maxTkn minTkn oddTkn randomTkn
+%token	maxTkn minTkn modregrmTkn oddTkn randomTkn
 %token	randomizeTkn readTkn 
 %token  sinTkn sortTkn sqrtTkn systemTkn
 %token	tanTkn threadTkn timeTkn
@@ -1545,7 +1547,8 @@ union	YYSTYPE		forReturnVal;
 %token	rightTkn	  
 %token	rightdelTkn	  
 %token	tokenizeTkn 
-%token	trimTkn	  
+%token	trimTkn	
+%token	delspacesTkn  
 %token	uppercaseTkn
 
  /*
@@ -1684,11 +1687,8 @@ union	YYSTYPE		forReturnVal;
 %token dxaxTkn
 %token edxeaxTkn
 
-/*
-** the following is processed completely by the lexer:
-
 %token thisTkn
-*/
+%token superTkn
 
 %token cTkn
 %token ncTkn
@@ -2482,6 +2482,7 @@ ParserEntry:
 
 	|	doPrint
 
+
 		/*
 		** The following production collects all the text between
 		** the #text and #endtext directives and places this text
@@ -2497,6 +2498,13 @@ ParserEntry:
 		*/
 
 	|	doStringBlock
+
+
+		/*
+		** The following production processes the #scan statement.
+		*/
+
+	|	doScanBlock
 
 		/*
 		** The following production collects all the text between
@@ -2866,6 +2874,9 @@ GetText:
 
 
 
+
+
+
 /**************************************************************************/
 
  /*
@@ -2923,6 +2934,12 @@ GetString:
 
 
 
+	
+
+
+/**************************************************************************/
+
+	
 /**************************************************************************/
 
  /*
@@ -2958,6 +2975,81 @@ GetMatch:
 			_here;
 			startGetMatchBlock();
 			_here;
+		}
+	;
+
+
+
+/**************************************************************************/
+
+ /*
+ ** doScanBlock-
+ **
+ **	A recursive entry to the parse that handles the #scan sequence:
+ **
+ **		#scan( string, StrArrayID )
+ **
+ **	This production converts each token in the 1st string argument
+ ** to a lexeme string and stores each of these lexemes in the
+ ** VAL string array specified by StrArrayID.
+ */
+
+makeValID:
+		lclUndefID
+		{
+			union YYSTYPE v;
+			
+			// Create a dummy entry that we can change:
+			
+			ClrConst
+			(
+				YYS &v,
+				tUns32,
+				&uns32_ste
+			);
+			
+			InsertSym
+			(
+				$<idStr>1,
+				&uns32_ste,
+				tUns32,
+				cValue,
+				0,						/* Arity 			*/
+				NULL,					/* Dimensions		*/
+				0,						/* NumElements		*/
+				&v,						/* The Value		*/
+				4,						/* Object Size		*/
+				0,						/* Current Offset	*/
+				NULL,					/* Static Name		*/
+				NULL,					/* Base				*/
+				NULL,					/* Fields			*/
+				0						/* FieldCnt			*/
+			);
+			$<s>$ = SymbolTable;
+		
+		}
+
+	|	DefinedID
+		{
+			$<s>$ = $<s>1;
+		
+		}
+	;
+	
+doScanBlock:
+		scanblockTkn	/* $1 */
+		Lparen			/* $2 */
+		ConstOnlyExpr	/* $3 */
+		comma			/* $4 */
+		makeValID		/* $5 */
+		comma			/* $6 */
+		makeValID		/* $7 */
+		Rparen			/* $8 */
+		{				/* $9 */
+
+			_here;
+			doScanBlock(  &yylval, YYS &$<v>3, $<s>5, $<s>7 ); 
+			YYACCEPT
 		}
 	;
 
@@ -29262,25 +29354,9 @@ procs:	procedureTkn		/* $1  */
 			);
 				
 			yyerror( msg );
-			free2( vss $<idStr>12 );
 
-			/*
-			** Undo the stuff done by PatchLocals.
-			** (PatchLocals isn't really used by this
-			** production, it appears simply to eliminate
-			** shift/reduce conflicts).
-			*/
-
-			SymbolTable = $<s>7;
-			--CurLexLevel;
-			
-			/*
-			** Restore currentNS
-			*/
-			
-			currentNS = $<s>1;
 			(void)$<idStr>11; // Shut up bison
-			_here;
+			exit( 1 );
 		}
 	;
 
@@ -66441,6 +66517,129 @@ MinConstList:	ConstOnlyExpr
 
 
 
+modRegRmMem:
+			fMemory
+			{
+				_here;
+				$<adrs>$ = $<adrs>1;
+			}
+			
+		|	fAnonMem
+			{
+				_here;
+				$<adrs>$ = $<adrs>1;
+				$<adrs.Sym>$ = NULL;
+			}
+
+
+ConstFunc:	modregrmTkn		// $1  
+			Lparen			// $2  
+			ConstExpr		// $3
+			comma			// $4
+			modRegRmMem		// $5 
+			Rparen			// $6
+			{
+				unsigned		modRM;
+				unsigned		hasSib;
+				unsigned		sib;
+				unsigned		dispType;
+				int				disp;
+				char			sibStr[32];
+				char			dispLabel[256];
+				char			dispStr[ 512];
+				char			rsltStr[1024];
+				union	YYSTYPE value;
+				
+				_here;
+				_if( !checkSmallInt( YYS &$<v>3 ) || $<v.u.unsval>3 > 7 )
+
+					yyerror( "First operand must be in the range 0..7" );
+					strcpy( rsltStr, "" );
+
+				_else
+				
+					EncodeHLAAdrs
+					(
+						&$<adrs>5,
+						&modRM,
+						&hasSib,
+						&sib,
+						&dispType,
+						&disp,
+						dispLabel
+					);
+					_if( hasSib )
+					
+						sprintf( sibStr, " byte $%x;\n", sib );
+						
+					_else
+					
+						strcpy( sibStr, "" );
+						
+					_endif
+					_switch( dispType )
+					
+						_case( 0 )
+						
+							strcpy( dispStr, "" );
+							
+						_endcase
+						
+						_case( 1 )
+						
+							sprintf( dispStr, " byte %d;\n", disp );
+							
+						_endcase
+						
+						_case( 2 )
+						
+							sprintf( dispStr, " dword %d;\n", disp );
+							
+						_endcase
+						
+						_case( 3 )
+						
+							sprintf( dispStr, " dword %s;\n", dispLabel );
+							
+						_endcase
+						
+						_default
+						
+							yyerror
+							( 
+								"Bad EncodeAdrs dispType (internal HLA error)" 
+							);
+							strcpy( dispStr, "" );
+							
+					_endswitch
+					sprintf
+					(
+						rsltStr,
+						" byte $%x;\n"		// mod-reg-r/m
+						"%s"				// sib
+						"%s",				// disp
+						modRM,
+						sibStr,
+						dispStr
+					);
+					
+				_endif
+				value.v.u.strval = hlastrdup2( rsltStr );
+				SetConst
+				( 
+					YYS &$<v>$, 
+					tString, 
+					&string_ste,
+					YYS &value
+				);				
+				_here;
+			}
+						
+		;
+
+
+
+
 
 
 ConstFunc:	oddTkn Lparen ConstOnlyExpr Rparen
@@ -67552,20 +67751,33 @@ ConstFunc:
 	;
 
 
+ConstFunc:	
+		delspacesTkn 
+		Lparen 
+		ConstOnlyExpr 
+		comma 
+		ConstOnlyExpr 
+		Rparen
+		{
+			_here;
+			DelSpacesFunc
+			( 
+				YYS &$<v>$, 
+				YYS &$<v>3, 
+				YYS &$<v>5 
+			);
+			_here;
+		}
+	;
+
+
 ConstFunc:	trimTkn Lparen error Rparen
 			{
 				union	YYSTYPE value;
 
 				yyerror( "Error in @TRIM function [trim(s,i)]" );
+				exit( 1 );
 
-				value.v.u.strval = hlastrdup2( "" );
-				SetConst
-				( 
-					YYS &$<v>$, 
-					tString, 
-					&string_ste,
-					YYS &value
-				);
 			}
 		;
 
@@ -78252,6 +78464,11 @@ SingleStmt:
 		}
 	;
 	
+
+
+
+
+
 	
 
 
@@ -101352,22 +101569,7 @@ MemoryDest:
 				__LINE__,
 				__FILE__ 
 			);
-			$<adrs.Size>$ = 1;
-			$<adrs.forcedSize>$ = 0;
-			$<adrs.ObjectSize>$ = 1;
-			$<adrs.StaticName>$ = NULL;
-			$<adrs.regnum>$ = -1;
-			$<adrs.BaseReg>$ = NULL;
-			$<adrs.IndexReg>$ = NULL;
-			$<adrs.Scale>$ = 0;
-			$<adrs.Disp>$ = 0;
-			$<adrs.regnum>$ = -1;
-			$<adrs.Sym>$ = &false_ste;
-			$<adrs.Type>$ = &boolean_ste;
-			$<adrs.pType>$ = tBoolean;		/* No real type 	*/
-			$<adrs.pClass>$ = valp_pc;		/* No real pClass	*/
-			$<adrs.SymClass>$ = cStatic;	/* No real class	*/
-			_here;
+			exit( 1 );
 		}
 	;
 
@@ -101382,22 +101584,7 @@ MemoryDest:
 				__LINE__,
 				__FILE__ 
 			);
-			$<adrs.Size>$ = 1;
-			$<adrs.forcedSize>$ = 0;
-			$<adrs.ObjectSize>$ = 1;
-			$<adrs.StaticName>$ = NULL;
-			$<adrs.regnum>$ = -1;
-			$<adrs.BaseReg>$ = NULL;
-			$<adrs.IndexReg>$ = NULL;
-			$<adrs.Scale>$ = 0;
-			$<adrs.Disp>$ = 0;
-			$<adrs.regnum>$ = -1;
-			$<adrs.Sym>$ = &false_ste;
-			$<adrs.Type>$ = &boolean_ste;
-			$<adrs.pType>$ = tBoolean;		/* No real type 	*/
-			$<adrs.pClass>$ = valp_pc;		/* No real pClass	*/
-			$<adrs.SymClass>$ = cStatic;	/* No real class	*/
-			_here;
+			exit( 1 );
 		}
 	;
 
@@ -103132,7 +103319,7 @@ SimpleMemoryVar:
 		{
 			_here;
 			free2( vss CurVar );
-			strcpy( CurVar, $<s>1->TrueName );
+			CurVar = hlastrdup2( $<s>1->TrueName );
 			
 			SetReferenced( $<s>1 );
 			_if

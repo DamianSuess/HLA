@@ -4853,6 +4853,87 @@ _end( TokenizeFunc )
 
 /***********************************************/
 /*                                             */
+/* DelSpacesFunc-                              */
+/*                                             */
+/* Removes leading spaces fromthe specified    */
+/* string, returning the result.               */
+/*                                             */
+/***********************************************/
+
+void
+DelSpacesFunc
+( 
+	union YYSTYPE *Result, 
+	union YYSTYPE *Value,
+	union YYSTYPE *StartPos
+)
+_begin( TrimFunc )
+
+	int			Start;
+	char		*str;
+	int			endstr;
+
+	assert( Result != NULL );
+	assert( Value != NULL );
+	assert( StartPos != NULL );
+	
+	Result->v.SymClass = cConstant;
+	_if
+	( 
+			IsStr( Value->v.pType ) 
+		&&	checkSmallUns( StartPos )
+	)
+
+	   	assert( Value->v.u.strval != NULL );
+		Start = StartPos->v.u.intval;
+		SetConst
+		( 
+			Result, 
+			tString, 
+			&string_ste,
+			Value
+		);
+		_if( Start >= 0 &&	Start < strlen( Value->v.u.strval ))
+
+			/*
+			** Okay, remove all the leading spaces
+			** from the string.
+			*/
+
+			str = Value->v.u.strval + Start;	/* Go to specified start posn */
+
+			/*
+			** Remove leading spaces.
+			*/
+
+			_while( isspace( *str ) )
+
+				++str;
+
+			_endwhile;
+			Result->v.u.strval = hlastrdup2( str );
+
+		_endif
+
+	_else
+
+		yyerror( "Type mismatch in operands" );
+		Result->v.pType = tString;
+		Result->v.Type = &string_ste;
+		Result->v.u.strval = hlastrdup2( "" );
+
+	_endif
+
+	FreeValue( Value );
+	FreeValue( StartPos );
+
+
+_end( TrimFunc )
+
+
+
+/***********************************************/
+/*                                             */
 /* TrimFunc-                                   */
 /*                                             */
 /* Removes leading and trailing spaces from    */
