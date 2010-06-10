@@ -1,5 +1,5 @@
 %{
-
+													   
 /*
 ** Allow for a recursive version of Bison parser.
 */
@@ -71,7 +71,8 @@
  ** 240/E0 - Process #string( id ) .. #endstring block.               
  ** 239/DF - Process #match( id ) .. #endmatch block.
  ** 238/DE - Return "ovldClassTkn".               
- ** 237/DD - Sets "delayCollect" to zero.               
+ ** 237/DD - Sets "delayCollect" to zero.
+ ** 236/DC - Process #scan( string, id )
  */
 
 
@@ -140,7 +141,8 @@ int TotalLines = 1;
 int SkipLookup = 0;
 int superPrefix = 0;
 
-static int StartParm;
+static int	StartParm;
+static int 	inScan = 0;
 
 
 static char numstr[256];
@@ -319,6 +321,20 @@ static struct TextList      *TextHead;
 static struct TextList      *TextTail;
 
 /*
+** Variables used to process #scan blocks.
+*/
+
+struct ScanList
+{
+    struct ScanList *next;
+    char            *line;
+	int				token;
+};
+
+static struct ScanList      *ScanHead;
+static struct ScanList      *ScanTail;
+
+/*
 ** Variable used to process #string..#endstring blocks
 */
 
@@ -487,6 +503,7 @@ p_endif         	#endif
 p_endmacro      	#endmacro
 p_endmatch			#endmatch
 p_endregex      	#endregex
+p_endscan			#endscan
 p_endstring			#endstring
 p_endtext       	#endtext
 p_endwhile      	#endwhile
@@ -506,6 +523,7 @@ p_print         	#print
 p_regex         	#regex
 p_return        	#return
 p_rw            	#rw
+p_scan				#scan
 p_string			#string
 p_system        	#system
 p_terminator    	#terminator
@@ -547,7 +565,8 @@ a_curvar	 		@curvar
 a_date       	    @date       
 a_debughla		    @debughla
 a_defined    		@defined    
-a_delete   			@delete   
+a_delete   			@delete 
+a_delspaces			@delspaces  
 a_dim        		@dim        
 a_display           @display        
 a_dword			    @dword
@@ -645,6 +664,7 @@ a_matchword			@matchword
 a_max        	    @max        
 a_min        	    @min        
 a_mmxreg			@mmxreg
+a_modregrm			@modregrm
 a_na			    @na
 a_nae			    @nae
 a_name       		@name       
@@ -4943,7 +4963,7 @@ _zstring		zstring
                     char    path[ 256];
 
                     /*
-                    ** Get the string expression that follows #include
+                    ** Get the string expression that follows #includeOnce
                     ** (the expression must be surrounded by parens).
                     */
 
@@ -5290,6 +5310,26 @@ _zstring		zstring
                         _here;
                         _return endtextTkn;
                     }
+
+
+
+
+
+ /*
+ ** Code to handle the #SCAN directive goes here.
+ */
+
+
+\xDC				{ _return scanblockTkn; }
+
+{p_scan}            {
+                        _here;
+                        PushBackStr( "\xDC" );
+                        yyparse();	
+                        _here;
+					}
+{p_endscan}			{	_return endscanTkn;		}
+
 
 
 
@@ -8172,6 +8212,7 @@ _zstring		zstring
 {a_log10}          { _return log10Tkn;             }
 {a_max}            { _return maxTkn;               }
 {a_min}            { _return minTkn;               }
+{a_modregrm}	   { _return modregrmTkn;		   }
 {a_odd}            { _return oddTkn;               }
 {a_random}         { _return randomTkn;            }
 {a_randomize}      { _return randomizeTkn;         }
@@ -8189,6 +8230,7 @@ _zstring		zstring
  */
 
 {a_delete}         { _return deleteTkn;            }
+{a_delspaces}	   { _return delspacesTkn;		   }
 {a_index}          { _return indexTkn;             }
 {a_insert}         { _return insertTkn;            }
 {a_left}		   { _return leftTkn;			   }
@@ -8839,6 +8881,8 @@ _zstring		zstring
         }
 
 
+
+
  /*
  ** If a 0xDF byte comes along, we need to call the parser to
  ** process the #match( ID ) .. #endmatch block.
@@ -8954,6 +8998,7 @@ _zstring		zstring
 
 {_this}             {
                         _here;
+						_returnif( inScan ) thisTkn;
                         _if( ThisPtr == NULL )
 
                             yyerror
@@ -9164,6 +9209,7 @@ _zstring		zstring
 
 {_super}             {
                         _here;
+						_returnif( inScan ) superTkn;
                         _if( ThisPtr == NULL )
 
                             yyerror
@@ -9995,6 +10041,8 @@ u\"([^\"\n]|\"\")*\"    {
  */
 
 .           {
+				_returnif( inScan ) *yytext;
+				
                 sprintf
                 ( 
                     numstr, 
@@ -10164,6 +10212,241 @@ _begin( startGetStringBlock )
     BEGIN InString;
 
 _end( startGetStringBlock )
+
+
+
+
+
+// doScanBlock - Handles #scan..#endscan with an undefined ID
+
+void doScanBlock
+( 
+	union	YYSTYPE		*yylval, 
+	union	YYSTYPE 	*theString, 
+			SymNode_t 	*lexemes, 
+			SymNode_t 	*tokens 
+)
+_begin( doScanBlock )
+
+	char			*scannableStr;
+	int				len;
+	int				newlen;
+	char			*endscan = " #endscan\n";
+    int 			cnt = 0;
+    int 			i;
+	int 			tkn;
+	YYLTYPE			yylloc;
+    struct ScanList	*temp;
+    struct ScanList	*ScanSave;
+	
+	_if( theString->v.pType != tString )
+	
+		yyerror( "#scan first argument must be a string expression" );
+		exit( 1 );
+		
+		
+	_endif
+	_if( lexemes->SymClass != cValue )
+	
+		yyerror( "#scan second argument must be a VAL identifier" );
+		exit( 1 );
+		
+	_endif
+	_if( tokens->SymClass != cValue )
+	
+		yyerror( "#scan third argument must be a VAL identifier" );
+		exit( 1 );
+		
+	_endif
+
+
+	len = strlen( theString->v.u.strval );
+	newlen = len + strlen( endscan );
+	scannableStr = malloc( newlen + 16 );
+	strcpy( scannableStr, theString->v.u.strval );
+	strcat( scannableStr, endscan );
+	scannableStr[ newlen ] = '\0';
+	scannableStr[ newlen+1 ] = '\0';
+	
+	
+	// Set up the string we created as the input buffer:
+	
+	pushBufStack( FileName, LineCnt, NULL, 0 );
+    yy_switch_to_buffer( yy_scan_buffer( scannableStr, newlen+2 ));
+	
+	// Process all the lexemes in the string:
+	
+	inScan = 1;
+	_forever
+	
+		tkn = yylex( yylval, &yylloc );
+		_breakif( tkn == endscanTkn )
+
+        temp = malloc2( sizeof( struct ScanList ));
+        temp->next  = NULL;
+        temp->line  = hlastrdup2( yytext );
+		temp->token	= tkn;
+
+        _if( ScanTail == NULL )
+
+            ScanHead = temp;
+            ScanTail = temp;
+            
+        _else
+
+            ScanTail->next = temp;
+            ScanTail = temp;
+
+        _endif
+								
+	_endfor	
+	  
+	// We're done with the input buffer:
+	
+	deleteSourceBuf();
+	free2( vss scannableStr );
+	  
+
+
+	/*
+	** Count the number of tokens
+	** in the scan block.
+	*/
+
+	temp = ScanHead;
+	cnt = 0;
+	_while( temp != NULL )
+
+	    temp = temp->next;
+	    ++cnt;
+
+	_endwhile
+	ScanSave = ScanHead;
+
+
+	
+	// Create the array of lexemes:
+	
+
+	FreeValue( YYS lexemes );
+
+	lexemes->pType = tArray;
+	lexemes->SymClass = cValue;
+	lexemes->Type = &string_ste;
+	lexemes->Arity = 1;
+	lexemes->Dimensions = malloc2( sizeof( int ));
+	lexemes->Dimensions[0] = cnt;
+	lexemes->NumElements = cnt;
+	lexemes->u.ArrayOfValues = malloc2( cnt * sizeofSymNode );
+	lexemes->ObjectSize = cnt * sizeof( char* );
+
+	_for( i=0, i<cnt, ++i )
+
+	    lexemes->u.ArrayOfValues[i].Name = hlastrdup2( "" );
+	    lexemes->u.ArrayOfValues[i].TrueName = hlastrdup2( "" );
+	    lexemes->u.ArrayOfValues[i].SymClass = cConstant;
+	    lexemes->u.ArrayOfValues[i].StaticName = NULL;
+	    lexemes->u.ArrayOfValues[i].Base = NULL;
+	    lexemes->u.ArrayOfValues[i].Fields = NULL;
+	    lexemes->u.ArrayOfValues[i].FieldCnt = 0;
+	    lexemes->u.ArrayOfValues[i].pType = tString;
+	    lexemes->u.ArrayOfValues[i].Type = &string_ste;
+	    lexemes->u.ArrayOfValues[i].Arity = 0;
+	    lexemes->u.ArrayOfValues[i].Dimensions = NULL;
+	    lexemes->u.ArrayOfValues[i].NumElements = 0;
+
+	    lexemes->u.ArrayOfValues[i].u.strval = 
+	        ScanHead->line;
+	        
+	    ScanHead = ScanHead->next;
+
+	_endfor
+
+	
+
+	// Create the array of tokens:
+	
+	ScanHead = ScanSave;
+	FreeValue( YYS tokens );
+
+	tokens->pType = tArray;
+	tokens->SymClass = cValue;
+	tokens->Type = &uns32_ste;
+	tokens->Arity = 1;
+	tokens->Dimensions = malloc2( sizeof( int ));
+	tokens->Dimensions[0] = cnt;
+	tokens->NumElements = cnt;
+	tokens->u.ArrayOfValues = malloc2( cnt * sizeofSymNode );
+	tokens->ObjectSize = cnt * sizeof( char* );
+
+	_for( i=0, i<cnt, ++i )
+
+	    tokens->u.ArrayOfValues[i].Name = hlastrdup2( "" );
+	    tokens->u.ArrayOfValues[i].TrueName = hlastrdup2( "" );
+	    tokens->u.ArrayOfValues[i].SymClass = cConstant;
+	    tokens->u.ArrayOfValues[i].StaticName = NULL;
+	    tokens->u.ArrayOfValues[i].Base = NULL;
+	    tokens->u.ArrayOfValues[i].Fields = NULL;
+	    tokens->u.ArrayOfValues[i].FieldCnt = 0;
+	    tokens->u.ArrayOfValues[i].pType = tUns32;
+	    tokens->u.ArrayOfValues[i].Type = &uns32_ste;
+	    tokens->u.ArrayOfValues[i].Arity = 0;
+	    tokens->u.ArrayOfValues[i].Dimensions = NULL;
+	    tokens->u.ArrayOfValues[i].NumElements = 0;
+
+	    tokens->u.ArrayOfValues[i].u.unsval = 
+	        ScanHead->token;
+	        
+	    temp = ScanHead->next;
+	    free2( vss ScanHead );
+	    ScanHead = temp;
+
+	_endfor
+
+	
+
+_end( doScanBlock )
+ 
+
+
+// doScanBlocka - Handles #scan..#endscan with a defined ID
+
+
+void doScanBlocka( SymNode_t *s3, union YYSTYPE *v6 )
+_begin( doScanBlocka )
+
+	_if( s3->SymClass != cValue )
+
+		yyerror( "Expected a VAL object after #scan" );
+		exit( 1 );
+
+	_else
+
+		FreeValue( YYS s3 );
+
+		s3->Type 		= &string_ste;
+		s3->pType		= tArray;
+		s3->SymClass	= cValue;
+		s3->LexLevel	= CurLexLevel;
+		s3->Arity		= 1;
+		s3->Dimensions	= v6->v.Dimensions;
+		s3->NumElements	= v6->v.NumElements;
+		s3->ObjectSize	= v6->v.ObjectSize;
+		s3->Offset		= 0;
+		s3->StaticName	= NULL;
+		s3->Base		= NULL;
+		s3->Fields		= NULL;
+		s3->FieldCnt	= 0;
+		s3->pClass		= 0;
+		s3->IsExternal	= 0;
+
+		s3->u.ArrayOfValues = v6->v.u.ArrayOfValues;
+
+	_endif
+
+_end( doScanBlocka )
+
+
 
 
 

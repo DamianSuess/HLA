@@ -608,11 +608,6 @@ extern void processMacroID( SymNode_t *symbol );
 extern int  ProcessRegex( SymNode_t *symbol, union YYSTYPE *yylval );
 extern void parseExpression( char *s, union YYSTYPE *v);
 
-extern void startGetTextBlock( void );
-extern void startGetStringBlock( void );
-extern void startGetMatchBlock( void );
-extern void startUnprocessedID( void );
-extern void Begin0( void );
 extern void setClassification( union YYSTYPE *v, char *id );
 extern void setClassification_sym( union YYSTYPE *v, SymNode_t *s );
 extern void setMemoryClassification( union YYSTYPE *v, char *id );
@@ -1022,6 +1017,14 @@ extern void TokenizeFunc
 
 
 extern void TrimFunc
+( 
+	union YYSTYPE *Result, 
+	union YYSTYPE *Value,
+	union YYSTYPE *StartPos
+);
+
+
+extern void DelSpacesFunc
 ( 
 	union YYSTYPE *Result, 
 	union YYSTYPE *Value,
@@ -1604,6 +1607,20 @@ extern void PrintList2( union YYSTYPE * );
 extern void doStringBlock( char *, union YYSTYPE * ); 
 extern void doStringBlocka( SymNode_t *, union YYSTYPE * ); 
 extern void doMatchBlock( SymNode_t *, union YYSTYPE * ); 
+extern void doScanBlock
+( 
+	union YYSTYPE *yylval, 
+	union YYSTYPE *, 
+	SymNode_t *, 
+	SymNode_t * 
+); 
+
+extern void startGetTextBlock( void );
+extern void startGetStringBlock( void );
+extern void startGetScanBlock( union YYSTYPE *yylval );
+extern void startGetMatchBlock( void );
+extern void startUnprocessedID( void );
+extern void Begin0( void );
 
 extern void EmitExit( void );
 

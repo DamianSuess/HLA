@@ -3331,6 +3331,7 @@ _begin( doTextBlock7a )
 	_if( s3->SymClass != cValue )
 
 		yyerror( "Expected a VAL object after #text" );
+		exit( 1 );
 
 	_else
 
@@ -3391,6 +3392,8 @@ _end( doStringBlock )
  
 
 
+
+
 // doStringBlocka - Handles #string..#endstring with a defined ID
 
 
@@ -3399,7 +3402,8 @@ _begin( doStringBlocka )
 
 	_if( s3->SymClass != cValue )
 
-		yyerror( "Expected a VAL object after #text" );
+		yyerror( "Expected a VAL object after #string" );
+		exit( 1 );
 
 	_else
 
