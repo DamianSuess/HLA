@@ -104123,7 +104123,7 @@ PointAtFields:
 								( 
 									"Dot operator applied to ID w/o fields" 
 								);
-								$<s>$ = NULL;
+								exit( 1 );
 							
 						_else
 
@@ -104144,7 +104144,7 @@ PointAtFields:
 								( 
 									"Dot operator applied to ID w/o fields" 
 								);
-								$<s>$ = NULL;
+								exit( 1 );
 							
 						_else
 
