@@ -1405,6 +1405,7 @@ union	YYSTYPE		forReturnVal;
 %token anyexceptionTkn
 %token endtryTkn
 %token raiseTkn
+%token reraiseTkn
 						
  /*
  ** Data types
@@ -95272,7 +95273,10 @@ SingleStmt:
 		Rparen			/* $4 */
 		{				/* $5 */
 
-			char constant[16];
+			struct adrsYYS	adrs;
+			int				lbl;
+			char 			label[256];
+			char 			constant[16];
 
 			_here; 
 			_if( !IsOrdinal( $<v.pType>3 ) || numBits32( YYS &$<v>3 ) > 32 )
@@ -95286,8 +95290,27 @@ SingleStmt:
 				);
 
 			_endif
+			
+			// Note that we will move the current address into EBX
+			// (handled by the destination RAISE code).
+			
+			// Emit the filename as a string so we can load this into ECX:
+			
+			lbl = EmitString( FileName );
+			sprintf( label, "str" sympost "%d", lbl );
+			initAdrs2( &adrs, label, -1, -1, 0, 0 );
+			EmitLea_m_r( &adrs, reg_ecx );
+			
+			// Reserve EDX for a user error code.
+			
+			// Move the line # into EDI:
+			
+			EmitMov_c_r( LineCnt, reg_edi );		//Line # to EDI
+			
+			// Put the exception # into EAX:
+			 
 			EmitMov_c_r( $<v.u.unsval>3, reg_eax );
-			EmitJmpLabel( "Raise" sympost );
+			EmitCallLabel( "Raise" sympost );
 			need_raise = 1;
 			$<returns>$ = NULL;
 			_here; 
@@ -95298,7 +95321,30 @@ SingleStmt:
 		fRegister		/* $3 */
 		Rparen			/* $4 */
 		{				/* $5 */
+			struct adrsYYS	adrs;
+			int				lbl;
+			char 			label[256];
+
 			_here; 
+			
+			// Note that we will move the current address into EBX
+			// (handled by the destination RAISE code).
+			
+			// Emit the filename as a string so we can load this into ECX:
+			
+			lbl = EmitString( FileName );
+			sprintf( label, "str" sympost "%d", lbl );
+			initAdrs2( &adrs, label, -1, -1, 0, 0 );
+			EmitLea_m_r( &adrs, reg_ecx );
+			
+			// Reserve EDX for a user error code.
+			
+			// Move the line # into EDI:
+			
+			EmitMov_c_r( LineCnt, reg_edi );		//Line # to EDI
+			
+			// Put the exception # into EAX:
+			 
 			_if( $<reg.Size>3 != 4 )
 
 				EmitMovxx_r_r( movzx_instr, $<reg.encoding>3, reg_eax );
@@ -95308,7 +95354,7 @@ SingleStmt:
 				EmitMov_r_r( $<reg.encoding>3, reg_eax );
 
 			_endif
-			EmitJmpLabel( "Raise" sympost );
+			EmitCallLabel( "Raise" sympost );
 			need_raise = 1;
 		    $<returns>$ = NULL;
 			_here; 
@@ -95320,7 +95366,30 @@ SingleStmt:
 		fMemory			/* $3 */
 		Rparen			/* $4 */
 		{				/* $5 */
+			struct adrsYYS	adrs;
+			int				lbl;
+			char 			label[256];
+
 			_here; 
+			
+			// Note that we will move the current address into EBX
+			// (handled by the destination RAISE code).
+			
+			// Emit the filename as a string so we can load this into ECX:
+			
+			lbl = EmitString( FileName );
+			sprintf( label, "str" sympost "%d", lbl );
+			initAdrs2( &adrs, label, -1, -1, 0, 0 );
+			EmitLea_m_r( &adrs, reg_ecx );
+			
+			// Reserve EDX for a user error code.
+			
+			// Move the line # into EDI:
+			
+			EmitMov_c_r( LineCnt, reg_edi );		//Line # to EDI
+			
+			// Put the exception # into EAX:
+			 
 			_if( $<adrs.Size>3 > 4 )
 
 				yyerror( "Raise expression must be a 32-bit value" );
@@ -95335,6 +95404,125 @@ SingleStmt:
 				EmitMov_m_r( &$<adrs>3, reg_eax, 4 );
 
 			_endif
+			EmitCallLabel( "Raise" sympost );
+			FreeAdrs( &$<adrs>3 );
+			need_raise = 1;
+			$<returns>$ = NULL;
+			_here; 
+		}
+	;
+
+
+
+
+SingleStmt:
+		reraiseTkn		/* $1 */
+		Lparen			/* $2 */
+		fConstExpr		/* $3 */
+		Rparen			/* $4 */
+		{				/* $5 */
+
+			struct adrsYYS	adrs;
+			int				lbl;
+			char 			label[256];
+			char 			constant[16];
+
+			_here; 
+			_if( !IsOrdinal( $<v.pType>3 ) || numBits32( YYS &$<v>3 ) > 32 )
+
+				ErrorNear
+				( 
+					"Expected a 32-bit ordinal constant", 
+					"raise",
+					__LINE__,
+					__FILE__ 
+				);
+
+			_endif
+			
+			// Put the exception # into EAX:
+			 
+			EmitMov_c_r( $<v.u.unsval>3, reg_eax );
+			
+			// Put return address back on stack because the Raise code
+			// will pop it off:
+			
+			push_r( reg_ebx );
+			
+			EmitJmpLabel( "Raise" sympost );
+			need_raise = 1;
+			$<returns>$ = NULL;
+			_here; 
+		}
+
+	|	reraiseTkn		/* $1 */
+		Lparen			/* $2 */
+		fRegister		/* $3 */
+		Rparen			/* $4 */
+		{				/* $5 */
+			struct adrsYYS	adrs;
+			int				lbl;
+			char 			label[256];
+
+			_here; 
+			
+			// Put the exception # into EAX:
+			 
+			_if( $<reg.Size>3 != 4 )
+
+				EmitMovxx_r_r( movzx_instr, $<reg.encoding>3, reg_eax );
+
+			_elseif( stricmp( regStrs[ $<reg.encoding>3 ], "eax" ) != 0 )
+
+				EmitMov_r_r( $<reg.encoding>3, reg_eax );
+
+			_endif
+			
+			// Put return address back on stack because the Raise code
+			// will pop it off:
+			
+			push_r( reg_ebx );
+			
+			EmitJmpLabel( "Raise" sympost );
+			need_raise = 1;
+		    $<returns>$ = NULL;
+			_here; 
+		}
+
+
+	|	reraiseTkn		/* $1 */
+		Lparen			/* $2 */
+		fMemory			/* $3 */
+		Rparen			/* $4 */
+		{				/* $5 */
+			struct adrsYYS	adrs;
+			int				lbl;
+			char 			label[256];
+
+			_here; 
+			
+			// Put the exception # into EAX:
+			 
+			_if( $<adrs.Size>3 > 4 )
+
+				yyerror( "Raise expression must be a 32-bit value" );
+
+			_endif
+			_if( $<adrs.Size>3 == 1 || $<adrs.Size>3 == 2 )
+
+				EmitMovxx_m_r( movzx_instr, &$<adrs>3, reg_eax );
+
+			_else 
+
+				EmitMov_m_r( &$<adrs>3, reg_eax, 4 );
+
+			_endif
+			
+			// Put return address back on stack because the Raise code
+			// will pop it off:
+			
+			push_r( reg_ebx );
+			
 			EmitJmpLabel( "Raise" sympost );
 			FreeAdrs( &$<adrs>3 );
 			need_raise = 1;
