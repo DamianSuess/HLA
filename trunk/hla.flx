@@ -1466,6 +1466,7 @@ _repz__cmpsw    repz\.cmpsw
 _repz__scasb    repz\.scasb   
 _repz__scasd    repz\.scasd   
 _repz__scasw    repz\.scasw   
+_reraise        reraise
 _result         result
 _ret            ret           
 _returns        returns     
@@ -5894,6 +5895,7 @@ _zstring		zstring
 {_anyexception}    { testRW( anyexceptionTkn );}
 {_endtry}          { testRW( endtryTkn );      }
 {_raise}           { testRW( raiseTkn );       }
+{_reraise}         { testRW( reraiseTkn );     }
 
 
 
@@ -5933,6 +5935,7 @@ _zstring		zstring
 ~{_anyexception}  { _return anyexceptionTkn;  }
 ~{_endtry}        { _return endtryTkn;        }
 ~{_raise}         { _return raiseTkn;         }
+~{_reraise}       { _return reraiseTkn;       }
 
 
 
