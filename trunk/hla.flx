@@ -9312,6 +9312,7 @@ _zstring		zstring
                                 ||	Token == NonLocalMethodID 
                                 ||  Token == OverloadedID 
                             )
+							
 
                                 /*
                                 ** If it's a procedure name

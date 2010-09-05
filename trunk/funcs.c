@@ -1610,7 +1610,7 @@ IndexFunc
 )
 _begin( IndexFunc )
 
-			char	*found;
+	char	*found;
 
 
 	assert( Result != NULL );
@@ -1711,20 +1711,6 @@ _begin( IndexFunc )
 				Result->v.u.lwordval[1] = 0;
 				Result->v.u.lwordval[2] = 0;
 				Result->v.u.lwordval[3] = 0;
-				
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 			_endif 
 		
@@ -4867,7 +4853,7 @@ DelSpacesFunc
 	union YYSTYPE *Value,
 	union YYSTYPE *StartPos
 )
-_begin( TrimFunc )
+_begin( DelSpacesFunc )
 
 	int			Start;
 	char		*str;
@@ -4912,6 +4898,10 @@ _begin( TrimFunc )
 
 			_endwhile;
 			Result->v.u.strval = hlastrdup2( str );
+			
+		_else
+		
+			Result->v.u.strval = hlastrdup2( "" );
 
 		_endif
 
@@ -4928,7 +4918,7 @@ _begin( TrimFunc )
 	FreeValue( StartPos );
 
 
-_end( TrimFunc )
+_end( DelSpacesFunc )
 
 
 

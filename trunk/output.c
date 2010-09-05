@@ -3478,7 +3478,23 @@ _begin( asm2opcr )
 	_endif
 	_if( v->v.pType != tPointer )
 	
-		sprintf( cnst, "%s%d", gasImm, v->v.u.unsval );
+		_if( assembler == nasm )
+		
+			_if( size == 2 && v->v.u.unsval >= 65408 && v->v.u.unsval <= 65535 )
+		
+				sprintf( cnst, "%d", v->v.u.unsval | 0xffff0000 );
+			
+			_else
+		
+				sprintf( cnst, "%d", v->v.u.unsval );
+			
+			_endif
+			 
+		_else
+		
+			sprintf( cnst, "%s%d", gasImm, v->v.u.unsval );
+			
+		_endif
 		
 	_else
 	
@@ -13841,7 +13857,7 @@ _begin( EmitGeneric_i_r )
 					assembler == hlabe 
 				||	assembler == masm 
 				||	assembler == fasm 
-				//||	assembler == nasm 
+				||	assembler == nasm 
 				||	isMLF 
 				||	(
 							assembler == nasm
