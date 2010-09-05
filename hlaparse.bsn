@@ -80189,8 +80189,18 @@ IndirectCall3:
 						// The pointer to the super's VMT is at
 						// the current VMT[-4]:
 						 
-						initAdrs2( &adrs, super->StaticName, -1, -1, 0, 0 ); 
-						SetReferenced( super );
+						initAdrs2( &adrs, super->StaticName, -1, -1, 0, 0 );
+						extLookup
+						( 
+							super, 				  // sym,
+							super->StaticName, 	  // theLabel, 
+							super->pType, 		  // theType, 
+							0, 					  // IsPublic,
+							1, 					  // ForceRef,
+							1 					  // isVMT 
+						);
+						 
+						//SetReferenced( super );
 						EmitLea_m_r2( &adrs, reg_edi );
 						superPrefix = 0;	// Stop using super prefix.
 					
