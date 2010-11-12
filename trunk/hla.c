@@ -1626,13 +1626,6 @@ _begin( doCmdLine)
 				
 				
 			
-			// -W tells the linker we're producing a Windows GUI app.
-			
-			_elseif( targetOS == windows_os && ThisArg == 'W' )
-			
-				WindowsApp = 1;
-				
-
 			// -? for a help message.
 			
 			_elseif( ThisArg == '?' )
@@ -1651,6 +1644,13 @@ _begin( doCmdLine)
 				// Already processed these guys, so ignore them.
 				
 			
+			// -W tells the linker we're producing a Windows GUI app.
+			
+			_elseif( targetOS == windows_os && ThisArg == 'W' )
+			
+				WindowsApp = 1;
+				
+
 			_else
 			
 				fprintf
