@@ -69,7 +69,7 @@ _begin( MakeCompatible )
 	
 	_returnif( LeftOp->pType > tZString ) 0;
 	_returnif( RightOp->pType > tZString ) 0;
-	
+
 	result =
 		MakeCompAsm
 		( 
