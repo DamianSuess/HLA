@@ -1794,68 +1794,68 @@ MakeCompAsm:
         movzbl     (%ebx), %eax 
         movzbl     (%ecx), %edx 
         cmpb       $35, %al 
-        je         LPointer__hla_510
+        je         LPointer__hla_511
         cmpb       $35, %dl 
-        je         RPointer__hla_511
+        je         RPointer__hla_512
         cmpb       $33, %al 
-        je         LProcptr__hla_512
+        je         LProcptr__hla_513
         cmpb       $33, %dl 
-        je         RProcptr__hla_513
+        je         RProcptr__hla_514
         cmpb       $24, %al 
-        ja         L515__hla_
+        ja         L516__hla_
         cmpb       $24, %dl 
-        jna        false__hla_514
-L515__hla_:
+        jna        false__hla_515
+L516__hla_:
         xorl       %eax, %eax 
-        jmp        exit__hla_509
-false__hla_514:
+        jmp        exit__hla_510
+false__hla_515:
         imul       $26, %eax, %eax 
         addl       %edx, %eax 
-        jmp *      jmpTbl__hla_508(,%eax,4) 
+        jmp *      jmpTbl__hla_509(,%eax,4) 
 
-LPointer__hla_510:
+LPointer__hla_511:
         cmpb       $24, %dl 
-        je         Success__hla_516
+        je         Success__hla_517
         cmpb       $9, %dl 
-        je         Success__hla_516
+        je         Success__hla_517
         cmpb       $35, %dl 
-        je         Success__hla_516
+        je         Success__hla_517
         cmpb       $33, %dl 
-        je         Success__hla_516
+        je         Success__hla_517
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
-RPointer__hla_511:
+RPointer__hla_512:
         cmpb       $24, %al 
-        je         Success__hla_516
+        je         Success__hla_517
         cmpb       $9, %al 
-        je         Success__hla_516
+        je         Success__hla_517
         cmpb       $35, %al 
-        je         Success__hla_516
+        je         Success__hla_517
         cmpb       $33, %al 
-        je         Success__hla_516
+        je         Success__hla_517
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
-LProcptr__hla_512:
+LProcptr__hla_513:
         cmpb       $9, %dl 
-        je         Success__hla_516
+        je         Success__hla_517
         cmpb       $35, %dl 
-        je         Success__hla_516
+        je         Success__hla_517
         cmpb       $33, %dl 
-        je         Success__hla_516
+        je         Success__hla_517
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
-RProcptr__hla_513:
+RProcptr__hla_514:
         cmpb       $9, %al 
-        je         Success__hla_516
+        je         Success__hla_517
         cmpb       $35, %al 
-        je         Success__hla_516
+        je         Success__hla_517
         cmpb       $33, %al 
-        je         Success__hla_516
+        je         Success__hla_517
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 CharWChar__hla_493:
         mov        24(%ebp), %eax 
@@ -1863,9 +1863,9 @@ CharWChar__hla_493:
         movb       $19, (%ebx) 
         movl       $wchar_ste, (%edi) 
 
-Success__hla_516:
+Success__hla_517:
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 WCharChar__hla_495:
         mov        28(%ebp), %eax 
@@ -1873,7 +1873,7 @@ WCharChar__hla_495:
         movb       $19, (%ecx) 
         movl       $wchar_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 CharString__hla_494:
         pushl      %esi 
@@ -1897,9 +1897,9 @@ CharString__hla_494:
         movb       $24, (%ebx) 
         movl       $string_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
-StringChar__hla_507:
+StringChar__hla_508:
         pushl      %esi 
         pushl      %edi 
         pushl      %ebx 
@@ -1921,73 +1921,73 @@ StringChar__hla_507:
         movb       $24, (%ecx) 
         movl       $string_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 UnsReal32__hla_273:
         mov        24(%ebp), %eax 
         cmpl       $0, 4(%eax) 
-        jne        false__hla_517
+        jne        false__hla_518
         cmpl       $0, 8(%eax) 
-        jne        false__hla_517
+        jne        false__hla_518
         cmpl       $0, 12(%eax) 
-        jne        false__hla_517
+        jne        false__hla_518
         testw      $65408, 2(%eax) 
-        jnz        false__hla_520
+        jnz        false__hla_521
         fildl      (%eax) 
         fstps      (%eax) 
         movb       $20, (%ebx) 
         movl       $real32_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
-false__hla_520:
-false__hla_517:
+        jmp        exit__hla_510
+false__hla_521:
+false__hla_518:
         pushl      %ebx 
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $4038 
+        pushl      $str__hla_523 
+        pushl      $4039 
 
-        pushl      $str__hla_521 
+        pushl      $str__hla_522 
 
         call       HLAerror
         movl       %ebx, %esp 
         popl       %ebx 
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Real32Uns__hla_496:
         mov        28(%ebp), %eax 
         cmpl       $0, 4(%eax) 
-        jne        false__hla_523
+        jne        false__hla_524
         cmpl       $0, 8(%eax) 
-        jne        false__hla_523
+        jne        false__hla_524
         cmpl       $0, 12(%eax) 
-        jne        false__hla_523
+        jne        false__hla_524
         testw      $65408, 2(%eax) 
-        jnz        false__hla_526
+        jnz        false__hla_527
         fildl      (%eax) 
         fstps      (%eax) 
         movb       $20, (%ecx) 
         movl       $real32_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
-false__hla_526:
-false__hla_523:
+        jmp        exit__hla_510
+false__hla_527:
+false__hla_524:
         pushl      %ebx 
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $4076 
+        pushl      $str__hla_523 
+        pushl      $4077 
 
-        pushl      $str__hla_521 
+        pushl      $str__hla_522 
 
         call       HLAerror
         movl       %ebx, %esp 
         popl       %ebx 
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 IntReal32__hla_430:
         mov        24(%ebp), %edx 
@@ -1996,7 +1996,7 @@ IntReal32__hla_430:
         movb       $20, (%ebx) 
         movl       $real32_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Real32Int__hla_497:
         mov        28(%ebp), %edx 
@@ -2005,7 +2005,7 @@ Real32Int__hla_497:
         movb       $20, (%ecx) 
         movl       $real32_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Real3264__hla_498:
         mov        24(%ebp), %eax 
@@ -2014,7 +2014,7 @@ Real3264__hla_498:
         movb       $21, (%ebx) 
         movl       $real64_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Real3280__hla_499:
         mov        24(%ebp), %eax 
@@ -2023,7 +2023,7 @@ Real3280__hla_499:
         movb       $22, (%ebx) 
         movl       $real80_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 UnsReal64__hla_274:
         mov        24(%ebp), %edx 
@@ -2031,28 +2031,28 @@ UnsReal64__hla_274:
         andl       $65520, %eax 
         orl        8(%edx), %eax 
         orl        12(%edx), %eax 
-        jnz        false__hla_527
+        jnz        false__hla_528
         fildll     (%edx) 
         fstpl      (%edx) 
         movb       $21, (%ebx) 
         movl       $real64_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
-false__hla_527:
+        jmp        exit__hla_510
+false__hla_528:
         pushl      %ebx 
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $4173 
+        pushl      $str__hla_523 
+        pushl      $4174 
 
-        pushl      $str__hla_528 
+        pushl      $str__hla_529 
 
         call       HLAerror
         movl       %ebx, %esp 
         popl       %ebx 
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Real64Uns__hla_500:
         mov        28(%ebp), %edx 
@@ -2060,98 +2060,98 @@ Real64Uns__hla_500:
         andl       $65520, %eax 
         orl        8(%edx), %eax 
         orl        12(%edx), %eax 
-        jnz        false__hla_529
+        jnz        false__hla_530
         fildll     (%edx) 
         fstpl      (%edx) 
         movb       $21, (%ecx) 
         movl       $real64_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
-false__hla_529:
+        jmp        exit__hla_510
+false__hla_530:
         pushl      %ebx 
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $4206 
+        pushl      $str__hla_523 
+        pushl      $4207 
 
-        pushl      $str__hla_528 
+        pushl      $str__hla_529 
 
         call       HLAerror
         movl       %ebx, %esp 
         popl       %ebx 
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 IntReal64__hla_431:
         mov        24(%ebp), %ecx 
         movswl     6(%ecx), %eax 
         cdq
         andw       $65528, %ax 
-        jz         L533__hla_
+        jz         L534__hla_
         cmpw       $65528, %ax 
-        jne        false__hla_530
-L533__hla_:
+        jne        false__hla_531
+L534__hla_:
         cmpl       8(%ecx), %edx 
-        jne        false__hla_530
+        jne        false__hla_531
         cmpl       12(%ecx), %edx 
-        jne        false__hla_530
+        jne        false__hla_531
         fildll     (%ecx) 
         fstpl      (%ecx) 
         movb       $21, (%ebx) 
         movl       $real64_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
-false__hla_530:
+        jmp        exit__hla_510
+false__hla_531:
         pushl      %ebx 
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $4242 
+        pushl      $str__hla_523 
+        pushl      $4243 
 
-        pushl      $str__hla_528 
+        pushl      $str__hla_529 
 
         call       HLAerror
         movl       %ebx, %esp 
         popl       %ebx 
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Real64Int__hla_501:
         mov        28(%ebp), %ebx 
         movswl     6(%ebx), %eax 
         cdq
         andw       $65528, %ax 
-        jz         L537__hla_
+        jz         L538__hla_
         cmpw       $65528, %ax 
-        jne        false__hla_534
-L537__hla_:
+        jne        false__hla_535
+L538__hla_:
         cmpl       8(%ebx), %edx 
-        jne        false__hla_534
+        jne        false__hla_535
         cmpl       12(%ebx), %edx 
-        jne        false__hla_534
+        jne        false__hla_535
         fildll     (%ebx) 
         fstpl      (%ebx) 
         movb       $21, (%ecx) 
         movl       $real64_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
-false__hla_534:
+        jmp        exit__hla_510
+false__hla_535:
         pushl      %ebx 
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $4273 
+        pushl      $str__hla_523 
+        pushl      $4274 
 
-        pushl      $str__hla_528 
+        pushl      $str__hla_529 
 
         call       HLAerror
         movl       %ebx, %esp 
         popl       %ebx 
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Real6432__hla_502:
         mov        28(%ebp), %eax 
@@ -2160,7 +2160,7 @@ Real6432__hla_502:
         movb       $21, (%ecx) 
         movl       $real64_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Real6480__hla_503:
         mov        24(%ebp), %eax 
@@ -2169,141 +2169,141 @@ Real6480__hla_503:
         movb       $22, (%ebx) 
         movl       $real80_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 UnsReal80__hla_275:
         mov        24(%ebp), %ecx 
         movsbl     7(%ecx), %eax 
         cdq
         testl      %edx, %edx 
-        jne        false__hla_538
+        jne        false__hla_539
         cmpl       8(%ecx), %edx 
-        jne        false__hla_538
+        jne        false__hla_539
         cmpl       12(%ecx), %edx 
-        jne        false__hla_538
+        jne        false__hla_539
         fildll     (%ecx) 
         fstpt      (%ecx) 
         movb       $22, (%ebx) 
         movl       $real80_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
-false__hla_538:
+        jmp        exit__hla_510
+false__hla_539:
         pushl      %ebx 
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $4335 
+        pushl      $str__hla_523 
+        pushl      $4336 
 
-        pushl      $str__hla_541 
+        pushl      $str__hla_542 
 
         call       HLAerror
         movl       %ebx, %esp 
         popl       %ebx 
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Real80Uns__hla_504:
         mov        28(%ebp), %ebx 
         movsbl     7(%ebx), %eax 
         cdq
         testl      %edx, %edx 
-        jne        false__hla_542
+        jne        false__hla_543
         cmpl       8(%ebx), %edx 
-        jne        false__hla_542
+        jne        false__hla_543
         cmpl       12(%ebx), %edx 
-        jne        false__hla_542
+        jne        false__hla_543
         fildll     (%ebx) 
         fstpt      (%ebx) 
         movb       $22, (%ecx) 
         movl       $real80_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
-false__hla_542:
+        jmp        exit__hla_510
+false__hla_543:
         pushl      %ebx 
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $4362 
+        pushl      $str__hla_523 
+        pushl      $4363 
 
-        pushl      $str__hla_541 
+        pushl      $str__hla_542 
 
         call       HLAerror
         movl       %ebx, %esp 
         popl       %ebx 
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 IntReal80__hla_432:
         mov        24(%ebp), %ecx 
         movsbl     7(%ecx), %eax 
         cdq
         testl      %edx, %edx 
-        je         L548__hla_
+        je         L549__hla_
         cmpl       $-1, %edx 
-        jne        false__hla_545
-L548__hla_:
+        jne        false__hla_546
+L549__hla_:
         cmpl       8(%ecx), %edx 
-        jne        false__hla_545
+        jne        false__hla_546
         cmpl       12(%ecx), %edx 
-        jne        false__hla_545
+        jne        false__hla_546
         fildll     (%ecx) 
         fstpt      (%ecx) 
         movb       $22, (%ebx) 
         movl       $real80_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
-false__hla_545:
+        jmp        exit__hla_510
+false__hla_546:
         pushl      %ebx 
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $4396 
+        pushl      $str__hla_523 
+        pushl      $4397 
 
-        pushl      $str__hla_541 
+        pushl      $str__hla_542 
 
         call       HLAerror
         movl       %ebx, %esp 
         popl       %ebx 
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Real80Int__hla_505:
         mov        28(%ebp), %ebx 
         movsbl     7(%ebx), %eax 
         cdq
         testl      %edx, %edx 
-        je         L552__hla_
+        je         L553__hla_
         cmpl       $-1, %edx 
-        jne        false__hla_549
-L552__hla_:
+        jne        false__hla_550
+L553__hla_:
         cmpl       8(%ebx), %edx 
-        jne        false__hla_549
+        jne        false__hla_550
         cmpl       12(%ebx), %edx 
-        jne        false__hla_549
+        jne        false__hla_550
         fildll     (%ebx) 
         fstpt      (%ebx) 
         movb       $22, (%ecx) 
         movl       $real80_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
-false__hla_549:
+        jmp        exit__hla_510
+false__hla_550:
         pushl      %ebx 
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $4426 
+        pushl      $str__hla_523 
+        pushl      $4427 
 
-        pushl      $str__hla_541 
+        pushl      $str__hla_542 
 
         call       HLAerror
         movl       %ebx, %esp 
         popl       %ebx 
         xorl       %eax, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Real8032__hla_506:
         mov        28(%ebp), %eax 
@@ -2312,16 +2312,16 @@ Real8032__hla_506:
         movb       $22, (%ecx) 
         movl       $real80_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
-Real8064__hla_553:
+Real8064__hla_507:
         mov        28(%ebp), %eax 
         fldl       (%eax) 
         fstpt      (%eax) 
         movb       $22, (%ecx) 
         movl       $real80_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns8Byte__hla_262:
 
@@ -2331,7 +2331,7 @@ ByteUns8__hla_325:
         movb       $2, (%ebx) 
         movl       $uns8_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns8Word__hla_263:
 
@@ -2353,7 +2353,7 @@ WordUns8__hla_340:
         movb       $3, (%ecx) 
         movl       $uns16_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns8DWord__hla_264:
 
@@ -2387,7 +2387,7 @@ DWordUns16__hla_356:
         movb       $4, (%ecx) 
         movl       $uns32_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns8Int8__hla_268:
         mov        24(%ebp), %eax 
@@ -2403,7 +2403,7 @@ false__hla_554:
         movl       $int8_ste, (%edi) 
 endif__hla_554:
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Int8Uns8__hla_415:
         mov        28(%ebp), %eax 
@@ -2419,7 +2419,7 @@ false__hla_555:
         movl       $int8_ste, (%esi) 
 endif__hla_555:
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Int8Byte__hla_420:
 
@@ -2429,7 +2429,7 @@ ByteInt8__hla_335:
         movb       $13, (%ecx) 
         movl       $int8_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns8Int16__hla_269:
 
@@ -2455,7 +2455,7 @@ WordInt16__hla_351:
         movb       $14, (%ebx) 
         movl       $int16_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Int8DWord__hla_422:
 
@@ -2497,7 +2497,7 @@ DWordInt32__hla_367:
         movb       $15, (%ebx) 
         movl       $int32_ste, (%edi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns8Int64__hla_271:
 
@@ -2555,7 +2555,7 @@ QWordInt64__hla_383:
         movb       $16, (%ecx) 
         movl       $int64_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns8TByte__hla_266:
 
@@ -2593,7 +2593,7 @@ TByteQWord__hla_393:
         movb       $11, (%ecx) 
         movl       $tbyte_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Int8TByte__hla_424:
 
@@ -2615,7 +2615,7 @@ TByteInt64__hla_398:
         movb       $17, (%ecx) 
         movl       $int128_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Int8Uns16__hla_416:
         mov        28(%ebp), %eax 
@@ -2633,7 +2633,7 @@ false__hla_556:
         movl       $int16_ste, (%esi) 
 endif__hla_556:
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns16Int8__hla_286:
         mov        24(%ebp), %eax 
@@ -2651,7 +2651,7 @@ false__hla_557:
         movl       $int16_ste, (%esi) 
 endif__hla_557:
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Int8Uns32__hla_417:
 
@@ -2673,7 +2673,7 @@ false__hla_558:
         movl       $int32_ste, (%esi) 
 endif__hla_558:
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns32Int8__hla_301:
 
@@ -2695,7 +2695,7 @@ false__hla_559:
         movl       $int32_ste, (%esi) 
 endif__hla_559:
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Int8Uns64__hla_418:
 
@@ -2719,7 +2719,7 @@ false__hla_560:
         movl       $int64_ste, (%esi) 
 endif__hla_560:
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns64Int8__hla_316:
 
@@ -2743,7 +2743,7 @@ false__hla_561:
         movl       $int64_ste, (%esi) 
 endif__hla_561:
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns16Int16__hla_287:
         mov        24(%ebp), %eax 
@@ -2759,7 +2759,7 @@ false__hla_562:
         movl       $int16_ste, (%edi) 
 endif__hla_562:
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Int16Uns16__hla_434:
         mov        28(%ebp), %eax 
@@ -2775,7 +2775,7 @@ false__hla_563:
         movl       $int16_ste, (%esi) 
 endif__hla_563:
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns64Uns8__hla_306:
 
@@ -2821,7 +2821,7 @@ QWordUns64__hla_373:
         movb       $5, (%ecx) 
         movl       $uns64_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns8Uns128__hla_261:
 
@@ -2881,7 +2881,7 @@ TByteUns128__hla_389:
         movb       $6, (%ecx) 
         movl       $uns128_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 Uns8Int128__hla_272:
 
@@ -2979,7 +2979,7 @@ Int128Int64__hla_492:
         movb       $17, (%ecx) 
         movl       $int128_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 ByteWord__hla_330:
 
@@ -2989,7 +2989,7 @@ WordByte__hla_345:
         movb       $8, (%ecx) 
         movl       $word_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 ByteDWord__hla_331:
 
@@ -3003,7 +3003,7 @@ DWordWord__hla_361:
         movb       $9, (%ecx) 
         movl       $dword_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 ByteQWord__hla_332:
 
@@ -3021,7 +3021,7 @@ QWordDWord__hla_377:
         movb       $10, (%ecx) 
         movl       $qword_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 ByteLWord__hla_334:
 
@@ -3047,15 +3047,15 @@ LWordTByte__hla_409:
         movb       $12, (%ecx) 
         movl       $lword_ste, (%esi) 
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 s__hla_256:
         mov        $1, %eax 
-        jmp        exit__hla_509
+        jmp        exit__hla_510
 
 x__hla_257:
         xorl       %eax, %eax 
-exit__hla_509:
+exit__hla_510:
         popl       %esi 
         popl       %edi 
         popl       %edx 
@@ -3508,8 +3508,8 @@ default__hla_607:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $5813 
+        pushl      $str__hla_523 
+        pushl      $5815 
 
         pushl      $str__hla_632 
 
@@ -3805,8 +3805,8 @@ default__hla_635:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $6218 
+        pushl      $str__hla_523 
+        pushl      $6220 
 
         pushl      $str__hla_652 
 
@@ -4946,8 +4946,8 @@ case__hla_749:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $7738 
+        pushl      $str__hla_523 
+        pushl      $7740 
 
         pushl      $str__hla_751 
 
@@ -5003,8 +5003,8 @@ case__hla_757:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $7799 
+        pushl      $str__hla_523 
+        pushl      $7801 
 
         pushl      $str__hla_751 
 
@@ -5098,8 +5098,8 @@ false__hla_767:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $7916 
+        pushl      $str__hla_523 
+        pushl      $7918 
 
         pushl      $str__hla_751 
 
@@ -5174,8 +5174,8 @@ case__hla_775:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $7995 
+        pushl      $str__hla_523 
+        pushl      $7997 
 
         pushl      $str__hla_751 
 
@@ -5200,8 +5200,8 @@ case__hla_777:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $8013 
+        pushl      $str__hla_523 
+        pushl      $8015 
 
         pushl      $str__hla_751 
 
@@ -5229,8 +5229,8 @@ case__hla_780:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $8038 
+        pushl      $str__hla_523 
+        pushl      $8040 
 
         pushl      $str__hla_751 
 
@@ -5286,8 +5286,8 @@ case__hla_786:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $8112 
+        pushl      $str__hla_523 
+        pushl      $8114 
 
         pushl      $str__hla_751 
 
@@ -5343,8 +5343,8 @@ case__hla_793:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $8174 
+        pushl      $str__hla_523 
+        pushl      $8176 
 
         pushl      $str__hla_751 
 
@@ -5438,8 +5438,8 @@ false__hla_803:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $8291 
+        pushl      $str__hla_523 
+        pushl      $8293 
 
         pushl      $str__hla_751 
 
@@ -5944,8 +5944,8 @@ Overflow__hla_842:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $8291 
+        pushl      $str__hla_523 
+        pushl      $8293 
 
         pushl      $str__hla_844 
 
@@ -6046,8 +6046,8 @@ ForEachDigit__hla_851:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $8291 
+        pushl      $str__hla_523 
+        pushl      $8293 
 
         pushl      $str__hla_852 
 
@@ -6138,8 +6138,8 @@ repeat__hla_858:
         movl       %esp, %ebx 
         subl       $28, %esp 
         andl       $-16, %esp 
-        pushl      $str__hla_522 
-        pushl      $8291 
+        pushl      $str__hla_523 
+        pushl      $8293 
 
         pushl      $str__hla_860 
 
@@ -7326,9 +7326,9 @@ endif__hla_995:
 
 
         .balign    (4)
-len__hla_521 :.long      0x38
+len__hla_522 :.long      0x38
         .long      0x38
-str__hla_521:
+str__hla_522:
 
  .ascii "Unsigned value is out of range, cannot convert to real32"
  .byte 0
@@ -7338,9 +7338,9 @@ str__hla_521:
  .byte 0
 
         .balign    (4)
-len__hla_522 :.long      0xa
+len__hla_523 :.long      0xa
         .long      0xa
-str__hla_522:
+str__hla_523:
 
  .ascii "hlaasm.hla"
  .byte 0
@@ -7348,9 +7348,9 @@ str__hla_522:
  .byte 0
 
         .balign    (4)
-len__hla_528 :.long      0x38
+len__hla_529 :.long      0x38
         .long      0x38
-str__hla_528:
+str__hla_529:
 
  .ascii "Unsigned value is out of range, cannot convert to real64"
  .byte 0
@@ -7360,9 +7360,9 @@ str__hla_528:
  .byte 0
 
         .balign    (4)
-len__hla_541 :.long      0x38
+len__hla_542 :.long      0x38
         .long      0x38
-str__hla_541:
+str__hla_542:
 
  .ascii "Unsigned value is out of range, cannot convert to real80"
  .byte 0
@@ -7729,7 +7729,7 @@ tJmpTbl__hla_206:
         .long      isZString__hla_203
         .long      isWString__hla_204
         .long      isCset__hla_205
-jmpTbl__hla_508:
+jmpTbl__hla_509:
         .long      s__hla_256
         .long      x__hla_257
         .long      x__hla_257
@@ -8323,7 +8323,7 @@ jmpTbl__hla_508:
         .long      x__hla_257
         .long      x__hla_257
         .long      Real8032__hla_506
-        .long      Real6432__hla_502
+        .long      Real8064__hla_507
         .long      s__hla_256
         .long      x__hla_257
         .long      x__hla_257
@@ -8372,7 +8372,7 @@ jmpTbl__hla_508:
         .long      x__hla_257
         .long      x__hla_257
         .long      x__hla_257
-        .long      StringChar__hla_507
+        .long      StringChar__hla_508
         .long      x__hla_257
         .long      x__hla_257
         .long      x__hla_257
@@ -8398,7 +8398,7 @@ jmpTbl__hla_508:
         .long      x__hla_257
         .long      x__hla_257
         .long      x__hla_257
-        .long      StringChar__hla_507
+        .long      StringChar__hla_508
         .long      x__hla_257
         .long      x__hla_257
         .long      x__hla_257

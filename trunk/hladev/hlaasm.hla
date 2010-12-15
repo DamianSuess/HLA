@@ -3765,7 +3765,7 @@ static
 				&x,				// tChar 	 
 				&x,				// tWChar	 
 				&Real8032,		// tReal32 
-				&Real6432,		// tReal64 
+				&Real8064,		// tReal64 
 				&s,				// tReal80 
 				&x,				// tReal128 
 				&x,				// tString 
@@ -3875,6 +3875,7 @@ begin MakeCompAsm;
 	push( esi );
 	begin mca;
 	
+
 		mov( lpType, ebx );
 		mov( rpType, ecx );
 		mov( lType, edi );
@@ -4452,6 +4453,7 @@ begin MakeCompAsm;
 		// the right operand to real80.
 		
 		Real8064:
+		
 			mov( rData, eax );
 			fld( (type real64 [eax]) );
 			fstp( (type real80 [eax]));
