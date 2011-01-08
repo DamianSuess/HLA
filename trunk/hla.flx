@@ -5616,7 +5616,7 @@ _zstring		zstring
 "=="            { _return '=';          }
 "@"             { _return '@';          }
 "&"             { _return '&';          }
-"|"             { _return '|';          }
+"|"             { _return '|';          }	   
 "^"             { _return '^';          }
 "!"             { _return '!';          }
 
@@ -12443,7 +12443,17 @@ _begin( ProcessID )
             _return ProcessMacro( cn.Sym );
             
         _endif
-        
+        	
+			
+		// Handle class type identifiers here
+		
+		_if( cn.Sym->SymClass == cType )
+		
+			_return LocalID;
+			
+		_endif
+			
+		
         
         /*
         ** Handle class procedures and methods here.

@@ -569,7 +569,7 @@ _begin( initSymbolTable )
 	InsertStaticSym
 	(
 		&real128_lword_ste,		// Dest
-		"real128",				// Name
+		"real_128",				// Name
 		&lword_ste,				// Type
 		tLWord,					// pType
 		cType,					// TheClass
@@ -1815,7 +1815,7 @@ _begin( ClrObject )
 
 
 
-	_elseif( ClrThis->pType == tUnion )
+	_elseif( ClrThis->pType == tUnion || ClrThis->pType == tReal128 )
 
 		SymNode_t		*CurField;
 		SymNode_t		*FieldData;
@@ -4090,6 +4090,7 @@ _begin( PrintValues )
 
 
 			_case( tUnion )
+			_case( tReal128 )
 			{
 				SymNode_t		*field;
 
@@ -4649,6 +4650,42 @@ _begin( DumpSym )
 				_case( tUnion )
 
 					fprintf( MsgOut, "Union " );
+					PrintSize( SymbolTable );
+					_if
+					( 
+							SymbolTable->SymClass == cValue 
+						||	SymbolTable->SymClass == cConstant
+					)
+						fprintf( MsgOut, " = " );
+						PrintValues
+						( 
+							SymbolTable
+						);
+
+					_else
+
+						fprintf( MsgOut, "\n" );
+						PrintIndent( indent+1 );
+						fprintf
+						( 
+							MsgOut,
+							"--------------------------------\n" 
+						);
+						DumpSym( SymbolTable->Fields, indent+1 );
+						PrintIndent( indent );
+						fprintf
+						( 
+							MsgOut, 
+							"------------------------------------" 
+						);
+						
+					_endif
+
+				_endcase
+
+				_case( tReal128 )
+
+					fprintf( MsgOut, "real128 " );
 					PrintSize( SymbolTable );
 					_if
 					( 

@@ -23469,7 +23469,7 @@ _begin( OutValue )
 
 		_endif
 
-	_elseif( Type->pType == tUnion )
+	_elseif( Type->pType == tUnion || Type->pType == tReal128 )
 
 		EmitTypedLabel( Name, tByte );
 		_if( Value->v.pType != tError && Value->v.Type != NULL )
