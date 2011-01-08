@@ -272,6 +272,15 @@ _begin( FieldsAreCompatible )
 		);
 	
 	_endif
+	_if( Type->pType == tReal128 )
+
+		_return
+		(
+				Field->v.pType == tReal128
+			&&	GetBaseType( Type->Type ) == GetBaseType( Field->v.Type )
+		);
+	
+	_endif
 	_returnif
 	( 
 			Type->pType == Field->v.pType 

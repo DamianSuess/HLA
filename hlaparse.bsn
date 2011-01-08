@@ -8926,7 +8926,7 @@ RecordRef:
 				
 				
 
-			_elseif( $<v.pType>1 == tUnion )
+			_elseif( $<v.pType>1 == tUnion || $<v.pType>1 == tReal128 )
 			
 				assert( $<v.CurField>1 != NULL );
 				assert( $<v.CurField>1->TrueName != NULL );
@@ -9092,7 +9092,12 @@ RecordAdrs:
 				$<v.u.PtrToValue>$ = NULL;
 
 
-			_elseif( $<v.pType>1 == tRecord || $<v.pType>1 == tUnion )
+			_elseif
+			( 
+					$<v.pType>1 == tRecord 
+				||	$<v.pType>1 == tUnion 
+				||	$<v.pType>1 == tReal128 
+			)
 
 				/*
 				** Look up the field reference to see if
@@ -9140,7 +9145,7 @@ RecordAdrs:
 					// If it's a union, we've got to set the current
 					// field info:
 					
-					_if( $<v.pType>1 == tUnion )
+					_if( $<v.pType>1 == tUnion || $<v.pType>1 == tReal128 )
 
 						$<v.u.PtrToValue>1->CurIndex = ValueIndex;
 						$<v.u.PtrToValue>1->CurField = FieldList;
@@ -33527,6 +33532,21 @@ ClassStuff:
 
 
 	|		GetLexLvl 
+			typeTkn 	
+			Types			
+			optionalEndType
+			{ 
+				_here; 
+				$<v.u.intval>$ = $<v.u.intval>1; 
+			}
+			ClassStuff
+			{
+				_here;
+				(void) $<v.u.intval>5;	//Shut up bison
+			}
+
+
+	|		GetLexLvl 
 			varTkn 	
 			RecVars			
 			optionalEndVar
@@ -41787,7 +41807,7 @@ Types:	SetInType
 		doTypes
 		{
 			_here;
-			inType = 0;
+			inType = $<i>1;
 			_here;
 		}
 	;
@@ -41795,6 +41815,7 @@ Types:	SetInType
 SetInType:
 		{
 			_here;
+			$<i>$ = inType;
 			inType = 1;
 
 			/*
@@ -44039,13 +44060,14 @@ Constants:
 		doConstants
 		{
 			_here;
-			inConst = 0;
+			inConst = $<i>1;
 		}
 	;
 
 SetInConst:
 		{
 			_here;
+			$<i>$ = inConst;
 			inConst = 1;
 
 			/*
@@ -44973,7 +44995,7 @@ Values:
 		doValues
 		{
 			_here;
-			inVal = 0;
+			inVal = $<i>1;
 			fastLookup = 0; /* force lookup */
 			
 		}
@@ -44983,6 +45005,7 @@ Values:
 SetInValue:
 		{
 			_here;
+			$<i>$ = inVal;
 			inVal = 1;
 		}
 	;
@@ -46162,6 +46185,45 @@ ValueDef:
 
 
 			/*
+			** If it's not an array, union, or record, check to see if it is
+			** a real128.
+			*/
+
+			_elseif
+			( 
+					$<s>3->pType == tReal128 
+				&&	$<v.pType>5 == tReal128
+				&&	GetBaseType( $<s>3 ) == GetBaseType( $<v.Type>5 )
+			)
+
+				InsertSym
+				( 
+					$<idStr>1, 
+					GetBaseType( $<s>3 ),
+					tReal128, 
+					cValue, 
+					0,					// Arity
+					NULL,				// Dimensions
+					0,					// NumElements
+					YYS &$<v>5,			// FieldValues points at data.
+					$<s>3->ObjectSize,
+					$<v.Offset>5,		// Offset holds field #
+					NULL,
+					$<s>3->Base,
+					$<s>3->Fields,
+					$<s>3->FieldCnt
+				);
+				
+				// Must manually set up the two fields associated with
+				// real128 constants:
+				
+				SymbolTable->CurField = $<v.CurField>5;
+				SymbolTable->CurIndex = $<v.CurIndex>5;
+
+
+
+
+			/*
 			** If TypeID is not an array, make sure that it's a
 			** primitive type.
 			*/
@@ -46409,6 +46471,41 @@ ValueDef:
 					$<v.CurField>5,
 					$<v.CurIndex>5
 				);
+
+
+
+
+			/*
+			** If it's not an array, union, or record, check to see if it is
+			** a real128.
+			*/
+
+			_elseif
+			( 
+					$<s>3->pType == tReal128 
+				&&	$<v.pType>5 == tReal128
+				&&	GetBaseType( $<s>3 ) == GetBaseType( $<v.Type>5 )
+			)
+
+				SetSym
+				( 
+					$<s>1, 
+					GetBaseType( $<s>3 ),
+					tReal128, 
+					0,					// Arity
+					NULL,				// Dimensions
+					0,					// NumElements
+					YYS &$<v>5,			// Value
+					$<s>3->ObjectSize,
+					0,					// Offset
+					NULL,
+					$<v.Base>5,
+					$<v.Fields>5,
+					$<v.FieldCnt>5,
+					$<v.CurField>5,
+					$<v.CurIndex>5
+				);
+
 
 
 
@@ -47901,6 +47998,31 @@ ValueDef:
 					$<v.u.PtrToValue>1->CurIndex = $<v.CurIndex>3;
 
 
+
+
+
+				_elseif
+				( 
+						$<v.pType>1 == tReal128
+					&&	$<v.pType>3 == tReal128
+					&&	GetBaseType( $<v.Type>1 ) == 
+							GetBaseType( $<v.Type>3 ) 
+				)
+
+					_for( int i=0, i < $<v.FieldCnt>3, ++i )
+
+						// Note: A deep copy was already done on
+						// the constant, no need to repeat that here.
+											
+						FreeValue( YYS &$<v.u.PtrToValue>1->u.FieldValues[i] );
+						$<v.u.PtrToValue>1->u.FieldValues[i] =
+							$<v.u.FieldValues>3[i];
+
+					_endfor
+					$<v.u.PtrToValue>1->CurField = $<v.CurField>3;
+					$<v.u.PtrToValue>1->CurIndex = $<v.CurIndex>3;
+
+
 				_else /* Must be a scalar value */
 
 					memcpy
@@ -47998,7 +48120,7 @@ ValueDef:
 					_endif
 					FreeValue( YYS &$<v>3 );
 
-				_elseif( $<v.pType>1 == tUnion )
+				_elseif( $<v.pType>1 == tUnion || $<v.pType>1 == tReal128 )
 
 					_if( $<v.Type>1 == $<v.Type>3 )
 					
@@ -49242,6 +49364,43 @@ ValueRedef:
 					SymbolTable->CurIndex = $<v.CurIndex>5;
 
 
+				/*
+				** If it's not an array, union, or record, check to see if it is
+				** a real128.
+				*/
+
+				_elseif
+				( 
+						$<s>3->pType == tReal128 
+					&&	$<v.pType>5 == tReal128
+					&&	GetBaseType( $<s>3 ) == GetBaseType( $<v.Type>5 )
+				)
+
+					InsertSym
+					( 
+						$<idStr>1, 
+						GetBaseType( $<s>3 ),
+						tReal128, 
+						cValue, 
+						0,					// Arity
+						NULL,				// Dimensions
+						0,					// NumElements
+						YYS &$<v>5,
+						$<s>3->ObjectSize,
+						$<s>3->Offset,		// Index of selected field.
+						NULL,
+						$<s>3->Base,
+						$<s>3->Fields,
+						$<s>3->FieldCnt
+					);
+
+					// Must manually set up the two fields associated with
+					// union constants:
+					
+					SymbolTable->CurField = $<v.CurField>5;
+					SymbolTable->CurIndex = $<v.CurIndex>5;
+
+
 			/*
 			** If TypeID is not an array, make sure that it's a
 			** primitive type.
@@ -49474,7 +49633,7 @@ ValueRedef:
 					( 
 						$<s>1, 
 						GetBaseType( $<s>3 ),
-						tRecord, 
+						tUnion, 
 						0,					// Arity
 						NULL,				// Dimensions
 						0,					// NumElements
@@ -49490,6 +49649,39 @@ ValueRedef:
 					);
 
 
+
+
+
+				/*
+				** If it's not an array, union, or record, check to see if it is
+				** a real128.
+				*/
+
+				_elseif
+				( 
+						$<s>3->pType == tReal128 
+					&&	$<v.pType>5 == tReal128
+					&&	GetBaseType( $<s>3 ) == GetBaseType( $<v.Type>5 )
+				)
+
+					SetSym
+					( 
+						$<s>1, 
+						GetBaseType( $<s>3 ),
+						tReal128, 
+						0,					// Arity
+						NULL,				// Dimensions
+						0,					// NumElements
+						YYS &$<v>5,
+						$<s>3->ObjectSize,
+						$<v.Offset>5,		// Index of selected field.
+						NULL,
+						$<v.Base>5,
+						$<v.Fields>5,
+						$<v.FieldCnt>5,
+						$<v.CurField>5,
+						$<v.CurIndex>5
+					);
 
 
 
@@ -50990,6 +51182,31 @@ ValueRedef:
 					$<v.u.PtrToValue>1->CurIndex = $<v.CurIndex>3;
 
 
+
+
+
+				_elseif
+				( 
+						$<v.pType>1 == tReal128
+					&&	$<v.pType>3 == tReal128
+					&&	GetBaseType( $<v.Type>1 ) == 
+							GetBaseType( $<v.Type>3 ) 
+				)
+
+					_for( int i=0, i < $<v.FieldCnt>3, ++i )
+
+						// Note: A deep copy was already done on
+						// the constant, no need to repeat that here.
+											
+						FreeValue( YYS &$<v.u.PtrToValue>1->u.FieldValues[i] );
+						$<v.u.PtrToValue>1->u.FieldValues[i] =
+							$<v.u.FieldValues>3[i];
+
+					_endfor
+					$<v.u.PtrToValue>1->CurField = $<v.CurField>3;
+					$<v.u.PtrToValue>1->CurIndex = $<v.CurIndex>3;
+
+
 				_else /* Must be a scalar value */
 
 					memcpy
@@ -51141,6 +51358,55 @@ ValueRedef:
 
 
 
+
+
+				_elseif
+				( 
+						$<v.pType>1 == tReal128
+					&&	$<v.pType>3 == tReal128
+					&&	GetBaseType( $<v.Type>1 ) == 
+							GetBaseType( $<v.Type>3 ) 
+				)
+
+					_if( $<v.Type>1 == $<v.Type>3 )
+					
+			
+						_for( int i=0, i < $<v.FieldCnt>3, ++i )
+
+							DeepCopy
+							(
+									&$<v.u.PtrToValue>1->u.FieldValues[i],
+									&$<v.u.FieldValues>3[i]
+							);
+
+						_endfor
+
+						
+					_else
+					
+						yyerror
+						( 
+							"The real128 field and constant are incompatible"
+						);
+						
+						// Need to set up a dummy value to prevent problems:
+						
+						memcpy
+						( 
+							$<v.u.PtrToValue>1->u.FieldValues,
+							&dummy_ste,
+							sizeofSymNode
+						);
+						$<v.u.PtrToValue>1->u.FieldValues->StaticName = 
+							$<v.u.PtrToValue>1->StaticName;
+							
+						$<v.u.PtrToValue>1->StaticName = NULL;
+						$<v.u.PtrToValue>1->u.FieldValues->Offset = $<v.Offset>1;
+							
+					_endif
+
+
+
 				_else /* Must be a scalar value */
 
 					memcpy
@@ -51217,7 +51483,7 @@ Variables:
 			doVariables
 			{
 				_here;
-				inVar = $<v.u.unsval>1;
+				inVar = $<i>1;
 			}
 		;
 
@@ -51233,7 +51499,7 @@ SetInVar:
 			*/
 
 			_here;
-			$<v.u.unsval>$ = inVar;
+			$<i>$ = inVar;
 			inVar = !(( inRecord || inUnion ) && !inVar );
 		}
 	;
@@ -54622,6 +54888,21 @@ StaticSingleTypeInit:
 					OutValue( sn, $<s>3, YYS &$<v>5 );
 
 
+
+				/*
+				** Check to see if the TypeID and the ConstOnlyExpr are
+				** compatible real128 objects. 
+				*/
+
+				_elseif
+				( 
+						$<s>3->pType == tReal128 
+					&&	GetBaseType( $<s>3 ) == GetBaseType( $<v.Type>5 ) 
+				)
+
+					OutValue( sn, $<s>3, YYS &$<v>5 );
+
+
 				_elseif
 				( 
 						( 
@@ -54828,6 +55109,23 @@ StaticSingleTypeWasExt:
 						_elseif
 						( 
 								$<s>3->pType == tUnion 
+							&&	GetBaseType( $<s>3 ) == 
+									GetBaseType( $<v.Type>5 ) 
+						)
+
+							OutValue( $<s>1->StaticName, $<s>3, YYS &$<v>5 );
+
+
+
+
+						/*
+						** Check to see if the TypeID and the ConstOnlyExpr are
+						** compatible real128 objects. 
+						*/
+
+						_elseif
+						( 
+								$<s>3->pType == tReal128 
 							&&	GetBaseType( $<s>3 ) == 
 									GetBaseType( $<v.Type>5 ) 
 						)
@@ -57049,7 +57347,7 @@ StaticVars:
 		OutputEndDSEG
 		{
 			_here;
-			inStatic = 0;
+			inStatic = $<i>1;
 		}
 	;
 	
@@ -57058,6 +57356,7 @@ StaticVars:
 SetInStatic:
 		{
 			_here;
+			$<i>$ = inStatic;
 			inStatic = 1;
 		}
 	;
@@ -57700,7 +57999,7 @@ ReadOnlyVars:
 			OutputEndReadOnly
 			{
 				_here;
-				inReadonly = 0;
+				inReadonly = $<i>1;
 			}
 		;
 	
@@ -57709,6 +58008,7 @@ ReadOnlyVars:
 SetInReadOnly:
 		{
 			_here;
+			$<i>$ = inReadonly;
 			inReadonly = 1;
 		}
 	;
@@ -59721,7 +60021,7 @@ UninitVars:	SetInStorage
 			OutputEndBSSSEG
 			{
 				_here;
-				inStorage = 0;
+				inStorage = $<i>1;
 			}
 		;
 	
@@ -59729,6 +60029,7 @@ UninitVars:	SetInStorage
 SetInStorage:
 		{
 			_here;
+			$<i>$ = inStorage;
 			inStorage = 1;
 		}
 	;
@@ -61201,7 +61502,12 @@ ConstExpr:
 			*/
 
 
-			_if( $<s>1->pType == tRecord || $<s>1->pType == tUnion )
+			_if
+			( 
+					$<s>1->pType == tRecord 
+				||	$<s>1->pType == tUnion 
+				||	$<s>1->pType == tReal128 
+			)
 
 				$<s>$ = $<s>1->Fields;
 
@@ -61222,6 +61528,16 @@ ConstExpr:
 				ErrorNear
 				( 
 					"Union constants do not take this form", 
+					$<s>1->TrueName,
+					__LINE__,
+					__FILE__ 
+				);
+
+			_elseif( $<s>1->pType == tReal128 || $<v.pType>6 == tReal128 )
+
+				ErrorNear
+				( 
+					"Real128 constants do not take this form", 
 					$<s>1->TrueName,
 					__LINE__,
 					__FILE__ 
@@ -61295,17 +61611,19 @@ ConstExpr:
 			SymNode_t 		*s;
 			char			lcName[256];
 			char			msg[ 256 ];
+			int				pType;
 				
 			_here;
 			assert( $<s>1 != NULL );
 			assert( $<neID.idStr>3 != NULL );
 			
-			_if( $<s>1->pType == tUnion )
+			pType = $<s>1->pType;
+			_if( pType == tUnion || pType == tReal128 )
 
 				strcpy( lcName, $<neID.idStr>3 );
 				lowercase( lcName );
 				
-				// We've got a union constant.
+				// We've got a union or real128 constant.
 				// Allocate storage for all the fields
 				// even though we only use one at a time
 				// (this is done to keep things general).
@@ -61326,7 +61644,7 @@ ConstExpr:
 				ClrConst
 				(
 					YYS &$<v>$,
-					tUnion,
+					pType,
 					$<s>1
 				);
 				$<s>1->Type = s;
@@ -61398,7 +61716,7 @@ ConstExpr:
 					sprintf
 					(
 						msg,
-						"Field %s is not a member of union %s",
+						"Field %s is not a member of union/real128 %s",
 						$<neID.idStr>3,
 						$<s>1->TrueName
 					);
@@ -61408,7 +61726,7 @@ ConstExpr:
 					assert( theField->Type != NULL );
 					_if( FieldsAreCompatible( theField, YYS &$<v>6 ))
 				
-						// Okay, initialize the union constant:
+						// Okay, initialize the union/real128 constant:
 
 						memcpy
 						( 
@@ -61466,7 +61784,7 @@ ConstExpr:
 						
 						// Initialize the the main value's fields:
 						
-						$<v.pType>$ = tUnion;
+						$<v.pType>$ = pType;
 						$<v.Type>$ = $<s>1;
 						$<v.SymClass>$	= cConstant;
 						$<v.Fields>$ = $<s>1->Fields;
@@ -61510,7 +61828,6 @@ ConstExpr:
 			_here;
 		}
 	;
-
 
 
 /*
@@ -74746,6 +75063,7 @@ SymTblFunc:
 				( 
 						s->pType == tRecord
 					||	s->pType == tUnion
+					||	s->pType == tReal128
 					||	s->pType == tClass
 					||	s->pType == tEnum
 				)
@@ -104304,6 +104622,7 @@ LookupSym:
 					( 
 							sym->pType == tRecord 
 						||	sym->pType == tUnion
+						||	sym->pType == tReal128
 						||	sym->pType == tClass 
 					)
 
@@ -104317,6 +104636,7 @@ LookupSym:
 						&&	(
 									sym->Type->pType == tRecord 
 								||	sym->Type->pType == tUnion
+								||	sym->Type->pType == tReal128
 								||	sym->Type->pType == tClass
 							)
 					)

@@ -610,7 +610,7 @@ _begin( FreeValue )
 		
 			FreeRecord( Value );
 			
-		_elseif( Value->v.pType == tUnion )
+		_elseif( Value->v.pType == tUnion || Value->v.pType == tReal128 )
 		
 			FreeUnion( Value );
 		
@@ -1413,7 +1413,7 @@ _begin( DeepCopy )
 
 		_endfor
 
-	_elseif( SrcObj->pType == tUnion )
+	_elseif( SrcObj->pType == tUnion || SrcObj->pType == tReal128 )
 
 		/*
 		** Make a copy of this union's metadata:
@@ -1758,7 +1758,7 @@ _begin( setClassification_sym )
 
 		_endif
 
-		_if( pt == tUnion )
+		_if( pt == tUnion || pt == tReal128 )
 
 			v->cls.cls |= cfy_IsUnion;
 
@@ -1968,7 +1968,7 @@ _begin( unArray )
 
 		_endif
 
-		_if( pt == tUnion )
+		_if( pt == tUnion || pt == tReal128 )
 
 			v->cls.cls |= cfy_IsUnion;
 
