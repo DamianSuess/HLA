@@ -32,6 +32,7 @@
 #include "common.h"
 #include "asm.h"
 #include <ctype.h>
+#include <sys/stat.h>
 
 // #defines that control the type of FUNCS we produce:
 //
@@ -1531,6 +1532,90 @@ _begin( ExtractFunc )
 	_endif
 
 _end( ExtractFunc )
+
+
+
+// FileModifiedTimeFunc-                                
+//                                                      
+// Returns the (UNIX-style) modification time of the function
+// passed as a string parameter.   
+
+
+void
+FileExistsFunc( union YYSTYPE *Result, union YYSTYPE *Value )
+_begin( FileExistsFunc )
+
+	
+	assert( Result != NULL );
+	assert( Value != NULL );
+
+	ClrConst
+	( 
+		Result, 
+		tBoolean, 
+		&boolean_ste
+	);
+	_if( IsStr( Value->v.pType ))
+	
+		int res = 1;
+		struct stat s;
+		
+		assert( Value->v.u.strval != NULL );
+		Result->v.u.boolval = stat( Value->v.u.strval, &s ) != -1;
+		free2( vss Value->v.u.strval ); 
+
+	_else
+
+		yyerror( "Type mismatch in operand" );
+		Result->v.u.boolval = 0;
+
+	_endif
+				
+_end( FileExistsFunc )
+
+
+
+// FileModifiedTimeFunc-                                
+//                                                      
+// Returns the (UNIX-style) modification time of the function
+// passed as a string parameter.   
+
+
+void
+FileModifiedTimeFunc( union YYSTYPE *Result, union YYSTYPE *Value )
+_begin( FileModifiedTimeFunc )
+
+	
+	assert( Result != NULL );
+	assert( Value != NULL );
+
+	ClrConst
+	( 
+		Result, 
+		tUns32, 
+		&uns32_ste
+	);
+	_if( IsStr( Value->v.pType ))
+	
+		int res = 1;
+		struct stat s;
+		
+		assert( Value->v.u.strval != NULL );
+		
+		stat( Value->v.u.strval, &s );
+		Result->v.u.unsval = s.st_mtime;
+		free2( vss Value->v.u.strval ); 
+
+	_else
+
+		yyerror( "Type mismatch in operand" );
+		Result->v.u.unsval = 0;
+
+	_endif
+				
+_end( FileModifiedTimeFunc )
+
+
 
 
 
@@ -4482,6 +4567,45 @@ _begin( SystemFunc )
 	free2( vss cmdline->v.u.strval );
 		
 _end( SystemFunc )
+
+
+
+
+// System2Func-                                            
+//                                                         
+// Handles the @system2( cmdString ) compile-time function.
+// Executes the specified (OS-dependent) command, and returns 
+// the system return code (an integer, 0 usually means no error)                  
+
+void
+System2Func
+( 
+	union YYSTYPE *Result, 
+	union YYSTYPE *cmdline 
+)
+_begin( System2Func )
+
+	assert( Result != NULL );
+	assert( cmdline != NULL );
+	assert( cmdline->v.u.strval != NULL );
+
+	ClrConst
+	( 
+		Result, 
+		tInt32, 
+		&int32_ste
+	);
+	_if( !IsStr( cmdline->v.pType ))
+	
+		yyerror( "Type mismatch in command line operand to @system2" );
+		Result->v.u.intval = -1;
+		_return;
+
+	_endif
+	Result->v.u.intval = system( cmdline->v.u.strval );	
+	free2( vss cmdline->v.u.strval );
+		
+_end( System2Func )
 
 
 
