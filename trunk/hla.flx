@@ -494,10 +494,12 @@ p_append        	#append
 p_asm           	#asm
 p_closeread     	#closeread
 p_closewrite    	#closewrite
+p_ctl				#ctl
 p_else          	#else
 p_elseif        	#elseif
 p_emit          	#emit
 p_endasm        	#endasm
+p_endctl			#endctl
 p_endfor        	#endfor
 p_endif         	#endif
 p_endmacro      	#endmacro
@@ -589,7 +591,9 @@ a_exceptions 		@exceptions
 a_exp        	    @exp        
 a_external          @external       
 a_extract    	    @extract    
-a_fast              @fast           
+a_fast              @fast
+a_fileexists		@fileexists
+a_filemodifiedtime	@filemodifiedtime
 a_filename  		@filename  
 a_filenamestk  		@filenamestk  
 a_firstnchar     	@firstnchar     
@@ -756,6 +760,7 @@ a_strset   			@strset
 a_strspan  			@strspan  
 a_substr   			@substr   
 a_system     	    @system 
+a_system2     	    @system2 
 a_tab				@tab    
 a_tan        	    @tan        
 a_tbyte			    @tbyte
@@ -5720,6 +5725,8 @@ _zstring		zstring
 
 {p_endregex}                            { yyerror( "Unexpected #endregex" ); }
 {p_return}								{ _return regexReturnTkn; }    
+{p_ctl}									{ _return ctlTkn;			}
+{p_endctl}								{ _return endctlTkn;		}
 
  /*
  ** Declaration keywords
@@ -5829,6 +5836,7 @@ _zstring		zstring
 {a_abstract}                            { _return abstractTkn;      }
 {a_here}                                { _return hereTkn;          }
 {a_label}								{ _return atlabelTkn;		}
+
 
  /*
  ** Parameter passing mechanism keywords
@@ -8196,36 +8204,39 @@ _zstring		zstring
  ** Assember function tokens
  */
 
-{a_abs}            { _return absTkn;               }
-{a_ceil}           { _return ceilTkn;              }
-{a_cos}            { _return cosTkn;               }
-{a_date}           { _return dateTkn;              }
-{a_env}            { _return envTkn;               }       
-{a_exp}            { _return expTkn;               }
-{a_extract}        { _return extractTkn;           }
-{a_floor}          { _return floorTkn;             }
-{a_isalpha}        { _return isalphaTkn;           }
-{a_isalphanum}     { _return isalphanumTkn;        }
-{a_isdigit}        { _return isdigitTkn;           }
-{a_islower}        { _return islowerTkn;           }
-{a_isspace}        { _return isspaceTkn;           }
-{a_isupper}        { _return isupperTkn;           }
-{a_isxdigit}       { _return isxdigitTkn;          }
-{a_log}            { _return logTkn;               }
-{a_log10}          { _return log10Tkn;             }
-{a_max}            { _return maxTkn;               }
-{a_min}            { _return minTkn;               }
-{a_modregrm}	   { _return modregrmTkn;		   }
-{a_odd}            { _return oddTkn;               }
-{a_random}         { _return randomTkn;            }
-{a_randomize}      { _return randomizeTkn;         }
-{a_sin}            { _return sinTkn;               }
-{a_sort}           { _return sortTkn;              }
-{a_sqrt}           { _return sqrtTkn;              }
-{a_system}         { _return systemTkn;            }
-{a_tan}            { _return tanTkn;               }
-{a_thread}         { _return threadTkn;            }
-{a_time}           { _return timeTkn;              }
+{a_abs}            		{ _return absTkn;               }
+{a_ceil}           		{ _return ceilTkn;              }
+{a_cos}            		{ _return cosTkn;               }
+{a_date}           		{ _return dateTkn;              }
+{a_env}            		{ _return envTkn;               }       
+{a_exp}            		{ _return expTkn;               }
+{a_extract}        		{ _return extractTkn;           }
+{a_fileexists}			{ _return fileexistsTkn;  		}
+{a_filemodifiedtime}	{ _return filemodifiedtimeTkn;  }
+{a_floor}          		{ _return floorTkn;             }
+{a_isalpha}        		{ _return isalphaTkn;           }
+{a_isalphanum}     		{ _return isalphanumTkn;        }
+{a_isdigit}        		{ _return isdigitTkn;           }
+{a_islower}        		{ _return islowerTkn;           }
+{a_isspace}        		{ _return isspaceTkn;           }
+{a_isupper}        		{ _return isupperTkn;           }
+{a_isxdigit}       		{ _return isxdigitTkn;          }
+{a_log}            		{ _return logTkn;               }
+{a_log10}          		{ _return log10Tkn;             }
+{a_max}            		{ _return maxTkn;               }
+{a_min}            		{ _return minTkn;               }
+{a_modregrm}	   		{ _return modregrmTkn;		   }
+{a_odd}            		{ _return oddTkn;               }
+{a_random}         		{ _return randomTkn;            }
+{a_randomize}      		{ _return randomizeTkn;         }
+{a_sin}            		{ _return sinTkn;               }
+{a_sort}           		{ _return sortTkn;              }
+{a_sqrt}           		{ _return sqrtTkn;              }
+{a_system}         		{ _return systemTkn;            }
+{a_system2}         	{ _return system2Tkn;           }
+{a_tan}            		{ _return tanTkn;               }
+{a_thread}         		{ _return threadTkn;            }
+{a_time}           		{ _return timeTkn;              }
 
 
  /*
@@ -12449,7 +12460,7 @@ _begin( ProcessID )
 		
 		_if( cn.Sym->SymClass == cType )
 		
-			_return LocalID;
+			_return NonLocalID;
 			
 		_endif
 			

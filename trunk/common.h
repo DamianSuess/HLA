@@ -237,9 +237,7 @@ extern int	inMain		;
 extern int	inProcedure	;
 extern int	inMethod	;
 extern int	inIterator	;
-extern int	inMacro		;
-extern int	inKeyword	;
-extern int	inTerminator;
+extern int	inCTL       ;
 extern int	inThunk		;
 extern int	inUnit		;
 extern int	inProgram	;
@@ -843,6 +841,8 @@ extern void EnvFunc( union YYSTYPE *Result, union YYSTYPE *Value );
 extern void ExpFunc( union YYSTYPE *Result, union YYSTYPE *Value );
 extern void ExtractFunc( union YYSTYPE *Result, union YYSTYPE *Value );
 extern void FloorFunc( union YYSTYPE *Result, union YYSTYPE *Value );
+extern void FileTimeModifiedFunc( union YYSTYPE *Result, union YYSTYPE *Value );
+extern void FileExistsFunc( union YYSTYPE *Result, union YYSTYPE *Value );
 extern void IsAlphaFunc( union YYSTYPE *Result, union YYSTYPE *Value );
 extern void IsAlnumFunc( union YYSTYPE *Result, union YYSTYPE *Value );
 extern void IsDigitFunc( union YYSTYPE *Result, union YYSTYPE *Value );
@@ -867,6 +867,11 @@ extern void SortArray
 );
 extern void SqrtFunc( union YYSTYPE *Result, union YYSTYPE *Value );
 extern void SystemFunc
+( 
+	union YYSTYPE *Result, 
+	union YYSTYPE *cmdline 
+);
+extern void System2Func
 ( 
 	union YYSTYPE *Result, 
 	union YYSTYPE *cmdline 

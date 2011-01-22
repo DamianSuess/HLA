@@ -250,9 +250,9 @@ int	inMain		= 0;	/*		12										*/
 int	inProcedure	= 0;	/*		13										*/
 int	inMethod	= 0;	/*		14										*/
 int	inIterator	= 0;	/*		15										*/
-int inMacro		= 0;	/*		16										*/
-int inKeyword	= 0;	/*		17										*/
-int	inTerminator= 0;	/*		18										*/
+						/*		16										*/
+						/*		17										*/
+int	inCTL		= 0;	/*		18										*/
 int inThunk		= 0;	/*		19										*/
 
 int	inUnit		= 0;	/*		23										*/
@@ -265,6 +265,8 @@ int inRegex		= 0;	/*		29										*/
 		 
 
 int wasProgram = 0;		// Used to generate a .link file.
+int wasCTL	   = 0;		// Used to force no code generation.
+
  /*
  ** Variable to denote that we're in an @string parameter list:
  */
@@ -1432,6 +1434,7 @@ union	YYSTYPE		forReturnVal;
 %token atpointerTkn
 
 
+%token ctlTkn endctlTkn
 %token nullTkn
 
  /* 
@@ -1441,12 +1444,13 @@ union	YYSTYPE		forReturnVal;
 %token	absTkn
 %token	ceilTkn cosTkn dateTkn envTkn
 %token	expTkn extractTkn floorTkn
+
 %token	isalphaTkn isalphanumTkn
 %token	isdigitTkn islowerTkn isspaceTkn isupperTkn
 %token	isxdigitTkn logTkn log10Tkn
 %token	maxTkn minTkn modregrmTkn oddTkn randomTkn
 %token	randomizeTkn readTkn 
-%token  sinTkn sortTkn sqrtTkn systemTkn
+%token  sinTkn sortTkn sqrtTkn systemTkn system2Tkn
 %token	tanTkn threadTkn timeTkn
 
 
@@ -1552,6 +1556,11 @@ union	YYSTYPE		forReturnVal;
 %token	delspacesTkn  
 %token	uppercaseTkn
 
+
+ // File Functions
+ 
+%token	fileexistsTkn filemodifiedtimeTkn;
+ 
  /*
  ** Symbol table functions
  */
@@ -2427,6 +2436,7 @@ ParserEntry:
 
 		pgm
 	|	unit
+	|	ctl
 
 
 		/*
@@ -5301,6 +5311,508 @@ xmmReg_a:
 
 
 
+
+
+/**************************************************************************/
+
+
+
+ /*
+ ** Compile a module (unit) here.
+ */
+
+ctl: 
+		ctlTkn				/* $1 */
+		{					/* $2 */
+			inCTL = 1;
+		} 
+		CTLDeclarations 	/* $3 */
+		endctlTkn 			/* $4 */
+		{					/* $5 */
+			inCTL = 0;
+			wasCTL = 1;
+		}
+	;
+
+
+ /* 
+ ** Handle HLA declarations here.
+ */
+
+CTLDeclarations:
+		optionalSemicolon
+		CTLDecls
+	;
+ 
+CTLDecls:	
+		/* Empty */ 
+		
+	|	CTLDecls 
+		saveCurNS 
+		constTkn 
+		Constants
+		optionalEndConst 
+		{ 
+			currentNS = $<ru.saveCurNS>2; 
+		} 
+		
+	|	CTLDecls 
+		saveCurNS 
+		valTkn 
+		Values
+		optionalEndVar 
+		{ 
+			currentNS = $<ru.saveCurNS>2; 
+		} 
+		
+	|	CTLDecls 
+		saveCurNS 
+		typeTkn 
+		Types
+		optionalEndType 
+		{ 
+			currentNS = $<ru.saveCurNS>2; 
+		} 
+		
+	|	CTLDecls 
+		saveCurNS 
+		CTLNameSpace 
+		optionalSemicolon
+		{ 
+			currentNS = $<ru.saveCurNS>2; 
+		}
+ 	;
+
+
+CTLNameSpace:
+		namespaceTkn			/* $1 */ 
+		UndefinedID 			/* $2 */
+		EnterNSName				/* $3 */
+		Semicolon				/* $4 */ 
+		SavePointerList			/* $5  */
+		CTLNameSpaceDCLs		/* $6  */
+		endTkn					/* $7  */
+		AnyID					/* $8  */
+		Semicolon				/* $9  */
+		{						/* $10 */
+
+			SymNode_t *CurSym;
+
+			assert( $<neID.idStr>8 != NULL );
+
+
+			/*
+			** Reset NSGlobal pointer (used by @global) since
+			** we're no longer in a namespace.
+			**
+			** Ditto for currentNS (since we shouldn't be using
+			** a hash table for a search while outside a namespace.  
+			*/
+
+			NSGlobal = NULL;
+			currentNS = NULL;
+			
+			/*
+			** Mark the end of the local symbols in this
+			** Name Space with a NULL terminating link.
+			*/
+
+			_if( SymbolTable == $<s>3 )
+
+				yyerror( "Namespaces must have at least one field" );
+
+				/*
+				** Create a dummy set of fields to
+				** prevent any problems from occurring.
+				*/
+
+				$<s>3->Fields = &error_ste;
+
+			_else
+
+				$<s>3->Fields = SymbolTable;
+				CurSym = SymbolTable;
+				_while( CurSym->Next != $<s>3 )
+
+					assert( CurSym->Next != NULL );
+					CurSym = CurSym->Next;
+
+				_endwhile
+				CurSym->Next = NULL;
+
+			_endif
+			
+
+			/*
+			** Check to make sure all pointer forward references have
+			** been resolved.
+			*/
+
+			CheckPtrs();
+			
+				
+			/*
+			** Restore linkage to the rest of the symbol table.
+			*/
+
+			$<s>3->Next = $<s>3->Base;
+			$<s>3->Base = NULL;
+
+
+			/*
+			** Be sure the identifier after the END keyword
+			** matches the name space name.
+			*/
+
+			_if( _strne( $<idStr>2, $<neID.idStr>8 ))
+
+				char msg[ 256 ];
+
+				sprintf
+				(
+					msg,
+					"Identifier <<%s>> after END in name space\n"
+					"declaration must match <<%s>>",
+					$<neID.idStr>8,
+					$<idStr>2
+				);
+				yyerror( msg );
+
+			_endif
+
+			/*
+			** Remove the local symbols in this namespace
+			** from the symbol table.
+			*/
+
+			SymbolTable = $<s>3;
+			
+			/*
+			** Restore the previous PointerList value
+			*/
+			
+			PointerList = $<plist>5;
+
+			/*
+			** Convert the symbol to a Namespace object.
+			** We couldn't do this before this point because
+			** we wouldn't be able to handle the "end <id>;"
+			** syntax if "<id>" was a namespace object.
+			*/
+
+			$<s>3->pType = tNamespace;
+
+
+			inNamespace = 0;
+			free2( vss $<neID.idStr>8 );
+		}
+	;
+	
+	
+CTLNameSpace:
+		namespaceTkn		/* $1 */ 
+		UndefinedID 		/* $2 */
+		EnterNSName			/* $3 */
+		Semicolon			/* $4 */
+		doFast				/* $5 */
+		SavePointerList		/* $6  */
+		CTLNameSpaceDCLs	/* $7  */
+		endTkn				/* $8  */
+		AnyID				/* $9  */
+		Semicolon			/* $10 */
+		{					/* $11 */
+
+			SymNode_t *CurSym;
+
+			assert( $<neID.idStr>9 != NULL );
+
+
+			/*
+			** Reset NSGlobal pointer (used by @global) since
+
+			** we're no longer in a namespace.
+			**
+			** Ditto for currentNS (since we shouldn't be using
+			** a hash table for a search while outside a namespace.  
+			*/
+
+			NSGlobal = NULL;
+			currentNS = NULL;
+			
+			/*
+			** Mark the end of the local symbols in this
+			** Name Space with a NULL terminating link.
+			*/
+
+			_if( SymbolTable == $<s>3 )
+
+				yyerror( "Namespaces must have at least one field" );
+
+				/*
+				** Create a dummy set of fields to
+				** prevent any problems from occurring.
+				*/
+
+				$<s>3->Fields = &error_ste;
+
+			_else
+
+				$<s>3->Fields = SymbolTable;
+				CurSym = SymbolTable;
+				_while( CurSym->Next != $<s>3 )
+
+					assert( CurSym->Next != NULL );
+					CurSym = CurSym->Next;
+
+				_endwhile
+				CurSym->Next = NULL;
+
+			_endif
+			
+
+			/*
+			** Check to make sure all pointer forward references have
+			** been resolved.
+			*/
+
+			CheckPtrs();
+			
+				
+			/*
+			** Restore linkage to the rest of the symbol table.
+			*/
+
+			$<s>3->Next = $<s>3->Base;
+			$<s>3->Base = NULL;
+
+
+			/*
+			** Be sure the identifier after the END keyword
+			** matches the name space name.
+			*/
+
+			_if( _strne( $<idStr>2, $<neID.idStr>9 ))
+
+				char msg[ 256 ];
+
+				sprintf
+				(
+					msg,
+					"Identifier <<%s>> after END in name space\n"
+					"declaration must match <<%s>>",
+					$<neID.idStr>9,
+					$<idStr>2
+				);
+				yyerror( msg );
+
+			_endif
+
+			/*
+			** Remove the local symbols in this namespace
+			** from the symbol table.
+			*/
+
+			SymbolTable = $<s>3;
+			
+			/*
+			** Restore the previous PointerList value
+			*/
+			
+			PointerList = $<plist>6;
+
+			/*
+			** Convert the symbol to a Namespace object.
+			** We couldn't do this before this point because
+			** we wouldn't be able to handle the "end <id>;"
+			** syntax if "<id>" was a namespace object.
+			*/
+
+			$<s>3->pType = tNamespace;
+
+
+			inNamespace = 0;
+			free2( vss $<neID.idStr>9 );
+			
+			/*
+			** Turn off the Fast Namespace operation
+			*/
+			
+			fastNamespace = 0;
+		}
+	;
+
+	
+
+
+CTLNameSpace:
+		namespaceTkn		/* $1  */ 
+		LocalID 	    	/* $2  */
+		SetNSName			/* $3  */
+		Semicolon			/* $4  */
+		SavePointerList		/* $5  */
+		CTLNameSpaceDCLs	/* $6  */
+		endTkn				/* $7  */
+		AnyID				/* $8  */
+		Semicolon			/* $9  */
+		{					/* $10 */
+
+			assert( $<neID.idStr>8 != NULL );
+
+
+			/*
+			** Reset NSGlobal pointer (used by @global) since
+			** we're no longer in a namespace.
+			**
+			** Ditto for currentNS.
+			*/
+
+			NSGlobal = NULL;
+			currentNS = NULL;
+
+			/*
+			** Add the new identifiers to the name space:
+			*/
+
+			$<s>2->Fields = SymbolTable;
+			$<s>2->Base = NULL;
+				
+			/*
+			** Restore linkage to the rest of the symbol table.
+			*/
+
+			SymbolTable = $<s>3;
+			
+			/*
+			** Restore PointerList:
+			*/
+			
+			PointerList = $<plist>5;
+
+
+			/*
+			** Be sure the identifier after the END keyword
+			** matches the name space name.
+			*/
+
+			_if( _strne( $<s>2->TrueName, $<neID.idStr>8 ))
+
+				char msg[ 256 ];
+
+				sprintf
+				(
+					msg,
+					"Identifier <<%s>> after END in name space\n"
+					"declaration must match <<%s>>",
+					$<neID.idStr>8,
+					$<s>2->TrueName
+				);
+				yyerror( msg );
+
+			_endif
+
+
+
+			inNamespace = 0;
+			free2( vss $<neID.idStr>8 );
+		}
+	;
+
+
+
+CTLNameSpace:
+		namespaceTkn		/* $1  */ 
+		LocalID 	    	/* $2  */
+		SetNSName			/* $3  */
+		Semicolon			/* $4  */
+		doFast				/* $5  */
+		SavePointerList		/* $6  */
+		CTLNameSpaceDCLs	/* $7  */
+		endTkn				/* $8  */
+		AnyID				/* $9  */
+		Semicolon			/* $10 */
+		{					/* $11 */
+
+			assert( $<neID.idStr>9 != NULL );
+
+
+			/*
+			** Reset NSGlobal pointer (used by @global) since
+			** we're no longer in a namespace.
+			**
+			** Ditto for currentNS.
+			*/
+
+			NSGlobal = NULL;
+			currentNS = NULL;
+
+			/*
+			** Add the new identifiers to the name space:
+			*/
+
+			$<s>2->Fields = SymbolTable;
+			$<s>2->Base = NULL;
+				
+			/*
+			** Restore linkage to the rest of the symbol table.
+			*/
+
+			SymbolTable = $<s>3;
+			
+			/*
+			** Restore PointerList:
+			*/
+			
+
+			PointerList = $<plist>6;
+
+
+			/*
+			** Be sure the identifier after the END keyword
+			** matches the name space name.
+			*/
+
+			_if( _strne( $<s>2->TrueName, $<neID.idStr>9 ))
+
+				char msg[ 256 ];
+
+				sprintf
+				(
+					msg,
+					"Identifier <<%s>> after END in name space\n"
+					"declaration must match <<%s>>",
+					$<neID.idStr>9,
+					$<s>2->TrueName
+				);
+				yyerror( msg );
+
+			_endif
+
+
+
+			inNamespace = 0;
+			free2( vss $<neID.idStr>9 );
+			
+			/*
+			** Turn off the Fast Namespace operation
+			*/
+			
+			fastNamespace = 0;
+		}
+	;
+
+
+
+CTLNameSpaceDCLs:
+		optionalSemicolon
+		CTLNSDcls
+	;
+	
+CTLNSDcls:
+		Empty 
+	|	CTLNSDcls constTkn Constants optionalEndConst
+	|	CTLNSDcls valTkn Values optionalEndVal  
+	|	CTLNSDcls typeTkn Types optionalEndType  
+ 	;
 
 
 /**************************************************************************/
@@ -17358,7 +17870,6 @@ macros:
 				0				/* FieldCnt						*/
 			);
 
-			inMacro = 0;
 			_here;
 		}
 	
@@ -17555,7 +18066,6 @@ macros:
 				0				/* FieldCnt						*/
 			);
 
-			inTerminator = 0;
 			(void) $<s>11; // To shut up bison
 			_here;
 		}
@@ -17566,9 +18076,7 @@ macros:
 
 
 /*
-** The following matches the "macro" keyword and
-** sets the inMacro flag true for use by the @SECTION
-** compile-time function.  It also preserves the currentNS
+** The following matches the "macro" keyword.  It also preserves the currentNS
 ** variable (and sets it to NULL) so we don't use the
 ** hash table search when scanning for local macro symbols.
 */
@@ -17578,7 +18086,6 @@ doMacroTkn:
 		macroTkn
 		{
 			_here;
-			inMacro = 1;
 		}
 	;
 
@@ -17593,9 +18100,6 @@ doTerminatorTkn:
 		terminatorTkn
 		{
 			_here;
-			inMacro = 0;
-			inKeyword = 0;
-			inTerminator = 1;
 		}
 	;
 
@@ -17610,8 +18114,6 @@ doKeywordTkn:
 		keywordTkn
 		{
 			_here;
-			inMacro = 0;
-			inKeyword = 1;
 		}
 	;
 
@@ -66173,6 +66675,73 @@ ConstFunc:	floorTkn Lparen error Rparen
 
 
 
+ConstFunc:	fileexistsTkn Lparen ConstOnlyExpr Rparen
+			{
+				_here;
+				FileExistsFunc
+				( 
+					YYS &$<v>$, 
+					YYS &$<v>3 
+				);
+				_here;
+			}
+		;
+
+ConstFunc:	fileexistsTkn Lparen error Rparen
+			{
+				yyerror( "Error in @fileExists function [@fileExists(s)]" );
+
+				ClrConst
+				( 
+					YYS &$<v>$, 
+					tBoolean, 
+					&boolean_ste
+				);
+
+			}
+		;
+
+
+
+
+
+ConstFunc:	filemodifiedtimeTkn Lparen ConstOnlyExpr Rparen
+			{
+				_here;
+				FileModifiedTimeFunc
+				( 
+					YYS &$<v>$, 
+					YYS &$<v>3 
+				);
+				_here;
+			}
+		;
+
+ConstFunc:	filemodifiedtimeTkn Lparen error Rparen
+			{
+				yyerror( "Error in @fileTimeModified function [@fileTimeModified(s)]" );
+
+				ClrConst
+				( 
+					YYS &$<v>$, 
+					tBoolean, 
+					&boolean_ste
+				);
+
+			}
+		;
+
+
+
+
+
+
+
+
+
+
+
+
 ConstFunc:	isalphaTkn Lparen ConstOnlyExpr Rparen
 			{
 				_here;
@@ -67290,12 +67859,26 @@ ConstFunc:
 
 
 
-// Handle @system( "pgm", "cmdline") here:
+// Handle @system( "cmdline") here:
 
 ConstFunc:	systemTkn Lparen ConstOnlyExpr Rparen
 			{
 				_here;
 				SystemFunc( YYS &$<v>$, YYS &$<v>3 );
+				_here;
+			}
+		;
+
+
+
+					 
+
+// Handle @system2( "cmdline") here:
+
+ConstFunc:	system2Tkn Lparen ConstOnlyExpr Rparen
+			{
+				_here;
+				System2Func( YYS &$<v>$, YYS &$<v>3 );
 				_here;
 			}
 		;
@@ -74836,9 +75419,9 @@ ConstFunc:	curVarTkn
 	/*  inProcedure				13								 	*/
 	/*  inMethod				14								 	*/
 	/*  inIterator				15								 	*/
-	/*  inMacro					16								 	*/
-	/*  inKeyword				17								 	*/
-	/*  inTerminator			18								 	*/
+	/*  (unused)				16								 	*/
+	/*  (unused)				17								 	*/
+	/*  inCTL					18								 	*/
 	/*  inThunk					19								 	*/
 	/*															 	*/
 	/*  inUnit					23								 	*/
@@ -74869,9 +75452,9 @@ ConstFunc:
 				+	b( inUnit, 23 )
 				
 				+	b( inThunk, 19 )
-				+	b( inTerminator, 18 )
-				+	b( inKeyword, 17 )
-				+	b( inMacro, 16 )
+				+	b( inCTL, 18 )
+				/*+	b( inKeyword, 17 )*/
+				/*+	b( inMacro, 16 )  */
 				+	b( inIterator, 15 )
 				+	b( inMethod, 14 )
 				+	b( inProcedure, 13 )
@@ -108533,6 +109116,7 @@ _begin( main )
 		fprintf( MsgOut, "\n" );
 	
 	_endif
+	
 
 	// Guarantee that source files end with a newline:
 
@@ -108540,242 +109124,248 @@ _begin( main )
 	asmPuts( "\n" );
 	
 	
-
-
-	/*
-	** Create a linker response file here:
-	*/
-
-	_if( ResponseFile >= 2 )
+	// If it's a CTL program, no further processing is needed
 	
-		// If we're forcing the creation of a new link file,
-		// begin by deleting the old one if it exists.
+	_if( !wasCTL )
+	
+
+
+		/*
+		** Create a linker response file here:
+		*/
+
+		_if( ResponseFile >= 2 )
 		
-		unlink( LinkName );
-		
-	_endif
-	
-	
-	_if
-	( 
-			ResponseFile 
-		&&	( wasProgram || (ResponseFile >= 2) ) 
-		&& 	(targetOS == windows_os || includeLibList != NULL ))
-	
-		_if( ResponseFile == 2 || !fexists( LinkName ))
-
-			linkOut = fopen( LinkName, "w" );
-			_if( linkOut == NULL )
+			// If we're forcing the creation of a new link file,
+			// begin by deleting the old one if it exists.
 			
-				char msg[256];
-				
-				sprintf( msg, "Could not create file '%s'", LinkName );
-				yyerror( msg );
-				exit( 1 );
-				
-			_endif
-			SetSeg( CsegName, csname, ".text" );
-			SetSeg( DsegName, dataname, ".data" );
-			SetSeg( BssSegName, bssname, ".bss" );
-			SetSeg( ROsegName, roname, ".text" );
-			SetSeg( StrSegName, constname, ".text" );
-			_if( targetOS == windows_os )
-			
-				fprintf
-				(
-					linkOut,
-					"-heap:0x1000000,0x1000000\n"
-					"-stack:0x1000000,0x1000000\n"
-					"-base:0x4000000\n"
-					"-entry:HLAMain\n"
-					"-section:%s,ER\n" 
-					"-section:%s,RW\n"
-					"-section:%s,RW\n",
-					csname,
-					dataname,
-					bssname
-				);
-			
-				
-
-				// We don't support segments anymore, so the 
-				// following is a waste of time:
-				
-				s = SegmentList;
-				assert( s == NULL );
-				fprintf
-				(
-					linkOut,
-					"kernel32.lib\n"
-					"user32.lib\n"
-					"gdi32.lib\n"
-				);
-				
-			_endif
-			
-			// The following is done for all OSes. Note that
-			// for Linux, FreeBSD, and MacOS, the HLA program
-			// simply copies the following text to the linker's
-			// command line.
-			
-			_while( includeLibList != NULL )
-			
-				fprintf
-				(
-					linkOut,
-					"%s\n",
-					includeLibList->lib
-				);
-				includeLibList = includeLibList->next;
-				
-			_endwhile
-
-			fclose( linkOut );
+			unlink( LinkName );
 			
 		_endif
+		
+		
+		_if
+		( 
+				ResponseFile 
+			&&	( wasProgram || (ResponseFile >= 2) ) 
+			&& 	(targetOS == windows_os || includeLibList != NULL ))
+		
+			_if( ResponseFile == 2 || !fexists( LinkName ))
 
-	_endif
-		
-
-	_here;
-	
-	// Copy all the data to one buffer (mainly for HLA Back Engine
-	// compilation):
-	
-	
-	_begin( outputBuffer )
-	
-		outputBuf	buffer;
-		
-		_here;
-		extPubIterator( &extBuf );
-		_here;
-		
-		buffer.offset = 0;
-		buffer.size =
-				preambleBuf.offset
-			+	extBuf.offset
-			+	codeBuf.offset
-			+	dataBuf.offset
-			+	roBuf.offset
-			+	bssBuf.offset
-			+	constBuf.offset
-			+	16384;		// For the extra stuff we're going to tack on.
-
-		_here;
-		buffer.base = malloc2( buffer.size );
-		asmBuf = &buffer;
-		
-		asmCpy( preambleBuf.base, preambleBuf.offset );
-		asmCpy( extBuf.base, extBuf.offset );
-		
-		EmitSegments( &buffer );
-		
-		_if( assembler == masm || assembler == tasm )
-		
-			asmPrintf( "\t\tend\n" );
-			
-		_elseif( assembler == hlabe )
-		
-			asmPuts( "\n" hlabe_end "\n" );
+				linkOut = fopen( LinkName, "w" );
+				_if( linkOut == NULL )
 				
-		_endif
-		asmPrintf( "\n" );	
+					char msg[256];
+					
+					sprintf( msg, "Could not create file '%s'", LinkName );
+					yyerror( msg );
+					exit( 1 );
+					
+				_endif
+				SetSeg( CsegName, csname, ".text" );
+				SetSeg( DsegName, dataname, ".data" );
+				SetSeg( BssSegName, bssname, ".bss" );
+				SetSeg( ROsegName, roname, ".text" );
+				SetSeg( StrSegName, constname, ".text" );
+				_if( targetOS == windows_os )
+				
+					fprintf
+					(
+						linkOut,
+						"-heap:0x1000000,0x1000000\n"
+						"-stack:0x1000000,0x1000000\n"
+						"-base:0x4000000\n"
+						"-entry:HLAMain\n"
+						"-section:%s,ER\n" 
+						"-section:%s,RW\n"
+						"-section:%s,RW\n",
+						csname,
+						dataname,
+						bssname
+					);
+				
+					
 
-		_if( !useHLABE )
-		
-			fOut = fopen( AsmName, "w+" );
-			_if( fOut == NULL )
+					// We don't support segments anymore, so the 
+					// following is a waste of time:
+					
+					s = SegmentList;
+					assert( s == NULL );
+					fprintf
+					(
+						linkOut,
+						"kernel32.lib\n"
+						"user32.lib\n"
+						"gdi32.lib\n"
+					);
+					
+				_endif
+				
+				// The following is done for all OSes. Note that
+				// for Linux, FreeBSD, and MacOS, the HLA program
+				// simply copies the following text to the linker's
+				// command line.
+				
+				_while( includeLibList != NULL )
+				
+					fprintf
+					(
+						linkOut,
+						"%s\n",
+						includeLibList->lib
+					);
+					includeLibList = includeLibList->next;
+					
+				_endwhile
 
-				fprintf
-				( 
-					MsgOut, 
-					"Could not open output file '%s'\n%s\n", 
-					AsmName,
-					strerror( errno )
-				);
-				_return 1;
-
+				fclose( linkOut );
+				
 			_endif
-			fwrite( buffer.base, buffer.offset, 1,  fOut );
-			fclose( fOut );
-			
-		_else
-		
-			
-		
-			_if( targetOS == windows_os )
-			 
-				hlabe_compile
-				(
-					FileName,
-					AsmName, 
-					buffer.base, 
-					buffer.base + buffer.offset,
-					objt_pecoff_c,
-					Verbose 
-				);
-				
-			_elseif( targetOS == linux_os )
-			 
-				hlabe_compile
-				(
-					FileName,
-					AsmName, 
-					buffer.base, 
-					buffer.base + buffer.offset,
-					objt_elfLinux_c,
-					Verbose 
-				);
-				
-			
-			_elseif( targetOS == freeBSD_os )
-			 
-				hlabe_compile
-				(
-					FileName,
-					AsmName, 
-					buffer.base, 
-					buffer.base + buffer.offset,
-					objt_elfFreeBSD_c,
-					Verbose 
-				);
-				
-			
-			_elseif( targetOS == macOS_os )
-			
-				hlabe_compile
-				(
-					FileName,
-					AsmName, 
-					buffer.base, 
-					buffer.base + buffer.offset,
-					objt_macho_c,
-					Verbose 
-				);
 
+		_endif
+			
+
+		_here;
+		
+		// Copy all the data to one buffer (mainly for HLA Back Engine
+		// compilation):
+		
+		
+		_begin( outputBuffer )
+		
+			outputBuf	buffer;
+			
+			_here;
+			extPubIterator( &extBuf );
+			_here;
+			
+			buffer.offset = 0;
+			buffer.size =
+					preambleBuf.offset
+				+	extBuf.offset
+				+	codeBuf.offset
+				+	dataBuf.offset
+				+	roBuf.offset
+				+	bssBuf.offset
+				+	constBuf.offset
+				+	16384;		// For the extra stuff we're going to tack on.
+
+			_here;
+			buffer.base = malloc2( buffer.size );
+			asmBuf = &buffer;
+			
+			asmCpy( preambleBuf.base, preambleBuf.offset );
+			asmCpy( extBuf.base, extBuf.offset );
+			
+			EmitSegments( &buffer );
+			
+			_if( assembler == masm || assembler == tasm )
+			
+				asmPrintf( "\t\tend\n" );
+				
+			_elseif( assembler == hlabe )
+			
+				asmPuts( "\n" hlabe_end "\n" );
+					
+			_endif
+			asmPrintf( "\n" );	
+
+			_if( !useHLABE )
+			
+				fOut = fopen( AsmName, "w+" );
+				_if( fOut == NULL )
+
+					fprintf
+					( 
+						MsgOut, 
+						"Could not open output file '%s'\n%s\n", 
+						AsmName,
+						strerror( errno )
+					);
+					_return 1;
+
+				_endif
+				fwrite( buffer.base, buffer.offset, 1,  fOut );
+				fclose( fOut );
+				
 			_else
 			
-				fprintf
-				( 
-					MsgOut, 
-					"Unknown target OS (internal HLAPARSE error)\n" 
-				);
-				_return 1;
 				
+			
+				_if( targetOS == windows_os )
+				 
+					hlabe_compile
+					(
+						FileName,
+						AsmName, 
+						buffer.base, 
+						buffer.base + buffer.offset,
+						objt_pecoff_c,
+						Verbose 
+					);
+					
+				_elseif( targetOS == linux_os )
+				 
+					hlabe_compile
+					(
+						FileName,
+						AsmName, 
+						buffer.base, 
+						buffer.base + buffer.offset,
+						objt_elfLinux_c,
+						Verbose 
+					);
+					
+				
+				_elseif( targetOS == freeBSD_os )
+				 
+					hlabe_compile
+					(
+						FileName,
+						AsmName, 
+						buffer.base, 
+						buffer.base + buffer.offset,
+						objt_elfFreeBSD_c,
+						Verbose 
+					);
+					
+				
+				_elseif( targetOS == macOS_os )
+				
+					hlabe_compile
+					(
+						FileName,
+						AsmName, 
+						buffer.base, 
+						buffer.base + buffer.offset,
+						objt_macho_c,
+						Verbose 
+					);
+
+				_else
+				
+					fprintf
+					( 
+						MsgOut, 
+						"Unknown target OS (internal HLAPARSE error)\n" 
+					);
+					_return 1;
+					
+				_endif
+					
+			
 			_endif
-				
+			free2( vss buffer.base );
+			free2( vss preambleBuf.base );
+			free2( vss codeBuf.base );
+			free2( vss dataBuf.base );
+			free2( vss roBuf.base );
+			free2( vss bssBuf.base );
+			free2( vss constBuf.base );
 		
-		_endif
-		free2( vss buffer.base );
-		free2( vss preambleBuf.base );
-		free2( vss codeBuf.base );
-		free2( vss dataBuf.base );
-		free2( vss roBuf.base );
-		free2( vss bssBuf.base );
-		free2( vss constBuf.base );
-	
-	_end( outputBuffer )
+		_end( outputBuffer )
+		
+	_endif // !wasCTL
 	fclose( yyin );
 	
 	_here;
