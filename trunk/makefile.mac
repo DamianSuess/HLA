@@ -14,7 +14,7 @@ hla.o: hla.c ratc.h debug.h
 
 hlaparse:	hlaparse.o lex.yy.o symbol.o hlautils.o output.o oututils.o coerce.o \
 			funcs.o  hlaasm.o hlabe.o
-	gcc -march=i386 -m32 -Xlinker -stack_size -Xlinker 0x1000000 -o hlaparse hlaparse.o lex.yy.o \
+	gcc -march=i386 -m32 -Xlinker -no_pie -Xlinker -stack_size -Xlinker 0x1000000 -o hlaparse hlaparse.o lex.yy.o \
 			symbol.o hlautils.o output.o oututils.o coerce.o funcs.o 			\
 			hlaasm.o hlabe.o /usr/hla/hlalib/hlalib.a
 
