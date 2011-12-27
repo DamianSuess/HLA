@@ -3335,12 +3335,13 @@ _begin( main )
 		sprintf
 		( 
 			CmdLine, 
-			"ld %s %s %s  -o \"%s\" %s %c",
-			_ifx( gasSyntax == macGas, "-arch i386", "" ),
+			"ld %s %s %s  -o \"%s\" %s %s %c",
+			_ifx( gasSyntax == macGas, "-arch i386 -macosx_version_min 10.6 -no_pie", "" ),
 			linkerOptions,
 			LinkOpts,
 			ExeName,
 			includeLib,
+			_ifx( gasSyntax == macGas,"/developer/SDKs/macosx10.6.sdk/usr/lib/libSystem.dylib", "" ),
 			0
 		);
 			
