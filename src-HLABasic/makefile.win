@@ -1,0 +1,25 @@
+build: bc.exe bd.exe bx.obj be.exe
+
+
+clean:
+	delete tmp
+	delete *.exe
+	delete *.obj
+	delete *.link
+	delete *.inc
+	delete *.asm
+	delete *.map
+
+
+bc.exe: bc.hla include/basic.hhf
+	hla -p:tmp -obj:tmp bc
+
+bd.exe: bd.hla include/basic.hhf
+	hla -p:tmp -obj:tmp bd
+
+bx.obj: bx.hla include/basic.hhf include/siteSpecific.hhf
+	hla -c -p:tmp bx
+	
+be.exe: be.hla include/basic.hhf bx.obj
+	hla -p:tmp be.hla bx.obj
+		 
