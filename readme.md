@@ -12,7 +12,7 @@ Here you'll find a source code to the core of HLA and other related projects.
 | HIDE       | 1.51.2 |
 | HLA Basic  |  |
 | SavageED   | 1.4.6 |
-| SavageED2  |  |
+| SavageED2  | 2.0.0 (beta) |
 
 
 
