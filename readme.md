@@ -11,10 +11,10 @@ Here you'll find a source code to the core of HLA and other related projects.
 | HLA        | 2.16 build 4424 (prototype) |
 | HIDE       | 1.51.2 |
 | HLA Basic  |  |
-| SavageED   |  |
+| SavageED   | 1.4.6 |
 | SavageED2  |  |
 
-```
-Thank you
-- Xeno Innovations 
-```
+
+
+**Thank you,**
+Xeno Innovations

@@ -1,0 +1,159 @@
+//#include ("src/win_inc.hhf")
+#include("w.hhf")
+#includeonce( "w32\advapi32.hhf" )
+#includeonce( "w32\shell32.hhf" )
+#include( "hide\dbgwin.hhf")
+//#include( "hide\hidelib.hhf")
+#include( "macros\macros.hhf")
+//#include ("stdout.hhf")
+
+?@NoDisplay	 := true;
+
+procedure WindowProc( lParam:dword; wParam:dword; uMsg:uns32; hwnd:dword ); @external;
+procedure SetupRichEdit ( hwnd:dword; wParam:dword; lParam:dword ); @external;
+procedure SizeApplication ( hwnd:dword; wParam:dword; lParam:dword); @external;
+procedure PrintDoc;		@external;
+procedure GetPrnCaps;	@external;
+procedure SaveFile (_filename:dword);		@external;
+procedure file_io (lpfilename:dword; creation:dword; flagattr:dword; write:boolean);		@external;
+
+type
+	// Message and dispatch table related definitions:
+		  
+	MsgProc_t:	procedure( hwnd:dword; wParam:dword; lParam:dword );
+	
+	MsgProcPtr_t:
+		record
+			
+			MessageValue	:dword;
+			MessageHndlr	:MsgProc_t;
+			
+		endrecord;
+		
+	EDITREG:
+		record
+			fMax		:dword;
+			x			:dword;
+			y			:dword;
+			wt			:dword;
+			ht			:dword;
+			opts		:dword;
+		endrecord;
+		
+	PrnPos_t:
+		record
+			margins		:w.RECT;
+			pagesize	:w.POINT;
+		endrecord;
+
+	colorMode:
+		record
+			textColor	:w.COLORREF;
+			backColor	:w.COLORREF;
+		endrecord;
+
+const	// menu constants
+	
+	ID_DLG			:= 1000;
+	ID_ABOUTGRP		:= 1001;
+	IDC_RED			:= 1002;
+	ID_ACCEL 		:= 5000;
+	ID_ABOUT		:= 6000;
+	
+	
+	IDM_MENU		:= 10000;
+
+	//File
+	IDM_NEW			:= 10001;
+	IDM_OPEN		:= 10002;
+	IDM_INST		:= 10023;
+
+	IDM_RECENT		:= 10029;
+
+	IDM_SAVE 		:= 10003;
+	IDM_SAVEAS 		:= 10004;
+
+	IDM_PAGESETUP	:= 10024;
+	IDM_PRINT		:= 10025;
+
+	IDM_QUIT		:= 10006;
+	
+	//Edit
+	IDM_CUT			:= 10007;
+	IDM_COPY		:= 10008;
+	IDM_PASTE		:= 10005;
+	IDM_SELECTALL	:= 10009;
+	
+	IDM_UNDO		:= 10011;
+	IDM_REDO		:= 10012;
+	
+	IDM_FIND		:= 10013;
+	IDM_FINDNEXT	:= 10014;
+	IDM_FINDPREV	:= 10026;
+	IDM_REPLACE		:= 11000;
+	
+	IDM_TIME		:= 10021;
+
+	//Option
+	IDM_FONT		:= 10010;
+	IDM_BACKGROUND	:= 10015;
+	IDM_AUTO		:= 10017;
+	IDM_WRAP 		:= 10018;
+	IDM_READONLY	:= 10028;
+	IDM_REGISTRY	:= 10019;
+	IDM_UNINSTALL	:= 10020;	
+	IDM_PEG			:= 10022;
+	IDM_PRIVATE		:= 10027;
+	IDM_CLEAREXIT	:= 10030;
+	IDM_RECENTNEW	:= 10032;
+	IDM_OPENRECENT	:= 10033;
+	
+	// Help
+	IDM_ABOUT		:= 10016;
+	IDM_DOCUMENTS	:= 10031;
+	IDM_DEBUG		:= 11111;
+
+	// find dialog
+	ID_FINDDLG			:= 2000;
+	IDC_FINDTEXT		:= 2001;
+	IDC_BTN_REPLACE		:= 2007;
+	IDC_REPLACETEXT		:= 2002;
+	IDC_REPLACESTATIC	:= 2009;
+	IDC_BTN_REPLACEALL	:= 2008;
+	IDC_CHK_WHOLEWORD	:= 2004;
+	IDC_CHK_MATCHCASE	:= 2003;
+	IDC_RBN_DOWN		:= 2005;
+	IDC_RBN_UP			:= 2006;
+	
+	RECENT_MENU_START	:= 9000;
+	RECENT_MENU_END		:= 9009;	// 10 items in recent menu
+	
+	IC_HLA			:=1000;
+
+	// EDITREG.opts
+	CLEAR		:=@{0};
+	WRAP		:=@{1};
+	AUTO		:=@{2};
+	PEG			:=@{3};
+	READ		:=@{4};
+	RECENTNEW	:=@{5};
+	OPEN_RECENT	:=@{6};
+	
+	
+	preserve_c	:boolean := false;
+	restore_c	:boolean := true;
+
+
+static
+	logfont			:w.LOGFONT;		@external;
+	hREd			:dword;			@external;			// RichEd window handle
+	hInstance		:dword;			@external;			// "Instance Handle" Windows supplies.
+	hwnd			:dword;			@external;
+	hReg			:dword;			@external;
+	psd				:w.PAGESETUPDLG;	@external;
+	ppos			:PrnPos_t;		@external;
+	pd				:w.PRINTDLG;	@external;
+	prnInches		:boolean;		@external;
+	
+	AppName			:byte; 			@external;
+	

@@ -1,0 +1,1770 @@
+
+unit SavageEd;
+
+#include( "src\SavageEd.hhf" )
+//#include ("stdlib.hhf")
+
+	?@nodisplay :=true;
+	?@nostackalign := true;
+
+procedure SavageEd_Main; @external ( "_HLAMain" );
+
+
+readonly
+	align(4);
+	version	:mzstr( "SavageEd v1.4.6");
+	AppName	:mzstr ("SavageEd");		// app and class share name
+
+
+	RichEditDLL		:mzstr ("riched20.dll");
+	szfont			:mzstr ("Courier New");	
+	szAppPath		:mzstr ("Software\SavageEd\");
+	szREG_SZ		:mzstr ("REG_SZ");
+	szMULTI_SZ		:mzstr ("REG_MULTI_SZ");
+	szEditInfo		:mzstr ("Info");
+	szFontInfo		:mzstr ("Font");
+	szColorInfo		:mzstr ("Colors");
+	szPPOS			:mzstr ("PPOS");
+	szRecent		:mzstr ("Recent");
+	szDocument		:mzstr ("SavageEd_doc.txt");
+	
+	szClass			:mzstr ("RichEdit20A");
+	NewFile			:mzstr ("Untitled");
+	szSpace			:mzstr (" ");
+	sznl			:byte; @nostorage; byte 13, 10, 0, 0;
+	szSavageEdini	:mzstr ("\SavageEd.ini");
+
+	szsavetitle	:mzstr ("Save As: End filename with a period (.) for no extension");
+	szdefext	:mzstr (".txt");
+	
+	szCouldNotSave	:mzstr ("Could Not Save File");
+	szUnableToOpen	:mzstr ("Unable to open file");
+	szUnableToCreateTemp	:mzstr ("Unable to create temporary file");
+	szUninstalled	:mzstr ("SavageEd has been uninstalled from the system registry." nl
+					"To resume using the registry, select 'Use Registry' from the Options menu.");
+	szMissingDocs	:mzstr ("Missing Documents: SavageEd_doc.txt");
+	szMissingDLL	:mzstr ("Could not open riched20.dll");
+	szMemoryAllocError :mzstr ("Could not allocate heap memory");
+	
+	//szCMDLN			:mzstr ("Error on Command Line Parameter");
+	
+	align(4);
+	Dispatch	:MsgProcPtr_t; @nostorage;
+
+		MsgProcPtr_t	
+			MsgProcPtr_t:[ w.WM_COMMAND, &ProcessCommand	],
+			MsgProcPtr_t:[ w.WM_SIZE, &SizeApplication		],
+			MsgProcPtr_t:[ w.WM_CLOSE,	 &CloseApplication	],
+			MsgProcPtr_t:[ w.WM_DESTROY, &QuitApplication	],
+			MsgProcPtr_t:[ w.WM_DROPFILES, &OpenDroppedFile ],
+			MsgProcPtr_t:[ w.WM_INITDIALOG, &SetupRichEdit	],
+			MsgProcPtr_t:[ w.WM_SETFOCUS, &SetFocus			],
+			MsgProcPtr_t:[ w.WM_CONTEXTMENU, &ContextMenu	],
+			MsgProcPtr_t:[ 0, NULL ];	// This marks the end of the list.
+
+
+	procedure LoadFile; @forward;	
+
+storage
+	logfont			:w.LOGFONT;
+	hREd			:dword;			// RichEd window handle
+	hInstance		:dword;
+	
+	hwnd			:dword;			// Handle to our window.	
+	hREDDLL			:dword;			// RichEd DLL handle
+
+	hAccel			:dword;			// accelerator handle
+	hFont			:dword;			// fond handle
+	hFind			:dword;			// find dialog handle
+	hFindEdt		:dword;			// handle for find edit control
+	hMnu			:dword;			// menu handle
+	hAbout			:dword;			// About dialog handle
+	frflags			:dword;
+	hfile			:dword;			// file handle
+	hReg			:dword;
+	lpdwDisp		:dword;
+	lpcbData		:dword;
+	lpType			:dword;
+	FileName		:byte[w.MAX_PATH];
+	iniPath			:byte[w.MAX_PATH];
+	buffer			:byte[w.MAX_PATH];
+	curdir			:byte[w.MAX_PATH];
+	findbuf			:byte[300];
+	replacebuf		:byte[300];
+	ft				:w.FINDTEXTEX;
+	fres			:dword;
+
+	edstyle		:dword;
+	colors		:colorMode;
+	cc			:w.CHOOSECOLOR;
+	ofn			:w.OPENFILENAME;
+	systime		:w.SYSTEMTIME;
+	cf			:w.CHOOSEFONT;
+		
+	editstream		:w.EDITSTREAM;
+	chrg			:w.CHARRANGE;
+	tr				:w.TEXTRANGE;
+	wc				:w.WNDCLASSEX;	// Our "window class" data.
+	msg				:w.MSG;			// Windows messages go here.
+	useini			:boolean;
+	align(4);
+
+static
+	Align(4);
+	reginfo				:EDITREG	:= EDITREG:[0,10,10,320,300,0];	// default window position
+	fr					:dword := 1;
+	ppos		:PrnPos_t := PrnPos_t:[ w.RECT:[1000,1000,1000,1000], w.POINT:[21000,29700]];
+	
+
+procedure error ( errorstring:dword );
+begin error;
+	w.MessageBox( NULL, errorstring, &AppName, w.MB_OK | w.MB_ICONERROR );
+end error;
+
+
+procedure QuitApplication( hwnd:dword; wParam:dword; lParam:dword );
+	@nostackalign;
+begin QuitApplication;
+	
+	test (CLEAR, reginfo.opts);
+	if (@nz) then
+		
+		if (hReg) then
+			RegDeleteValue ( hReg, &szRecent);
+		elseif (useini) then
+			w.WritePrivateProfileSection ("SavageEd_Recent", 0, &iniPath);
+		endif;
+	endif;
+	
+	w.PostQuitMessage( 0 );
+
+end QuitApplication;
+
+
+procedure SetFormat;
+	var
+		cf		:w.CHARFORMAT2;
+		
+
+begin SetFormat;
+	
+	w.SendMessage(hREd, w.EM_GETMODIFY,0,0);
+	push	(eax);
+	w.SendMessage(hREd, w.EM_EXLIMITTEXT,0,-1);
+
+	lea (eax, cf);
+	w.RtlZeroMemory (eax, @size(cf));
+	mov	(@size(cf), cf.cbSize);
+	mov	(w.CFM_CHARSET | w.CFM_FACE | w.CFM_SIZE | w.CFM_COLOR, cf.dwMask);
+	mov	(logfont.lfCharSet, al);
+	mov	(al,cf.bCharSet);
+	mov	(logfont.lfPitchAndFamily, al);
+	mov	(al, cf.bPitchAndFamily);
+	w.lstrcpyn(cf.szFaceName,&logfont.lfFaceName,w.LF_FACESIZE);
+	mov	(logfont.lfHeight, eax);
+	neg	(eax);
+	mov	(15,ecx);
+	mul (ecx);
+	mov	(eax, cf.yHeight);
+	push (colors.textColor);
+	pop (cf.crTextColor);
+	w.SendMessage(hREd, w.EM_SETBKGNDCOLOR, false, colors.backColor);
+	w.SendMessage(hREd, w.WM_SETFONT, hFont, true);
+	w.SendMessage(hREd, w.EM_SETMARGINS, w.EC_LEFTMARGIN,5); 
+	lea(eax, cf);
+	w.SendMessage(hREd, w.EM_SETCHARFORMAT, w.SCF_ALL, eax);
+	pop	(eax);
+	w.SendMessage(hREd, w.EM_SETMODIFY, eax,0);
+end SetFormat;
+
+procedure SetupWindowTitle; @noframe;
+begin SetupWindowTitle;
+	w.lstrcat(&buffer, &FileName);
+	w.SetWindowText( hwnd, &FileName );
+	ret();
+end SetupWindowTitle;
+
+// streams data into richedit control
+procedure StreamInProc (var pBytesRead:dword ; NumBytes:dword ; var pbuffer:dword ; _hFile:dword);
+@nostackalign;
+begin StreamInProc;
+	
+	w.ReadFile(_hFile,pbuffer,NumBytes,pBytesRead,NULL);
+	xor	(1, eax);
+
+end StreamInProc;
+
+// streams data out of richedit control
+procedure StreamOutProc (var pBytesRead:dword ; NumBytes:dword ; var pbuffer:dword ; _hFile:dword);
+@nostackalign;
+begin StreamOutProc;
+	dbg.enters("StreamOut");
+	dbg.put("hfile :", _hFile );
+	dbg.put("buffer :", pbuffer);
+	dbg.put("n bytes:", NumBytes);
+	dbg.put("n read :", pBytesRead);
+	
+	w.WriteFile(_hFile,pbuffer,NumBytes,pBytesRead,NULL);
+	xor	(1, eax);
+	dbg.exits("StreamOut");
+end StreamOutProc;
+
+procedure SaveFile (_filename:dword);
+begin SaveFile;
+	dbg.enters("SaveFile");
+	USE (ebx);
+	file_io (_filename, w.CREATE_ALWAYS, w.FILE_ATTRIBUTE_NORMAL, true);
+	if (eax <> w.INVALID_HANDLE_VALUE) then
+		dbg.put("valid file handle :", eax);
+		dbg.put("red = ", hREd );
+		mov	(eax,hfile);
+		mov	(eax,editstream.dwCookie);
+		dbg.put("sending stream...");
+		mov	(&StreamOutProc, editstream.pfnCallback);
+		w.SendMessage(hREd, w.EM_STREAMOUT, w.SF_TEXT, &editstream);
+		w.CloseHandle(hfile);
+		w.SendMessage(hREd, w.EM_SETMODIFY, false, 0);
+		mov	(false, eax);
+		
+	else
+	 
+	 	error (&szCouldNotSave);
+		mov	(true, eax);
+	endif; 
+	ENDUSE;
+	dbg.exits("SaveFile");
+end SaveFile;
+
+procedure SaveAs; @noframe;
+begin SaveAs;
+USE( ebx, esi);	
+	dbg.enters("SaveAs");
+	w.RtlZeroMemory (&ofn, @size(ofn));
+	mov	(@size(ofn), ofn.lStructSize);
+	
+	mov	(hwnd, ofn.hWndOwner);
+	mov( hInstance, ofn.hInstance );
+	
+	mov	(0, ofn.lpstrFilter);
+	mov	(&FileName,eax);
+	mov (eax, ofn.lpstrFile);
+	mov (NULL, ofn.lpstrDefExt);	
+	w.GetCurrentDirectory(@size(curdir), &curdir);
+	mov	(&curdir, eax);
+	mov (eax, ofn.lpstrInitialDir);
+	mov (&szsavetitle, eax);
+	mov (eax, ofn.lpstrTitle);
+	mov	(@elements(FileName), ofn.nMaxFile);
+	mov	(w.OFN_EXPLORER | w.OFN_FILEMUSTEXIST | w.OFN_LONGNAMES | w.OFN_OVERWRITEPROMPT, ofn.Flags);
+	
+	dbg.put("getting file name");
+	w.GetSaveFileName( &ofn );
+	if(eax) then
+		
+		dbg.put("got file name");
+		dbg.putz( &FileName );
+		
+		w.lstrlen(&FileName);
+		mov(FileName[eax-1], bl);
+		if (bl = '.') then
+			mov ( 0, FileName[eax-1]);
+		else
+			// check for extension
+			dbg.put("extension check");
+			
+			mov(&FileName, esi);
+			
+			_loop:
+				lodsb();
+				cmp (al, '.');
+				je _noext;
+				cmp(al,0);
+				jne _loop;
+			
+			dbg.put("no extension, appending .txt");
+			
+			// no extension, so concatenate default ('.txt')
+			w.lstrcat (&FileName, &szdefext);	
+			_noext:
+			
+			dbg.put("extension check ok");
+			
+		endif;
+		
+		dbg.put("calling SaveFile...");
+		SaveFile(&FileName);
+		if(eax) then
+		 	// reset FileName to untitled
+		 	w.lstrcpy(&FileName, &NewFile);
+		endif; 
+		
+		dbg.put("calling SetupWindowTitle");
+		SetupWindowTitle();
+		xor( eax, eax );
+	else
+		dbg.put("cancelled save as");
+		mov(-1,eax);
+	endif;
+ENDUSE;
+dbg.exits("SaveAs");
+ret();
+end SaveAs;
+
+
+procedure CheckSave; @noframe;
+begin CheckSave;
+	w.lstrcmpi(&FileName, &NewFile);
+	if (eax=0) then // mzstrings equal
+		SaveAs();
+	else
+	 
+		SaveFile(&FileName);
+		xor (eax, eax);
+	endif;
+	ret();
+end CheckSave;
+
+// checks for modified file, gets confirmation from user
+procedure getConfirm; @noframe;
+begin getConfirm;
+	w.SendMessage(hREd, w.EM_GETMODIFY,0,0);
+	if (eax) then
+		test(AUTO,reginfo.opts);
+		if (@z) then
+			w.MessageBox(hwnd, &FileName,"Save Changes to", w.MB_YESNOCANCEL | w.MB_ICONQUESTION);
+			if (eax=w.IDYES) then	
+				CheckSave();
+				xor(eax,eax);
+			elseif (eax=w.IDNO) then
+		
+				xor(eax,eax);
+			else
+		 
+				mov	(true,eax);
+			endif;
+		else
+			CheckSave();
+			if (eax = -1) then
+				mov (true, eax);
+			endif;
+		endif;
+	else
+		xor(eax,eax);
+	endif;
+	ret();
+end getConfirm;
+
+procedure CloseApplication ( hwnd:dword; wParam:dword; lParam:dword );
+var
+	_rect	:w.RECT;
+
+begin CloseApplication;
+	
+	getConfirm();
+	if (!eax) then
+		w.GetWindowLong(hwnd, w.GWL_STYLE);
+		test	(w.WS_MAXIMIZE, eax);
+		if (@z) then
+			test (w.WS_MINIMIZE, eax);
+			if(@z) then
+				mov	(false, reginfo.fMax);
+				w.GetWindowRect(hwnd, _rect);
+				mov	(_rect.left, eax);
+				mov	(eax, reginfo.x);
+				mov	(_rect.top, eax);
+				mov	(eax, reginfo.y);
+				mov	(_rect.right, eax);
+				sub	(_rect.left, eax);
+				mov	(eax, reginfo.wt);
+				mov	(_rect.bottom, eax); 
+				sub	(_rect.top, eax);
+				mov	(eax, reginfo.ht);					
+			endif;
+		else
+			mov	(1, reginfo.fMax);
+		endif;
+		w.DestroyWindow(hwnd); 
+	endif;
+	
+end CloseApplication;
+
+
+procedure InsertTime; @noframe;
+begin InsertTime;
+
+	//dbg.put ("InstertTime");
+	w.GetSystemTime(systime);
+	w.GetDateFormat(	w.LOCALE_USER_DEFAULT,
+					w.LOCALE_NOUSEROVERRIDE,
+					NULL,	// systemtime
+					NULL,	// format
+					&buffer,
+					@size(buffer));
+	w.lstrcat(&buffer, &szSpace);
+	w.SendMessage(hREd, w.EM_REPLACESEL, true, &buffer);
+	
+	w.GetTimeFormat(	w.LOCALE_USER_DEFAULT,
+					w.LOCALE_NOUSEROVERRIDE,
+					NULL,
+					NULL,
+					&buffer,
+					@size(buffer));
+	w.SendMessage(hREd, w.EM_REPLACESEL, true, &buffer);
+	//dbg.put ("/InstertTime");
+	ret();
+
+end InsertTime;
+
+
+procedure JumpLog; // direction in al
+	@noframe;
+begin JumpLog;
+
+	if (al='<') then	// append at top
+		w.SendMessage(hREd,w.EM_SETSEL,5,5);
+		
+	else				// append at bottom
+		w.SendMessage(hREd,w.EM_SETSEL,-1,-1);
+	endif;
+	w.SendMessage(hREd, w.EM_REPLACESEL,true,&sznl);
+	InsertTime();
+	w.SendMessage(hREd, w.EM_REPLACESEL,true,&sznl);
+	ret();
+	
+end JumpLog;
+
+// check for .LOG message on top of loaded file.
+procedure CheckLog; @noframe;
+begin CheckLog;
+	//dbg.put ("CheckLog");
+	mov(0,tr.chrg.cpMin);
+	mov(5,tr.chrg.cpMax);
+	mov(&buffer,tr.lpstrText);
+	w.SendMessage(hREd,w.EM_GETTEXTRANGE,0,&tr);
+	mov(&buffer,esi);
+	lodsd();
+	if ( eax = $474f4c2e ) then	// .LOG
+		// check direction
+		lodsb();
+		JumpLog();
+		w.SendMessage(hREd, w.EM_SETMODIFY, false,0);
+	endif;
+	//dbg.put ("/CheckLog");
+	ret();
+end CheckLog;
+
+procedure file_io (lpfilename:dword; creation:dword; flagattr:dword; write:boolean);
+	// all file input/output will happen in this procedure
+	// for convenience.
+	@nostackalign;
+	
+begin file_io;
+
+	if (write) then
+		mov (w.GENERIC_WRITE, eax);
+	else
+		mov (w.GENERIC_READ, eax);
+	endif;
+	w.CreateFile(	lpfilename, EAX,
+					w.FILE_SHARE_READ | w.FILE_SHARE_WRITE, NULL,
+					creation, flagattr, NULL);
+					
+end file_io;
+
+
+procedure newInstance ( param:dword ); @noalignstack;
+begin newInstance;
+	
+	add(20,reginfo.x);
+	add(20,reginfo.y);
+		
+	if(hReg) then
+		// update the registry with new window location			
+		RegSetValueEx(hReg,&szEditInfo,0,w.REG_BINARY,&reginfo, @size(reginfo));	
+	
+	elseif (useini) then
+
+		w.WritePrivateProfileStruct ("SavageEd", "Options", reginfo, @size(reginfo), &iniPath);
+	endif;
+	
+	w.GetModuleFileName( NULL, &buffer, @size(buffer) );
+	w.ShellExecute(NULL, NULL, &buffer, param, NULL, w.SW_SHOWNORMAL);
+
+end newInstance;
+
+
+procedure updateMenu (src:dword);
+	@noalignstack;
+	storage
+		hmenu		:dword;
+		
+begin updateMenu;
+	pushad();
+	//dbg.put ("updateMenu");
+	if (hmenu <> 0 ) then
+		w.DestroyMenu (hmenu);
+		mov (0, hmenu);
+	endif;
+
+	w.CreatePopupMenu();
+	mov (eax, hmenu);
+
+	mov (RECENT_MENU_START, edi);
+	mov (src, esi);
+	insert_menus:
+		mov ([esi], al);
+		test (al, al);
+		jz done;
+		w.AppendMenu ( hmenu, w.MF_BYPOSITION | w.MF_ENABLED | w.MF_STRING,
+					edi, esi);
+		w.lstrlen ([esi]);
+		add (eax, esi);
+		inc (esi);
+		inc (edi);
+		jmp insert_menus;
+	done:
+	w.GetMenu (hwnd);
+	w.GetSubMenu (eax,0);
+	w.ModifyMenu (eax, 7, w.MF_BYPOSITION | w.MF_POPUP| w.MF_ENABLED ,
+				hmenu, &szRecent );
+	w.DrawMenuBar(hwnd);
+	//dbg.put ("/updateMenu");
+	popad();
+end updateMenu;
+
+procedure setupRecent;
+	var
+		databuf	:char[4096];
+		
+begin setupRecent;
+	
+		if(hReg) then
+			lea (eax, databuf);
+			mov (@elements (databuf), lpcbData);
+			RegQueryValueEx (hReg, &szRecent, 0, &lpType, eax, &lpcbData);
+			if (eax = w.ERROR_SUCCESS) then
+				lea (eax, databuf);
+				updateMenu (eax);
+			endif;
+		
+		elseif (useini) then
+			w.GetPrivateProfileSection ("SavageEd_Recent", databuf, @elements (databuf), &iniPath);
+			if (eax) then
+				lea (eax, databuf);
+				updateMenu (eax);
+			endif;
+		endif;
+	
+end setupRecent;
+
+
+procedure openRecent (id:dword);
+	var
+		buf	:char [1024];
+		
+begin openRecent;
+	getConfirm();
+	if (! eax) then
+		w.GetMenu (hwnd);
+		w.GetMenuStringA (eax, id, buf, @elements (buf), w.MF_BYCOMMAND);
+		lea (eax, buf);
+		test (RECENTNEW, reginfo.opts);
+		if (@nz) then
+			lea (eax, buf);
+			push (eax);
+			call newInstance;
+		else
+			w.lstrcpy (&FileName, buf);
+			LoadFile();
+		endif;
+		
+	endif;
+
+end openRecent;
+
+procedure updateRecentLog;
+	var
+		srcbuf	:char[4096];
+		dstbuf	:char[4096];
+		
+begin updateRecentLog;
+
+	w.lstrcmpi (&FileName, &NewFile);
+	test (eax, eax);
+	jz done;
+	
+	xor (eax, eax);
+	mov (ax, (type word srcbuf[0]));
+	mov (ax, (type word dstbuf[0]));
+	
+	if(hReg) then
+		lea (eax, srcbuf);
+		mov (@elements (dstbuf), lpcbData);
+		RegQueryValueEx (hReg, &szRecent, 0, &lpType, eax, &lpcbData);
+	elseif (useini) then
+		w.GetPrivateProfileSection ("SavageEd_Recent", srcbuf, @elements (srcbuf), &iniPath);
+		
+	else
+		// none
+		jmp done;
+	endif;
+
+	// srcbuf contains existing data...
+	USE (ESI, ECX, EDI, EBX);
+		lea (esi, dstbuf);
+		mov (esi, ebx);	// save a pointer to the location of the first file
+		lea (edi, srcbuf);
+
+		w.lstrcmpi ([edi], &FileName);
+		test (eax, eax);
+		jz dont_update;
+		
+		
+		// copy current filename to dest
+		w.lstrcpy ([esi], &FileName);
+		test (eax, eax);
+		jz donecpy;
+		w.lstrlen ([esi]);
+		add (eax, esi);
+		inc (esi);
+		
+		// now copy up to 9 from srcbuf
+		// only if the files exist
+		xor (ecx, ecx);
+		_repeat:
+			inc (ecx);
+			cmp (ecx, 10);
+			je donecpy;
+			push (ecx);
+			mov ([edi], al);
+			test (al, al);
+			jz donecpy;
+			
+			// compare the current filename with the first file name
+			
+			w.lstrcmpi ([edi], [ebx]);
+			if (eax) then
+				// they are equal, skip this
+				file_io (edi, w.OPEN_EXISTING, w.FILE_ATTRIBUTE_NORMAL, false);
+				push( eax );
+				w.CloseHandle( eax );
+				pop( eax );
+				cmp( eax, w.INVALID_HANDLE_VALUE );
+				je _next;
+				w.lstrcpy ([esi], [edi]);
+				w.lstrlen ([esi]);
+				inc (eax);
+				add (eax, esi);
+				add (eax, edi);
+				pop (ecx);
+			else
+				_next:
+				w.lstrlen ([edi]);
+				inc (eax);
+				add (eax, edi);
+				pop (ecx);
+				dec (ecx);
+			endif;
+			
+			jmp _repeat;
+		
+		donecpy:
+			mov (0, (type dword [esi]));
+			if(hReg) then
+				lea (eax, dstbuf);
+				sub (eax, esi);
+				inc (esi);
+				RegSetValueEx (hReg, &szRecent, 0, &szMULTI_SZ, eax, esi);
+			elseif (useini) then
+				// buggy windows, WritePrivateProfileSection appends instead of overwrite section
+				// clear first
+				w.WritePrivateProfileSection ("SavageEd_Recent", 0, &iniPath);
+				lea (eax, dstbuf);
+				w.WritePrivateProfileSection ("SavageEd_Recent", eax, &iniPath);
+			endif;
+		lea (eax, dstbuf);
+		updateMenu (eax);
+		dont_update:
+	ENDUSE;
+	
+	done:
+	//dbg.put ("/updateRecentLog");
+end updateRecentLog;
+
+
+procedure LoadFile; @noframe;
+begin LoadFile;
+
+	//dbg.put ("LoadFile");
+	file_io (&FileName, w.OPEN_EXISTING, w.FILE_ATTRIBUTE_NORMAL, false);
+	if( eax <> w.INVALID_HANDLE_VALUE) then
+		mov	(eax, hfile);
+		w.GetFileSize(hfile, NULL);
+		if (eax >0) then
+			mov	(hfile, editstream.dwCookie);
+			mov	(&StreamInProc, editstream.pfnCallback);
+			w.SendMessage(hREd, w.EM_STREAMIN, w.SF_TEXT, &editstream);
+			w.SendMessage(hREd, w.EM_SETMODIFY, false,0);
+		else
+			w.SendMessage(hREd, w.WM_SETTEXT, 0, 0);
+		endif;
+		SetupWindowTitle();
+		CheckLog();
+		updateRecentLog();
+		SetFormat();
+	else
+
+		error (&szUnableToOpen); //"Unable to open file");
+	endif;
+	w.CloseHandle(hfile);
+	//dbg.put ("/LoadFile");
+	ret();
+
+end LoadFile;
+
+procedure loadRecent;
+	var
+		buf	:char [4096];
+		
+begin loadRecent;
+	if(hReg) then
+		lea (eax, buf);
+		mov (@elements (buf), lpcbData);
+		RegQueryValueEx (hReg, &szRecent, 0, &lpType, eax, &lpcbData);
+	elseif (useini) then
+		w.GetPrivateProfileSection ("SavageEd_Recent", buf, @elements (buf), &iniPath);
+		
+	else
+		// none
+		jmp done;
+	endif;
+	
+	lea (ecx, buf);
+	cmp ( (type byte[ecx]), 0);
+	je done;
+	
+	w.lstrcpy (&FileName, [ecx]); // copy the top file
+	LoadFile();
+	
+	done:
+end loadRecent;
+
+
+procedure FileOpen; @noframe;
+begin FileOpen;
+
+	w.RtlZeroMemory(&ofn,@size(ofn));
+	mov	(@size(ofn),ofn.lStructSize);
+	mov	(hwnd,ofn.hWndOwner);
+	mov( hInstance, ofn.hInstance );
+
+	w.GetCurrentDirectory(@size(curdir), &curdir);
+	mov	(&curdir,eax);
+	mov (eax, ofn.lpstrInitialDir);
+	
+	mov (0, buffer[0]);
+	mov (&buffer, ofn.lpstrFile);
+	mov	(@elements(buffer)-1, ofn.nMaxFile);
+	
+	mov	(w.OFN_PATHMUSTEXIST | w.OFN_FILEMUSTEXIST | w.OFN_HIDEREADONLY | w.OFN_LONGNAMES,ofn.Flags);
+	w.GetOpenFileName(ofn);
+		if (eax) then
+			w.lstrcpy (&FileName, &buffer);
+			LoadFile();
+		endif;
+	w.SetFocus(hREd);
+	ret();
+
+end FileOpen;
+
+	
+
+procedure Find (frType:dword);
+begin Find;
+	
+	//convertBuffer( findbuf );
+	w.SendMessage(hREd, w.EM_EXGETSEL,0, &ft.chrg);
+	mov	(frType, eax);
+	and	(w.FR_DOWN, eax);
+
+	if (eax) then
+		mov( ft.chrg.cpMax, eax );
+		if( eax != ft.chrg.cpMin ) then
+			// we have a selection already, don't try to find
+			// currently selected text!
+			push( ft.chrg.cpMax );
+			pop( ft.chrg.cpMin );
+		endif;
+		mov	(-1, ft.chrg.cpMax);
+	else
+		mov	(0, ft.chrg.cpMax);
+	endif;
+	
+	move( &findbuf, ft.lpstrText);
+	w.SendMessage(hREd, w.EM_FINDTEXTEX, frType, &ft);
+	mov	(eax, fres);
+	
+	if(eax != -1) then
+
+		w.SendMessage(hREd, w.EM_EXSETSEL, 0, &ft.chrgText);
+		w.SendMessage(hREd,w.EM_SCROLLCARET,0,0);
+
+	else
+		// done search, reset and start searching from top
+		// or bottom
+		mov(frType,eax);
+		and(w.FR_DOWN,eax);
+		if(eax) then
+			w.SendMessage(hREd,w.EM_SETSEL,0,0);
+			mov	(0, ft.chrg.cpMin);
+		else
+			w.SendMessage(hREd,w.WM_GETTEXTLENGTH,0,0);
+			w.SendMessage(hREd,w.EM_SETSEL,eax,eax);
+		endif;
+	endif;
+	//dout.put ("/find, fres = ", fres, nl);
+end Find;
+
+
+procedure FindDlgProc (lParam:dword; wParam:dword; uMsg:uns32; hWin:dword);
+begin	FindDlgProc;
+
+	mov(uMsg,eax);
+	if (eax = w.WM_INITDIALOG) then
+		mov	(hWin, eax);
+		mov	(eax,hFind);
+		mov(0,fres);
+		//w.GetDlgItem (hWin, IDC_FINDTEXT);
+		//mov (eax, hFindEdt);
+		w.SendDlgItemMessage(hWin,IDC_FINDTEXT,w.EM_LIMITTEXT, @elements(findbuf)-1, 0);
+		w.SendDlgItemMessage(hWin,IDC_FINDTEXT,w.WM_SETTEXT,0, &findbuf);
+		
+		w.SendDlgItemMessage(hWin,IDC_REPLACETEXT,w.EM_LIMITTEXT, @elements(replacebuf)-1, 0);
+		w.SendDlgItemMessage(hWin,IDC_REPLACETEXT,w.WM_SETTEXT,0, &replacebuf);
+
+		test (w.FR_MATCHCASE,fr);
+		if(@nz) then
+			w.CheckDlgButton(hWin,IDC_CHK_MATCHCASE,w.BST_CHECKED);
+		endif;
+		test(w.FR_WHOLEWORD,fr);
+		if(@nz) then
+			w.CheckDlgButton(hWin,IDC_CHK_WHOLEWORD,w.BST_CHECKED);
+		endif;
+		test(w.FR_DOWN,fr);
+		if(@z) then
+			mov(IDC_RBN_UP, edx);
+		else
+			mov(IDC_RBN_DOWN, edx);
+		endif;
+		w.CheckDlgButton(hWin, edx, w.BST_CHECKED);
+		
+
+	elseif (eax = w.WM_COMMAND) then
+		mov	(wParam, eax);
+		mov	(eax,edx);
+		shr	(16,edx);
+		and	($ffff,eax);
+		if (edx = w.BN_CLICKED) then
+			
+			if(eax = w.IDOK) then
+				
+				Find(fr);
+				w.SetFocus(hFind);
+				
+			elseif(eax = w.IDCANCEL) then
+			
+				w.SendMessage(hWin,w.WM_CLOSE,NULL,NULL);
+				
+			elseif(eax = IDC_BTN_REPLACE) then
+				if (fres!=-1) then
+					w.SendMessage(hREd,w.EM_EXGETSEL,0,&ft.chrg);
+					w.SendMessage(hREd,w.EM_REPLACESEL,true, &replacebuf);
+					//mov( replacebuf, eax );
+					w.lstrlen( &replacebuf ); 
+					//dec(eax);
+					//if( @s) then
+					//	xor( eax, eax );
+					//endif;
+					add(eax,ft.chrg.cpMin);
+					mov(ft.chrg.cpMin,eax);
+					mov(eax,ft.chrg.cpMax);
+					w.SendMessage(hREd,w.EM_EXSETSEL,0,&ft.chrg);
+					
+				endif;
+				Find(fr);
+				w.SetFocus(hFind);
+
+			elseif (eax = IDC_BTN_REPLACEALL) then
+				
+				w.SendMessage (hREd, w.EM_EXGETSEL, 0, &chrg);
+				w.LockWindowUpdate(hREd);
+				w.SendMessage (hREd, w.EM_SETSEL, 0, 0);
+				Find (w.FR_DOWN);
+				while (fres!=-1) do
+					w.SendMessage(hWin, w.WM_COMMAND, IDC_BTN_REPLACE,0);
+				endwhile;
+				push (chrg.cpMax);
+				pop (chrg.cpMin);
+				w.SendMessage (hREd, w.EM_EXSETSEL, 0, &chrg);
+				w.LockWindowUpdate(NULL);
+				w.SetFocus(hFind);
+				
+			elseif (eax = IDC_RBN_DOWN) then
+				or	(w.FR_DOWN, fr);
+				mov	(-1,fres);
+			elseif (eax = IDC_RBN_UP) then
+				and (! w.FR_DOWN,fr);
+				mov	(-1, fres);
+			elseif (eax = IDC_CHK_MATCHCASE) then
+				w.IsDlgButtonChecked(hWin, IDC_CHK_MATCHCASE);
+				if (eax) then
+					or(w.FR_MATCHCASE, fr);
+				else
+					and(! w.FR_MATCHCASE,fr);
+				endif;
+				mov	(-1, fres);
+			elseif (eax = IDC_CHK_WHOLEWORD) then
+				w.IsDlgButtonChecked(hWin, IDC_CHK_WHOLEWORD);
+				if (eax) then
+					or	(w.FR_WHOLEWORD, fr);
+				else
+					and(! w.FR_WHOLEWORD,fr);
+				endif;
+				mov	(-1,fres);
+			endif;
+
+
+		elseif( edx = w.EN_UPDATE ) then
+
+			push( ebx );
+			mov( eax, ebx );
+			if( w.SendDlgItemMessage(hWin, ebx, w.EM_GETMODIFY, 0, 0 )) then
+
+				if (ebx = IDC_FINDTEXT) then
+
+					w.SendDlgItemMessage(hWin, ebx, w.WM_GETTEXT, @elements(findbuf)-1, &findbuf);
+					mov	(-1, fres);
+					
+				elseif( ebx = IDC_REPLACETEXT) then
+					w.SendDlgItemMessage(hWin, ebx, w.WM_GETTEXT, @elements(replacebuf)-1, &replacebuf);
+					mov	(-1, fres);
+					
+				endif;
+				
+				w.SendDlgItemMessage( hWin, ebx, w.EM_SETMODIFY, false, 0 );
+			endif;
+			
+			pop( ebx );
+
+		endif;
+		
+	elseif (eax = w.WM_ACTIVATE) then
+		//w.GetDlgItem( hWin, IDC_FINDTEXT );
+		//w.SetFocus(eax);
+		w.SetFocus( hFind );
+
+	elseif (eax = w.WM_CLOSE) then
+		w.DestroyWindow(hFind);
+		mov	(0,hFind);
+		w.SetFocus(hREd);
+	else
+		mov	(false, eax);
+		exit FindDlgProc;
+	endif;
+	mov	(true, eax);
+
+end FindDlgProc;
+
+
+// handles opening dropped files
+procedure OpenDroppedFile ( hwnd:dword; wParam:dword; lParam:dword );
+@nostackalign;
+begin OpenDroppedFile;
+USE (EBX, ESI, EDI);
+	w.SetForegroundWindow(hwnd);
+	w.SetFocus(hREd);	
+
+	getConfirm();
+	if (!eax) then	
+		w.SetWindowText(hREd,0);		// clear edit window
+		w.DragQueryFile(wParam,0,&FileName,@size(FileName));
+		w.GetLongPathName(&FileName,&FileName,@size(FileName));
+		LoadFile();
+	endif;
+ENDUSE;
+end OpenDroppedFile;
+
+// handles Font selection
+procedure SelectFont; @noframe;
+begin SelectFont;
+
+	//lea(eax, cf);
+	w.RtlZeroMemory(&cf,@size(cf));
+	mov	(@size(cf), cf.lStructSize);
+	mov	(hwnd, eax);
+	mov (eax, cf.hWndOwner);
+	mov	(&logfont, cf.lpLogFont);
+	mov	(w.CF_SCREENFONTS | w.CF_EFFECTS | w.CF_INITTOLOGFONTSTRUCT, cf.Flags);
+	push (colors.textColor);
+	pop (cf.rgbColors);
+	
+	w._ChooseFont(cf);
+	if (eax) then
+	
+		w.DeleteObject(hFont);
+		w.CreateFontIndirect(logfont);
+		mov	(eax,hFont);
+		push (cf.rgbColors);
+		pop (colors.textColor);
+		SetFormat();
+	endif;
+	ret();
+end SelectFont;
+
+procedure SelectColor; @noframe;
+begin SelectColor;
+	dbg.put ("selectcolor");
+	mov (&cc, eax);
+	w.RtlZeroMemory (eax, @size(w.CHOOSECOLOR));
+	mov (@size (cc), eax);
+	mov (eax, cc.lStructSize);
+	push (hwnd);
+	pop (cc.hwndOwner);
+	push (hInstance);
+	pop (cc.hInstance);
+	mov( w.CC_RGBINIT | w.CC_PREVENTFULLOPEN, cc.Flags);
+	mov (0, lpcbData);
+	mov (&lpcbData, cc.lpCustColors);
+	push (colors.backColor);
+	pop (cc.rgbResult);
+	dbg.put ("rgb = ", colors.backColor);
+	mov (&cc, eax);
+	dbg.dumpmem (EAX, @size(cc));
+	w._ChooseColor (&cc);
+	if (eax) then
+		push (cc.rgbResult);
+		pop (colors.backColor);
+		SetFormat();
+	endif;
+	dbg.put ("/SelectColor");	
+	ret();
+end SelectColor;
+
+
+procedure AboutDlgProc ( lParam:dword; wParam:dword; uMsg:uns32; hDlg:dword);
+begin AboutDlgProc;
+	
+	if (uMsg = w.WM_INITDIALOG) then
+		mov	(hDlg, hAbout);
+		w.SetDlgItemText(hAbout,ID_ABOUTGRP,&version); 
+		w.SetFocus(hAbout);
+		
+	elseif (uMsg = w.WM_COMMAND) then
+		 if (wParam = w.IDOK || wParam= w.IDCANCEL) then
+		 	w.SendMessage(hDlg, w.WM_CLOSE,NULL,NULL);
+		 endif;
+	elseif (uMsg = w.WM_CLOSE) then
+		w.DestroyWindow(hAbout);
+		mov	(0, hAbout);
+		w.SetFocus(hREd);
+	
+	else
+		mov (false, eax);
+		exit AboutDlgProc;
+	endif;
+
+	mov (true, eax);	
+	
+end AboutDlgProc;
+
+procedure GetSelText (lpBuff:dword);
+
+begin GetSelText;
+
+	mov( lpBuff, eax );
+	mov( eax, tr.lpstrText );
+	
+	w.SendMessage(hREd, w.EM_EXGETSEL,0, &tr.chrg);
+	mov	(tr.chrg.cpMax,eax);
+	sub	(tr.chrg.cpMin,eax);
+	if( eax >= @elements( findbuf ) ) then
+		mov( @elements( findbuf) -1, tr.chrg.cpMax );
+	endif;
+	
+	w.SendMessage(hREd, w.EM_GETTEXTRANGE,0,&tr);
+
+end GetSelText;
+
+// handles w.WM_COMMAND message
+procedure ProcessCommand ( hwnd:dword; wParam:dword; lParam:dword );
+
+begin ProcessCommand;
+	
+	mov	(wParam,eax);
+	and	($0ffff,eax);
+	if (eax=IDM_NEW) then
+		getConfirm();
+		if (!eax) then	
+			w.SetWindowText(hREd,0);		// clear edit window
+			w.lstrcpy(&FileName, &NewFile);
+			SetupWindowTitle();		 
+			w.SetFocus(hREd);
+		endif;
+		w.SetFocus(hREd);
+	
+	elseif (eax = IDM_OPEN) then
+		getConfirm();
+		if (!eax) then
+		
+			FileOpen(); 
+
+		endif;	
+		w.SetFocus(hREd);
+		
+	elseif (eax = IDM_INST) then
+		
+		pushd (0);
+		call newInstance;
+		
+	elseif (eax = IDM_SAVE) then
+	
+		CheckSave();
+		w.SetFocus(hREd);
+		
+	elseif (eax = IDM_SAVEAS) then
+	
+		SaveAs();
+		w.SetFocus(hREd);
+		
+	elseif (eax = IDM_PAGESETUP) then
+		
+		GetPrnCaps();
+		mov(hwnd, psd.hwndOwner);
+		mov(hInstance, psd.hInstance);
+		mov (@size (w.PAGESETUPDLG), psd.lStructSize);
+		mov (w.PSD_MARGINS, psd.flags);
+		if (prnInches) then
+			or ( w.PSD_INTHOUSANDTHSOFINCHES, psd.flags);
+		else
+			or ( w.PSD_INHUNDREDTHSOFMILLIMETERS, psd.flags);
+		endif;
+
+		if (w._PageSetupDlg(&psd)) then
+			move (psd.rtMargin.left, ppos.margins.left);
+			move (psd.rtMargin.top, ppos.margins.top);
+			move (psd.rtMargin.right, ppos.margins.right);
+			move (psd.rtMargin.bottom, ppos.margins.bottom);
+			move (psd.ptPaperSize.x, ppos.pagesize.x);
+			move (psd.ptPaperSize.y, ppos.pagesize.y);
+		endif;
+		
+	elseif (eax = IDM_PRINT) then
+		
+		call PrintDoc;
+		
+   	elseif (eax = IDM_CUT) then
+	
+		w.SendMessage(hREd, w.WM_CUT,0,0);
+		
+	elseif (eax = IDM_COPY) then
+	
+		w.SendMessage(hREd, w.WM_COPY,0,0);
+		
+	elseif (eax = IDM_PASTE) then
+	
+		w.SendMessage(hREd, w.WM_PASTE,0,0);
+		w.SendMessage(hREd, w.EM_SETMODIFY, true,0); 	
+		
+	elseif (eax = IDM_SELECTALL) then
+	
+		mov	(0, chrg.cpMin);
+		mov	(-1,chrg.cpMax);
+		w.SendMessage(hREd,w.EM_EXSETSEL,0,&chrg);
+
+		
+	elseif (eax = IDM_UNDO) then
+	
+		w.SendMessage(hREd, w.EM_UNDO,0,0);
+		
+	elseif (eax = IDM_REDO) then
+	
+		w.SendMessage(hREd, w.EM_REDO,0,0);
+		
+	elseif (eax = IDM_FIND || eax = IDM_REPLACE) then
+		if (!hFind) then
+			GetSelText (&findbuf);
+			w.CreateDialogParam(hInstance,val ID_FINDDLG,hwnd, &FindDlgProc,false);
+		else
+			w.SetFocus(hFind);
+		endif;
+	
+	elseif (eax = IDM_FINDNEXT) then
+
+		if (! hFind) then
+			GetSelText(&findbuf);
+		endif;
+		//mov (findbuf, eax);
+		mov( findbuf[0], al );
+		//mov ([eax], al);
+		test(al,al);
+		if (@nz) then
+			Find(w.FR_DOWN);
+		endif;
+		
+	elseif (eax = IDM_FINDPREV) then
+		
+		if (! hFind) then
+			GetSelText(&findbuf);
+		endif;
+		mov (findbuf[0], al);
+		//mov ([eax], al);
+		test(al,al);
+		if (@nz) then
+			Find(0);
+		endif;
+		
+	elseif (eax = IDM_TIME) then
+
+		InsertTime();
+		
+	elseif (eax = IDM_FONT) then
+	
+		SelectFont();
+		w.SetFocus(hREd);
+		
+	elseif (eax = IDM_BACKGROUND) then
+
+		SelectColor();
+		w.SetFocus(hREd);
+		
+	elseif (eax = IDM_AUTO) then
+		test(AUTO,reginfo.opts);
+		if (@nz) then
+			w.CheckMenuItem(hMnu, IDM_AUTO, w.MF_BYCOMMAND | w.MF_UNCHECKED);
+			and(!(AUTO), reginfo.opts);
+		else
+			w.CheckMenuItem(hMnu, IDM_AUTO, w.MF_BYCOMMAND | w.MF_CHECKED);
+			or(AUTO, reginfo.opts);
+		endif;
+		
+	elseif (eax = IDM_WRAP) then
+		test(WRAP,reginfo.opts);
+		if (@nz) then
+			w.CheckMenuItem(hMnu, IDM_WRAP, w.MF_BYCOMMAND | w.MF_UNCHECKED);
+			and(!(WRAP), reginfo.opts);
+			w.SendMessage( hREd, w.EM_SETTARGETDEVICE, NULL, 1 ); 
+		else
+			w.CheckMenuItem(hMnu, IDM_WRAP, w.MF_BYCOMMAND | w.MF_CHECKED);
+			or(WRAP,reginfo.opts);
+			w.SendMessage( hREd, w.EM_SETTARGETDEVICE, NULL, 0 );
+		endif;	
+		//ChangeWrapStatus();
+		
+	elseif (eax = IDM_READONLY) then
+		
+		test (READ, reginfo.opts);
+		if (@nz) then
+			w.CheckMenuItem(hMnu, IDM_READONLY, w.MF_BYCOMMAND | w.MF_UNCHECKED);
+			and (! READ, reginfo.opts);
+			xor( eax, eax );
+		else
+			w.CheckMenuItem(hMnu, IDM_READONLY, w.MF_BYCOMMAND | w.MF_CHECKED);
+			or (READ, reginfo.opts);
+			or( 1, eax );
+		endif;
+		//ChangeReadStatus();
+		w.SendMessage( hREd, w.EM_SETREADONLY, eax, 0 ); 
+		
+	elseif (eax = IDM_CLEAREXIT) then
+		
+		test (CLEAR, reginfo.opts);
+		if (@nz) then
+			w.CheckMenuItem(hMnu, IDM_CLEAREXIT, w.MF_BYCOMMAND | w.MF_UNCHECKED);
+			and (! CLEAR, reginfo.opts);
+		else
+			w.CheckMenuItem(hMnu, IDM_CLEAREXIT, w.MF_BYCOMMAND | w.MF_CHECKED);
+			or (CLEAR, reginfo.opts);
+		endif;
+		
+	elseif (eax = IDM_RECENTNEW) then
+		test (RECENTNEW, reginfo.opts);
+		if (@nz) then
+			w.CheckMenuItem(hMnu, IDM_RECENTNEW, w.MF_BYCOMMAND | w.MF_UNCHECKED);
+			and (! RECENTNEW, reginfo.opts);
+		else
+			w.CheckMenuItem(hMnu, IDM_RECENTNEW, w.MF_BYCOMMAND | w.MF_CHECKED);
+
+			or (RECENTNEW, reginfo.opts);
+		endif;
+		
+	elseif (eax = IDM_OPENRECENT) then
+		test (OPEN_RECENT, reginfo.opts);
+		if (@nz) then
+			w.CheckMenuItem(hMnu, IDM_OPENRECENT, w.MF_BYCOMMAND | w.MF_UNCHECKED);
+
+			and (! OPEN_RECENT, reginfo.opts);
+		else
+			w.CheckMenuItem(hMnu, IDM_OPENRECENT, w.MF_BYCOMMAND | w.MF_CHECKED);
+			or (OPEN_RECENT, reginfo.opts);
+		endif;
+		
+		
+	elseif (eax = IDM_PEG) then
+		
+		test(PEG,reginfo.opts);
+		if (@nz) then
+			and(!(PEG),reginfo.opts);
+			w.CheckMenuItem(hMnu,IDM_PEG,w.MF_BYCOMMAND | w.MF_UNCHECKED);
+			w.SetWindowPos(hwnd,w.HWND_NOTOPMOST,0,0,0,0,3);
+		else
+			or(PEG,reginfo.opts);
+			w.CheckMenuItem(hMnu,IDM_PEG,w.MF_BYCOMMAND | w.MF_CHECKED);
+			w.SetWindowPos(hwnd,w.HWND_TOPMOST,0,0,0,0,3);						
+		endif;
+		
+	elseif (eax = IDM_REGISTRY) then
+		if (hReg) then
+			w.CheckMenuItem(hMnu, IDM_REGISTRY, w.MF_BYCOMMAND | w.MF_UNCHECKED);
+			RegCloseKey(hReg);
+			mov(0,hReg);
+		else
+			w.CheckMenuItem(hMnu, IDM_REGISTRY, w.MF_BYCOMMAND | w.MF_CHECKED);
+			RegCreateKeyEx(w.HKEY_CURRENT_USER, &szAppPath,0, &szREG_SZ,0,w.KEY_WRITE | w.KEY_READ,0, &hReg, &lpdwDisp);
+			w.CheckMenuItem(hMnu, IDM_PRIVATE, w.MF_BYCOMMAND | w.MF_UNCHECKED);
+			mov (false, useini);
+		endif;
+		
+	elseif (eax = IDM_UNINSTALL) then
+		if(hReg) then
+			w.CheckMenuItem(hMnu, IDM_REGISTRY, w.MF_BYCOMMAND | w.MF_UNCHECKED);
+			RegCloseKey(hReg);
+			mov(0,hReg);
+			RegDeleteKey(w.HKEY_CURRENT_USER, &szAppPath);
+			error (&szUninstalled);
+		endif;
+		
+	elseif (eax = IDM_PRIVATE) then
+		if (hReg) then
+			w.CheckMenuItem(hMnu, IDM_REGISTRY, w.MF_BYCOMMAND | w.MF_UNCHECKED);
+			RegCloseKey(hReg);
+			mov(0,hReg);
+		endif;
+		mov (true, useini);
+		w.CheckMenuItem(hMnu, IDM_PRIVATE, w.MF_BYCOMMAND | w.MF_CHECKED);		
+
+	elseif (eax = IDM_ABOUT) then
+	
+		w.CreateDialogParam(hInstance,val ID_ABOUT,hwnd,&AboutDlgProc,0);
+
+	elseif (eax = IDM_DOCUMENTS) then
+		file_io (&szDocument, w.OPEN_EXISTING, w.FILE_ATTRIBUTE_NORMAL, false);
+		if (eax != w.INVALID_HANDLE_VALUE) then
+			w.CloseHandle (eax);
+			pushd (&szDocument);
+			call newInstance;
+		else
+			error (&szMissingDocs);
+
+		endif;
+
+	elseif (eax=IDM_QUIT) then
+	
+		 w.SendMessage(hwnd,w.WM_CLOSE,0,0);
+
+//	elseif (eax = IDM_DEBUG) then
+//		debugProc();
+
+	elseif (eax >= RECENT_MENU_START && eax <= RECENT_MENU_END) then
+
+		openRecent (eax);
+
+	endif;
+
+end ProcessCommand;
+
+// size window
+procedure SizeApplication ( hwnd:dword; wParam:dword; lParam:dword);
+	
+	var
+		rect	:w.RECT;
+		height	:dword;
+	
+begin SizeApplication;
+	
+	w.GetClientRect(hwnd, rect);
+	mov	(rect.bottom,eax);
+	sub	(rect.top,eax);
+	mov	(eax, height);
+	
+	w.MoveWindow(hREd,0,rect.top,rect.right,height,true);
+
+end SizeApplication;
+
+procedure SetFocus ( hwnd:dword; wParam:dword; lParam:dword );
+begin SetFocus;
+	w.SetFocus (hREd);
+end SetFocus;
+
+procedure ContextMenu ( hwnd:dword; wParam:dword; lParam:dword );
+	var
+		pt	:w.POINT;
+	
+begin ContextMenu;
+	mov (lParam, eax);
+	if (eax = -1) then
+		w.GetCaretPos (pt);
+		w.GetFocus();
+		mov (eax, edx);
+		w.ClientToScreen (edx, pt);
+	else
+		and ($ffff, eax);
+		mov (eax, pt.x);
+		mov (lParam, eax);
+		shr (16, eax);
+		mov (eax, pt.y);
+	endif;
+	
+	mov (wParam, eax);
+	if (eax = hREd) then
+		w.GetMenu (hwnd);
+		w.GetSubMenu (eax, 1);	// edit menu, 2nd item
+		w.TrackPopupMenu(eax, w.TPM_LEFTALIGN | w.TPM_RIGHTBUTTON, pt.x,pt.y,0,hwnd,NULL);
+	endif;
+end ContextMenu;
+
+
+// handles w.WM_INITDIALOG message  
+procedure SetupRichEdit ( hwnd:dword; wParam:dword; lParam:dword );
+begin SetupRichEdit;
+
+	// set window position
+	w.MoveWindow(hwnd, reginfo.x,reginfo.y,reginfo.wt,reginfo.ht,true);
+
+	// setup Richedit control
+	w.GetDlgItem(hwnd,IDC_RED);
+	mov	(eax,hREd);
+	w.SendMessage(hREd, w.EM_SETMODIFY, false,0);
+	w.SendMessage(hREd, w.EM_EMPTYUNDOBUFFER,0,0);
+
+	w.DragAcceptFiles(hwnd, true);
+	
+	lea(eax,logfont);
+	mov((type byte[eax]),al);
+	if (!al) then
+		w.lstrcpy( logfont.lfFaceName, szfont);
+		mov	(-12,logfont.lfHeight);
+		mov	(400,logfont.lfWeight);
+	endif;
+	w.CreateFontIndirect(&logfont);
+	mov	(eax,hFont);
+	SetFormat();
+		
+	// set up default window title
+	w.SetWindowText(hREd,0);
+	w.SetFocus(hREd);
+
+end SetupRichEdit;
+
+procedure WindowProc( lParam:dword; wParam:dword; uMsg:uns32; hwnd:dword );
+begin WindowProc;
+		
+	mov( uMsg, eax );
+	mov( &Dispatch, edx );
+	forever
+	
+		mov( (type MsgProcPtr_t [edx]).MessageHndlr, ecx );
+		if( ecx = 0 ) then
+		
+
+			w.DefWindowProc( hwnd, uMsg, wParam, lParam );
+			exit WindowProc;
+			
+		
+		elseif( eax = (type MsgProcPtr_t [edx]).MessageValue ) then
+			
+			push( hwnd );	// (type tMsgProc ecx)(hwnd, wParam, lParam)
+			push( wParam );	//  This calls the associated routine after
+			push( lParam );	//  pushing the necessary parameters.
+			call( ecx );
+			
+			sub( eax, eax ); // Return value for function is zero.
+			break;
+		
+		endif;
+		add( @size( MsgProcPtr_t ), edx );
+		
+	endfor;
+	
+end WindowProc;
+	
+	
+procedure SavageEd_Main;		
+begin SavageEd_Main;
+
+	dbg.cls;
+	dbg.put("SavageEd");
+	
+	w.GetModuleHandle( NULL );
+	mov	( eax, hInstance );
+	w.InitCommonControls();
+	w.lstrcpy(&FileName, &NewFile);
+	mov ($00FF_FFFF, colors.backColor); // default = white
+	
+	mov( 0, findbuf[0] );
+	mov( 0, replacebuf[0] );
+	
+	w.GetModuleFileName (hInstance, &iniPath, @size(iniPath) );
+	mov (&iniPath, edi);
+	add (eax, edi);
+	while (edi > &iniPath) do
+		dec (edi);
+		mov ([edi], al);
+		if (al = '\') then
+			mov (0, (type byte[edi]));
+			break;
+		endif;
+	endwhile; 
+	w.lstrcat(&iniPath, &szSavageEdini);
+
+	w.LoadLibrary(&RichEditDLL);
+	if (eax = NULL ) then
+		error (&szMissingDLL);
+		mov(w.ERROR_FILE_NOT_FOUND,eax);
+		jmp _exitSavageEd;
+    endif;
+	mov	(eax,hREDDLL);
+	
+	// create the window
+	mov( @size( w.WNDCLASSEX ), wc.cbSize );
+	mov( w.CS_HREDRAW | w.CS_VREDRAW, wc.style );
+	move( &WindowProc, wc.lpfnWndProc );
+	mov( NULL, wc.cbClsExtra );
+	mov( w.DLGWINDOWEXTRA, wc.cbWndExtra );
+	mov( NULL, wc.hbrBackground );
+	mov( IDM_MENU, wc.lpszMenuName );
+	move( &AppName, wc.lpszClassName );	// class and app = same name
+	move( hInstance, wc.hInstance );
+	
+	// Get the icons and cursor for this application:
+	
+	w.LoadIcon( NULL, val IC_HLA );
+	mov( eax, wc.hIcon );
+	w.LoadImage( hInstance, val IC_HLA, w.IMAGE_ICON, w.SM_CXSMICON, w.SM_CYSMICON,NULL);
+	mov( eax, wc.hIconSm );
+	
+	w.LoadCursor( NULL, val w.IDC_ARROW );
+	mov( eax, wc.hCursor );
+	
+	file_io (&iniPath, w.OPEN_EXISTING, w.FILE_ATTRIBUTE_NORMAL, false);
+	if (eax = w.INVALID_HANDLE_VALUE) then
+		mov (false, useini);
+		RegOpenKeyEx(w.HKEY_CURRENT_USER, &szAppPath,0,w.KEY_WRITE | w.KEY_READ,&hReg);
+		if (eax = w.ERROR_SUCCESS) then
+			mov	(@size(reginfo), lpcbData);
+			RegQueryValueEx(hReg,&szEditInfo,0,&lpType,&reginfo,&lpcbData);
+			mov	(@size(logfont), lpcbData);
+			RegQueryValueEx(hReg,&szFontInfo,0,&lpType,&logfont,&lpcbData);
+			mov (@size(ppos), lpcbData);
+			RegQueryValueEx (hReg,&szPPOS,0,&lpType,&ppos,&lpcbData);
+			mov (@size(colors), lpcbData);
+			RegQueryValueEx (hReg,&szColorInfo,0,&lpType,&colors,&lpcbData);
+		endif;
+		
+	else
+		mov (true, useini);
+		w.CloseHandle (eax);
+
+		// no registry entry, look for SavageEd.ini in current folder
+		w.GetPrivateProfileStruct ("SavageEd", "Options", reginfo, @size(reginfo), &iniPath);
+		w.GetPrivateProfileStruct ("SavageEd", "Font", logfont, @size(logfont), &iniPath);
+		w.GetPrivateProfileStruct ("SavageEd", "PPOS", &ppos, @size(ppos), &iniPath);
+		w.GetPrivateProfileStruct ("SavageEd", "Colors", &colors, @size(colors), &iniPath);
+	endif;
+
+	move (ppos.margins.left, psd.rtMargin.left);
+	move (ppos.margins.top, psd.rtMargin.top);
+	move (ppos.margins.right, psd.rtMargin.right);
+	move (ppos.margins.bottom, psd.rtMargin.bottom);
+	move (ppos.pagesize.x, psd.ptPaperSize.x);
+	move (ppos.pagesize.y, psd.ptPaperSize.y);	
+	
+	w.RegisterClassEx( wc );
+	w.CreateDialogParam
+	( 
+		hInstance, 
+		val ID_DLG, 
+		NULL,
+		&WindowProc,
+		NULL 
+	);
+	mov (eax, hwnd);
+	setupRecent();
+	
+	if (reginfo.fMax) then
+		mov	(w.SW_MAXIMIZE, eax);
+	else
+		mov	(w.SW_SHOWNORMAL, eax);
+	endif;
+
+	w.ShowWindow( hwnd, eax );
+	w.UpdateWindow(hwnd);
+	
+	w.GetMenu(hwnd);
+	mov(eax,hMnu);
+	
+	push (edi);
+	push (esi);
+	
+	w.GetCommandLine();
+	mov (eax, esi);
+	//dbg.putz (esi);
+	
+	// skip over 1st word:
+	xor (ah, ah);
+	mov ([esi], al);
+	cmp (al, '"');
+	jne findEOW;
+	mov ('"', ah);
+	inc (esi);
+	
+	findEOW:
+		
+		lodsb(); //dbg.put ( (type byte al), "  ", (type char al) );
+		test (al, al);
+		jz done;
+		cmp (al, ' ');
+		jne _checkquote;
+		test (ah, ah);
+		jz nextword;
+		jmp findEOW;
+		_checkquote:
+		cmp (al, '"');
+		jne findEOW;
+		inc (esi);
+	
+	nextword:
+		lodsb();
+		test (al, al);
+		jz done;
+		cmp (al, ' ');
+		je nextword;
+		cmp (al, '"');
+		je nextword;
+		
+
+	mov (&buffer, edi);
+	dec (esi);
+	copy:
+		mov ([esi], al);
+		test (al, al);
+		jz endcopy;
+		cmp (al, '"');
+		je endcopy;
+		mov (al, [edi]);
+		inc (esi);
+		inc (edi);
+		jmp copy;
+		
+	endcopy:
+		//dbg.putz (&buffer);
+		w.GetLongPathName ( &buffer, &FileName, @size(FileName)-1);
+		LoadFile();
+		jmp skipOpenRecent;
+
+	done:
+
+	test (OPEN_RECENT, reginfo.opts);
+	if (@nz) then
+		loadRecent();
+	endif;
+	
+	skipOpenRecent:
+	pop (esi);
+	pop (edi);
+		
+	test (WRAP,reginfo.opts);
+	if (@nz) then
+		w.CheckMenuItem(hMnu, IDM_WRAP, w.MF_BYCOMMAND | w.MF_CHECKED);
+		//ChangeWrapStatus();
+		w.SendMessage( hREd, w.EM_SETTARGETDEVICE, NULL, 0 );
+	endif;
+	test (AUTO,reginfo.opts);
+	if (@nz) then
+		w.CheckMenuItem(hMnu, IDM_AUTO, w.MF_BYCOMMAND | w.MF_CHECKED);
+	endif;
+	test(PEG,reginfo.opts);
+	if (@nz) then
+		w.CheckMenuItem(hMnu,IDM_PEG,w.MF_BYCOMMAND | w.MF_CHECKED);
+		w.SetWindowPos(hwnd,w.HWND_TOPMOST,reginfo.x,reginfo.y,reginfo.wt,reginfo.ht,3);		
+	endif;
+	test (READ, reginfo.opts);
+	if (@nz) then
+		w.CheckMenuItem(hMnu,IDM_READONLY,w.MF_BYCOMMAND | w.MF_CHECKED);
+		//ChangeReadStatus();
+		w.SendMessage( hREd, w.EM_SETREADONLY, true, 0 );
+	endif;
+	test (CLEAR, reginfo.opts);
+	if (@nz) then
+		w.CheckMenuItem(hMnu,IDM_CLEAREXIT,w.MF_BYCOMMAND | w.MF_CHECKED);
+	endif;
+	test (RECENTNEW, reginfo.opts);
+	if (@nz) then
+		w.CheckMenuItem(hMnu,IDM_RECENTNEW,w.MF_BYCOMMAND | w.MF_CHECKED);
+	endif;
+	test (OPEN_RECENT, reginfo.opts);
+	if (@nz) then
+		w.CheckMenuItem(hMnu,IDM_OPENRECENT,w.MF_BYCOMMAND | w.MF_CHECKED);
+	endif;
+	
+	SetupWindowTitle();
+
+	w.LoadAccelerators(hInstance,val ID_ACCEL);
+	mov	(eax, hAccel);
+	
+	if (hReg) then
+		w.CheckMenuItem(hMnu, IDM_REGISTRY, w.MF_BYCOMMAND | w.MF_CHECKED);
+	elseif (useini) then
+		w.CheckMenuItem(hMnu, IDM_PRIVATE, w.MF_BYCOMMAND | w.MF_CHECKED);
+	endif;
+	
+	dbg.put("Setup complete, entering message loop");
+	dbg.put("red = ", hREd);
+	forever
+	
+		w.GetMessage( msg, NULL, 0, 0 );
+		breakif( !eax );
+		w.IsDialogMessage(hFind, msg);
+		continueif (eax);
+		w.IsDialogMessage(hAbout, msg);
+		continueif (eax);
+		if (!w.TranslateAccelerator(hwnd,hAccel,msg)) then
+			w.TranslateMessage( msg );
+			w.DispatchMessage( msg );
+		endif;
+		
+	endfor;
+
+	w.FreeLibrary(hREDDLL);
+	
+	if(hReg) then
+
+		RegSetValueEx(hReg,&szEditInfo,0,w.REG_BINARY,&reginfo, @size(reginfo));
+		RegSetValueEx(hReg,&szFontInfo,0,w.REG_BINARY,&logfont, @size(logfont));
+		RegSetValueEx(hReg,&szPPOS,0,w.REG_BINARY,&ppos,@size(ppos));
+		RegSetValueEx(hReg,&szColorInfo,0,w.REG_BINARY,&colors, @size(colors));
+		RegCloseKey(hReg);
+	elseif (useini) then
+		w.WritePrivateProfileStruct ("SavageEd", "Options", reginfo, @size(reginfo), &iniPath);
+		w.WritePrivateProfileStruct ("SavageEd", "Font", logfont, @size(logfont), &iniPath);
+		w.WritePrivateProfileStruct ("SavageEd", "Colors", colors, @size(colors), &iniPath);
+		w.WritePrivateProfileStruct ("SavageEd", "PPOS", &ppos,@size(ppos),&iniPath);
+	endif;
+	
+	mov( msg.wParam, eax );
+
+_exitSavageEd::
+	w.ExitProcess( eax );	
+
+end SavageEd_Main;
+
+end SavageEd;

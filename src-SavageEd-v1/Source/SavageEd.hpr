@@ -1,0 +1,63 @@
+
+[HPR Settings]
+mainfile=Src\SavageEd.hla
+tab=4
+backups=3
+options=00002040
+Project Version=10
+usetemp=false
+useunits=true
+useback=true
+wscan header=src\win_inc.hhf
+findscope=00000001
+findflags=00000001
+
+[HPR Jobs]
+SavageEd
+
+[HPR Folders]
+units
+res
+src
+bak
+
+[SavageEd]
+console=false
+output=SavageEd.exe
+type=modular
+main=SavageEd.hla
+
+[SavageEd.link]
+-heap:0x500,0x500
+-stack:0x500,0x500
+-base:0x4000000
+-entry:HLAMain
+-section:.data,RW
+-section:.text,ER
+
+
+[SavageEd.files]
+SavageEd.hla,src,hlaprogram
+SavageEd.hhf,src,include
+SavageEd.rc,res,resource
+print.hla,src,hlaunit
+win_inc.hhf,src,include
+SavageEd_doc.txt,,misc
+
+[Notes]
+<text>
+1.4.6cleaned up readonly and word wrap code.
+</text>
+
+
+[SavageEd.extlinked]
+kernel32.lib
+user32.lib
+hlalib.lib
+advapi32.lib
+comdlg32.lib
+comctl32.lib
+shell32.lib
+GDI32.LIB
+ole32.lib
+olepro32.lib
